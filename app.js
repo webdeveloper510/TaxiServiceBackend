@@ -6,11 +6,13 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const db = require('./config/db')
 const http = require('http')
+const cors = require('cors')
 
 var adminRouter = require('./routes/admin');
 var usersRouter = require('./routes/users');
 
 var app = express();
+app.use(cors())
 const httpServer = http.createServer(app)
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
