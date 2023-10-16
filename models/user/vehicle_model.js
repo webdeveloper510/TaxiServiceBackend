@@ -1,0 +1,75 @@
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+
+const vehicle = new Schema({
+    vehicle_number:{
+        type:String,
+        default:null
+    },
+    vehicle_type:{
+        type:String,
+        default:null
+    },
+    vehicle_model:{
+        type:String,
+        default:null
+    },
+    seating_capacity:{
+        type:Number,
+        default:0
+    },
+    price_per_km:{
+        type:Number,
+        default:null
+    },
+    minimum_fare:{
+        type:Number,
+        default:0
+    },
+    commision:{
+        type:Number,
+        default:0
+    },
+    cancelation_time_limit:{
+        type:Date,
+        default:null
+    },
+    cancelation_charges:{
+        type:Number,
+        default:0
+    },
+    insurance_renewal_date:{
+        type:Date,
+        default:null
+    },
+    vehicle_photo:{
+        type:String,
+        default:null
+    },
+    agency_user_id:{
+        type:String,
+        default:null
+    },
+    status:{
+        type:Boolean,
+        default:true
+    },
+    is_available:{
+        type:Boolean,
+        default:true
+    },
+    is_deleted:{
+        type:Boolean,
+        default:false
+    },
+    created_by:{
+        type:String,
+        default:null
+    },
+    deleted_by:{
+        type:String,
+        default:null
+    }
+},{timestamps:true})
+
+module.exports = mongoose.model('vehicle',vehicle)
