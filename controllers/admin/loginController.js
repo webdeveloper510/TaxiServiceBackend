@@ -72,13 +72,12 @@ exports.login = async(req,res)=>{
             return;
         }
         let jwtToken = jwt.sign({userId:userData._id},process.env.JWTSECRET,{expiresIn:'365d'})
-        userData.jwtToken = jwtToken
         res.send({
             code:constants.success_code,
             message:"Login Successful",
-            result:userData
+            result:userData,
+            jwtToken : jwtToken
         })
-        // let userData = await USER.findOne({email:data.email}).select("+password")
     }catch(err){
         res.send({
             code:constants.error_code,

@@ -4,15 +4,15 @@ const Schema = mongoose.Schema
 const vehicle = new Schema({
     vehicle_number:{
         type:String,
-        default:null
+        default:''
     },
     vehicle_type:{
         type:String,
-        default:null
+        default:''
     },
     vehicle_model:{
         type:String,
-        default:null
+        default:''
     },
     seating_capacity:{
         type:Number,
@@ -20,7 +20,7 @@ const vehicle = new Schema({
     },
     price_per_km:{
         type:Number,
-        default:null
+        default:0
     },
     minimum_fare:{
         type:Number,
@@ -32,7 +32,7 @@ const vehicle = new Schema({
     },
     cancelation_time_limit:{
         type:Date,
-        default:null
+        default:Date.now()
     },
     cancelation_charges:{
         type:Number,
@@ -40,15 +40,15 @@ const vehicle = new Schema({
     },
     insurance_renewal_date:{
         type:Date,
-        default:null
+        default:Date.now()
     },
     vehicle_photo:{
         type:String,
-        default:null
+        default:''
     },
     agency_user_id:{
         type:String,
-        default:null
+        default:''
     },
     status:{
         type:Boolean,
@@ -64,11 +64,11 @@ const vehicle = new Schema({
     },
     created_by:{
         type:String,
-        default:null
+        default:''
     },
     deleted_by:{
         type:String,
-        default:null
+        default:''
     }
 },{timestamps:true})
 

@@ -7,8 +7,8 @@ const vehicleType = new Schema({
         default:''
     },
     status:{
-        type:String,
-        default:''
+        type:Boolean,
+        default:true
     },
     is_deleted:{
         type:Boolean,
