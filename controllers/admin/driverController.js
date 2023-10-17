@@ -1,0 +1,150 @@
+const constant = require('../../config/constant');
+const DRIVER = require('../../models/user/driver_model'); // Import the Driver model
+const bcrypt = require("bcrypt");
+
+
+exports.add_driver = async (req, res) => {
+    try {
+        const data = req.body;
+        const newDriver = new DRIVER(data);
+        let hash = await bcrypt.hashSync(data.password, 10);
+        newDriver.password = hash;
+        newDriver.created_by = req.userId // Assuming you have user authentication
+
+        const savedDriver = await newDriver.save();
+
+        res.send({
+            code: constant.success_code,
+            message: 'Driver created successfully',
+            result: savedDriver,
+        })
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+};
+
+exports.remove_driver = async (req, res) => {
+    try {
+        const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+
+        // You may want to add additional checks to ensure the driver exists or belongs to the agency user
+        const removedDriver = await DRIVER.findById(driverId);
+
+        if (removedDriver) {
+            removedDriver.is_deleted = true;
+            removedDriver.save();
+            res.send({
+                code: constant.success_code,
+                message: 'Driver deleted successfully',
+                result: removedDriver,
+            })
+        } else {
+            res.send({
+                code: constant.error_code,
+                message: 'Driver not found',
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+};
+
+exports.get_driver_detail = async (req, res) => {
+    try {
+        const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+
+        const driver = await DRIVER.findOne({ _id: driverId, is_deleted: false });
+        if (!driver) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to fetch the detail"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: driver
+            })
+        }
+        // if (driver && driver.is_deleted === false) {
+        //     res.send({
+        //         code: constant.success_code,
+        //         message: 'Driver deleted successfully',
+        //         result: driver,
+        //     })
+        // } else {
+        //     res.send({
+        //         code: constant.error_code,
+        //         message: 'Driver not found',
+        //     });
+        // }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message,
+        });
+    }
+};
+
+exports.get_drivers = async (req, res) => {
+    try {
+        const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
+
+        const drivers = await DRIVER.find({ agency_user_id: agencyUserId, is_deleted: false }).sort({ 'createdAt': -1 });
+
+        if (drivers) {
+            res.send({
+                code: constant.success_code,
+                message: 'Driver list retrieved successfully',
+                result: drivers,
+            });
+        } else {
+            res.send({
+                code: constant.error_code,
+                message: 'No drivers found for the agency user',
+            });
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message,
+        });
+    }
+};
+
+exports.update_driver = async (req, res) => {
+    try {
+        const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+        const updates = req.body; // Assuming you send the updated driver data in the request body
+
+        // Check if the driver exists
+        const existingDriver = await DRIVER.findById(driverId);
+
+        if (!existingDriver || existingDriver.is_deleted) {
+            return res.send({
+                code: constant.error_code,
+                message: 'Driver not found',
+            });
+        }
+        const updatedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, updates, { new: true });
+        if (updatedDriver) {
+            res.send({
+                code: constant.success_code,
+                message: 'Driver updated successfully',
+                result: updatedDriver,
+            });
+        }
+
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message,
+        });
+    }
+};

@@ -81,14 +81,49 @@ exports.add_vehicle = async (req, res) => {
 
 }
 
-// exports.get_vehicles = async(req,res)=>{
-//     try{
-//         let get_vehicle = await
-//     }catch(err){
-//         res.send({
-//             code:constant.error_code,
-//             message:err.message
-//         })
-//     }
-// }
+exports.get_vehicles = async(req,res)=>{
+    try{
+        let get_vehicle = await VEHICLE.find({agency_user_id:req.userId}).sort({'createdAt':-1})
+        if(!get_vehicle){
+            res.send({
+                code:constant.error_code,
+                message:"Unable to fetch the details"
+            })
+        }else{
+            res.send({
+                code:constant.success_code,
+                message:"Success",
+                result:get_vehicle
+            })
+        }
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}
+
+exports.get_vehicle_detail = async(req,res)=>{
+    try{
+        let getData = await VEHICLE.findOne({_id:req.params.id})
+        if(!getData){
+            res.send({
+                code:constant.error_code,
+                message:"Unable to fetch the details"
+            })
+        }else{
+            res.send({
+                code:constant.success_code,
+                message:"Success",
+                result:getData
+            })
+        }
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}
 
