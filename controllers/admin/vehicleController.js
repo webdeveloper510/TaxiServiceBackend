@@ -81,42 +81,105 @@ exports.add_vehicle = async (req, res) => {
 
 }
 
-exports.get_vehicles = async(req,res)=>{
-    try{
-        let get_vehicle = await VEHICLE.find({agency_user_id:req.userId}).sort({'createdAt':-1})
-        if(!get_vehicle){
+exports.get_vehicles = async (req, res) => {
+    try {
+        let get_vehicle = await VEHICLE.find({ agency_user_id: req.userId }).sort({ 'createdAt': -1 })
+        if (!get_vehicle) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to fetch the details"
+                code: constant.error_code,
+                message: "Unable to fetch the details"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Success",
-                result:get_vehicle
+                code: constant.success_code,
+                message: "Success",
+                result: get_vehicle
             })
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
 
-exports.get_vehicle_detail = async(req,res)=>{
+exports.get_vehicle_detail = async (req, res) => {
+    try {
+        let getData = await VEHICLE.findOne({ _id: req.params.id })
+        if (!getData) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to fetch the details"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: getData
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.edit_vehicle = async (req, res) => {
+    try {
+        let data = req.body
+        let criteria = { _id: req.params.id }
+        let option = { new: true }
+        let check_vehicle = await VEHICLE(criteria)
+        if (!check_vehicle) {
+            res.send({
+                code: constant.error_code,
+                message: "Invalid ID"
+            })
+            return;
+        }
+        let updateVehicle = await VEHICLE.findOneAndUpdate(criteria, data, option)
+        if (!updateVehicle) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to update the details"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Updated Successfully",
+                result: updateVehicle
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.delete_vehicle = async(req,res)=>{
     try{
-        let getData = await VEHICLE.findOne({_id:req.params.id})
-        if(!getData){
+        let criteria = {_id:req.params.id};
+        let newValue = {
+            $set:{
+                is_deleted:true
+            }
+        };
+        let option = {new:true}
+        let deleteOption = await VEHICLE.findOneAndUpdate(criteria,newValue,option)
+        if(!deleteOption){
             res.send({
                 code:constant.error_code,
-                message:"Unable to fetch the details"
+                message:"Unable to Delete Vehicle"
             })
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Success",
-                result:getData
+                message:"Deleted"
             })
         }
     }catch(err){
