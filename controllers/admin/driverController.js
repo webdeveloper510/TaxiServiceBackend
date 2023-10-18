@@ -1,29 +1,52 @@
 const constant = require('../../config/constant');
 const DRIVER = require('../../models/user/driver_model'); // Import the Driver model
 const bcrypt = require("bcrypt");
+const multer = require('multer')
+const path = require('path')
+
+
+var driverStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, '../../uploads/driver'))
+    },
+    filename: function (req, file, cb) {
+        console.log("file+++++++++++++++++++++++=", file)
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+    }
+})
+
+var driverUpload = multer({
+    storage: driverStorage
+}).single("driver_photo")
+
+
+
 
 
 exports.add_driver = async (req, res) => {
-    try {
-        const data = req.body;
-        const newDriver = new DRIVER(data);
-        let hash = await bcrypt.hashSync(data.password, 10);
-        newDriver.password = hash;
-        newDriver.created_by = req.userId // Assuming you have user authentication
+    driverUpload(req, res, async (err) => {
+        try {
+            const data = req.body;
+            const newDriver = new DRIVER(data);
+            let hash = await bcrypt.hashSync(data.password, 10);
+            newDriver.password = hash;
+            newDriver.created_by = req.userId // Assuming you have user authentication
+            newDriver.profile_image = req.file ? req.file.filename : 'driver.jpeg'
+            const savedDriver = await newDriver.save();
 
-        const savedDriver = await newDriver.save();
+            res.send({
+                code: constant.success_code,
+                message: 'Driver created successfully',
+                result: savedDriver,
+            })
+        } catch (err) {
+            res.send({
+                code: constant.error_code,
+                message: err.message
+            })
+        }
+    })
 
-        res.send({
-            code: constant.success_code,
-            message: 'Driver created successfully',
-            result: savedDriver,
-        })
-    } catch (err) {
-        res.send({
-            code: constant.error_code,
-            message: err.message
-        })
-    }
 };
 
 exports.remove_driver = async (req, res) => {
@@ -119,32 +142,36 @@ exports.get_drivers = async (req, res) => {
 };
 
 exports.update_driver = async (req, res) => {
-    try {
-        const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
-        const updates = req.body; // Assuming you send the updated driver data in the request body
+    driverUpload(req, res, async (err) => {
+        try {
+            const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+            const updates = req.body; // Assuming you send the updated driver data in the request body
 
-        // Check if the driver exists
-        const existingDriver = await DRIVER.findById(driverId);
+            // Check if the driver exists
+            const existingDriver = await DRIVER.findById(driverId);
 
-        if (!existingDriver || existingDriver.is_deleted) {
-            return res.send({
-                code: constant.error_code,
-                message: 'Driver not found',
-            });
-        }
-        const updatedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, updates, { new: true });
-        if (updatedDriver) {
+            if (!existingDriver || existingDriver.is_deleted) {
+                return res.send({
+                    code: constant.error_code,
+                    message: 'Driver not found',
+                });
+            }
+            data.profile_image = req.file ? req.file.filename : existingDriver.profile_image
+            const updatedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, updates, { new: true });
+            if (updatedDriver) {
+                res.send({
+                    code: constant.success_code,
+                    message: 'Driver updated successfully',
+                    result: updatedDriver,
+                });
+            }
+
+        } catch (err) {
             res.send({
-                code: constant.success_code,
-                message: 'Driver updated successfully',
-                result: updatedDriver,
+                code: constant.error_code,
+                message: err.message,
             });
         }
+    })
 
-    } catch (err) {
-        res.send({
-            code: constant.error_code,
-            message: err.message,
-        });
-    }
 };
