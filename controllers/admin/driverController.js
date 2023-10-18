@@ -37,6 +37,7 @@ exports.add_driver = async (req, res) => {
             let hash = await bcrypt.hashSync(data.password ? data.password : 'Test@123', 10);
             data.password = hash;
             data.created_by = req.userId // Assuming you have user authentication
+            data.agency_user_id = req.userId // Assuming you have user authentication
             data.profile_image = req.file ? req.file.filename : 'driver.jpeg'
 
             let save_driver = await DRIVER(data).save()
