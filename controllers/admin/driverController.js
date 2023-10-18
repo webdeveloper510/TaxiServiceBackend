@@ -27,18 +27,31 @@ exports.add_driver = async (req, res) => {
     driverUpload(req, res, async (err) => {
         try {
             const data = req.body;
-            const newDriver = new DRIVER(data);
-            let hash = await bcrypt.hashSync(data.password, 10);
-            newDriver.password = hash;
-            newDriver.created_by = req.userId // Assuming you have user authentication
-            newDriver.profile_image = req.file ? req.file.filename : 'driver.jpeg'
-            const savedDriver = await newDriver.save();
+            // const newDriver = new DRIVER(data);
+            // let hash = await bcrypt.hashSync(data.password, 10);
+            // newDriver.password = hash;
+            // newDriver.created_by = req.userId // Assuming you have user authentication
+            // newDriver.profile_image = req.file ? req.file.filename : 'driver.jpeg'
+            // const savedDriver = await newDriver.save();
 
-            res.send({
-                code: constant.success_code,
-                message: 'Driver created successfully',
-                result: savedDriver,
-            })
+            let hash = await bcrypt.hashSync(data.password, 10);
+            data.password = hash;
+            data.created_by = req.userId // Assuming you have user authentication
+            data.profile_image = req.file ? req.file.filename : 'driver.jpeg'
+
+            let save_driver = await DRIVER(data).save()
+            if (!save_driver) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Unable to save the data"
+                })
+            } else {
+                res.send({
+                    code: constant.success_code,
+                    message: 'Driver created successfully',
+                    result: save_driver,
+                })
+            }
         } catch (err) {
             res.send({
                 code: constant.error_code,
