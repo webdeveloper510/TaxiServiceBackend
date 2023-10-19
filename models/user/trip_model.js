@@ -47,6 +47,15 @@ const trip = new Schema({
     },
     created_by:{
         type:mongoose.Schema.Types.ObjectId,ref:'users',
+    },
+    status:{
+        type:Boolean,
+        default:true
+    },
+    trip_status:{
+        type:String,
+        enum:['Booked','Active','Completed'],
+        default:'Booked'
     }
 },{timestamps:true})
 

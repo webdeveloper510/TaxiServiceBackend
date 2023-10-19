@@ -37,10 +37,15 @@ exports.get_trip = async(req,res)=>{
     try{
         let data = req.body
         let mid =new  mongoose.Types.ObjectId(req.userId)
-        console.log('mid--------------',mid)
+        console.log('mid--------------',req.params.status)
         let get_trip = await TRIP.aggregate([
             {
-                $match:{created_by:mid}
+                $match:{
+                    $and:[
+                        {created_by:mid},
+                        {trip_status:req.params.status}
+                    ]
+                }
             },
             {
                 $lookup:{
@@ -64,6 +69,7 @@ exports.get_trip = async(req,res)=>{
                     trip_from:1,
                     trip_to:1,
                     pickup_date_time:1,
+                    trip_status:1,
                     passenger_detail:1,
                     driver_name: {
                         $concat: [
