@@ -36,11 +36,11 @@ exports.add_trip = async(req,res)=>{
 exports.get_trip = async(req,res)=>{
     try{
         let data = req.body
-        let mid =new mongoose.Types.ObjectId(req.userId)
+        let mid =new  mongoose.Types.ObjectId(req.userId)
         console.log('mid--------------',mid)
         let get_trip = await TRIP.aggregate([
             {
-                $match:{created_by:req.userId}
+                $match:{created_by:mid}
             },
             {
                 $lookup:{
@@ -59,24 +59,41 @@ exports.get_trip = async(req,res)=>{
                 }
             },
             {
-                $unwind:'$driver'
-            },
-            {
-                $unwind:'$vehicle'
-            },
-            {
                 $project:{
                     _id:1,
                     trip_from:1,
                     trip_to:1,
                     pickup_date_time:1,
                     passenger_detail:1,
-                   driver:1,
-                   vehicle:1
+                    driver_name: {
+                        $concat: [
+                            { $arrayElemAt: ["$driver.first_name", 0] },
+                            " ",
+                            { $arrayElemAt: ["$driver.last_name", 0] }
+                        ]
+                    },
+                    vehicle: {
+                        $concat: [
+                            { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+                            " ",
+                            { $arrayElemAt: ["$vehicle.vehicle_model", 0] }
+                        ]
+                    },
                 }
             }
-        ])
-        console.log('data++++++++++',get_trip)
+        ]).sort({'createdAt':-1})
+        if(!get_trip){
+            res.send({
+                code:constant.error_code,
+                message:"Unable to get the trips"
+            })
+        }else{
+            res.send({
+                code:constant.success_code,
+                message:"Success",
+                result:get_trip
+            })
+        }
     }catch(err){
         res.send({
             code:constant.error_code,

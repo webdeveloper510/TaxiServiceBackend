@@ -47,7 +47,6 @@ const trip = new Schema({
     },
     created_by:{
         type:mongoose.Schema.Types.ObjectId,ref:'users',
-        default:''
     }
 },{timestamps:true})
 
