@@ -23,7 +23,7 @@ const fare = new Schema({
         default:'0'
     },
     created_by:{
-        type:String,
+        type:mongoose.Schema.Types.ObjectId,ref:'users',
         default:''
     },
     status:{

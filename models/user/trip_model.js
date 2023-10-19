@@ -3,16 +3,20 @@ const Schema = mongoose.Schema
 
 const trip = new Schema({
     driver_name:{
-        type:String,
+        type:mongoose.Schema.Types.ObjectId,ref:'drivers',
         default:''
     },
     vehicle:{
-        type:String,
+        type:mongoose.Schema.Types.ObjectId,ref:'vehicles',
         default:''
     },
     trip_from:{
-        type:String,
-        default:''
+        type:{},
+        default:{}
+    },
+    trip_to:{
+        type:{},
+        default:{}
     },
     pickup_date_time:{
         type:Date,
@@ -40,7 +44,11 @@ const trip = new Schema({
             }
         ],
         default:[]
+    },
+    created_by:{
+        type:mongoose.Schema.Types.ObjectId,ref:'users',
+        default:''
     }
-})
+},{timestamps:true})
 
 module.exports = mongoose.model('trip',trip)

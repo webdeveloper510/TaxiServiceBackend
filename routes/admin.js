@@ -6,6 +6,7 @@ var vehicleController = require('../controllers/admin/vehicleController');
 var agencyController = require('../controllers/admin/agencyController');
 var driverController = require('../controllers/admin/driverController');
 var fareController = require('../controllers/admin/fareController');
+var tripController = require('../controllers/admin/tripController');
 const { verifyToken } = require('../middleware/auth');
 
 /* GET home page. */
@@ -32,11 +33,11 @@ router.get('/edit_vehicle',[verifyToken],vehicleController.edit_vehicle)
 router.get('/delete_vehicle',[verifyToken],vehicleController.delete_vehicle)
 router.get('/get_vehicle_detail/:id',[verifyToken],vehicleController.get_vehicle_detail)
 
-// vehicle api's
+// agency api's
 router.post('/add_agency',[verifyToken],agencyController.add_agency)
 
 
-// vehicle api's
+// driver api's
 router.post('/add_driver',[verifyToken],driverController.add_driver)
 router.get('/get_drivers',[verifyToken],driverController.get_drivers)
 router.get('/get_driver_detail/:id',[verifyToken],driverController.get_driver_detail)
@@ -44,12 +45,18 @@ router.get('/update_driver/:id',[verifyToken],driverController.update_driver)
 router.delete('/remove_driver/:id',[verifyToken],driverController.remove_driver)
 
 
-// vehicle api's
+// fare api's
 router.post('/add_fare',[verifyToken],fareController.add_fare)
 router.get('/get_fares',[verifyToken],fareController.get_fares)
 router.get('/get_fare_detail/:id',[verifyToken],fareController.get_fare_detail)
 router.delete('/delete_fare/:id',[verifyToken],fareController.delete_fare)
 router.put('/edit_fare/:id',[verifyToken],fareController.edit_fare)
+
+
+
+// trip api's
+router.post('/add_trip',[verifyToken],tripController.add_trip)
+router.post('/get_trip',[verifyToken],tripController.get_trip)
 
 
 

@@ -59,20 +59,17 @@ const driver = new Schema({
         default: false
     },
     agency_user_id: {
-        type: String,
-        default: ''
+        type: mongoose.Schema.Types.ObjectId,ref:'users',
     },
     deleted_by: {
-        type: String,
-        default: ''
+        type: mongoose.Schema.Types.ObjectId,ref:'users',
     },
     status: {
         type: Boolean,
         default: true
     },
     created_by: {
-        type: String,
-        default: ''
+        type: mongoose.Schema.Types.ObjectId,ref:'users',
     }
 }, { timestamps: true })
 

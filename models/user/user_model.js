@@ -56,7 +56,7 @@ const user = new Schema({
         default:true
     },
     created_by:{
-        type:String,
+        type:mongoose.Schema.Types.ObjectId,ref:'users',
         default:''
     }
 },{timestamps:true})
