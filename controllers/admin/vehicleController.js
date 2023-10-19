@@ -6,20 +6,39 @@ const path = require('path')
 const constant = require('../../config/constant')
 
 
-var vehicleStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../../uploads/vehicle'))
+// var vehicleStorage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//         cb(null, path.join(__dirname, '../../uploads/vehicle'))
+//     },
+//     filename: function (req, file, cb) {
+//         console.log("file+++++++++++++++++++++++=", file)
+//         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+//     }
+// })
+
+// var vehicleUpload = multer({
+//     storage: vehicleStorage
+// }).single("vehicle_photo")
+
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("../../config/cloudinary");
+
+const imageStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: "TaxiBooking",
+        // allowedFormats: ["jpg", "jpeg", "png"],
+        public_id: (req, file) =>
+        `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+        // format: async (req, file) => "jpg", // Convert all uploaded images to JPEG format
+        // transformation: [{ width: 500, height: 500, crop: "limit" }],
+        maxFileSize: 10000000,
     },
-    filename: function (req, file, cb) {
-        console.log("file+++++++++++++++++++++++=", file)
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
-    }
-})
+});
 
 var vehicleUpload = multer({
-    storage: vehicleStorage
+    storage: imageStorage
 }).single("vehicle_photo")
-
 
 exports.get_vehicle_types = async (req, res) => {
     try {
@@ -57,7 +76,7 @@ exports.add_vehicle = async (req, res) => {
                 return;
             }
             data.agency_user_id = req.userId
-            data.vehicle_photo = req.file.filename
+            data.vehicle_photo = req.file ? req.file.path : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
             let save_data = await VEHICLE(data).save()
             if (!save_data) {
                 res.send({
