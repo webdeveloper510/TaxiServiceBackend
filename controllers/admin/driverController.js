@@ -5,22 +5,40 @@ const multer = require('multer')
 const path = require('path')
 
 
-var driverStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../../uploads/driver'))
-        console.log('file_-------------',file)
+// var driverStorage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//         cb(null, path.join(__dirname, '../../uploads/driver'))
+//         console.log('file_-------------',file)
+//     },
+//     filename: function (req, file, cb) {
+//         console.log("file+++++++++++++++++++++++=", file)
+//         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+//     }
+// })
+
+// var driverUpload = multer({
+//     storage: driverStorage
+// }).single("driver_image")
+
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("../../config/cloudinary");
+
+const imageStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: "TaxiBooking",
+        // allowedFormats: ["jpg", "jpeg", "png"],
+        public_id: (req, file) =>
+        `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+        // format: async (req, file) => "jpg", // Convert all uploaded images to JPEG format
+        // transformation: [{ width: 500, height: 500, crop: "limit" }],
+        maxFileSize: 10000000,
     },
-    filename: function (req, file, cb) {
-        console.log("file+++++++++++++++++++++++=", file)
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
-    }
-})
+});
 
 var driverUpload = multer({
-    storage: driverStorage
+    storage: imageStorage
 }).single("driver_image")
-
-
 
 
 
@@ -39,7 +57,7 @@ exports.add_driver = async (req, res) => {
             data.password = hash;
             data.created_by = req.userId // Assuming you have user authentication
             data.agency_user_id = req.userId // Assuming you have user authentication
-            data.profile_image = req.file ? req.file.filename : 'driver.jpeg'
+            data.profile_image = req.file ? req.file.path : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
 
             let save_driver = await DRIVER(data).save()
             if (!save_driver) {
