@@ -8,6 +8,7 @@ const path = require('path')
 var driverStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, path.join(__dirname, '../../uploads/driver'))
+        console.log('file_-------------',file)
     },
     filename: function (req, file, cb) {
         console.log("file+++++++++++++++++++++++=", file)
@@ -17,7 +18,7 @@ var driverStorage = multer.diskStorage({
 
 var driverUpload = multer({
     storage: driverStorage
-}).single("driver_photo")
+}).single("driver_image")
 
 
 
