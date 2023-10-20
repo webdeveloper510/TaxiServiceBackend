@@ -14,6 +14,10 @@ const vehicle = new Schema({
         type:String,
         default:''
     },
+    AC:{
+        type:Boolean,
+        default:false
+    },
     seating_capacity:{
         type:Number,
         default:0
