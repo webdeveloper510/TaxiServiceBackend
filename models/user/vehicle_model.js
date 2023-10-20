@@ -35,8 +35,8 @@ const vehicle = new Schema({
         default:0
     },
     cancelation_time_limit:{
-        type:Date,
-        default:Date.now()
+        type:Number,
+        default:0
     },
     cancelation_charges:{
         type:Number,
