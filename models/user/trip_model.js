@@ -18,6 +18,9 @@ const trip = new Schema({
         type:{},
         default:{}
     },
+    trip_id:{
+        type:String,
+    },
     pickup_date_time:{
         type:Date,
         default:Date.now()
