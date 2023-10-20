@@ -14,6 +14,10 @@ const vehicle = new Schema({
         type:String,
         default:''
     },
+    vehicle_make:{
+        type:String,
+        default:'Other'
+    },
     AC:{
         type:Boolean,
         default:false
