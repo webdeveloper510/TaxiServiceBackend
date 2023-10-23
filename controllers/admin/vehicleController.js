@@ -6,19 +6,6 @@ const path = require('path')
 const constant = require('../../config/constant')
 
 
-// var vehicleStorage = multer.diskStorage({
-//     destination: function (req, file, cb) {
-//         cb(null, path.join(__dirname, '../../uploads/vehicle'))
-//     },
-//     filename: function (req, file, cb) {
-//         console.log("file+++++++++++++++++++++++=", file)
-//         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
-//     }
-// })
-
-// var vehicleUpload = multer({
-//     storage: vehicleStorage
-// }).single("vehicle_photo")
 
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
