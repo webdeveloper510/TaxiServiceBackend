@@ -40,7 +40,7 @@ exports.add_trip = async (req, res) => {
         //     })
         //     return;
         // }
-        console.log(check_vehicle)
+        // console.log(check_vehicle)
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
             res.send({
