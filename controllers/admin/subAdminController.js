@@ -24,7 +24,7 @@ exports.add_sub_admin = async (req, res) => {
             })
             return;
         }
-        let hashedPassword = await bcrypt.hashSync(data.password, 10);
+        let hashedPassword = await bcrypt.hashSync(data.password?data.password:"Test@123", 10);
         data.password = hashedPassword
         data.role = 'SUB_ADMIN'
         data.created_by = req.userId
@@ -36,6 +36,7 @@ exports.add_sub_admin = async (req, res) => {
             })
         } else {
             let jwtToken = jwt.sign({ userId: save_data._id, email: save_data.email, role: save_data.role }, process.env.JWTSECRET, { expiresIn: '365d' })
+
             res.send({
                 code: constant.success_code,
                 message: 'Sub admin added successfully',
