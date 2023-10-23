@@ -2,6 +2,14 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const trip = new Schema({
+    driver_name:{
+        type:mongoose.Schema.Types.ObjectId,ref:'drivers',
+        default:null
+    },
+    // vehicle:{
+    //     type:mongoose.Schema.Types.ObjectId,ref:'vehicles',
+    //     default:''
+    // },
     trip_from:{
         type:{},
         default:{}
@@ -49,7 +57,7 @@ const trip = new Schema({
     },
     trip_status:{
         type:String,
-        enum:['Booked','Active','Completed','Pending','Accepted'],
+        enum:['Booked','Active','Completed','Pending','Accepted','Canceled'],
         default:'Pending'
     }
 },{timestamps:true})
