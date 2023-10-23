@@ -68,6 +68,10 @@ const driver = new Schema({
         type: Boolean,
         default: true
     },
+    driver_status:{
+        type:String,
+        enum : ['Active','Inactive'],
+    },
     created_by: {
         type: mongoose.Schema.Types.ObjectId,ref:'users',
     }
