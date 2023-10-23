@@ -2,14 +2,6 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const trip = new Schema({
-    driver_name:{
-        type:mongoose.Schema.Types.ObjectId,ref:'drivers',
-        default:''
-    },
-    vehicle:{
-        type:mongoose.Schema.Types.ObjectId,ref:'vehicles',
-        default:''
-    },
     trip_from:{
         type:{},
         default:{}
