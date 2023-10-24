@@ -111,11 +111,33 @@ exports.get_sub_admin_detail = async (req, res) => {
                 }
             },
             {
-                $unwind: '$meta'
+                $project:{
+                    _id:1,
+                    first_name:1,
+                    last_name:1,
+                    email:1,
+                    phone:1,
+                    profile_image:1,
+                    role:1,
+                    status:1,
+                    'land': { $arrayElemAt: ["$meta.land", 0] },
+                    'post_code': { $arrayElemAt: ["$meta.post_code", 0] },
+                    'house_number': { $arrayElemAt: ["$meta.house_number", 0] },
+                    'description': { $arrayElemAt: ["$meta.description", 0] },
+                    'affiliated_with': { $arrayElemAt: ["$meta.affiliated_with", 0] },
+                    'p_number': { $arrayElemAt: ["$meta.p_number", 0] },
+                    'number_of_cars': { $arrayElemAt: ["$meta.number_of_cars", 0] },
+                    'chamber_of_commerce_number': { $arrayElemAt: ["$meta.chamber_of_commerce_number", 0] },
+                    'vat_number': { $arrayElemAt: ["$meta.vat_number", 0] },
+                    'website': { $arrayElemAt: ["$meta.website", 0] },
+                    'tx_quality_mark': { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+                    'saluation': { $arrayElemAt: ["$meta.saluation", 0] },
+                    'location': { $arrayElemAt: ["$meta.location", 0] }
+                }
             }
 
         ])
-        if (!check_detail) {
+        if (check_detail.length == 0) {
             res.send({
                 code: constant.error_code,
                 message: "Unable to fetch the detail"

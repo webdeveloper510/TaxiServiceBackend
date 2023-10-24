@@ -6,7 +6,7 @@ var vehicleController = require('../controllers/admin/vehicleController');
 var agencyController = require('../controllers/admin/agencyController');
 var driverController = require('../controllers/admin/driverController');
 var fareController = require('../controllers/admin/fareController');
-var tripController = require('../controllers/admin/tripController');
+var tripController = require('../controllers/subadmin/tripController');
 const { verifyToken } = require('../middleware/auth');
 
 /* GET home page. */
@@ -15,5 +15,6 @@ router.get('/', function(req, res, next) {
 });
 
 
+router.get('/get_trip',[verifyToken],tripController.get_trip)
 
 module.exports = router;
