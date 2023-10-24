@@ -40,6 +40,7 @@ exports.add_sub_admin = async (req, res) => {
             let jwtToken = jwt.sign({ userId: save_data._id, email: save_data.email, role: save_data.role }, process.env.JWTSECRET, { expiresIn: '365d' })
             data.user_id = save_data._id
             let save_meta_data = await AGENCY(data).save()
+            save_data.meta = save_meta_data
             res.send({
                 code: constant.success_code,
                 message: 'Sub admin added successfully',
