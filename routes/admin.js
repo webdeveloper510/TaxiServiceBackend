@@ -20,7 +20,7 @@ router.post('/login',loginController.login)
 // sub admin api's
 router.post('/add_sub_admin',[verifyToken],subAdminController.add_sub_admin)
 router.get('/get_sub_admins',[verifyToken],subAdminController.get_sub_admins)
-router.get('/get_sub_admin_detail/:id',[verifyToken],subAdminController.get_sub_admin_detail)
+router.get('/get_sub_admin_detail/:userId',[verifyToken],subAdminController.get_sub_admin_detail)
 router.put('/edit_sub_admin/:id',[verifyToken],subAdminController.edit_sub_admin)
 router.delete('/delete_sub_admin/:id',[verifyToken],subAdminController.delete_sub_admin)
 
