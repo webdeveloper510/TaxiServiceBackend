@@ -89,7 +89,7 @@ exports.add_vehicle = async (req, res) => {
 
 exports.get_vehicles = async (req, res) => {
     try {
-        let get_vehicle = await VEHICLE.find({ agency_user_id: req.userId }).sort({ 'createdAt': -1 })
+        let get_vehicle = await VEHICLE.find({is_deleted:false}).sort({ 'createdAt': -1 })
         if (!get_vehicle) {
             res.send({
                 code: constant.error_code,
