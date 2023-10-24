@@ -30,8 +30,8 @@ router.delete('/delete_sub_admin/:id',[verifyToken],subAdminController.delete_su
 router.get('/get_vehicle_types',[verifyToken],vehicleController.get_vehicle_types)
 router.post('/add_vehicle',[verifyToken],vehicleController.add_vehicle)
 router.get('/get_vehicles',[verifyToken],vehicleController.get_vehicles)
-router.get('/edit_vehicle',[verifyToken],vehicleController.edit_vehicle)
-router.get('/delete_vehicle',[verifyToken],vehicleController.delete_vehicle)
+router.put('/edit_vehicle',[verifyToken],vehicleController.edit_vehicle)
+router.delete('/delete_vehicle',[verifyToken],vehicleController.delete_vehicle)
 router.get('/get_vehicle_detail/:id',[verifyToken],vehicleController.get_vehicle_detail)
 
 // agency api's
