@@ -1,8 +1,10 @@
 const USER = require('../../models/user/user_model')
+const AGENCY = require('../../models/user/agency_model')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const constant = require('../../config/constant');
 const randToken = require('rand-token').generate()
+const mongoose = require('mongoose')
 require('dotenv').config();
 
 exports.add_sub_admin = async (req, res) => {
@@ -24,7 +26,7 @@ exports.add_sub_admin = async (req, res) => {
             })
             return;
         }
-        let hashedPassword = await bcrypt.hashSync(data.password?data.password:"Test@123", 10);
+        let hashedPassword = await bcrypt.hashSync(data.password ? data.password : "Test@123", 10);
         data.password = hashedPassword
         data.role = 'SUB_ADMIN'
         data.created_by = req.userId
@@ -36,7 +38,8 @@ exports.add_sub_admin = async (req, res) => {
             })
         } else {
             let jwtToken = jwt.sign({ userId: save_data._id, email: save_data.email, role: save_data.role }, process.env.JWTSECRET, { expiresIn: '365d' })
-
+            data.user_id = save_data._id
+            let save_meta_data = await AGENCY(data).save()
             res.send({
                 code: constant.success_code,
                 message: 'Sub admin added successfully',
@@ -56,7 +59,19 @@ exports.add_sub_admin = async (req, res) => {
 exports.get_sub_admins = async (req, res) => {
     try {
         let data = req.body
-        let get_data = await USER.find({ role: 'SUB_ADMIN' })
+        let get_data = await USER.aggregate([
+            {
+                $match: { role: 'SUB_ADMIN' }
+
+            },
+            // {
+            //     $lookup:{
+            //         from:"agencies",
+            //         localField:"_id",
+            //         foreignField:"user_id",
+            //     }
+            // }
+        ])
         if (!get_data) {
             res.send({
                 code: constant.error_code,
@@ -80,7 +95,25 @@ exports.get_sub_admins = async (req, res) => {
 exports.get_sub_admin_detail = async (req, res) => {
     try {
         let data = req.params
-        let check_detail = await USER.findOne({ _id: data.id })
+        let check_detail = await USER.aggregate([
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(data.userId),
+                }
+            },
+            {
+                $lookup: {
+                    from: "agencies",
+                    localField: "_id",
+                    foreignField: "user_id",
+                    as: "meta"
+                }
+            },
+            {
+                $unwind: '$meta'
+            }
+
+        ])
         if (!check_detail) {
             res.send({
                 code: constant.error_code,
@@ -90,7 +123,7 @@ exports.get_sub_admin_detail = async (req, res) => {
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: check_detail
+                result: check_detail[0]
             })
         }
     } catch (err) {
@@ -114,17 +147,17 @@ exports.edit_sub_admin = async (req, res) => {
             })
             return;
         }
-        let update_data = await USER.findOneAndUpdate(criteria,data,option)
-        if(!update_data){
+        let update_data = await USER.findOneAndUpdate(criteria, data, option)
+        if (!update_data) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to update the data"
+                code: constant.error_code,
+                message: "Unable to update the data"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Updated Successfull",
-                result:update_data
+                code: constant.success_code,
+                message: "Updated Successfull",
+                result: update_data
             })
         }
     } catch (err) {
@@ -135,34 +168,34 @@ exports.edit_sub_admin = async (req, res) => {
     }
 }
 
-exports.delete_sub_admin = async(req,res)=>{
-    try{
+exports.delete_sub_admin = async (req, res) => {
+    try {
         let data = req.body
-        let criteria = {_id:req.params.id}
-        let option = {new:true}
+        let criteria = { _id: req.params.id }
+        let option = { new: true }
         let newValue = {
-            $set:{
-                is_deleted:true,
-                deleted_by_id:req.userId
+            $set: {
+                is_deleted: true,
+                deleted_by_id: req.userId
             }
         }
-        let deleteSubAdmin = await USER.findOneAndUpdate(criteria,newValue,option)
-        if(!deleteSubAdmin){
+        let deleteSubAdmin = await USER.findOneAndUpdate(criteria, newValue, option)
+        if (!deleteSubAdmin) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to delete the sub admin"
+                code: constant.error_code,
+                message: "Unable to delete the sub admin"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Deleted"
+                code: constant.success_code,
+                message: "Deleted"
             })
         }
 
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
