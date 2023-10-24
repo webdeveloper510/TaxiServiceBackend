@@ -61,7 +61,7 @@ exports.get_sub_admins = async (req, res) => {
         let data = req.body
         let get_data = await USER.aggregate([
             {
-                $match: { role: 'SUB_ADMIN' }
+                $match: { role: 'SUB_ADMIN',is_deleted:false }
 
             },
             // {
