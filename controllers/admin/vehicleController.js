@@ -138,7 +138,9 @@ exports.edit_vehicle = async (req, res) => {
         let data = req.body
         let criteria = { _id: req.params.id }
         let option = { new: true }
-        let check_vehicle = await VEHICLE(criteria)
+        console.log('dafdasf')
+        let check_vehicle = await VEHICLE.findOne({ _id: req.params.id })
+        console.log('dafdasf')
         if (!check_vehicle) {
             res.send({
                 code: constant.error_code,
