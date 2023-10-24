@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const multer = require('multer')
 const path = require('path')
+const constant = require("../../config/constant")
 
 exports.create_super_admin = async(req,res)=>{
     try{
@@ -80,6 +81,31 @@ exports.login = async(req,res)=>{
         })
     }catch(err){
         res.send({
+            code:constants.error_code,
+            message:err.message
+        })
+    }
+}
+
+exports.get_token_detail = async(req,res)=>{
+    try{
+        let data = req.body
+        let getData = await USER.findOne({_id:req.userId})
+        if(!getData){
+            res.send({
+                code:constants.error_code,
+                message:"Unable to fetch the detail"
+            })
+        }else{
+            res.send({
+                code:constant.success_code,
+                message:"Success",
+                result:getData
+            })
+        }
+    }catch(err){
+        res.send({
+
             code:constants.error_code,
             message:err.message
         })
