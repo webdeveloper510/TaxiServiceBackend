@@ -16,31 +16,6 @@ exports.add_trip = async (req, res) => {
         data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let check_user = await USER.findOne({ _id: req.userId })
         data.trip_id = check_user.first_name + '-' + data.trip_id
-        // check_vehicle = await VEHICLE.findOne({ _id: data.vehicle })
-        // if (!check_vehicle) {
-        //     res.send({
-        //         code: constant.error_code,
-        //         message: "Invalid Vehicle"
-        //     })
-        //     return;
-        // }
-        // check_vehicle = await DRIVER.findOne({ _id: data.driver_name })
-        // if (!check_vehicle) {
-        //     res.send({
-        //         code: constant.error_code,
-        //         message: "Invalid Driver"
-        //     })
-        //     return;
-        // }
-        // check_vehicle = await TRIP.findOne({ trip_id: data.vehicle })
-        // if (!check_vehicle) {
-        //     res.send({
-        //         code: constant.error_code,
-        //         message: "Invalid Driver"
-        //     })
-        //     return;
-        // }
-        // console.log(check_vehicle)
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
             res.send({

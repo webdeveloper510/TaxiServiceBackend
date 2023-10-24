@@ -152,7 +152,7 @@ exports.get_drivers = async (req, res) => {
     try {
         const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
 
-        const drivers = await DRIVER.find({ agency_user_id: agencyUserId, is_deleted: false }).sort({ 'createdAt': -1 });
+        const drivers = await DRIVER.find({  is_deleted: false }).sort({ 'createdAt': -1 });
 
         if (drivers) {
             res.send({
