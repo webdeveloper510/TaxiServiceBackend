@@ -16,6 +16,7 @@ router.get('/', function(req, res, next) {
 
 router.post('/create_super_admin',loginController.create_super_admin)
 router.post('/login',loginController.login)
+router.get('/get_token_detail',[verifyToken],loginController.get_token_detail)
 
 // sub admin api's
 router.post('/add_sub_admin',[verifyToken],subAdminController.add_sub_admin)
