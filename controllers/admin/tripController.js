@@ -200,7 +200,7 @@ exports.alocate_driver = async (req, res) => {
             })
             return;
         }
-        let check_driver = await DRIVER.findOne({ _id: data.driverId, is_available: true })
+        let check_driver = await DRIVER.findOne({ _id: data.driver_name })
         if (!check_driver) {
             res.send({
                 code: constant.error_code,
