@@ -15,6 +15,6 @@ router.get('/', function(req, res, next) {
 });
 
 
-router.get('/get_trip',[verifyToken],tripController.get_trip)
+router.get('/get_trip/:status',[verifyToken],tripController.get_trip)
 
 module.exports = router;
