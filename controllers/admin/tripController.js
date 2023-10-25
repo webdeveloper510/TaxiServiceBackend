@@ -200,14 +200,7 @@ exports.alocate_driver = async (req, res) => {
             })
             return;
         }
-        let check_driver = await DRIVER.findOne({ _id: data.driver_name })
-        if (!check_driver) {
-            res.send({
-                code: constant.error_code,
-                message: "Driver not available"
-            })
-            return;
-        }
+       
         if (data.status != 'Canceled') {
 
             let newValues = {
@@ -232,6 +225,15 @@ exports.alocate_driver = async (req, res) => {
                 })
             }
         } else {
+
+            let check_driver = await DRIVER.findOne({ _id: data.driver_name })
+            if (!check_driver) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Driver not available"
+                })
+                return;
+            }
 
             let newValues = {
                 $set: {
