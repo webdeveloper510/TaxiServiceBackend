@@ -6,6 +6,10 @@ const trip = new Schema({
         type:mongoose.Schema.Types.ObjectId,ref:'drivers',
         default:null
     },
+    vehicle_type:{
+        type:String,
+        default:''
+    },
     // vehicle:{
     //     type:mongoose.Schema.Types.ObjectId,ref:'vehicles',
     //     default:''
