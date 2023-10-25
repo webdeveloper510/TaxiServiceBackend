@@ -251,7 +251,7 @@ exports.alocate_driver = async (req, res) => {
             } else {
                 res.send({
                     code: constant.success_code,
-                    message: "Driver allocated successfully"
+                    message: "Cancelled successfully"
                 })
             }
         }
