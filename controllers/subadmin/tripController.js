@@ -113,6 +113,7 @@ exports.get_trip = async (req, res) => {
                     trip_to: 1,
                     pickup_date_time: 1,
                     trip_status: 1,
+                    vehicle_type:1,
                     passenger_detail: 1,
                     driver_name: {
                         $concat: [
