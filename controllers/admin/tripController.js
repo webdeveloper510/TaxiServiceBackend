@@ -74,7 +74,7 @@ exports.get_trip = async (req, res) => {
                     pickup_date_time: 1,
                     trip_status: 1,
                     passenger_detail: 1,
-                    vehicle_type:1,
+                    vehicle_type: 1,
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
@@ -200,37 +200,60 @@ exports.alocate_driver = async (req, res) => {
             })
             return;
         }
-        if (data.status != 'Canceled') {
-            let check_driver = await DRIVER.findOne({ _id: data.driverId, is_available: true })
-            if (!check_driver) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Driver not available"
-                })
-                return;
-            }
-        }
-
-        let newValues = {
-            $set: {
-                driver_name: check_driver._id,
-                trip_status: data.status
-            }
-        }
-        let option = { new: true }
-
-        let update_trip = await TRIP.findOneAndUpdate(criteria, newValues, option)
-        if (!update_trip) {
+        let check_driver = await DRIVER.findOne({ _id: data.driverId, is_available: true })
+        if (!check_driver) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to allocate the driver"
+                message: "Driver not available"
             })
-        } else {
-            res.send({
-                code: constant.success_code,
-                message: "Driver allocated successfully"
-            })
+            return;
         }
+        if (data.status != 'Canceled') {
+
+            let newValues = {
+                $set: {
+                    driver_name: check_driver._id,
+                    vehicle: data.vehicle,
+                    trip_status: data.status
+                }
+            }
+            let option = { new: true }
+
+            let update_trip = await TRIP.findOneAndUpdate(criteria, newValues, option)
+            if (!update_trip) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Unable to allocate the driver"
+                })
+            } else {
+                res.send({
+                    code: constant.success_code,
+                    message: "Driver allocated successfully"
+                })
+            }
+        } else {
+
+            let newValues = {
+                $set: {
+                    trip_status: data.status
+                }
+            }
+            let option = { new: true }
+
+            let update_trip = await TRIP.findOneAndUpdate(criteria, newValues, option)
+            if (!update_trip) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Unable to allocate the driver"
+                })
+            } else {
+                res.send({
+                    code: constant.success_code,
+                    message: "Driver allocated successfully"
+                })
+            }
+        }
+
     } catch (err) {
         res.send({
             code: constant.error_code,
@@ -239,26 +262,26 @@ exports.alocate_driver = async (req, res) => {
     }
 }
 
-exports.get_trip_detail = async(req,res)=>{
-    try{
+exports.get_trip_detail = async (req, res) => {
+    try {
         let data = req.body
-        let getData = await TRIP.findOne({_id:req.params.id})
-        if(!getData){
+        let getData = await TRIP.findOne({ _id: req.params.id })
+        if (!getData) {
             res.send({
-                code:constant.error_code,
-                message:"Invalid ID"
+                code: constant.error_code,
+                message: "Invalid ID"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Success",
-                result:getData
+                code: constant.success_code,
+                message: "Success",
+                result: getData
             })
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
