@@ -66,14 +66,28 @@ exports.get_trip = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
-        console.log('mid--------------', req.params.status)
+        let query;
+
+        if (req.params.status = 'Pending') {
+            query = [
+                { created_by: mid },
+                {
+                    $or: [
+                        { trip_status: req.params.status },
+                        { trip_status: "Accepted" }
+                    ]
+                }
+            ]
+        } else {
+            query = [
+                { created_by: mid },
+                { trip_status: req.params.status }
+            ]
+        }
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
-                    $and: [
-                        { created_by: mid },
-                        { trip_status: req.params.status }
-                    ]
+                    $and: query
                 }
             },
             {
@@ -114,7 +128,7 @@ exports.get_trip = async (req, res) => {
                             { $arrayElemAt: ["$vehicle.vehicle_model", 0] }
                         ]
                     },
-                    trip_id:1
+                    trip_id: 1
                 }
             }
         ]).sort({ 'createdAt': -1 })
