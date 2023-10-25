@@ -189,7 +189,7 @@ exports.update_driver = async (req, res) => {
                     message: 'Driver not found',
                 });
             }
-            req.body.profile_image = req.file ? req.file.filename : existingDriver.profile_image
+            req.body.profile_image = req.file ? req.file.path : existingDriver.profile_image
             const updatedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, updates, { new: true });
             if (updatedDriver) {
                 res.send({
