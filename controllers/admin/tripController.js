@@ -74,6 +74,7 @@ exports.get_trip = async (req, res) => {
                     pickup_date_time: 1,
                     trip_status: 1,
                     passenger_detail: 1,
+                    vehicle_type:1,
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
