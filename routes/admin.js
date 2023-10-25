@@ -42,7 +42,7 @@ router.post('/add_agency',[verifyToken],agencyController.add_agency)
 router.post('/add_driver',[verifyToken],driverController.add_driver)
 router.get('/get_drivers',[verifyToken],driverController.get_drivers)
 router.get('/get_driver_detail/:id',[verifyToken],driverController.get_driver_detail)
-router.get('/update_driver/:id',[verifyToken],driverController.update_driver)
+router.put('/update_driver/:id',[verifyToken],driverController.update_driver)
 router.delete('/remove_driver/:id',[verifyToken],driverController.remove_driver)
 
 
