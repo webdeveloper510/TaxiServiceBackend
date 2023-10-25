@@ -10,10 +10,10 @@ const trip = new Schema({
         type:String,
         default:''
     },
-    // vehicle:{
-    //     type:mongoose.Schema.Types.ObjectId,ref:'vehicles',
-    //     default:''
-    // },
+    vehicle:{
+        type:mongoose.Schema.Types.ObjectId,ref:'vehicles',
+        default:null
+    },
     trip_from:{
         type:{},
         default:{}
