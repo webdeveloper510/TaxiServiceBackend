@@ -68,7 +68,7 @@ exports.get_trip = async (req, res) => {
         let mid = new mongoose.Types.ObjectId(req.userId)
         let query;
 
-        if (req.params.status = 'Pending') {
+        if (req.params.status == 'Pending') {
             query = [
                 { created_by: mid },
                 {
@@ -84,6 +84,9 @@ exports.get_trip = async (req, res) => {
                 { trip_status: req.params.status }
             ]
         }
+
+        console.log('aaaaaaaaaaaaaaaaaaa',query)
+
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
