@@ -110,6 +110,30 @@ exports.get_vehicles = async (req, res) => {
     }
 }
 
+exports.get_vehicle_type = async(req,res)=>{
+    try{
+        let data = req.body
+        let getData = await VEHICLE.find({vehicle_type:req.params.vehicle_type})
+        if(!getData){
+            res.send({
+                code:constant.error_code,
+                message:"Unbale to fetch the vehicles"
+            })
+        }else{
+            res.send({
+                code:constant.success_code,
+                message:"Success",
+                result:getData
+            })
+        }
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}
+
 exports.get_vehicle_detail = async (req, res) => {
     try {
         let getData = await VEHICLE.findOne({ _id: req.params.id })
