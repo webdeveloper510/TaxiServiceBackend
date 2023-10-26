@@ -3,7 +3,7 @@ const AGENCY = require('../../models/user/agency_model')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const constant = require('../../config/constant');
-const randToken = require('rand-token').generate()
+const randToken = require('rand-token').generator()
 const mongoose = require('mongoose')
 require('dotenv').config();
 
