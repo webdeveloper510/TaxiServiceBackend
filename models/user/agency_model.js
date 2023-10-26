@@ -9,6 +9,13 @@ const agency = new Schema ({
         type:String,
         default:''
     },
+    company_id:{
+        type:String,
+    },
+    company_name:{
+        type:String,
+        default:''
+    },
     post_code:{
         type:String,
         default:''
