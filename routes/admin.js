@@ -63,6 +63,7 @@ router.get('/get_trip_by_company/:status',[verifyToken],tripController.get_trip_
 router.get('/get_trip/:status',[verifyToken],tripController.get_trip)
 router.get('/get_trip_detail/:id',[verifyToken],tripController.get_trip_detail)
 router.put('/alocate_driver/:id',[verifyToken],tripController.alocate_driver)
+router.get('/get_counts_dashboard',[verifyToken],tripController.get_counts_dashboard)
 
 
 
