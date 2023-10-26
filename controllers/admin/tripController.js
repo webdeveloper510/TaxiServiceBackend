@@ -364,6 +364,28 @@ exports.get_trip_detail = async (req, res) => {
     }
 }
 
+exports.get_counts_dashboard = async(req,res)=>{
+    try{
+        let data = req.body
+        let bookedTrip = await TRIP.find({trip_status:"Booked"}).countDocuments();
+        let cancelTrip = await TRIP.find({trip_status:"Canceled"}).countDocuments();
+        let companyCount = await USER.find({role:'SUB_ADMIN'}).countDocuments();
+        res.send({
+            code:constant.success_code,
+            message:"success",
+            result:{
+                bookedTrips :bookedTrip,
+                cancelTrips :cancelTrip,
+                companies :companyCount
+            }
+        })
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}
 
 
 
