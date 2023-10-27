@@ -25,7 +25,10 @@ const imageStorage = new CloudinaryStorage({
 
 var vehicleUpload = multer({
     storage: imageStorage
-}).single("vehicle_photo")
+}).array([
+    { name: "vehicle_photo" },
+    { name: "vehicle_documents" }
+  ])
 
 exports.get_vehicle_types = async (req, res) => {
     try {
@@ -53,6 +56,20 @@ exports.get_vehicle_types = async (req, res) => {
 exports.add_vehicle = async (req, res) => {
     vehicleUpload(req, res, async (err) => {
         try {
+            var vehicle_documents = [];
+            var vehicle_photo = [];
+           
+            // var imagePortfolioLogo = []
+            let file = req.files
+            for (i = 0; i < file.length; i++) {
+                if (file[i].fieldname == 'vehicle_photo') {
+                    vehicle_photo.push(file[i].path);
+                } else if (file[i].fieldname == 'vehicle_documents') {
+                    vehicle_documents.push(file[i].path);
+
+                }
+            }
+
             let data = req.body
             let checkVehicle = await VEHICLE.findOne({ vehicle_number: data.vehicle_number })
             if (checkVehicle) {
@@ -63,7 +80,8 @@ exports.add_vehicle = async (req, res) => {
                 return;
             }
             data.agency_user_id = req.userId
-            data.vehicle_photo = req.file ? req.file.path : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+            data.vehicle_photo = vehicle_photo[0] ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+            data.vehicle_documents = vehicle_documents[0] ? vehicle_documents[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
             let save_data = await VEHICLE(data).save()
             if (!save_data) {
                 res.send({
@@ -161,6 +179,19 @@ exports.edit_vehicle = async (req, res) => {
     vehicleUpload(req, res, async (err) => {
         try {
             let data = req.body
+            var vehicle_documents = [];
+            var vehicle_photo = [];
+           
+            // var imagePortfolioLogo = []
+            let file = req.files
+            for (i = 0; i < file.length; i++) {
+                if (file[i].fieldname == 'vehicle_photo') {
+                    vehicle_photo.push(file[i].path);
+                } else if (file[i].fieldname == 'vehicle_documents') {
+                    vehicle_documents.push(file[i].path);
+
+                }
+            }
             let criteria = { _id: req.params.id }
             let option = { new: true }
             console.log('dafdasf')
@@ -173,7 +204,9 @@ exports.edit_vehicle = async (req, res) => {
                 })
                 return;
             }
-            data.vehicle_photo = req.file ? req.file.path : check_vehicle.vehicle_photo
+            data.vehicle_photo = vehicle_photo[0] ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+            data.vehicle_documents = vehicle_documents[0] ? vehicle_documents[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+
             let updateVehicle = await VEHICLE.findOneAndUpdate(criteria, data, option)
             if (!updateVehicle) {
                 res.send({

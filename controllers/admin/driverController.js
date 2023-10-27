@@ -185,6 +185,20 @@ exports.get_drivers = async (req, res) => {
 exports.update_driver = async (req, res) => {
     driverUpload(req, res, async (err) => {
         try {
+
+            var driver_image = []
+            var driver_documents = []
+            // var imagePortfolioLogo = []
+            let file = req.files
+            for (i = 0; i < file.length; i++) {
+                if (file[i].fieldname == 'driver_image') {
+                    driver_image.push(file[i].path);
+                } else if (file[i].fieldname == 'driver_documents') {
+                    driver_documents.push(file[i].path);
+
+                }
+            }
+
             const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
             const updates = req.body; // Assuming you send the updated driver data in the request body
 
@@ -197,7 +211,8 @@ exports.update_driver = async (req, res) => {
                     message: 'Driver not found',
                 });
             }
-            req.body.profile_image = req.file ? req.file.path : existingDriver.profile_image
+            req.body.profile_image = driver_image[0] ? driver_image[0] : existingDriver.profile_image
+            req.body.driver_documents = driver_documents[0] ? driver_documents[0] : existingDriver.driver_documents
             const updatedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, updates, { new: true });
             if (updatedDriver) {
                 res.send({

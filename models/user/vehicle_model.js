@@ -54,6 +54,10 @@ const vehicle = new Schema({
         type:String,
         default:''
     },
+    vehicle_documents:{
+        type:String,
+        default:''
+    },
     agency_user_id:{
         type:String,
         default:''
