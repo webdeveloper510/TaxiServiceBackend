@@ -62,6 +62,9 @@ exports.login = async (req, res) => {
                     },
                     {
                         status:true
+                    },
+                    {
+                        is_deleted:false
                     }
                 ]
             }
