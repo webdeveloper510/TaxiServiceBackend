@@ -65,16 +65,47 @@ exports.get_sub_admins = async (req, res) => {
         let data = req.body
         let get_data = await USER.aggregate([
             {
-                $match: { role: 'SUB_ADMIN',is_deleted:false }
+                $match: { role: 'SUB_ADMIN', is_deleted: false }
 
             },
-            // {
-            //     $lookup:{
-            //         from:"agencies",
-            //         localField:"_id",
-            //         foreignField:"user_id",
-            //     }
-            // }
+            {
+                $lookup: {
+                    from: "agencies",
+                    localField: "_id",
+                    foreignField: "user_id",
+                    as: "meta"
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    first_name: 1,
+                    last_name: 1,
+                    email: 1,
+                    // company_id:1,
+                    // company_name:1,
+                    phone: 1,
+                    profile_image: 1,
+                    role: 1,
+                    status: 1,
+                    'land': { $arrayElemAt: ["$meta.land", 0] },
+                    'post_code': { $arrayElemAt: ["$meta.post_code", 0] },
+                    'house_number': { $arrayElemAt: ["$meta.house_number", 0] },
+                    'description': { $arrayElemAt: ["$meta.description", 0] },
+                    'affiliated_with': { $arrayElemAt: ["$meta.affiliated_with", 0] },
+                    'p_number': { $arrayElemAt: ["$meta.p_number", 0] },
+                    'number_of_cars': { $arrayElemAt: ["$meta.number_of_cars", 0] },
+                    'chamber_of_commerce_number': { $arrayElemAt: ["$meta.chamber_of_commerce_number", 0] },
+                    'vat_number': { $arrayElemAt: ["$meta.vat_number", 0] },
+                    'website': { $arrayElemAt: ["$meta.website", 0] },
+                    'tx_quality_mark': { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+                    'saluation': { $arrayElemAt: ["$meta.saluation", 0] },
+                    'company_name': { $arrayElemAt: ["$meta.company_name", 0] },
+                    'company_id': { $arrayElemAt: ["$meta.company_id", 0] },
+                    'location': { $arrayElemAt: ["$meta.location", 0] }
+                }
+            }
+
         ]).sort({ 'createdAt': -1 });
         if (!get_data) {
             res.send({
@@ -114,17 +145,17 @@ exports.get_sub_admin_detail = async (req, res) => {
                 }
             },
             {
-                $project:{
-                    _id:1,
-                    first_name:1,
-                    last_name:1,
-                    email:1,
+                $project: {
+                    _id: 1,
+                    first_name: 1,
+                    last_name: 1,
+                    email: 1,
                     // company_id:1,
                     // company_name:1,
-                    phone:1,
-                    profile_image:1,
-                    role:1,
-                    status:1,
+                    phone: 1,
+                    profile_image: 1,
+                    role: 1,
+                    status: 1,
                     'land': { $arrayElemAt: ["$meta.land", 0] },
                     'post_code': { $arrayElemAt: ["$meta.post_code", 0] },
                     'house_number': { $arrayElemAt: ["$meta.house_number", 0] },
@@ -179,7 +210,7 @@ exports.edit_sub_admin = async (req, res) => {
         }
         let update_data = await USER.findOneAndUpdate(criteria, data, option)
         let criteria2 = { user_id: update_data._id }
-        console.log('check+++++++++++++',data)
+        console.log('check+++++++++++++', data)
         let update_data_meta = await AGENCY.findOneAndUpdate(criteria2, data, option)
 
         if (!update_data) {
