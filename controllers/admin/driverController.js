@@ -28,7 +28,7 @@ const imageStorage = new CloudinaryStorage({
     params: {
         folder: "TaxiBooking",
         // allowedFormats: ["jpg", "jpeg", "png"],
-        public_id: (req, file) =>
+        public_id: (req, files) =>
             `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
         // format: async (req, file) => "jpg", // Convert all uploaded images to JPEG format
         // transformation: [{ width: 500, height: 500, crop: "limit" }],
@@ -38,11 +38,10 @@ const imageStorage = new CloudinaryStorage({
 
 var driverUpload = multer({
     storage: imageStorage
-}).array[
+}).any([
     { name: "driver_image" },
     { name: "driver_documents" }
-]
-
+  ])
 
 
 exports.add_driver = async (req, res) => {
@@ -51,22 +50,22 @@ exports.add_driver = async (req, res) => {
             const data = req.body;
             var driver_image = []
             var driver_documents = []
-            var imagePortfolioLogo = []
+            // var imagePortfolioLogo = []
             let file = req.files
             for (i = 0; i < file.length; i++) {
-                if (file[i].fieldname == 'uploadLogo') {
+                if (file[i].fieldname == 'driver_image') {
                     driver_image.push(file[i].path);
-                } else if (file[i].fieldname == 'coverPhoto') {
+                } else if (file[i].fieldname == 'driver_documents') {
                     driver_documents.push(file[i].path);
 
                 }
             }
-            console.log('checkign-----------',driver_documents,driver_image)
-            return
+
             let hash = await bcrypt.hashSync(data.password ? data.password : 'Test@123', 10);
             data.password = hash;
             data.created_by = req.userId // Assuming you have user authentication
-            data.profile_image = req.file ? req.file.path : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
+            data.profile_image = driver_image[0] ? driver_image[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
+            data.driver_documents = driver_documents[0] ? driver_documents[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
 
             let save_driver = await DRIVER(data).save()
             if (!save_driver) {
