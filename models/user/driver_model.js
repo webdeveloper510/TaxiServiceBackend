@@ -46,6 +46,10 @@ const driver = new Schema({
         type: String,
         default: ''
     },
+    driver_documents: {
+        type: String,
+        default: ''
+    },
     gender: {
         type: String,
         default: ''
