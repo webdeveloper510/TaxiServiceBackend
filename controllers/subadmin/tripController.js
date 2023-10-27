@@ -241,12 +241,14 @@ exports.get_counts_dashboard = async(req,res)=>{
         let data = req.body
         let bookedTrip = await TRIP.find({trip_status:"Booked",created_by:req.userId}).countDocuments();
         let cancelTrip = await TRIP.find({trip_status:"Canceled",created_by:req.userId}).countDocuments();
+        let completeTrip = await TRIP.find({trip_status:"Completed",created_by:req.userId}).countDocuments();
         res.send({
             code:constant.success_code,
             message:"success",
             result:{
                 bookedTrips :bookedTrip,
                 cancelTrips :cancelTrip,
+                completeTrips :completeTrip,
             }
         })
     }catch(err){
