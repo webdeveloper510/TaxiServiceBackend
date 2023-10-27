@@ -179,7 +179,8 @@ exports.edit_sub_admin = async (req, res) => {
         }
         let update_data = await USER.findOneAndUpdate(criteria, data, option)
         let criteria2 = { user_id: update_data._id }
-        let update_data_meta = await USER.findOneAndUpdate(criteria2, data, option)
+        console.log('check+++++++++++++',data)
+        let update_data_meta = await AGENCY.findOneAndUpdate(criteria2, data, option)
 
         if (!update_data) {
             res.send({
