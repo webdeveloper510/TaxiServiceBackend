@@ -85,7 +85,7 @@ exports.get_trip = async (req, res) => {
             ]
         }
 
-        console.log('aaaaaaaaaaaaaaaaaaa',query)
+        console.log('aaaaaaaaaaaaaaaaaaa', query)
 
         let get_trip = await TRIP.aggregate([
             {
@@ -116,9 +116,10 @@ exports.get_trip = async (req, res) => {
                     trip_to: 1,
                     pickup_date_time: 1,
                     trip_status: 1,
-                    vehicle_type:1,
+                    vehicle_type: 1,
+                    is_deleted: 1,
                     passenger_detail: 1,
-                    createdAt:1,
+                    createdAt: 1,
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
@@ -157,12 +158,11 @@ exports.get_trip = async (req, res) => {
     }
 }
 
-
 exports.get_recent_trip = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
-        console.log('check++++++++++++++',mid)
+        console.log('check++++++++++++++', mid)
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
@@ -193,8 +193,8 @@ exports.get_recent_trip = async (req, res) => {
                     trip_from: 1,
                     trip_to: 1,
                     pickup_date_time: 1,
-                    createdAt:1,
-                    created_by:1,
+                    createdAt: 1,
+                    created_by: 1,
                     trip_status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
@@ -236,25 +236,25 @@ exports.get_recent_trip = async (req, res) => {
     }
 }
 
-exports.get_counts_dashboard = async(req,res)=>{
-    try{
+exports.get_counts_dashboard = async (req, res) => {
+    try {
         let data = req.body
-        let bookedTrip = await TRIP.find({trip_status:"Booked",created_by:req.userId}).countDocuments();
-        let cancelTrip = await TRIP.find({trip_status:"Canceled",created_by:req.userId}).countDocuments();
-        let completeTrip = await TRIP.find({trip_status:"Completed",created_by:req.userId}).countDocuments();
+        let bookedTrip = await TRIP.find({ trip_status: "Booked", created_by: req.userId }).countDocuments();
+        let cancelTrip = await TRIP.find({ trip_status: "Canceled", created_by: req.userId }).countDocuments();
+        let completeTrip = await TRIP.find({ trip_status: "Completed", created_by: req.userId }).countDocuments();
         res.send({
-            code:constant.success_code,
-            message:"success",
-            result:{
-                bookedTrips :bookedTrip,
-                cancelTrips :cancelTrip,
-                completeTrips :completeTrip,
+            code: constant.success_code,
+            message: "success",
+            result: {
+                bookedTrips: bookedTrip,
+                cancelTrips: cancelTrip,
+                completeTrips: completeTrip,
             }
         })
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }

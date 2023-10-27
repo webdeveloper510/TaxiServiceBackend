@@ -15,7 +15,7 @@ exports.add_trip = async (req, res) => {
         data.created_by = req.userId
         data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let check_user = await USER.findOne({ _id: req.userId })
-        data.trip_id = check_user.first_name + '-' + data.trip_id
+        data.trip_id = 'T' + '-' + data.trip_id
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
             res.send({
@@ -372,7 +372,7 @@ exports.get_counts_dashboard = async(req,res)=>{
         let data = req.body
         let bookedTrip = await TRIP.find({trip_status:"Booked"}).countDocuments();
         let cancelTrip = await TRIP.find({trip_status:"Canceled"}).countDocuments();
-        let companyCount = await USER.find({role:'SUB_ADMIN'}).countDocuments();
+        let companyCount = await USER.find({role:'SUB_ADMIN',is_deleted:false}).countDocuments();
         res.send({
             code:constant.success_code,
             message:"success",

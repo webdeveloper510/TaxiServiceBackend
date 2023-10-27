@@ -64,8 +64,8 @@ exports.add_driver = async (req, res) => {
             let hash = await bcrypt.hashSync(data.password ? data.password : 'Test@123', 10);
             data.password = hash;
             data.created_by = req.userId // Assuming you have user authentication
-            data.profile_image = driver_image[0] ? driver_image[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
-            data.driver_documents = driver_documents[0] ? driver_documents[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
+            data.profile_image = driver_image.length != 0 ? driver_image[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
+            data.driver_documents = driver_documents.length != 0 ? driver_documents[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
 
             let save_driver = await DRIVER(data).save()
             if (!save_driver) {
@@ -211,8 +211,8 @@ exports.update_driver = async (req, res) => {
                     message: 'Driver not found',
                 });
             }
-            req.body.profile_image = driver_image[0] ? driver_image[0] : existingDriver.profile_image
-            req.body.driver_documents = driver_documents[0] ? driver_documents[0] : existingDriver.driver_documents
+            req.body.profile_image = driver_image.length != 0 ? driver_image[0] : existingDriver.profile_image
+            req.body.driver_documents = driver_documents.length != 0 ? driver_documents[0] : existingDriver.driver_documents
             const updatedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, updates, { new: true });
             if (updatedDriver) {
                 res.send({
