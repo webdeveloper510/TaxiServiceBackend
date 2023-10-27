@@ -29,7 +29,7 @@ exports.add_sub_admin = async (req, res) => {
         let hashedPassword = await bcrypt.hashSync(data.password ? data.password : "Test@123", 10);
         data.password = hashedPassword
         data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
-        data.company_id = checkEmail.first_name + '-' + data.company_id
+        data.company_id = data.first_name + '-' + data.company_id
 
         data.role = 'SUB_ADMIN'
         data.created_by = req.userId
