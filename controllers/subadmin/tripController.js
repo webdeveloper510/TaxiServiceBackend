@@ -162,6 +162,7 @@ exports.get_recent_trip = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
+        console.log('check++++++++++++++',mid)
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
@@ -193,6 +194,7 @@ exports.get_recent_trip = async (req, res) => {
                     trip_to: 1,
                     pickup_date_time: 1,
                     createdAt:1,
+                    created_by:1,
                     trip_status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,

@@ -16,5 +16,7 @@ router.get('/', function(req, res, next) {
 
 
 router.get('/get_trip/:status',[verifyToken],tripController.get_trip)
+router.get('/get_counts_dashboard',[verifyToken],tripController.get_counts_dashboard)
+router.get('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 
 module.exports = router;
