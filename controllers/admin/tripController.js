@@ -73,6 +73,7 @@ exports.get_trip = async (req, res) => {
                     trip_to: 1,
                     pickup_date_time: 1,
                     trip_status: 1,
+                    createdAt:1,
                     passenger_detail: 1,
                     vehicle_type: 1,
                     driver_name: {
@@ -148,6 +149,7 @@ exports.get_recent_trip = async (req, res) => {
                     trip_from: 1,
                     trip_to: 1,
                     pickup_date_time: 1,
+                    createdAt:1,
                     trip_status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
@@ -223,6 +225,7 @@ exports.get_trip_by_company = async (req, res) => {
                     _id: 1,
                     trip_from: 1,
                     trip_to: 1,
+                    createdAt:1,
                     pickup_date_time: 1,
                     trip_status: 1,
                     passenger_detail: 1,

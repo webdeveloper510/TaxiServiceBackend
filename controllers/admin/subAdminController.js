@@ -75,7 +75,7 @@ exports.get_sub_admins = async (req, res) => {
             //         foreignField:"user_id",
             //     }
             // }
-        ])
+        ]).sort({ 'createdAt': -1 });
         if (!get_data) {
             res.send({
                 code: constant.error_code,
