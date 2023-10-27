@@ -119,8 +119,8 @@ exports.get_sub_admin_detail = async (req, res) => {
                     first_name:1,
                     last_name:1,
                     email:1,
-                    company_id:1,
-                    company_name:1,
+                    // company_id:1,
+                    // company_name:1,
                     phone:1,
                     profile_image:1,
                     role:1,
@@ -137,6 +137,8 @@ exports.get_sub_admin_detail = async (req, res) => {
                     'website': { $arrayElemAt: ["$meta.website", 0] },
                     'tx_quality_mark': { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
                     'saluation': { $arrayElemAt: ["$meta.saluation", 0] },
+                    'company_name': { $arrayElemAt: ["$meta.company_name", 0] },
+                    'company_id': { $arrayElemAt: ["$meta.company_id", 0] },
                     'location': { $arrayElemAt: ["$meta.location", 0] }
                 }
             }
