@@ -106,7 +106,7 @@ exports.login = async (req, res) => {
         res.send({
             code: constants.success_code,
             message: "Login Successful",
-            result: getData,
+            result: getData[0],
             jwtToken: jwtToken
         })
     } catch (err) {
@@ -144,7 +144,7 @@ exports.get_token_detail = async (req, res) => {
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: getData
+                result: getData[0]
             })
         }
     } catch (err) {
