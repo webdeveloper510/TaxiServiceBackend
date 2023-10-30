@@ -55,6 +55,10 @@ const trip = new Schema({
     created_by:{
         type:mongoose.Schema.Types.ObjectId,ref:'users',
     },
+    is_deleted:{
+        type:Boolean,
+        default:false
+    },
     status:{
         type:Boolean,
         default:true
