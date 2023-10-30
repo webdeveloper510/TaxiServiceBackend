@@ -1,11 +1,13 @@
 require("dotenv").config()
 const constants = require('../../config/constant')
 const USER = require('../../models/user/user_model')
+const AGENCY = require('../../models/user/agency_model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const multer = require('multer')
 const path = require('path')
 const constant = require("../../config/constant")
+const mongoose = require("mongoose")
 
 exports.create_super_admin = async (req, res) => {
     try {
@@ -56,19 +58,19 @@ exports.login = async (req, res) => {
         let data = req.body
         let userData = await USER.findOne(
             {
-                $and:[
+                $and: [
                     {
                         $or: [{ 'email': data.email }, { 'phone': data.email }]
                     },
                     {
-                        status:true
+                        status: true
                     },
                     {
-                        is_deleted:false
+                        is_deleted: false
                     }
                 ]
             }
-            )
+        )
         if (!userData) {
             res.send({
                 code: constants.error_code,
@@ -85,10 +87,26 @@ exports.login = async (req, res) => {
             return;
         }
         let jwtToken = jwt.sign({ userId: userData._id }, process.env.JWTSECRET, { expiresIn: '365d' })
+        let getData = await USER.aggregate([
+            {
+                $match: { _id: new mongoose.Types.ObjectId(userData._id) }
+
+            },
+            {
+                $lookup: {
+                    from: "agencies",
+                    localField: "_id",
+                    foreignField: "user_id",
+                    as: "company_detail"
+                }
+            },
+            { $unwind: "$company_detail" }
+        ])
+
         res.send({
             code: constants.success_code,
             message: "Login Successful",
-            result: userData,
+            result: getData,
             jwtToken: jwtToken
         })
     } catch (err) {
@@ -102,7 +120,21 @@ exports.login = async (req, res) => {
 exports.get_token_detail = async (req, res) => {
     try {
         let data = req.body
-        let getData = await USER.findOne({ _id: req.userId })
+        let getData = await USER.aggregate([
+            {
+                $match: { _id: new mongoose.Types.ObjectId(req.userId) }
+
+            },
+            {
+                $lookup: {
+                    from: "agencies",
+                    localField: "_id",
+                    foreignField: "user_id",
+                    as: "company_detail"
+                }
+            },
+            { $unwind: "$company_detail" }
+        ])
         if (!getData) {
             res.send({
                 code: constants.error_code,
