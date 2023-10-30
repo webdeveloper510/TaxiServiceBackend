@@ -102,11 +102,11 @@ exports.login = async (req, res) => {
             },
             { $unwind: "$company_detail" }
         ])
-
+        console.log(getData)
         res.send({
             code: constants.success_code,
             message: "Login Successful",
-            result: getData[0],
+            result: getData[0] ? getData[0]:userData,
             jwtToken: jwtToken
         })
     } catch (err) {
