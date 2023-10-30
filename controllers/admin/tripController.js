@@ -46,7 +46,8 @@ exports.get_trip = async (req, res) => {
                 $match: {
                     $and: [
                         // { created_by: mid },
-                        { trip_status: req.params.status }
+                        { trip_status: req.params.status },
+                        { is_deleted: false },
                     ]
                 }
             },
@@ -73,7 +74,7 @@ exports.get_trip = async (req, res) => {
                     trip_to: 1,
                     pickup_date_time: 1,
                     trip_status: 1,
-                    createdAt:1,
+                    createdAt: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
                     driver_name: {
@@ -119,14 +120,9 @@ exports.get_recent_trip = async (req, res) => {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
         let get_trip = await TRIP.aggregate([
-            // {
-            //     $match: {
-            //         $and: [
-            //             // { created_by: mid },
-            //             { trip_status: req.params.status }
-            //         ]
-            //     }
-            // },
+            {
+                $match: { is_deleted: false }
+            },
             {
                 $lookup: {
                     from: 'drivers',
@@ -149,7 +145,7 @@ exports.get_recent_trip = async (req, res) => {
                     trip_from: 1,
                     trip_to: 1,
                     pickup_date_time: 1,
-                    createdAt:1,
+                    createdAt: 1,
                     trip_status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
@@ -200,7 +196,8 @@ exports.get_trip_by_company = async (req, res) => {
                 $match: {
                     $and: [
                         // { created_by: mid },
-                        { trip_status: req.params.status }
+                        { trip_status: req.params.status },
+                        { is_deleted: false }
                     ]
                 }
             },
@@ -225,7 +222,7 @@ exports.get_trip_by_company = async (req, res) => {
                     _id: 1,
                     trip_from: 1,
                     trip_to: 1,
-                    createdAt:1,
+                    createdAt: 1,
                     pickup_date_time: 1,
                     trip_status: 1,
                     passenger_detail: 1,
@@ -279,7 +276,7 @@ exports.alocate_driver = async (req, res) => {
             })
             return;
         }
-       
+
         if (data.status != 'Canceled') {
             let check_driver = await DRIVER.findOne({ _id: data.driver_name })
             if (!check_driver) {
@@ -312,7 +309,7 @@ exports.alocate_driver = async (req, res) => {
             }
         } else {
 
-           
+
 
             let newValues = {
                 $set: {
@@ -367,25 +364,25 @@ exports.get_trip_detail = async (req, res) => {
     }
 }
 
-exports.get_counts_dashboard = async(req,res)=>{
-    try{
+exports.get_counts_dashboard = async (req, res) => {
+    try {
         let data = req.body
-        let bookedTrip = await TRIP.find({trip_status:"Booked"}).countDocuments();
-        let cancelTrip = await TRIP.find({trip_status:"Canceled"}).countDocuments();
-        let companyCount = await USER.find({role:'SUB_ADMIN',is_deleted:false}).countDocuments();
+        let bookedTrip = await TRIP.find({ trip_status: "Booked", is_deleted: false }).countDocuments();
+        let cancelTrip = await TRIP.find({ trip_status: "Canceled", is_deleted: false }).countDocuments();
+        let companyCount = await USER.find({ role: 'SUB_ADMIN', is_deleted: false }).countDocuments();
         res.send({
-            code:constant.success_code,
-            message:"success",
-            result:{
-                bookedTrips :bookedTrip,
-                cancelTrips :cancelTrip,
-                companies :companyCount
+            code: constant.success_code,
+            message: "success",
+            result: {
+                bookedTrips: bookedTrip,
+                cancelTrips: cancelTrip,
+                companies: companyCount
             }
         })
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
