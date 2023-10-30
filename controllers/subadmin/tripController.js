@@ -76,7 +76,8 @@ exports.get_trip = async (req, res) => {
                         { trip_status: req.params.status },
                         { trip_status: "Accepted" }
                     ]
-                }
+                },
+                { is_deleted: false }
             ]
         } else {
             query = [
@@ -168,6 +169,8 @@ exports.get_recent_trip = async (req, res) => {
                 $match: {
                     $and: [
                         { created_by: mid },
+                        { is_deleted: false }
+
                     ]
                 }
             },
@@ -239,9 +242,27 @@ exports.get_recent_trip = async (req, res) => {
 exports.get_counts_dashboard = async (req, res) => {
     try {
         let data = req.body
-        let bookedTrip = await TRIP.find({ trip_status: "Booked", created_by: req.userId }).countDocuments();
-        let cancelTrip = await TRIP.find({ trip_status: "Canceled", created_by: req.userId }).countDocuments();
-        let completeTrip = await TRIP.find({ trip_status: "Completed", created_by: req.userId }).countDocuments();
+        let bookedTrip = await TRIP.find({
+            $and:[
+                { trip_status: "Booked"},
+                { is_deleted: false},
+                { created_by: req.userId}
+            ]
+        }).countDocuments();
+        let cancelTrip = await TRIP.find({
+            $and:[
+                { trip_status: "Cenceled"},
+                { is_deleted: false},
+                { created_by: req.userId}
+            ]
+        }).countDocuments();
+        let completeTrip = await TRIP.find({
+            $and:[
+                { trip_status: "Completed"},
+                { is_deleted: false},
+                { created_by: req.userId}
+            ]
+        }).countDocuments();
         res.send({
             code: constant.success_code,
             message: "success",
@@ -259,58 +280,58 @@ exports.get_counts_dashboard = async (req, res) => {
     }
 }
 
-exports.edit_trip = async(req,res)=>{
-    try{
+exports.edit_trip = async (req, res) => {
+    try {
         let data = req.body
-        let criteria = {_id:req.params.id}
-        let option = {new : true}
-        let update_trip = await TRIP.findOneAndUpdate(criteria,data,option)
-        if(!update_trip){
+        let criteria = { _id: req.params.id }
+        let option = { new: true }
+        let update_trip = await TRIP.findOneAndUpdate(criteria, data, option)
+        if (!update_trip) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to update the trip"
+                code: constant.error_code,
+                message: "Unable to update the trip"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Updated Successfully",
-                result:update_trip
+                code: constant.success_code,
+                message: "Updated Successfully",
+                result: update_trip
             })
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
 
-exports.delete_trip = async(req,res)=>{
-    try{
+exports.delete_trip = async (req, res) => {
+    try {
         let data = req.body
-        let criteria = {_id:req.params.id}
-        let option = {new : true}
+        let criteria = { _id: req.params.id }
+        let option = { new: true }
         let newValue = {
-            $set:{
-                is_deleted:true
+            $set: {
+                is_deleted: true
             }
         }
-        let update_trip = await TRIP.findOneAndUpdate(criteria,newValue,option)
-        if(!update_trip){
+        let update_trip = await TRIP.findOneAndUpdate(criteria, newValue, option)
+        if (!update_trip) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to delete the trip"
+                code: constant.error_code,
+                message: "Unable to delete the trip"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Deleted Successfully"
+                code: constant.success_code,
+                message: "Deleted Successfully"
             })
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
