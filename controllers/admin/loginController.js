@@ -120,6 +120,7 @@ exports.login = async (req, res) => {
 exports.get_token_detail = async (req, res) => {
     try {
         let data = req.body
+        const userByID = await USER.findById(req.userId)
         let getData = await USER.aggregate([
             {
                 $match: { _id: new mongoose.Types.ObjectId(req.userId) }
@@ -144,7 +145,7 @@ exports.get_token_detail = async (req, res) => {
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: getData[0]
+                result: getData[0] || userByID
             })
         }
     } catch (err) {
