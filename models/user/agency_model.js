@@ -9,6 +9,10 @@ const agency = new Schema ({
         type:String,
         default:''
     },
+    commision:{
+        type:String,
+        default:'0'
+    },
     company_id:{
         type:String,
     },
