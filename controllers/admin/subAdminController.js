@@ -32,7 +32,7 @@ exports.add_sub_admin = async (req, res) => {
         data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         data.company_id = 'C' + '-' + data.company_id
 
-        data.role = 'SUB_ADMIN'
+        data.role = 'COMPANY'
         data.created_by = req.userId
         let save_data = await USER(data).save()
         if (!save_data) {
@@ -266,3 +266,14 @@ exports.delete_sub_admin = async (req, res) => {
         })
     }
 }
+
+// exports.add_vehicle_type = async(req,res)=>{
+//     try{
+
+//     }catch(err){
+//         res.send({
+//             code:constant.error_code,
+//             message:err.message
+//         })
+//     }
+// }

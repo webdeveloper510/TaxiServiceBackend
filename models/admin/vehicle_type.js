@@ -10,6 +10,10 @@ const vehicleType = new Schema({
         type:Boolean,
         default:true
     },
+    seats:{
+        type:Number,
+        default:0
+    },
     is_deleted:{
         type:Boolean,
         default:false
