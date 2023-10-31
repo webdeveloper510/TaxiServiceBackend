@@ -1,6 +1,6 @@
 const VEHICLE = require('../../models/user/vehicle_model')
 const USER = require('../../models/user/user_model')
-const VEHICLETYPE = require('../../models/admin/vehicle_type')
+const VEHICLETYPE = require('../../config/vehicleType')
 const multer = require('multer')
 const path = require('path')
 const constant = require('../../config/constant')
@@ -32,19 +32,14 @@ var vehicleUpload = multer({
 
 exports.get_vehicle_types = async (req, res) => {
     try {
-        let get_data = await VEHICLETYPE.find({}, { name: 1 }).sort({ 'name': 1 })
-        if (!get_data) {
-            res.send({
-                code: constant.error_code,
-                message: "Unable to fetch the data"
-            })
-        } else {
+        // let get_data = await VEHICLETYPE.find({}, { name: 1 }).sort({ 'name': 1 })
+       
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: get_data
+                result: VEHICLETYPE
             })
-        }
+        
     } catch (err) {
         res.send({
             code: constant.error_code,
