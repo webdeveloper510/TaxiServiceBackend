@@ -10,6 +10,10 @@ const trip = new Schema({
         type:String,
         default:''
     },
+    commision:{
+        type:String,
+        default:'0'
+    },
     vehicle:{
         type:mongoose.Schema.Types.ObjectId,ref:'vehicles',
         default:null
