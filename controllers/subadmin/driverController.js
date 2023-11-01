@@ -3,6 +3,7 @@ const DRIVER = require('../../models/user/driver_model'); // Import the Driver m
 const bcrypt = require("bcrypt");
 const multer = require('multer')
 const path = require('path')
+const jwt = require('jsonwebtoken')
 
 
 // var driverStorage = multer.diskStorage({
@@ -46,12 +47,6 @@ exports.add_driver = async (req, res) => {
     driverUpload(req, res, async (err) => {
         try {
             const data = req.body;
-            // const newDriver = new DRIVER(data);
-            // let hash = await bcrypt.hashSync(data.password, 10);
-            // newDriver.password = hash;
-            // newDriver.created_by = req.userId // Assuming you have user authentication
-            // newDriver.profile_image = req.file ? req.file.filename : 'driver.jpeg'
-            // const savedDriver = await newDriver.save();
 
             let hash = await bcrypt.hashSync(data.password ? data.password : 'Test@123', 10);
             data.password = hash;
@@ -208,3 +203,52 @@ exports.update_driver = async (req, res) => {
     })
 
 };
+
+exports.get_trips_for_driver = async(req,res)=>{
+    try{
+        let data = req.body
+        let query = req.query
+        let params = req.params
+
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}
+
+exports.login_driver = async(req,res)=>{
+    try{
+        let data = req.body
+        let check_email = await DRIVER.findOne({email:data.email})
+        console.log(check_email)
+        if(!check_email){
+            res.send({
+                code:constant.error_code,
+                message:"Invalid Credentials"
+            })
+        }else{
+            let check_password = await bcrypt.compare(data.password,check_email.password)
+            if(!check_password){
+                res.send({
+                    code:constant.error_code,
+                    message:"Invalid Credentials"
+                })
+            }else{
+                const token = jwt.sign({userId:check_email._id,email:check_email.email},process.env.JWTSECRET,{expiresIn:'1h'})
+                res.send({
+                    code:constant.success_code,
+                    message:"Login Successfully",
+                    result:check_email,
+                    jwt:token
+                })
+            }
+        }
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}

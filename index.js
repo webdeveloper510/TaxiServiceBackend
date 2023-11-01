@@ -11,6 +11,7 @@ const cors = require('cors')
 var adminRouter = require('./routes/admin');
 var usersRouter = require('./routes/users');
 var subAdminRouter = require('./routes/subadmin');
+var driverRouter = require('./routes/driver');
 
 var app = express();
 app.use(cors())
@@ -28,6 +29,7 @@ app.use('/uploads/',express.static('./uploads'))
 app.use('/admin', adminRouter);
 app.use('/users', usersRouter);
 app.use('/subadmin', subAdminRouter);
+app.use('/driver', driverRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
