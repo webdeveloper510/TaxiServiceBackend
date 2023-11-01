@@ -1,5 +1,6 @@
 const constant = require('../../config/constant');
 const DRIVER = require('../../models/user/driver_model'); // Import the Driver model
+const TRIP = require('../../models/user/trip_model'); // Import the Driver model
 const bcrypt = require("bcrypt");
 const multer = require('multer')
 const path = require('path')
@@ -30,7 +31,7 @@ const imageStorage = new CloudinaryStorage({
         folder: "TaxiBooking",
         // allowedFormats: ["jpg", "jpeg", "png"],
         public_id: (req, file) =>
-        `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+            `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
         // format: async (req, file) => "jpg", // Convert all uploaded images to JPEG format
         // transformation: [{ width: 500, height: 500, crop: "limit" }],
         maxFileSize: 10000000,
@@ -147,7 +148,7 @@ exports.get_drivers = async (req, res) => {
     try {
         const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
 
-        const drivers = await DRIVER.find({  is_deleted: false }).sort({ 'createdAt': -1 });
+        const drivers = await DRIVER.find({ is_deleted: false }).sort({ 'createdAt': -1 });
 
         if (drivers) {
             res.send({
@@ -204,51 +205,64 @@ exports.update_driver = async (req, res) => {
 
 };
 
-exports.get_trips_for_driver = async(req,res)=>{
-    try{
+exports.get_trips_for_driver = async (req, res) => {
+    try {
         let data = req.body
         let query = req.query
         let params = req.params
+        let get_trip = await TRIP.find({driver_name:req.userId})
+        if (!get_trip) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to fetch the trips"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: get_trip
+            })
+        }
 
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
 
-exports.login_driver = async(req,res)=>{
-    try{
+exports.login_driver = async (req, res) => {
+    try {
         let data = req.body
-        let check_email = await DRIVER.findOne({email:data.email})
+        let check_email = await DRIVER.findOne({ email: data.email })
         console.log(check_email)
-        if(!check_email){
+        if (!check_email) {
             res.send({
-                code:constant.error_code,
-                message:"Invalid Credentials"
+                code: constant.error_code,
+                message: "Invalid Credentials"
             })
-        }else{
-            let check_password = await bcrypt.compare(data.password,check_email.password)
-            if(!check_password){
+        } else {
+            let check_password = await bcrypt.compare(data.password, check_email.password)
+            if (!check_password) {
                 res.send({
-                    code:constant.error_code,
-                    message:"Invalid Credentials"
+                    code: constant.error_code,
+                    message: "Invalid Credentials"
                 })
-            }else{
-                const token = jwt.sign({userId:check_email._id,email:check_email.email},process.env.JWTSECRET,{expiresIn:'1h'})
+            } else {
+                const token = jwt.sign({ userId: check_email._id, email: check_email.email }, process.env.JWTSECRET, { expiresIn: '1h' })
                 res.send({
-                    code:constant.success_code,
-                    message:"Login Successfully",
-                    result:check_email,
-                    jwt:token
+                    code: constant.success_code,
+                    message: "Login Successfully",
+                    result: check_email,
+                    jwt: token
                 })
             }
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }

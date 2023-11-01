@@ -15,6 +15,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/login',driverController.login_driver)
+router.get('/get_trips_for_driver',[verifyToken],driverController.get_trips_for_driver)
 
 
 module.exports = router;
