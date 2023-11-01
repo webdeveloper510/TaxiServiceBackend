@@ -28,11 +28,15 @@ exports.add_sub_admin = async (req, res) => {
         }
         let hashedPassword = await bcrypt.hashSync(data.password ? data.password : "Test@123", 10);
         data.password = hashedPassword
-        
-        data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
-        data.company_id = 'C' + '-' + data.company_id
 
-        data.role = 'COMPANY'
+        data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+        if (data.role == 'COMPANY') {
+            data.company_id = 'C' + '-' + data.company_id
+        } else {
+            data.company_id = 'H' + '-' + data.company_id
+        }
+
+        // data.role = 'COMPANY'
         data.created_by = req.userId
         let save_data = await USER(data).save()
         if (!save_data) {
@@ -64,9 +68,11 @@ exports.add_sub_admin = async (req, res) => {
 exports.get_sub_admins = async (req, res) => {
     try {
         let data = req.body
+        let query = req.query.role ? req.query.role : 'COMPANY'
+       
         let get_data = await USER.aggregate([
             {
-                $match: { role: 'COMPANY', is_deleted: false }
+                $match: { role: query, is_deleted: false }
 
             },
             {
@@ -86,7 +92,7 @@ exports.get_sub_admins = async (req, res) => {
                     // company_id:1,
                     // company_name:1,
                     phone: 1,
-                    createdAt:-1,
+                    createdAt: -1,
                     profile_image: 1,
                     role: 1,
                     status: 1,
@@ -104,6 +110,7 @@ exports.get_sub_admins = async (req, res) => {
                     'saluation': { $arrayElemAt: ["$meta.saluation", 0] },
                     'company_name': { $arrayElemAt: ["$meta.company_name", 0] },
                     'company_id': { $arrayElemAt: ["$meta.company_id", 0] },
+                    'commision': { $arrayElemAt: ["$meta.commision", 0] },
                     'location': { $arrayElemAt: ["$meta.location", 0] }
                 }
             }
