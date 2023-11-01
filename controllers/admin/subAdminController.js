@@ -179,6 +179,7 @@ exports.get_sub_admin_detail = async (req, res) => {
                     'saluation': { $arrayElemAt: ["$meta.saluation", 0] },
                     'company_name': { $arrayElemAt: ["$meta.company_name", 0] },
                     'company_id': { $arrayElemAt: ["$meta.company_id", 0] },
+                    'commision': { $arrayElemAt: ["$meta.commision", 0] },
                     'location': { $arrayElemAt: ["$meta.location", 0] }
                 }
             }
