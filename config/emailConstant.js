@@ -2,8 +2,8 @@ module.exports ={
     credentials:{
         service: "gmail",
         auth: {
-            user: "brainalywin@gmail.com",
-            pass: "kmwbrsqghmtlsgje",
+            user: "veritywcb23@gmail.com",
+            pass: "vfrz mdsj blaj onlj",
         }
     },
     from_email:"brainalywin@gmail.com",
