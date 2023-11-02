@@ -4,8 +4,7 @@ module.exports ={
         auth: {
             user: "brainalywin@gmail.com",
             pass: "kmwbrsqghmtlsgje",
-        },
-       
+        }
     },
     from_email:"brainalywin@gmail.com",
 }
