@@ -41,11 +41,24 @@ exports.get_trip = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
+        let getIds = await USER.find({role:'HOTEL',created_by:req.userId})
+        let ids=[]
+        for(let i of getIds){
+            ids.push(i._id)
+        }
+        const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+        console.log(mid,objectIds)
+
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
                     $and: [
-                        // { created_by: mid },
+                        {
+                            $or:[
+                                { created_by: {$in:objectIds} },
+                                { created_by: mid }
+                            ]
+                        },
                         { trip_status: req.params.status },
                         { is_deleted: false },
                     ]
@@ -75,6 +88,87 @@ exports.get_trip = async (req, res) => {
                     pickup_date_time: 1,
                     trip_status: 1,
                     createdAt: 1,
+                    created_by: 1,
+                    passenger_detail: 1,
+                    vehicle_type: 1,
+                    driver_name: {
+                        $concat: [
+                            { $arrayElemAt: ["$driver.first_name", 0] },
+                            " ",
+                            { $arrayElemAt: ["$driver.last_name", 0] }
+                        ]
+                    },
+                    vehicle: {
+                        $concat: [
+                            { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+                            " ",
+                            { $arrayElemAt: ["$vehicle.vehicle_model", 0] }
+                        ]
+                    },
+                    trip_id: 1
+                }
+            }
+        ]).sort({ 'createdAt': -1 })
+        if (!get_trip) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to get the trips"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: get_trip
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.get_trip_for_hotel = async (req, res) => {
+    try {
+        let data = req.body
+        let mid = new mongoose.Types.ObjectId(req.userId)
+      
+        let get_trip = await TRIP.aggregate([
+            {
+                $match: {
+                    $and: [
+                        { created_by: mid },
+                        { trip_status: req.params.status },
+                        { is_deleted: false },
+                    ]
+                }
+            },
+            {
+                $lookup: {
+                    from: 'drivers',
+                    localField: 'driver_name',
+                    foreignField: '_id',
+                    as: 'driver',
+                }
+            },
+            {
+                $lookup: {
+                    from: 'vehicles',
+                    localField: 'vehicle',
+                    foreignField: '_id',
+                    as: 'vehicle',
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    trip_from: 1,
+                    trip_to: 1,
+                    pickup_date_time: 1,
+                    trip_status: 1,
+                    createdAt: 1,
+                    created_by: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
                     driver_name: {
@@ -119,9 +213,26 @@ exports.get_recent_trip = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
+        let getIds = await USER.find({role:'HOTEL',created_by:req.userId})
+        let ids=[]
+        for(let i of getIds){
+            ids.push(i._id)
+        }
+        const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
         let get_trip = await TRIP.aggregate([
             {
-                $match: { is_deleted: false }
+                $match: {
+                    $and: [
+                        {
+                            $or:[
+                                { created_by: {$in:objectIds} },
+                                { created_by: mid }
+                            ]
+                        },
+                        // { trip_status: req.params.status },
+                        { is_deleted: false },
+                    ]
+                }
             },
             {
                 $lookup: {
@@ -146,6 +257,86 @@ exports.get_recent_trip = async (req, res) => {
                     trip_to: 1,
                     pickup_date_time: 1,
                     createdAt: 1,
+                    trip_status: 1,
+                    passenger_detail: 1,
+                    vehicle_type: 1,
+                    driver_name: {
+                        $concat: [
+                            { $arrayElemAt: ["$driver.first_name", 0] },
+                            " ",
+                            { $arrayElemAt: ["$driver.last_name", 0] }
+                        ]
+                    },
+                    vehicle: {
+                        $concat: [
+                            { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+                            " ",
+                            { $arrayElemAt: ["$vehicle.vehicle_model", 0] }
+                        ]
+                    },
+                    trip_id: 1
+                }
+            }
+        ]).sort({ 'createdAt': -1 })
+        if (!get_trip) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to get the trips"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: get_trip
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.get_recent_trip_super = async (req, res) => {
+    try {
+        let data = req.body
+        let mid = new mongoose.Types.ObjectId(req.userId)
+        console.log('check++++++++++++++', mid)
+        let get_trip = await TRIP.aggregate([
+            {
+                $match: {
+                    $and: [
+                        // { created_by: mid },
+                        { is_deleted: false }
+
+                    ]
+                }
+            },
+            {
+                $lookup: {
+                    from: 'drivers',
+                    localField: 'driver_name',
+                    foreignField: '_id',
+                    as: 'driver',
+                }
+            },
+            {
+                $lookup: {
+                    from: 'vehicles',
+                    localField: 'vehicle',
+                    foreignField: '_id',
+                    as: 'vehicle',
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    trip_from: 1,
+                    trip_to: 1,
+                    pickup_date_time: 1,
+                    createdAt: 1,
+                    created_by: 1,
                     trip_status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
