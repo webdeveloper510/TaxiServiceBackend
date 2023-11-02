@@ -75,6 +75,7 @@ exports.add_vehicle = async (req, res) => {
                 return;
             }
             data.agency_user_id = req.userId
+            data.created_by = req.userId
             data.vehicle_photo = vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
             data.vehicle_documents = vehicle_documents.length != 0  ? vehicle_documents[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
             let save_data = await VEHICLE(data).save()
@@ -102,7 +103,7 @@ exports.add_vehicle = async (req, res) => {
 
 exports.get_vehicles = async (req, res) => {
     try {
-        let get_vehicle = await VEHICLE.find({ is_deleted: false }).sort({ 'createdAt': -1 })
+        let get_vehicle = await VEHICLE.find({ is_deleted: false,created_by:req.userId }).sort({ 'createdAt': -1 })
         if (!get_vehicle) {
             res.send({
                 code: constant.error_code,
