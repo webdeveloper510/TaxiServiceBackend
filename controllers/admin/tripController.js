@@ -81,6 +81,14 @@ exports.get_trip = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'users',
+                    localField: 'created_by',
+                    foreignField: '_id',
+                    as: 'userData',
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     trip_from: 1,
@@ -91,6 +99,7 @@ exports.get_trip = async (req, res) => {
                     created_by: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
+                    customer_name:'$userData',
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
