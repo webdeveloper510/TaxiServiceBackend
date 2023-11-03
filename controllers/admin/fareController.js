@@ -42,7 +42,18 @@ exports.add_fare = async (req, res) => {
 exports.get_fares = async(req,res)=>{
     try{
         let data = req.body
-        let getData = await FARE.find({created_by:req.userId,is_deleted:false}).sort({'createdAt':-1})
+        let get_user = await USER.findOne({_id:req.userId})
+        let getData = await FARE.find({
+            $and:[
+                {
+                    $or:[
+                        {created_by:req.userId},
+                        {created_by:get_user.created_by}
+                    ]
+                },
+                {is_deleted:false}
+            ]
+        }).sort({'createdAt':-1})
         if(!getData){
             res.send({
                 code:constant.error_code,
