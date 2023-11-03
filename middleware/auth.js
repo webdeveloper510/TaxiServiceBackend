@@ -23,15 +23,15 @@ const constant = require('../config/constant');
             Message:"auth token verification failed"
           })
       }
-    let checkUser =  USER.findOne({_id:decoded.userId,isDeleted:false})
-    console.log(checkUser.email,'================')
-    if(!checkUser.email){
-      res.send({
-        code:constant.error_code,
-        message:"Token is not valid"
-      })
-      return;
-    }
+    // let checkUser =  USER.findOne({_id:decoded.userId,isDeleted:false})
+    // console.log(checkUser.email,'================')
+    // if(!checkUser.email){
+    //   res.send({
+    //     code:constant.error_code,
+    //     message:"Token is not valid"
+    //   })
+    //   return;
+    // }
       req.userId = decoded.userId;
       req.email = decoded.email;
       req.role = decoded.role;
