@@ -14,11 +14,8 @@ const imageStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: "TaxiBooking",
-        // allowedFormats: ["jpg", "jpeg", "png"],
         public_id: (req, files) =>
             `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
-        // format: async (req, file) => "jpg", // Convert all uploaded images to JPEG format
-        // transformation: [{ width: 500, height: 500, crop: "limit" }],
         maxFileSize: 10000000,
     },
 });
@@ -28,18 +25,18 @@ var vehicleUpload = multer({
 }).any([
     { name: "vehicle_photo" },
     { name: "vehicle_documents" }
-  ])
+])
 
 exports.get_vehicle_types = async (req, res) => {
     try {
         // let get_data = await VEHICLETYPE.find({}, { name: 1 }).sort({ 'name': 1 })
-       
-            res.send({
-                code: constant.success_code,
-                message: "Success",
-                result: VEHICLETYPE
-            })
-        
+
+        res.send({
+            code: constant.success_code,
+            message: "Success",
+            result: VEHICLETYPE
+        })
+
     } catch (err) {
         res.send({
             code: constant.error_code,
@@ -53,7 +50,7 @@ exports.add_vehicle = async (req, res) => {
         try {
             var vehicle_documents = [];
             var vehicle_photo = [];
-           
+
             // var imagePortfolioLogo = []
             let file = req.files
             for (i = 0; i < file.length; i++) {
@@ -77,7 +74,7 @@ exports.add_vehicle = async (req, res) => {
             data.agency_user_id = req.userId
             data.created_by = req.userId
             data.vehicle_photo = vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
-            data.vehicle_documents = vehicle_documents.length != 0  ? vehicle_documents[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+            data.vehicle_documents = vehicle_documents.length != 0 ? vehicle_documents[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
             let save_data = await VEHICLE(data).save()
             if (!save_data) {
                 res.send({
@@ -103,7 +100,18 @@ exports.add_vehicle = async (req, res) => {
 
 exports.get_vehicles = async (req, res) => {
     try {
-        let get_vehicle = await VEHICLE.find({ is_deleted: false,created_by:req.userId }).sort({ 'createdAt': -1 })
+        let getUser = await USER.findOne({ _id: req.userId })
+        let get_vehicle = await VEHICLE.find({
+            $and: [
+                { is_deleted: false },
+                {
+                    $or: [
+                        { created_by: req.userId },
+                        { created_by: getUser.created_by },
+                    ]
+                }
+            ]
+        }).sort({ 'createdAt': -1 })
         if (!get_vehicle) {
             res.send({
                 code: constant.error_code,
@@ -124,26 +132,26 @@ exports.get_vehicles = async (req, res) => {
     }
 }
 
-exports.get_vehicle_type = async(req,res)=>{
-    try{
+exports.get_vehicle_type = async (req, res) => {
+    try {
         let data = req.body
-        let getData = await VEHICLE.find({vehicle_type:req.params.vehicle_type})
-        if(!getData){
+        let getData = await VEHICLE.find({ vehicle_type: req.params.vehicle_type })
+        if (!getData) {
             res.send({
-                code:constant.error_code,
-                message:"Unbale to fetch the vehicles"
+                code: constant.error_code,
+                message: "Unbale to fetch the vehicles"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Success",
-                result:getData
+                code: constant.success_code,
+                message: "Success",
+                result: getData
             })
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
@@ -177,7 +185,7 @@ exports.edit_vehicle = async (req, res) => {
             let data = req.body
             var vehicle_documents = [];
             var vehicle_photo = [];
-           
+
             // var imagePortfolioLogo = []
             let file = req.files
             for (i = 0; i < file.length; i++) {
