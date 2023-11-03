@@ -42,7 +42,7 @@ var driverUpload = multer({
 }).any([
     { name: "driver_image" },
     { name: "driver_documents" }
-  ])
+])
 
 
 exports.add_driver = async (req, res) => {
@@ -160,16 +160,21 @@ exports.get_driver_detail = async (req, res) => {
 exports.get_drivers = async (req, res) => {
     try {
         const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
-        let getDetail = await USER.findOne({_id:req.userId})
-        const drivers = await DRIVER.find([
-            {$and:[
-                { is_deleted: false },
-                {$or:[
-                    {created_by:req.userId},
-                    {created_by:getDetail.created_by}
-                ]}
-            ]}
-        ]).sort({ 'createdAt': -1 });
+        let getDetail = await USER.findOne({ _id: req.userId })
+        console.log(getDetail)
+        const drivers = await DRIVER.find(
+            {
+                $and: [
+                    { is_deleted: false },
+                    {
+                        $or: [
+                            { created_by: req.userId },
+                            { created_by: getDetail.created_by }
+                        ]
+                    }
+                ]
+            }
+        ).sort({ 'createdAt': -1 });
 
         if (drivers) {
             res.send({
