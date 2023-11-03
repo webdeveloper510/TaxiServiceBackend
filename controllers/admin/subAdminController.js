@@ -216,6 +216,7 @@ exports.add_sub_admin = async (req, res) => {
                     </body></html>`
                 };
                 transporter.sendMail(mailOptions);
+                console.log( transporter.sendMail(mailOptions))
                 // Welcome to Taxi Service, your email is ${data.email} and password is ${passwordEmail}
 
 
