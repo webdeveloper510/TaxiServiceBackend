@@ -247,7 +247,7 @@ exports.get_sub_admins = async (req, res) => {
        
         let get_data = await USER.aggregate([
             {
-                $match: { role: query, is_deleted: false,created_by:req.userId }
+                $match: { role: query, is_deleted: false,created_by:new mongoose.Types.ObjectId(req.userId) }
 
             },
             {
