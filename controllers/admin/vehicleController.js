@@ -5,8 +5,6 @@ const multer = require('multer')
 const path = require('path')
 const constant = require('../../config/constant')
 
-
-
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 

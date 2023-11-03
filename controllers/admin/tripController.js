@@ -86,6 +86,21 @@ exports.get_trip = async (req, res) => {
                     localField: 'created_by',
                     foreignField: '_id',
                     as: 'userData',
+                    pipeline:[
+                        {
+                            $lookup:{
+                                from:"agencies",
+                                localField:"_id",
+                                foreignField:"user_id",
+                                as:"agency"
+                            }
+                        },
+                        {
+                            $project:{
+                                'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
+                            }
+                        }
+                    ]
                 }
             },
             {
@@ -99,7 +114,7 @@ exports.get_trip = async (req, res) => {
                     created_by: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
-                    customer_name:'$userData',
+                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
@@ -260,6 +275,29 @@ exports.get_recent_trip = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'users',
+                    localField: 'created_by',
+                    foreignField: '_id',
+                    as: 'userData',
+                    pipeline:[
+                        {
+                            $lookup:{
+                                from:"agencies",
+                                localField:"_id",
+                                foreignField:"user_id",
+                                as:"agency"
+                            }
+                        },
+                        {
+                            $project:{
+                                'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
+                            }
+                        }
+                    ]
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     trip_from: 1,
@@ -268,6 +306,7 @@ exports.get_recent_trip = async (req, res) => {
                     createdAt: 1,
                     trip_status: 1,
                     passenger_detail: 1,
+                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     vehicle_type: 1,
                     driver_name: {
                         $concat: [
@@ -339,6 +378,29 @@ exports.get_recent_trip_super = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'users',
+                    localField: 'created_by',
+                    foreignField: '_id',
+                    as: 'userData',
+                    pipeline:[
+                        {
+                            $lookup:{
+                                from:"agencies",
+                                localField:"_id",
+                                foreignField:"user_id",
+                                as:"agency"
+                            }
+                        },
+                        {
+                            $project:{
+                                'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
+                            }
+                        }
+                    ]
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     trip_from: 1,
@@ -347,6 +409,7 @@ exports.get_recent_trip_super = async (req, res) => {
                     createdAt: 1,
                     created_by: 1,
                     trip_status: 1,
+                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     passenger_detail: 1,
                     vehicle_type: 1,
                     driver_name: {
