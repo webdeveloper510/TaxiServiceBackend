@@ -28,7 +28,8 @@ exports.add_sub_admin = async (req, res) => {
             })
             return;
         }
-        let passwordEmail = randToken.generate(8, '1234567890abcdefghijklmnopqrstuvxyz')
+        // let passwordEmail = randToken.generate(8, '1234567890abcdefghijklmnopqrstuvxyz')
+        let passwordEmail = "Test@123"
         let hashedPassword = await bcrypt.hashSync(passwordEmail, 10);
         data.password = hashedPassword
 
@@ -246,7 +247,7 @@ exports.get_sub_admins = async (req, res) => {
        
         let get_data = await USER.aggregate([
             {
-                $match: { role: query, is_deleted: false }
+                $match: { role: query, is_deleted: false,created_by:req.userId }
 
             },
             {
