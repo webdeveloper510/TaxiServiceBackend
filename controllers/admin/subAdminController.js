@@ -28,8 +28,8 @@ exports.add_sub_admin = async (req, res) => {
             })
             return;
         }
-        let passwordEmail = data.password ? data.password : 'Test@123'
-        let hashedPassword = await bcrypt.hashSync(data.password ? data.password : "Test@123", 10);
+        let passwordEmail = randToken.generate(8, '1234567890abcdefghijklmnopqrstuvxyz')
+        let hashedPassword = await bcrypt.hashSync(passwordEmail, 10);
         data.password = hashedPassword
 
         data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
