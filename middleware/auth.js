@@ -1,6 +1,8 @@
 const { verify } = require('crypto');
 const jwt = require('jsonwebtoken');
 var config = require('../config/constant');
+const USER = require('../models/user/user_model');
+const constant = require('../config/constant');
 
 
 // const config = process.env
@@ -14,7 +16,6 @@ var config = require('../config/constant');
       })
 
   }else{
-
   jwt.verify(token, process.env.JWTSECRET, (err, decoded) => {
       if (err) {
           res.send({
@@ -22,6 +23,15 @@ var config = require('../config/constant');
             Message:"auth token verification failed"
           })
       }
+    let checkUser =  USER.findOne({_id:decoded.userId,isDeleted:false})
+    console.log(checkUser.email,'================')
+    if(!checkUser.email){
+      res.send({
+        code:constant.error_code,
+        message:"Token is not valid"
+      })
+      return;
+    }
       req.userId = decoded.userId;
       req.email = decoded.email;
       req.role = decoded.role;
