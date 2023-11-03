@@ -12,7 +12,7 @@ const randToken = require('rand-token').generator()
 exports.add_trip = async (req, res) => {
     try {
         let data = req.body
-        data.created_by = req.userId
+        data.created_by = data.created_by?data.created_by:req.userId
         data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let check_user = await USER.findOne({ _id: req.userId })
         data.trip_id = 'T' + '-' + data.trip_id
