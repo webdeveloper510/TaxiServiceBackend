@@ -198,6 +198,47 @@ exports.get_drivers = async (req, res) => {
     }
 };
 
+exports.get_drivers_super = async (req, res) => {
+    try {
+        const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
+        let getDetail = await USER.findOne({ _id: req.userId })
+        console.log(getDetail)
+        const drivers = await DRIVER.find(
+            {
+                $and: [
+                    { is_deleted: false },
+                    // {status:true},
+                    // {is_available:true}
+                    // {
+                    //     $or: [
+                    //         { created_by: req.userId },
+                    //         { created_by: getDetail.created_by }
+                    //     ]
+                    // }
+                ]
+            }
+        ).sort({ 'createdAt': -1 });
+
+        if (drivers) {
+            res.send({
+                code: constant.success_code,
+                message: 'Driver list retrieved successfully',
+                result: drivers,
+            });
+        } else {
+            res.send({
+                code: constant.error_code,
+                message: 'No drivers found for the agency user',
+            });
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message,
+        });
+    }
+};
+
 exports.update_driver = async (req, res) => {
     driverUpload(req, res, async (err) => {
         try {
