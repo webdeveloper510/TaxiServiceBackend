@@ -102,12 +102,12 @@ exports.get_vehicles = async (req, res) => {
         let get_vehicle = await VEHICLE.find({
             $and: [
                 { is_deleted: false },
-                {
-                    $or: [
-                        { created_by: req.userId },
-                        { created_by: getUser.created_by },
-                    ]
-                }
+                // {
+                //     $or: [
+                //         { created_by: req.userId },
+                //         { created_by: getUser.created_by },
+                //     ]
+                // }
             ]
         }).sort({ 'createdAt': -1 })
         if (!get_vehicle) {

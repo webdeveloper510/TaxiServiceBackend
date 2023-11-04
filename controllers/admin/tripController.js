@@ -12,7 +12,7 @@ const randToken = require('rand-token').generator()
 exports.add_trip = async (req, res) => {
     try {
         let data = req.body
-        data.created_by = data.created_by?data.created_by:req.userId
+        data.created_by = data.created_by ? data.created_by : req.userId
         data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let check_user = await USER.findOne({ _id: req.userId })
         data.trip_id = 'T' + '-' + data.trip_id
@@ -41,21 +41,21 @@ exports.get_trip = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
-        let getIds = await USER.find({role:'HOTEL',created_by:req.userId})
-        let ids=[]
-        for(let i of getIds){
+        let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
+        let ids = []
+        for (let i of getIds) {
             ids.push(i._id)
         }
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
-        console.log(mid,objectIds)
+        console.log(mid, objectIds)
 
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
                     $and: [
                         {
-                            $or:[
-                                { created_by: {$in:objectIds} },
+                            $or: [
+                                { created_by: { $in: objectIds } },
                                 { created_by: mid }
                             ]
                         },
@@ -86,17 +86,17 @@ exports.get_trip = async (req, res) => {
                     localField: 'created_by',
                     foreignField: '_id',
                     as: 'userData',
-                    pipeline:[
+                    pipeline: [
                         {
-                            $lookup:{
-                                from:"agencies",
-                                localField:"_id",
-                                foreignField:"user_id",
-                                as:"agency"
+                            $lookup: {
+                                from: "agencies",
+                                localField: "_id",
+                                foreignField: "user_id",
+                                as: "agency"
                             }
                         },
                         {
-                            $project:{
+                            $project: {
                                 'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
                             }
                         }
@@ -157,7 +157,7 @@ exports.get_trip_for_hotel = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
-      
+
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
@@ -237,9 +237,9 @@ exports.get_recent_trip = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
-        let getIds = await USER.find({role:'HOTEL',created_by:req.userId})
-        let ids=[]
-        for(let i of getIds){
+        let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
+        let ids = []
+        for (let i of getIds) {
             ids.push(i._id)
         }
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
@@ -248,8 +248,8 @@ exports.get_recent_trip = async (req, res) => {
                 $match: {
                     $and: [
                         {
-                            $or:[
-                                { created_by: {$in:objectIds} },
+                            $or: [
+                                { created_by: { $in: objectIds } },
                                 { created_by: mid }
                             ]
                         },
@@ -280,17 +280,17 @@ exports.get_recent_trip = async (req, res) => {
                     localField: 'created_by',
                     foreignField: '_id',
                     as: 'userData',
-                    pipeline:[
+                    pipeline: [
                         {
-                            $lookup:{
-                                from:"agencies",
-                                localField:"_id",
-                                foreignField:"user_id",
-                                as:"agency"
+                            $lookup: {
+                                from: "agencies",
+                                localField: "_id",
+                                foreignField: "user_id",
+                                as: "agency"
                             }
                         },
                         {
-                            $project:{
+                            $project: {
                                 'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
                             }
                         }
@@ -383,17 +383,17 @@ exports.get_recent_trip_super = async (req, res) => {
                     localField: 'created_by',
                     foreignField: '_id',
                     as: 'userData',
-                    pipeline:[
+                    pipeline: [
                         {
-                            $lookup:{
-                                from:"agencies",
-                                localField:"_id",
-                                foreignField:"user_id",
-                                as:"agency"
+                            $lookup: {
+                                from: "agencies",
+                                localField: "_id",
+                                foreignField: "user_id",
+                                as: "agency"
                             }
                         },
                         {
-                            $project:{
+                            $project: {
                                 'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
                             }
                         }

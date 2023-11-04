@@ -166,12 +166,14 @@ exports.get_drivers = async (req, res) => {
             {
                 $and: [
                     { is_deleted: false },
-                    {
-                        $or: [
-                            { created_by: req.userId },
-                            { created_by: getDetail.created_by }
-                        ]
-                    }
+                    {status:true},
+                    {is_available:true}
+                    // {
+                    //     $or: [
+                    //         { created_by: req.userId },
+                    //         { created_by: getDetail.created_by }
+                    //     ]
+                    // }
                 ]
             }
         ).sort({ 'createdAt': -1 });
