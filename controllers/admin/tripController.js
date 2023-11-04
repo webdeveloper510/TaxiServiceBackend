@@ -541,7 +541,7 @@ exports.alocate_driver = async (req, res) => {
         }
 
         if (data.status != 'Canceled') {
-            let check_driver = await DRIVER.findOne({ _id: data.driver_name })
+            let check_driver = await DRIVER.findOneAndUpdate({ _id: data.driver_name },{is_available:false})
             if (!check_driver) {
                 res.send({
                     code: constant.error_code,
@@ -571,9 +571,6 @@ exports.alocate_driver = async (req, res) => {
                 })
             }
         } else {
-
-
-
             let newValues = {
                 $set: {
                     trip_status: data.status
