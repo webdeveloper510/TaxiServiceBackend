@@ -136,8 +136,7 @@ exports.get_token_detail = async (req, res) => {
             },
             { $unwind: "$company_detail" }
         ])
-        console.log('aggregate',req.userId )
-        if (!getData) {
+        if (userByID) {
             res.send({
                 code: constants.error_code,
                 message: "Unable to fetch the detail"
