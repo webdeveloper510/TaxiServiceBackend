@@ -96,22 +96,19 @@ exports.remove_driver = async (req, res) => {
         const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
         // You may want to add additional checks to ensure the driver exists or belongs to the agency user
-        const removedDriver = await DRIVER.findById(driverId);
-
-        if (removedDriver) {
-            removedDriver.is_deleted = true;
-            removedDriver.save();
+        const removedDriver = await DRIVER.findOneAndDelete({_id:driverId});
+        if(!removedDriver){
             res.send({
-                code: constant.success_code,
-                message: 'Driver deleted successfully',
-                result: removedDriver,
+                code:constant.error_code,
+                message:"Unable to delete the driver"
             })
-        } else {
+        }else{
             res.send({
-                code: constant.error_code,
-                message: 'Driver not found',
+                code:constant.success_code,
+                message:"Deleted Successfully"
             })
         }
+        
     } catch (err) {
         res.send({
             code: constant.error_code,

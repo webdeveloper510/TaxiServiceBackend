@@ -429,7 +429,7 @@ exports.delete_sub_admin = async (req, res) => {
                 deleted_by_id: req.userId
             }
         }
-        let deleteSubAdmin = await USER.findOneAndUpdate(criteria, newValue, option)
+        let deleteSubAdmin = await USER.findOneAndDelete(criteria)
         if (!deleteSubAdmin) {
             res.send({
                 code: constant.error_code,
