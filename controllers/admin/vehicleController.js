@@ -206,8 +206,8 @@ exports.edit_vehicle = async (req, res) => {
                 })
                 return;
             }
-            data.vehicle_photo = vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
-            data.vehicle_documents = vehicle_documents.length != 0 ? vehicle_documents[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+            data.vehicle_photo = vehicle_photo.length != 0 ? vehicle_photo[0] : check_vehicle.vehicle_photo
+            data.vehicle_documents = vehicle_documents.length != 0 ? vehicle_documents[0] : check_vehicle.vehicle_documents
 
             let updateVehicle = await VEHICLE.findOneAndUpdate(criteria, data, option)
             if (!updateVehicle) {

@@ -43,6 +43,9 @@ const user = new Schema({
         type:String,
         default:''
     },
+    otp_expiry:{
+        type:Date,
+    },
     is_email_verified:{
         type:Boolean,
         default:false
