@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken')
 const randToken = require('rand-token').generator()
 const multer = require('multer')
 const path = require('path')
+const moment = require('moment')
 const constant = require("../../config/constant")
 const emailConstant = require('../../config/emailConstant')
 const nodemailer = require('nodemailer')
@@ -192,11 +193,11 @@ exports.send_otp = async (req, res) => {
                     message: "Unable to send the otp please try again"
                 })
             } else {
-
+                console.log('check+++++++++++', check_email)
                 var transporter = nodemailer.createTransport(emailConstant.credentials);
                 var mailOptions = {
                     from: emailConstant.from_email,
-                    to: data.email,
+                    to: check_email.email,
                     subject: "Welcome mail",
                     html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -314,7 +315,7 @@ exports.send_otp = async (req, res) => {
      <br>
       Your login credentials are provided below:
     <br>
-    <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${data.email}</span> 
+    <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${check_email.email}</span> 
      <br>
       <span style="font-weight:bold;">Password: &nbsp;</span><span style="font-weight:lighter;" class="">${data.OTP}</span>
     <br><br>  
@@ -357,6 +358,12 @@ exports.send_otp = async (req, res) => {
     </body></html>`
                 };
                 await transporter.sendMail(mailOptions);
+
+                res.send({
+                    code: constant.success_code,
+                    message: "OTP sent successfully",
+                    otp: data.OTP
+                })
             }
 
         }
@@ -368,6 +375,92 @@ exports.send_otp = async (req, res) => {
     }
 }
 
+exports.verify_otp = async (req, res) => {
+    try {
+        let data = req.body
+        let checkEmail = await USER.findOne({ email: req.body.email })
+        if (!checkEmail) {
+            res.send({
+                code: constant.error_code,
+                message: "Invalid ID"
+            })
+        } else {
+            if (data.OTP != checkEmail.OTP) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Invalid OTP"
+                })
+                return;
+            }
+            console.log('current', moment().format(), 'expiry-----', checkEmail.otp_expiry)
+            const currentDate = new Date(moment().format());
+            // Expiry date
+            const expiryDate = new Date(checkEmail.otp_expiry);
+            if (expiryDate > currentDate) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Your otp is expired"
+                })
+                return;
+            }
+
+            res.send({
+                code: constant.success_code,
+                message: "OTP verified successfully"
+            })
+
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.forgot_password = async (req, res) => {
+    try {
+        let data = req.body
+        let criteria = { email: data.email }
+        let check_email = await USER.findOne(criteria)
+        if (!check_email) {
+            res.send({
+                code: constant.error_code,
+                message: 'Please enter valid email'
+            })
+        } else {
+            let option = { new: true }
+            let hash = bcrypt.hashSync(data.password, 10)
+            let newValue = {
+                $set: {
+                    password: hash,
+                    OTP: ''
+                }
+            }
+
+            let updatePassword = await USER.findOneAndUpdate(criteria, newValue, option)
+            if (!updatePassword) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Unable to udpate the password"
+                })
+            } else {
+                res.send({
+                    code: constant.success_code,
+                    message: "Updated Successfully"
+                })
+            }
+
+        }
+
+
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
 
 
 
