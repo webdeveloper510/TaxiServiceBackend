@@ -392,17 +392,17 @@ exports.verify_otp = async (req, res) => {
                 })
                 return;
             }
-            console.log('current', moment().format(), 'expiry-----', checkEmail.otp_expiry)
-            const currentDate = new Date(moment().format());
-            // Expiry date
-            const expiryDate = new Date(checkEmail.otp_expiry);
-            if (expiryDate > currentDate) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Your otp is expired"
-                })
-                return;
-            }
+            // console.log('current', moment().format(), 'expiry-----', checkEmail.otp_expiry)
+            // const currentDate = new Date(moment().format());
+            // // Expiry date
+            // const expiryDate = new Date(checkEmail.otp_expiry);
+            // if (expiryDate > currentDate) {
+            //     res.send({
+            //         code: constant.error_code,
+            //         message: "Your otp is expired"
+            //     })
+            //     return;
+            // }
 
             res.send({
                 code: constant.success_code,
