@@ -12,7 +12,7 @@ require('dotenv').config();
 exports.add_sub_admin = async (req, res) => {
     try {
         let data = req.body
-        let checkEmail = await USER.findOne({ email: data.email })
+        let checkEmail = await USER.findOne({ email: data.email,is_deleted:false })
         if (checkEmail) {
             res.send({
                 code: constant.error_code,
@@ -20,7 +20,7 @@ exports.add_sub_admin = async (req, res) => {
             })
             return;
         }
-        let checkPhone = await USER.findOne({ phone: data.phone })
+        let checkPhone = await USER.findOne({ phone: data.phone,is_deleted:false })
         if (checkPhone) {
             res.send({
                 code: constant.error_code,
@@ -429,7 +429,7 @@ exports.delete_sub_admin = async (req, res) => {
                 deleted_by_id: req.userId
             }
         }
-        let deleteSubAdmin = await USER.findOneAndDelete(criteria)
+        let deleteSubAdmin = await USER.findOneAndUpdate(criteria, newValue, option)
         if (!deleteSubAdmin) {
             res.send({
                 code: constant.error_code,
