@@ -468,7 +468,6 @@ exports.search_company = async (req, res) => {
         let searchUser = await USER.aggregate([
             {
                 $match: {
-                    
                         $and: [
                             { role: query }, { is_deleted: false }, { created_by: new mongoose.Types.ObjectId(req.userId) },
                             { $or: [
