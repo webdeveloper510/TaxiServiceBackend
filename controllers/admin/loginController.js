@@ -462,6 +462,53 @@ exports.forgot_password = async (req, res) => {
     }
 }
 
+exports.reset_password = async(req,res)=>{
+    try{
+        let data = req.body
+        let check_email = await USER.findOne({_id:req.userId})
+        if(!check_email){
+            res.send({
+                code:constant.error_code,
+                message:"Invalid ID"
+            })
+        }else{
+            let comparePassword = await bcrypt.compare(data.oldPassword,check_email.password)
+            if(!comparePassword){
+                res.send({
+                    code:constant.error_code,
+                    message:"Old password is not correct"
+                })
+            }else{
+                let hashedPassword = await bcrypt.hashSync(data.password, 10);
+                let newValue = {
+                    $set:{
+                        password:hashedPassword
+                    }
+                }
+                let criteria = {_id:req.userId}
+                let option = {new: true}
+                let updateUser = await USER.findOneAndUpdate(criteria,newValue,option)
+                if(!updateUser){
+                    res.send({
+                        code:constant.error_code,
+                        message:"Unable to update the password"
+                    })
+                }else{
+                    res.send({
+                        code:constant.success_code,
+                        message:"Updated Successfully"
+                    })
+                }
+            }
+        }
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}
+
 
 
 
