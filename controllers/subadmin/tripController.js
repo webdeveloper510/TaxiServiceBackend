@@ -285,6 +285,7 @@ exports.edit_trip = async (req, res) => {
         let data = req.body
         let criteria = { _id: req.params.id }
         let option = { new: true }
+        data.status = true
         let update_trip = await TRIP.findOneAndUpdate(criteria, data, option)
         if (!update_trip) {
             res.send({
