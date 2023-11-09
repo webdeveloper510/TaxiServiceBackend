@@ -529,7 +529,7 @@ exports.search_company = async (req, res) => {
                     'location': { $arrayElemAt: ["$meta.location", 0] }
                 }
             }
-        ]).sort({'created_at':-1})
+        ]).sort({'createdAt':-1})
         if (!searchUser) {
             res.send({
                 code: constant.error_code,
