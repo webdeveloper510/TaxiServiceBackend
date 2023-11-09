@@ -739,8 +739,8 @@ exports.send_request_trip = async (req, res) => {
                 await transporter.sendMail(mailOptions);
                 // console.log(transporter.sendMail(mailOptions))
                 res.send({
-                    code: constant.error_code,
-                    message: "Unable to create the request",
+                    code: constant.success_code,
+                    message: "Saved",
                     result:save_data
                 })
             }
