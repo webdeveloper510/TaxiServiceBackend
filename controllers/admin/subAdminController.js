@@ -37,9 +37,16 @@ exports.add_sub_admin = async (req, res) => {
         if (data.role == 'COMPANY') {
             data.company_id = 'C' + '-' + data.company_id
         } else {
-            data.company_id = 'H' + '-' + data.company_id
+            data.company_id = data.company
         }
-
+        let check_hotel = await AGENCY.findOne({company_id:data.company_id})
+        if(check_hotel){
+            res.send({
+                code:constant.error_code,
+                message:"Already exist with this id"
+            })
+            return;
+        }
         // data.role = 'COMPANY'
         data.created_by = req.userId
         let save_data = await USER(data).save()
@@ -522,7 +529,7 @@ exports.search_company = async (req, res) => {
                     'location': { $arrayElemAt: ["$meta.location", 0] }
                 }
             }
-        ])
+        ]).sort({'created_at':-1})
         if (!searchUser) {
             res.send({
                 code: constant.error_code,
