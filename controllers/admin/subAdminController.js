@@ -699,7 +699,7 @@ exports.send_request_trip = async (req, res) => {
                       <span style="font-weight:bold;">Request Form: &nbsp;</span><span style="font-weight:lighter;" class="">${process.env.email_trip_url +save_data._id}</span>
                     <br><br>  
                     <br></td>
-                    </tr>
+                    </tr> 
                     </tbody></table></center>
                     </td>
                     </tr>
