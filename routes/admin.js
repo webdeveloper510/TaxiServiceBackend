@@ -25,6 +25,7 @@ router.get('/get_token_detail',[verifyToken],loginController.get_token_detail)
 // sub admin api's
 router.post('/add_sub_admin',[verifyToken],subAdminController.add_sub_admin)
 router.post('/search_company',[verifyToken],subAdminController.search_company)
+router.get('/send_request_trip/:id',[verifyToken],subAdminController.send_request_trip)
 router.get('/get_sub_admins',[verifyToken],subAdminController.get_sub_admins)
 router.get('/get_sub_admin_detail/:userId',[verifyToken],subAdminController.get_sub_admin_detail)
 router.put('/edit_sub_admin/:id',[verifyToken],subAdminController.edit_sub_admin)
