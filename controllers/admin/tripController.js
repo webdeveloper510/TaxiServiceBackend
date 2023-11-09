@@ -1,4 +1,4 @@
-const VEHICLE = require('../../models/user/vehicle_model')
+const AGENCY = require('../../models/user/agency_model')
 const DRIVER = require('../../models/user/driver_model')
 const USER = require('../../models/user/user_model')
 const VEHICLETYPE = require('../../models/admin/vehicle_type')
@@ -604,6 +604,7 @@ exports.get_trip_detail = async (req, res) => {
     try {
         let data = req.body
         let getData = await TRIP.findOne({ _id: req.params.id })
+        let getUser = await AGENCY.findOne({user_id:getData.created_by})
         if (!getData) {
             res.send({
                 code: constant.error_code,
@@ -613,7 +614,8 @@ exports.get_trip_detail = async (req, res) => {
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: getData
+                result: getData,
+                hotelName:getUser.company_name
             })
         }
     } catch (err) {
