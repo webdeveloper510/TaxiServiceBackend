@@ -37,7 +37,7 @@ exports.add_sub_admin = async (req, res) => {
         if (data.role == 'COMPANY') {
             data.company_id = 'C' + '-' + data.company_id
         } else {
-            data.company_id = data.company
+            data.company_id = data.company_id
         }
         let check_hotel = await AGENCY.findOne({company_id:data.company_id})
         if(check_hotel){
