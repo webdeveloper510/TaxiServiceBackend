@@ -696,7 +696,7 @@ exports.send_request_trip = async (req, res) => {
                     <br>
                     <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${check_user.email}</span> 
                      <br>
-                      <span style="font-weight:bold;">Password: &nbsp;</span><span style="font-weight:lighter;" class="">${save_data._id}</span>
+                      <span style="font-weight:bold;">Request Form: &nbsp;</span><span style="font-weight:lighter;" class="">${process.env.email_trip_url +save_data._id}</span>
                     <br><br>  
                     <br></td>
                     </tr>
