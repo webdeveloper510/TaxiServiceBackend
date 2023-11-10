@@ -403,21 +403,36 @@ exports.edit_sub_admin = async (req, res) => {
         }
         let update_data = await USER.findOneAndUpdate(criteria, data, option)
         let criteria2 = { user_id: update_data._id }
-        // if(checkSubAdmin.email != data.email || checkSubAdmin.phone != data.phone){
-        //     let check_email = await USER.findOne({
-        //         $or:[
-        //             {email:data.email},
-        //             {phone:data.phone},
-        //         ]
-        //     })
-        //     if(check_email){
-        //         res.send({
-        //             code:constant.error_code,
-        //             message:"Email or phone is already exist"
-        //         })
-        //         return
-        //     }
-        // }
+        if(checkSubAdmin.email != data.email ){
+            let check_email = await USER.findOne({
+                $or:[
+                    {email:data.email},
+                    // {phone:data.phone},
+                ]
+            })
+            if(check_email){
+                res.send({
+                    code:constant.error_code,
+                    message:"Email or phone is already exist"
+                })
+                return
+            }
+        }
+        if(checkSubAdmin.phone != data.phone ){
+            let check_phone = await USER.findOne({
+                $or:[
+                    {phone:data.phone},
+                    // {phone:data.phone},
+                ]
+            })
+            if(check_phone){
+                res.send({
+                    code:constant.error_code,
+                    message:"Phone or phone is already exist"
+                })
+                return
+            }
+        }
         
         let update_data_meta = await AGENCY.findOneAndUpdate(criteria2, data, option)
 
