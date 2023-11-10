@@ -34,8 +34,8 @@ exports.add_sub_admin = async (req, res) => {
         let hashedPassword = await bcrypt.hashSync(passwordEmail, 10);
         data.password = hashedPassword
 
-        data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         if (data.role == 'COMPANY') {
+            data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
             data.company_id = 'C' + '-' + data.company_id
         } else {
             data.company_id = data.company_id
@@ -403,37 +403,37 @@ exports.edit_sub_admin = async (req, res) => {
         }
         let update_data = await USER.findOneAndUpdate(criteria, data, option)
         let criteria2 = { user_id: update_data._id }
-        if(checkSubAdmin.email != data.email ){
+        if (checkSubAdmin.email != data.email) {
             let check_email = await USER.findOne({
-                $or:[
-                    {email:data.email},
+                $or: [
+                    { email: data.email },
                     // {phone:data.phone},
                 ]
             })
-            if(check_email){
+            if (check_email) {
                 res.send({
-                    code:constant.error_code,
-                    message:"Email or phone is already exist"
+                    code: constant.error_code,
+                    message: "Email or phone is already exist"
                 })
                 return
             }
         }
-        if(checkSubAdmin.phone != data.phone ){
+        if (checkSubAdmin.phone != data.phone) {
             let check_phone = await USER.findOne({
-                $or:[
-                    {phone:data.phone},
+                $or: [
+                    { phone: data.phone },
                     // {phone:data.phone},
                 ]
             })
-            if(check_phone){
+            if (check_phone) {
                 res.send({
-                    code:constant.error_code,
-                    message:"Phone or phone is already exist"
+                    code: constant.error_code,
+                    message: "Phone or phone is already exist"
                 })
                 return
             }
         }
-        
+
         let update_data_meta = await AGENCY.findOneAndUpdate(criteria2, data, option)
 
         if (!update_data) {
@@ -596,7 +596,7 @@ exports.send_request_trip = async (req, res) => {
             data.created_by = check_user._id
             data.status = false;
             data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
-            data.trip_id = 'T' + '-' + data.trip_id    
+            data.trip_id = 'T' + '-' + data.trip_id
             let save_data = await TRIP(data).save()
             if (!save_data) {
                 res.send({
@@ -604,13 +604,13 @@ exports.send_request_trip = async (req, res) => {
                     message: "Unable to create the request"
                 })
             } else {
-                console.log("check++++++++++++++++++++=",save_data)
+                console.log("check++++++++++++++++++++=", save_data)
                 var transporter = nodemailer.createTransport(emailConstant.credentials);
                 var mailOptions = {
                     from: emailConstant.from_email,
                     to: check_user.email,
                     subject: "Welcome mail",
-                    html:`<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                    html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
                     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
                     <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>PropTech Kenya Welcome Email</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
                       @import url(https://fonts.googleapis.com/css?family=Nunito);
@@ -728,7 +728,7 @@ exports.send_request_trip = async (req, res) => {
                     <br>
                     <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${check_user.email}</span> 
                      <br>
-                      <span style="font-weight:bold;">Request Form: &nbsp;</span><span style="font-weight:lighter;" class="">${process.env.email_trip_url +save_data._id}</span>
+                      <span style="font-weight:bold;">Request Form: &nbsp;</span><span style="font-weight:lighter;" class="">${process.env.email_trip_url + save_data._id}</span>
                     <br><br>  
                     <br></td>
                     </tr> 
@@ -773,7 +773,7 @@ exports.send_request_trip = async (req, res) => {
                 res.send({
                     code: constant.success_code,
                     message: "Saved",
-                    result:save_data
+                    result: save_data
                 })
             }
         }
