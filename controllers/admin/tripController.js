@@ -606,13 +606,13 @@ exports.get_trip_detail = async (req, res) => {
     try {
         let data = req.body
         let getData = await TRIP.findOne({ _id: req.params.id })
-        let getUser = await AGENCY.findOne({ user_id: getData.created_by })
         if (!getData) {
             res.send({
                 code: constant.error_code,
                 message: "Invalid ID"
             })
         } else {
+        let getUser = await AGENCY.findOne({ user_id: getData.created_by })
             res.send({
                 code: constant.success_code,
                 message: "Success",
