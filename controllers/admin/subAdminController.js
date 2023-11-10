@@ -565,6 +565,8 @@ exports.send_request_trip = async (req, res) => {
         } else {
             data.created_by = check_user._id
             data.status = false;
+            data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+            data.trip_id = 'T' + '-' + data.trip_id    
             let save_data = await TRIP(data).save()
             if (!save_data) {
                 res.send({

@@ -74,7 +74,8 @@ exports.get_trip = async (req, res) => {
                 {
                     $or: [
                         { trip_status: req.params.status },
-                        { trip_status: "Accepted" }
+                        { trip_status: "Accepted" },
+                        {status:true}
                     ]
                 },
                 { is_deleted: false }

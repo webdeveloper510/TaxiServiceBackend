@@ -56,7 +56,8 @@ exports.get_trip = async (req, res) => {
                         {
                             $or: [
                                 { created_by: { $in: objectIds } },
-                                { created_by: mid }
+                                { status: true },
+                                { created_by: mid },
                             ]
                         },
                         { trip_status: req.params.status },
@@ -541,7 +542,7 @@ exports.alocate_driver = async (req, res) => {
         }
 
         if (data.status != 'Canceled') {
-            let check_driver = await DRIVER.findOneAndUpdate({ _id: data.driver_name },{is_available:false})
+            let check_driver = await DRIVER.findOneAndUpdate({ _id: data.driver_name }, { is_available: false })
             if (!check_driver) {
                 res.send({
                     code: constant.error_code,
@@ -604,7 +605,7 @@ exports.get_trip_detail = async (req, res) => {
     try {
         let data = req.body
         let getData = await TRIP.findOne({ _id: req.params.id })
-        let getUser = await AGENCY.findOne({user_id:getData.created_by})
+        let getUser = await AGENCY.findOne({ user_id: getData.created_by })
         if (!getData) {
             res.send({
                 code: constant.error_code,
@@ -615,7 +616,7 @@ exports.get_trip_detail = async (req, res) => {
                 code: constant.success_code,
                 message: "Success",
                 result: getData,
-                hotelName:getUser.company_name
+                hotelName: getUser.company_name
             })
         }
     } catch (err) {
