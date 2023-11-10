@@ -14,6 +14,10 @@ const trip = new Schema({
         type:String,
         default:'0'
     },
+    price:{
+        type:Number,
+        default:''
+    },
     vehicle:{
         type:mongoose.Schema.Types.ObjectId,ref:'vehicles',
         default:null
