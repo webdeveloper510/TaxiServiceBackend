@@ -8,7 +8,7 @@ module.exports =  [
       "seats": 5
     },
     {
-      "name": "SUV (Sports Utility Vehicle)",
+      "name": "SUV",
       "seats": 9
     },
     {
