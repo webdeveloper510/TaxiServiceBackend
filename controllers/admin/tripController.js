@@ -605,19 +605,48 @@ exports.alocate_driver = async (req, res) => {
 exports.get_trip_detail = async (req, res) => {
     try {
         let data = req.body
-        let getData = await TRIP.findOne({ _id: req.params.id })
+        let mid = new mongoose.Types.ObjectId( req.params.id )
+        let getData = await TRIP.aggregate([
+            {
+                $match:{
+                    _id:mid
+                }
+            },
+            {
+                $lookup:{
+                    from:"drivers",
+                    localField:"driver_name",
+                    foreignField:"_id",
+                    as:"driver_info"
+                }
+            },
+            {
+                $unwind:"$driver_info"
+            },
+            {
+                $lookup:{
+                    from:"vehicles",
+                    localField:"vehicle",
+                    foreignField:"_id",
+                    as:"vehicle_info"
+                }
+            },
+            {
+                $unwind:"$vehicle_info"
+            },
+        ])
         if (!getData) {
             res.send({
                 code: constant.error_code,
                 message: "Invalid ID"
             })
         } else {
-        let getUser = await AGENCY.findOne({ user_id: getData.created_by })
+        let getUser = await AGENCY.findOne({ user_id: getData[0].created_by })
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: getData,
-                hotelName: getUser.company_name
+                result: getData[0],
+                hotelName: getUser?getUser.company_name:"N/A"
             })
         }
     } catch (err) {
