@@ -113,7 +113,7 @@ exports.get_trip = async (req, res) => {
                     trip_status: 1,
                     createdAt: 1,
                     created_by: 1,
-                    status:1,
+                    status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
@@ -605,35 +605,55 @@ exports.alocate_driver = async (req, res) => {
 exports.get_trip_detail = async (req, res) => {
     try {
         let data = req.body
-        let mid = new mongoose.Types.ObjectId( req.params.id )
+        let mid = new mongoose.Types.ObjectId(req.params.id)
         let getData = await TRIP.aggregate([
             {
-                $match:{
-                    _id:mid
+                $match: {
+                    _id: mid
                 }
             },
             {
-                $lookup:{
-                    from:"drivers",
-                    localField:"driver_name",
-                    foreignField:"_id",
-                    as:"driver_info"
+                $lookup: {
+                    from: "drivers",
+                    localField: "driver_name",
+                    foreignField: "_id",
+                    as: "driver_info"
                 }
             },
-            // {
-            //     $unwind:"$driver_info"
-            // },
             {
-                $lookup:{
-                    from:"vehicles",
-                    localField:"vehicle",
-                    foreignField:"_id",
-                    as:"vehicle_info"
+                $lookup: {
+                    from: "vehicles",
+                    localField: "vehicle",
+                    foreignField: "_id",
+                    as: "vehicle_info"
                 }
             },
-            // {
-            //     $unwind:"$vehicle_info"
-            // },
+            {
+                $project: {
+                    'vehicle': { $arrayElemAt: ["$vehicle_info.vehicle_model", 0] },
+                    'driver_name': {
+                        $concat: [
+                            { $arrayElemAt: ["$driver_info.first_name", 0] },
+                            ' ',
+                            { $arrayElemAt: ["$driver_info.last_name", 0] }
+                        ]
+                    },
+                    vehicle_model:1,
+                    commision:1,
+                    price:1,
+                    trip_from:1,
+                    trip_to:1,
+                    trip_id:1,
+                    pickup_date_time:1,
+                    passenger_detail:1,
+                    created_by:1,
+                    is_deleted:1,
+                    status:1,
+                    trip_status:1,
+                    createdAt:1,
+                    updatedAt:1,
+                }
+            }
         ])
         if (!getData[0]) {
             res.send({
@@ -641,12 +661,12 @@ exports.get_trip_detail = async (req, res) => {
                 message: "Invalid ID"
             })
         } else {
-        let getUser = await AGENCY.findOne({ user_id: getData[0].created_by })
+            let getUser = await AGENCY.findOne({ user_id: getData[0].created_by })
             res.send({
                 code: constant.success_code,
                 message: "Success",
                 result: getData[0],
-                hotelName: getUser?getUser.company_name:"N/A"
+                hotelName: getUser ? getUser.company_name : "N/A"
             })
         }
     } catch (err) {
