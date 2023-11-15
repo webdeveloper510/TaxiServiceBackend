@@ -635,7 +635,7 @@ exports.get_trip_detail = async (req, res) => {
                 $unwind:"$vehicle_info"
             },
         ])
-        if (!getData) {
+        if (!getData[0]) {
             res.send({
                 code: constant.error_code,
                 message: "Invalid ID"
