@@ -620,9 +620,9 @@ exports.get_trip_detail = async (req, res) => {
                     as:"driver_info"
                 }
             },
-            {
-                $unwind:"$driver_info"
-            },
+            // {
+            //     $unwind:"$driver_info"
+            // },
             {
                 $lookup:{
                     from:"vehicles",
@@ -631,9 +631,9 @@ exports.get_trip_detail = async (req, res) => {
                     as:"vehicle_info"
                 }
             },
-            {
-                $unwind:"$vehicle_info"
-            },
+            // {
+            //     $unwind:"$vehicle_info"
+            // },
         ])
         if (!getData[0]) {
             res.send({
