@@ -43,13 +43,13 @@ exports.get_trip = async (req, res) => {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
         let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
+        let search_value = data.comment ? data.comment : ''
         let ids = []
         for (let i of getIds) {
             ids.push(i._id)
         }
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
         console.log(mid, objectIds)
-
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
@@ -63,6 +63,7 @@ exports.get_trip = async (req, res) => {
                         { status: true },
                         { trip_status: req.params.status },
                         { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
                     ]
                 }
             },
