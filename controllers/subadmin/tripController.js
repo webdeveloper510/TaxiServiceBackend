@@ -68,18 +68,7 @@ exports.get_trip = async (req, res) => {
         let mid = new mongoose.Types.ObjectId(req.userId)
         let query;
         let search_value = data.comment ? data.comment : ''
-        $and: [
-            {
-                $or: [
-                    { created_by: { $in: objectIds } },
-                    { created_by: mid },
-                ]
-            },
-            { status: true },
-            { trip_status: req.params.status },
-            { is_deleted: false },
-            { 'comment': { '$regex': search_value, '$options': 'i' } },
-        ]
+       
 
 
         if (req.params.status == 'Pending') {
