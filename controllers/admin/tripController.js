@@ -23,14 +23,14 @@ exports.add_trip = async (req, res) => {
                 createdAt: {
                     $gte: new Date(currentDate),
                     $lt: new Date(new Date(currentDate).getTime() + 24 * 60 * 60 * 1000) // Add 1 day to include the entire day
-                  }
+                }
             }
         }])
-        let series = Number(check_id.length)+1
-        data.series_id = token_code + '-'+'000' + series
+        let series = Number(check_id.length) + 1
+        data.series_id = token_code + '-' + '000' + series
 
         data.trip_id = 'T' + '-' + data.trip_id
-        console.log('check===========================',data)
+        console.log('check===========================', data)
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
             res.send({
@@ -55,7 +55,7 @@ exports.add_trip = async (req, res) => {
 exports.add_trip_link = async (req, res) => {
     try {
         let data = req.body
-        data.created_by = data.created_by 
+        data.created_by = data.created_by
         data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let token_code = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let currentDate = moment().format('YYYY-MM-DD')
@@ -64,14 +64,14 @@ exports.add_trip_link = async (req, res) => {
                 createdAt: {
                     $gte: new Date(currentDate),
                     $lt: new Date(new Date(currentDate).getTime() + 24 * 60 * 60 * 1000) // Add 1 day to include the entire day
-                  }
+                }
             }
         }])
-        let series = Number(check_id.length)+1
-        data.series_id = token_code + '-'+'000' + series
+        let series = Number(check_id.length) + 1
+        data.series_id = token_code + '-' + '000' + series
 
         data.trip_id = 'T' + '-' + data.trip_id
-        console.log('check===========================',data)
+        console.log('check===========================', data)
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
             res.send({
@@ -92,7 +92,6 @@ exports.add_trip_link = async (req, res) => {
         })
     }
 }
-
 
 exports.get_trip = async (req, res) => {
     try {
@@ -682,7 +681,6 @@ exports.get_trip_detail = async (req, res) => {
                     as: "driver_info"
                 }
             },
-
             {
                 $lookup: {
                     from: "vehicles",
@@ -704,7 +702,7 @@ exports.get_trip_detail = async (req, res) => {
                     vehicle_model: 1,
                     commision: 1,
                     price: 1,
-                    vehicle_type:1,
+                    vehicle_type: 1,
                     trip_from: 1,
                     trip_to: 1,
                     trip_id: 1,
