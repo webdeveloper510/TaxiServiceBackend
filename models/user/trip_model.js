@@ -10,11 +10,11 @@ const trip = new Schema({
         type:String,
         default:''
     },
-    comment:{
+    commission:{
         type:Object,
         default:{}
     },
-    description:{
+    comment:{
         type:String,
         default:''
     },
