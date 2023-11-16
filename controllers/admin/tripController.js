@@ -223,7 +223,7 @@ exports.get_trip_for_hotel = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
-
+        let search_value = data.comment ? data.comment : ''
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
@@ -231,6 +231,7 @@ exports.get_trip_for_hotel = async (req, res) => {
                         { created_by: mid },
                         { trip_status: req.params.status },
                         { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
                     ]
                 }
             },
@@ -257,10 +258,14 @@ exports.get_trip_for_hotel = async (req, res) => {
                     trip_to: 1,
                     pickup_date_time: 1,
                     trip_status: 1,
-                    createdAt: 1,
-                    created_by: 1,
-                    passenger_detail: 1,
                     vehicle_type: 1,
+                    status: 1,
+                    commission: 1,
+                    comment: 1,
+                    pay_option: 1,
+                    is_deleted: 1,
+                    passenger_detail: 1,
+                    createdAt: 1,
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
@@ -308,6 +313,7 @@ exports.get_recent_trip = async (req, res) => {
         for (let i of getIds) {
             ids.push(i._id)
         }
+        let search_value = data.comment ? data.comment : ''
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
         let get_trip = await TRIP.aggregate([
             {
@@ -319,6 +325,7 @@ exports.get_recent_trip = async (req, res) => {
                                 { created_by: mid }
                             ]
                         },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
                         // { trip_status: req.params.status },
                         { is_deleted: false },
                     ]
@@ -369,11 +376,16 @@ exports.get_recent_trip = async (req, res) => {
                     trip_from: 1,
                     trip_to: 1,
                     pickup_date_time: 1,
-                    createdAt: 1,
                     trip_status: 1,
+                    createdAt: 1,
+                    created_by: 1,
+                    status: 1,
                     passenger_detail: 1,
-                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     vehicle_type: 1,
+                    comment: 1,
+                    commission: 1,
+                    pay_option: 1,
+                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
@@ -416,13 +428,15 @@ exports.get_recent_trip_super = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
+        let search_value = data.comment ? data.comment : ''
         console.log('check++++++++++++++', mid)
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
                     $and: [
                         // { created_by: mid },
-                        { is_deleted: false }
+                        { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
 
                     ]
                 }
@@ -472,12 +486,16 @@ exports.get_recent_trip_super = async (req, res) => {
                     trip_from: 1,
                     trip_to: 1,
                     pickup_date_time: 1,
+                    trip_status: 1,
                     createdAt: 1,
                     created_by: 1,
-                    trip_status: 1,
-                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
+                    status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
+                    comment: 1,
+                    commission: 1,
+                    pay_option: 1,
+                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
@@ -520,13 +538,15 @@ exports.get_trip_by_company = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.body.trip_id)
+        let search_value = data.comment ? data.comment : ''
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
                     $and: [
                         // { created_by: mid },
                         { trip_status: req.params.status },
-                        { is_deleted: false }
+                        { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
                     ]
                 }
             },
@@ -736,10 +756,13 @@ exports.get_trip_detail = async (req, res) => {
 
         let getFare = await FARES.findOne({vehicle_type:getData[0].vehicle_type})
         let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km) : 10
-        console.log('data=========',getData[0].price,fare_per_km*Number(distance))
+        if(getData[0].price == 0){
+            getData[0].price = fare_per_km*Number(distance)
+        }
+        // console.log('data=========',getData[0].price,fare_per_km*Number(distance))
 
 
-        return
+        // return
 
         if (!getData[0]) {
             res.send({

@@ -16,7 +16,7 @@ exports.add_trip = async (req, res) => {
         data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let check_user = await USER.findOne({ _id: req.userId })
         data.trip_id = check_user.first_name + '-' + data.trip_id
-       
+
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
             res.send({
@@ -44,7 +44,7 @@ exports.get_trip = async (req, res) => {
         let mid = new mongoose.Types.ObjectId(req.userId)
         let query;
         let search_value = data.comment ? data.comment : ''
-       
+
 
 
         if (req.params.status == 'Pending') {
@@ -103,9 +103,9 @@ exports.get_trip = async (req, res) => {
                     trip_status: 1,
                     vehicle_type: 1,
                     status: 1,
-                    commission:1,
-                    comment:1,
-                    pay_option:1,
+                    commission: 1,
+                    comment: 1,
+                    pay_option: 1,
                     is_deleted: 1,
                     passenger_detail: 1,
                     createdAt: 1,
@@ -152,12 +152,16 @@ exports.get_recent_trip = async (req, res) => {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
         console.log('check++++++++++++++', mid)
+        let search_value = data.comment ? data.comment : ''
+
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
                     $and: [
                         { created_by: mid },
-                        { is_deleted: false }
+                        { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+
 
                     ]
                 }
@@ -184,11 +188,15 @@ exports.get_recent_trip = async (req, res) => {
                     trip_from: 1,
                     trip_to: 1,
                     pickup_date_time: 1,
-                    createdAt: 1,
-                    created_by: 1,
                     trip_status: 1,
-                    passenger_detail: 1,
                     vehicle_type: 1,
+                    status: 1,
+                    commission: 1,
+                    comment: 1,
+                    pay_option: 1,
+                    is_deleted: 1,
+                    passenger_detail: 1,
+                    createdAt: 1,
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },

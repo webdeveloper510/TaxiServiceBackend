@@ -17,7 +17,7 @@ router.get('/', function(req, res, next) {
 
 router.post('/get_trip/:status',[verifyToken],tripController.get_trip)
 router.get('/get_counts_dashboard',[verifyToken],tripController.get_counts_dashboard)
-router.get('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
+router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 router.put('/edit_trip/:id',[verifyToken],tripController.edit_trip)
 router.delete('/delete_trip/:id',[verifyToken],tripController.delete_trip)
 
