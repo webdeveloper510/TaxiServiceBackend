@@ -37,6 +37,7 @@ exports.add_trip = async (req, res) => {
     }
 }
 
+
 exports.get_trip = async (req, res) => {
     try {
         let data = req.body
