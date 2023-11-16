@@ -54,12 +54,12 @@ exports.get_trip = async (req, res) => {
             {
                 $match: {
                     $and: [
-                        // {
-                        //     $or: [
-                        //         { created_by: { $in: objectIds } },
-                        //         { created_by: mid },
-                        //     ]
-                        // },
+                        {
+                            $or: [
+                                { created_by: { $in: objectIds } },
+                                { created_by: mid },
+                            ]
+                        },
                         { status: true },
                         { trip_status: req.params.status },
                         { is_deleted: false },
