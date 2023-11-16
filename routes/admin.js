@@ -27,7 +27,7 @@ router.post('/add_sub_admin',[verifyToken],subAdminController.add_sub_admin)
 router.post('/search_company',[verifyToken],subAdminController.search_company)
 router.get('/send_request_trip/:id',[verifyToken],subAdminController.send_request_trip)
 router.get('/get_sub_admins',[verifyToken],subAdminController.get_sub_admins)
-router.get('/get_sub_admin_detail/:userId',[verifyToken],subAdminController.get_sub_admin_detail)
+router.get('/get_sub_admin_detail/:userId',subAdminController.get_sub_admin_detail)
 router.put('/edit_sub_admin/:id',[verifyToken],subAdminController.edit_sub_admin)
 router.delete('/delete_sub_admin/:id',[verifyToken],subAdminController.delete_sub_admin)
 
@@ -65,6 +65,7 @@ router.put('/edit_fare/:id',[verifyToken],fareController.edit_fare)
 
 // trip api's
 router.post('/add_trip',[verifyToken],tripController.add_trip)
+router.post('/add_trip_link',[verifyToken],tripController.add_trip_link)
 router.post('/get_trip/:status',[verifyToken],tripController.get_trip)
 router.get('/get_trip_for_hotel/:status',[verifyToken],tripController.get_trip_for_hotel)
 router.get('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
