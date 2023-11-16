@@ -117,6 +117,9 @@ exports.get_trip = async (req, res) => {
                     status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
+                    comment: 1,
+                    commission: 1,
+                    pay_option: 1,
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
@@ -702,6 +705,20 @@ exports.get_counts_dashboard = async (req, res) => {
         })
     }
 }
+
+// exports.search_trip_room = async(req,res)=>{
+//     try{
+//         let data = req.body
+//         let search_trip = await TRIP.aggregate([
+
+//         ])
+//     }catch(err){
+//         res.send({
+//             code:constant.error_code,
+//             message:err.message
+//         })
+//     }
+// }
 
 
 
