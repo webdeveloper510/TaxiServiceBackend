@@ -374,6 +374,8 @@ exports.get_sub_admin_detail = async (req, res) => {
                 message: "Unable to fetch the detail"
             })
         } else {
+            let get_name = await AGENCY.findOne({ user_id: check_detail[0]._id })
+            check_detail[0].hotel_name = get_name.company_name?get_name.company_name:'N/A'
             res.send({
                 code: constant.success_code,
                 message: "Success",
