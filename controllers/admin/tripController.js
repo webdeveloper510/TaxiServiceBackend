@@ -2,10 +2,13 @@ const AGENCY = require('../../models/user/agency_model')
 const DRIVER = require('../../models/user/driver_model')
 const USER = require('../../models/user/user_model')
 const VEHICLETYPE = require('../../models/admin/vehicle_type')
+var FARES = require('../../models/user/fare_model')
+// const FARES = require('../../models/admin/fare_model')
 const TRIP = require('../../models/user/trip_model')
 const multer = require('multer')
 const path = require('path')
 const constant = require('../../config/constant')
+const geolib = require('geolib')
 const mongoose = require('mongoose')
 const randToken = require('rand-token').generator()
 const moment = require('moment')
@@ -667,6 +670,7 @@ exports.get_trip_detail = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.params.id)
+        
         let getData = await TRIP.aggregate([
             {
                 $match: {
@@ -717,6 +721,26 @@ exports.get_trip_detail = async (req, res) => {
                 }
             }
         ])
+
+        let distance = (geolib.getDistance(
+            {
+              latitude: getData[0].trip_from.log,
+              longitude: getData[0].trip_from.lat,
+            },
+            {
+              latitude: getData[0].trip_to.log,
+              longitude: getData[0].trip_to.lat,
+            }
+          ) * 0.00062137
+        ).toFixed(2)
+
+        let getFare = await FARES.findOne({vehicle_type:getData[0].vehicle_type})
+        let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km) : 10
+        console.log('data=========',getData[0].price,fare_per_km*Number(distance))
+
+
+        return
+
         if (!getData[0]) {
             res.send({
                 code: constant.error_code,

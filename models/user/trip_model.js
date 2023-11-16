@@ -28,7 +28,7 @@ const trip = new Schema({
     },
     price:{
         type:Number,
-        default:''
+        default:0
     },
     amount:{
         type:Object,
