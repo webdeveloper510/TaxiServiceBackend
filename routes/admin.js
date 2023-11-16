@@ -65,7 +65,7 @@ router.put('/edit_fare/:id',[verifyToken],fareController.edit_fare)
 
 // trip api's
 router.post('/add_trip',[verifyToken],tripController.add_trip)
-router.get('/get_trip/:status',[verifyToken],tripController.get_trip)
+router.post('/get_trip/:status',[verifyToken],tripController.get_trip)
 router.get('/get_trip_for_hotel/:status',[verifyToken],tripController.get_trip_for_hotel)
 router.get('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 router.get('/get_recent_trip_super',[verifyToken],tripController.get_recent_trip_super)
