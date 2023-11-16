@@ -8,14 +8,70 @@ const path = require('path')
 const constant = require('../../config/constant')
 const mongoose = require('mongoose')
 const randToken = require('rand-token').generator()
+const moment = require('moment')
 
 exports.add_trip = async (req, res) => {
     try {
         let data = req.body
         data.created_by = data.created_by ? data.created_by : req.userId
         data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+        let token_code = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let check_user = await USER.findOne({ _id: req.userId })
+        let currentDate = moment().format('YYYY-MM-DD')
+        let check_id = await TRIP.aggregate([{
+            $match: {
+                createdAt: {
+                    $gte: new Date(currentDate),
+                    $lt: new Date(new Date(currentDate).getTime() + 24 * 60 * 60 * 1000) // Add 1 day to include the entire day
+                  }
+            }
+        }])
+        let series = Number(check_id.length)+1
+        data.series_id = token_code + '-'+'000' + series
+
         data.trip_id = 'T' + '-' + data.trip_id
+        console.log('check===========================',data)
+        let add_trip = await TRIP(data).save()
+        if (!add_trip) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to create the trip"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Saved Successfully",
+                result: add_trip
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.add_trip_link = async (req, res) => {
+    try {
+        let data = req.body
+        data.created_by = data.created_by 
+        data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+        let token_code = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+        let currentDate = moment().format('YYYY-MM-DD')
+        let check_id = await TRIP.aggregate([{
+            $match: {
+                createdAt: {
+                    $gte: new Date(currentDate),
+                    $lt: new Date(new Date(currentDate).getTime() + 24 * 60 * 60 * 1000) // Add 1 day to include the entire day
+                  }
+            }
+        }])
+        let series = Number(check_id.length)+1
+        data.series_id = token_code + '-'+'000' + series
+
+        data.trip_id = 'T' + '-' + data.trip_id
+        console.log('check===========================',data)
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
             res.send({
@@ -43,6 +99,7 @@ exports.get_trip = async (req, res) => {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
         let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
+
         let search_value = data.comment ? data.comment : ''
         let ids = []
         for (let i of getIds) {

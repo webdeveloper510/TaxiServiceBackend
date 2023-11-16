@@ -14,6 +14,10 @@ const trip = new Schema({
         type:Object,
         default:{}
     },
+    series_id:{
+        type:String,
+        default:''
+    },
     comment:{
         type:String,
         default:''
