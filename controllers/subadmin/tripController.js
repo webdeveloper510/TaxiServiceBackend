@@ -67,6 +67,20 @@ exports.get_trip = async (req, res) => {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
         let query;
+        let search_value = data.comment ? data.comment : ''
+        $and: [
+            {
+                $or: [
+                    { created_by: { $in: objectIds } },
+                    { created_by: mid },
+                ]
+            },
+            { status: true },
+            { trip_status: req.params.status },
+            { is_deleted: false },
+            { 'comment': { '$regex': search_value, '$options': 'i' } },
+        ]
+
 
         if (req.params.status == 'Pending') {
             query = [
@@ -75,15 +89,19 @@ exports.get_trip = async (req, res) => {
                     $or: [
                         { trip_status: req.params.status },
                         { trip_status: "Accepted" },
-                        {status:true}
+                        { status: true }
                     ]
                 },
-                { is_deleted: false }
+                { is_deleted: false },
+                { 'comment': { '$regex': search_value, '$options': 'i' } },
+
             ]
         } else {
             query = [
                 { created_by: mid },
-                { trip_status: req.params.status }
+                { trip_status: req.params.status },
+                { 'comment': { '$regex': search_value, '$options': 'i' } },
+
             ]
         }
 
@@ -119,7 +137,7 @@ exports.get_trip = async (req, res) => {
                     pickup_date_time: 1,
                     trip_status: 1,
                     vehicle_type: 1,
-                    status:1,
+                    status: 1,
                     is_deleted: 1,
                     passenger_detail: 1,
                     createdAt: 1,
@@ -245,24 +263,24 @@ exports.get_counts_dashboard = async (req, res) => {
     try {
         let data = req.body
         let bookedTrip = await TRIP.find({
-            $and:[
-                { trip_status: "Booked"},
-                { is_deleted: false},
-                { created_by: req.userId}
+            $and: [
+                { trip_status: "Booked" },
+                { is_deleted: false },
+                { created_by: req.userId }
             ]
         }).countDocuments();
         let cancelTrip = await TRIP.find({
-            $and:[
-                { trip_status: "Cenceled"},
-                { is_deleted: false},
-                { created_by: req.userId}
+            $and: [
+                { trip_status: "Cenceled" },
+                { is_deleted: false },
+                { created_by: req.userId }
             ]
         }).countDocuments();
         let completeTrip = await TRIP.find({
-            $and:[
-                { trip_status: "Completed"},
-                { is_deleted: false},
-                { created_by: req.userId}
+            $and: [
+                { trip_status: "Completed" },
+                { is_deleted: false },
+                { created_by: req.userId }
             ]
         }).countDocuments();
         res.send({
