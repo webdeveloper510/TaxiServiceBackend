@@ -56,10 +56,10 @@ exports.get_trip = async (req, res) => {
                         {
                             $or: [
                                 { created_by: { $in: objectIds } },
-                                { status: true },
                                 { created_by: mid },
                             ]
                         },
+                        { status: true },
                         { trip_status: req.params.status },
                         { is_deleted: false },
                     ]
@@ -620,6 +620,7 @@ exports.get_trip_detail = async (req, res) => {
                     as: "driver_info"
                 }
             },
+
             {
                 $lookup: {
                     from: "vehicles",
@@ -638,20 +639,20 @@ exports.get_trip_detail = async (req, res) => {
                             { $arrayElemAt: ["$driver_info.last_name", 0] }
                         ]
                     },
-                    vehicle_model:1,
-                    commision:1,
-                    price:1,
-                    trip_from:1,
-                    trip_to:1,
-                    trip_id:1,
-                    pickup_date_time:1,
-                    passenger_detail:1,
-                    created_by:1,
-                    is_deleted:1,
-                    status:1,
-                    trip_status:1,
-                    createdAt:1,
-                    updatedAt:1,
+                    vehicle_model: 1,
+                    commision: 1,
+                    price: 1,
+                    trip_from: 1,
+                    trip_to: 1,
+                    trip_id: 1,
+                    pickup_date_time: 1,
+                    passenger_detail: 1,
+                    created_by: 1,
+                    is_deleted: 1,
+                    status: 1,
+                    trip_status: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
                 }
             }
         ])
@@ -699,6 +700,15 @@ exports.get_counts_dashboard = async (req, res) => {
         })
     }
 }
+
+
+
+
+
+
+
+
+
 
 
 
