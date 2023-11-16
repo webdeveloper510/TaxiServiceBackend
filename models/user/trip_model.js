@@ -10,9 +10,17 @@ const trip = new Schema({
         type:String,
         default:''
     },
-    commision:{
+    commission:{
+        type:Object,
+        default:{}
+    },
+    description:{
         type:String,
-        default:'0'
+        default:''
+    },
+    pay_option:{
+        type:String,
+        enum:['Cash','Hotel Account',]
     },
     price:{
         type:Number,
