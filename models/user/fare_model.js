@@ -18,6 +18,10 @@ const fare = new Schema({
         type:String,
         default:'0'
     },
+    price_per_min:{
+        type:String,
+        default:'0'
+    },
     waiting_fare:{
         type:String,
         default:'0'
