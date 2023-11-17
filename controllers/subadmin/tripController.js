@@ -250,7 +250,7 @@ exports.get_counts_dashboard = async (req, res) => {
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
         let bookedTrip = await TRIP.aggregate([
-             {
+            {
                 $match: {
                     $and: [
                         {
@@ -262,13 +262,12 @@ exports.get_counts_dashboard = async (req, res) => {
                         { status: true },
                         { trip_status: "Booked" },
                         { is_deleted: false },
-                        { 'comment': { '$regex': search_value, '$options': 'i' } },
                     ]
                 }
             },
         ]);
         let completedTrip = await TRIP.aggregate([
-             {
+            {
                 $match: {
                     $and: [
                         {
@@ -280,7 +279,6 @@ exports.get_counts_dashboard = async (req, res) => {
                         { status: true },
                         { trip_status: "Completed" },
                         { is_deleted: false },
-                        { 'comment': { '$regex': search_value, '$options': 'i' } },
                     ]
                 }
             },
@@ -298,13 +296,12 @@ exports.get_counts_dashboard = async (req, res) => {
                         { status: true },
                         { trip_status: "Pending" },
                         { is_deleted: false },
-                        { 'comment': { '$regex': search_value, '$options': 'i' } },
                     ]
                 }
             },
         ]);
         let cancelTrip = await TRIP.aggregate([
-             {
+            {
                 $match: {
                     $and: [
                         {
@@ -314,14 +311,13 @@ exports.get_counts_dashboard = async (req, res) => {
                             ]
                         },
                         { status: true },
-                        { trip_status: "Cenceled" },
+                        { trip_status: "Canceled" },
                         { is_deleted: false },
-                        { 'comment': { '$regex': search_value, '$options': 'i' } },
                     ]
                 }
             },
         ]);
-        let companyCount = await USER.find({role:'COMPPANY'}).countDocuments();
+        let companyCount = await USER.find({ role: 'COMPPANY' }).countDocuments();
         res.send({
             code: constant.success_code,
             message: "success",
