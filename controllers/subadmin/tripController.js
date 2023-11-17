@@ -13,8 +13,20 @@ exports.add_trip = async (req, res) => {
     try {
         let data = req.body
         data.created_by = req.userId
+        let token_code = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let check_user = await USER.findOne({ _id: req.userId })
+        let currentDate = moment().format('YYYY-MM-DD')
+        let check_id = await TRIP.aggregate([{
+            $match: {
+                createdAt: {
+                    $gte: new Date(currentDate),
+                    $lt: new Date(new Date(currentDate).getTime() + 24 * 60 * 60 * 1000) // Add 1 day to include the entire day
+                }
+            }
+        }])
+        let series = Number(check_id.length) + 1
+        data.series_id = token_code + '-' + '000' + series
         data.trip_id = check_user.first_name + '-' + data.trip_id
 
         let add_trip = await TRIP(data).save()
