@@ -489,6 +489,7 @@ exports.get_recent_trip_super = async (req, res) => {
                     trip_status: 1,
                     createdAt: 1,
                     created_by: 1,
+                    series_id:1,
                     status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
