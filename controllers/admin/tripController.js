@@ -789,19 +789,98 @@ exports.get_trip_detail = async (req, res) => {
 exports.get_counts_dashboard = async (req, res) => {
     try {
         let data = req.body
-        let bookedTrip = await TRIP.find({ trip_status: "Booked", is_deleted: false }).countDocuments();
-        let completedTrip = await TRIP.find({ trip_status: "Completed", is_deleted: false }).countDocuments();
-        let pendingTrip = await TRIP.find({ trip_status: "Pending", is_deleted: false }).countDocuments();
-        let cancelTrip = await TRIP.find({ trip_status: "Canceled", is_deleted: false }).countDocuments();
-        let companyCount = await USER.find({ role: 'SUB_ADMIN', is_deleted: false }).countDocuments();
+
+        let mid = new mongoose.Types.ObjectId(req.userId)
+        let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
+
+        let search_value = data.comment ? data.comment : ''
+        let ids = []
+        for (let i of getIds) {
+            ids.push(i._id)
+        }
+        const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+
+        let bookedTrip = await TRIP.aggregate([
+             {
+                $match: {
+                    $and: [
+                        {
+                            $or: [
+                                { created_by: { $in: objectIds } },
+                                { created_by: mid },
+                            ]
+                        },
+                        { status: true },
+                        { trip_status: "Booked" },
+                        { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+                    ]
+                }
+            },
+        ]);
+        let completedTrip = await TRIP.aggregate([
+             {
+                $match: {
+                    $and: [
+                        {
+                            $or: [
+                                { created_by: { $in: objectIds } },
+                                { created_by: mid },
+                            ]
+                        },
+                        { status: true },
+                        { trip_status: "Completed" },
+                        { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+                    ]
+                }
+            },
+        ]);
+        let pendingTrip = await TRIP.aggregate([
+            {
+                $match: {
+                    $and: [
+                        {
+                            $or: [
+                                { created_by: { $in: objectIds } },
+                                { created_by: mid },
+                            ]
+                        },
+                        { status: true },
+                        { trip_status: "Pending" },
+                        { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+                    ]
+                }
+            },
+        ]);
+        let cancelTrip = await TRIP.aggregate([
+             {
+                $match: {
+                    $and: [
+                        {
+                            $or: [
+                                { created_by: { $in: objectIds } },
+                                { created_by: mid },
+                            ]
+                        },
+                        { status: true },
+                        { trip_status: "Cenceled" },
+                        { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+                    ]
+                }
+            },
+        ]);
+        let companyCount = await USER.find({role:'COMPPANY'}).countDocuments();
         res.send({
             code: constant.success_code,
             message: "success",
             result: {
-                bookedTrips: bookedTrip,
-                cancelTrips: cancelTrip,
-                pendingTrip: pendingTrip,
-                completedTrip: completedTrip,
+                bookedTrips: bookedTrip.length,
+                cancelTrips: cancelTrip.length,
+                pendingTrip: pendingTrip.length,
+                completedTrip: completedTrip.length,
                 companies: companyCount,
             }
         })
