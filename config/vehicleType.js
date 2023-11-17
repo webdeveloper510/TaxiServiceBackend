@@ -50,12 +50,15 @@ module.exports =  [
       name:"Minivan",
       seats:0,
       start_price:7.33,
-      per_km:2.65,
-      per_min:0.44
+      per_km:3.34,
+      per_min:0.49
     },
     {
       name:"Luxury",
-      seats:0
+      seats:0,
+      start_price:30.49,
+      per_km:7.49,
+      per_min:4.29
     }
 
 
