@@ -245,6 +245,13 @@ exports.get_counts_dashboard = async (req, res) => {
                 { created_by: req.userId }
             ]
         }).countDocuments();
+        let pendingTrip = await TRIP.find({
+            $and: [
+                { trip_status: "Pending" },
+                { is_deleted: false },
+                { created_by: req.userId }
+            ]
+        }).countDocuments();
         let cancelTrip = await TRIP.find({
             $and: [
                 { trip_status: "Cenceled" },
@@ -266,6 +273,7 @@ exports.get_counts_dashboard = async (req, res) => {
                 bookedTrips: bookedTrip,
                 cancelTrips: cancelTrip,
                 completeTrips: completeTrip,
+                pendingTrips: pendingTrip
             }
         })
     } catch (err) {
