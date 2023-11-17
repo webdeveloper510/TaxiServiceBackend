@@ -9,6 +9,10 @@ const agency = new Schema ({
         type:String,
         default:''
     },
+    hotel_location:{
+        type:Object,
+        default:{}
+    },
     commision:{
         type:String,
         default:'0'
