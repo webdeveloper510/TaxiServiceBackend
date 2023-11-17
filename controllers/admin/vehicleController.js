@@ -130,6 +130,42 @@ exports.get_vehicles = async (req, res) => {
     }
 }
 
+exports.get_vehicles_with_type = async (req, res) => {
+    try {
+        let getUser = await USER.findOne({ _id: req.userId })
+        let get_vehicle = await VEHICLE.find({
+            $and: [
+                { is_deleted: false },
+                { 'vehicle_type': { '$regex': req.params.vehicle_type, '$options': 'i' } },
+
+                // {
+                //     $or: [
+                //         { created_by: req.userId },
+                //         { created_by: getUser.created_by },
+                //     ]
+                // }
+            ]
+        }).sort({ 'createdAt': -1 })
+        if (!get_vehicle) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to fetch the details"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: get_vehicle
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
 exports.get_vehicle_type = async (req, res) => {
     try {
         let data = req.body
