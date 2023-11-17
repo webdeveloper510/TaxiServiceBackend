@@ -804,12 +804,7 @@ exports.get_counts_dashboard = async (req, res) => {
              {
                 $match: {
                     $and: [
-                        {
-                            $or: [
-                                { created_by: { $in: objectIds } },
-                                { created_by: mid },
-                            ]
-                        },
+                       
                         { status: true },
                         { trip_status: "Booked" },
                         { is_deleted: false },
@@ -821,12 +816,7 @@ exports.get_counts_dashboard = async (req, res) => {
              {
                 $match: {
                     $and: [
-                        {
-                            $or: [
-                                { created_by: { $in: objectIds } },
-                                { created_by: mid },
-                            ]
-                        },
+                       
                         { status: true },
                         { trip_status: "Completed" },
                         { is_deleted: false },
@@ -838,12 +828,7 @@ exports.get_counts_dashboard = async (req, res) => {
             {
                 $match: {
                     $and: [
-                        {
-                            $or: [
-                                { created_by: { $in: objectIds } },
-                                { created_by: mid },
-                            ]
-                        },
+                       
                         { status: true },
                         { trip_status: "Pending" },
                         { is_deleted: false },
@@ -855,12 +840,7 @@ exports.get_counts_dashboard = async (req, res) => {
              {
                 $match: {
                     $and: [
-                        {
-                            $or: [
-                                { created_by: { $in: objectIds } },
-                                { created_by: mid },
-                            ]
-                        },
+                       
                         { status: true },
                         { trip_status: "Canceled" },
                         { is_deleted: false },
