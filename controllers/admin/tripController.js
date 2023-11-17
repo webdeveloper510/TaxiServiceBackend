@@ -790,6 +790,7 @@ exports.get_counts_dashboard = async (req, res) => {
     try {
         let data = req.body
         let bookedTrip = await TRIP.find({ trip_status: "Booked", is_deleted: false }).countDocuments();
+        let completedTrip = await TRIP.find({ trip_status: "Completed", is_deleted: false }).countDocuments();
         let pendingTrip = await TRIP.find({ trip_status: "Pending", is_deleted: false }).countDocuments();
         let cancelTrip = await TRIP.find({ trip_status: "Canceled", is_deleted: false }).countDocuments();
         let companyCount = await USER.find({ role: 'SUB_ADMIN', is_deleted: false }).countDocuments();
@@ -800,6 +801,7 @@ exports.get_counts_dashboard = async (req, res) => {
                 bookedTrips: bookedTrip,
                 cancelTrips: cancelTrip,
                 pendingTrip: pendingTrip,
+                completedTrip: completedTrip,
                 companies: companyCount,
             }
         })
