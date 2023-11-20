@@ -50,7 +50,15 @@ const driver = new Schema({
         type: String,
         default: ''
     },
+    OTP:{
+        type:String,
+        default:'a0'
+    },
     gender: {
+        type: String,
+        default: ''
+    },
+    jwtToken: {
         type: String,
         default: ''
     },

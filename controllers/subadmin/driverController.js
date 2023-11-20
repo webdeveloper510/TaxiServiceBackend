@@ -1,10 +1,13 @@
 const constant = require('../../config/constant');
 const DRIVER = require('../../models/user/driver_model'); // Import the Driver model
+const USER = require('../../models/user/user_model'); // Import the Driver model
 const TRIP = require('../../models/user/trip_model'); // Import the Driver model
 const bcrypt = require("bcrypt");
 const multer = require('multer')
+const randToken = require('rand-token').generator()
 const path = require('path')
 const jwt = require('jsonwebtoken')
+const mongoose = require('mongoose')
 
 
 // var driverStorage = multer.diskStorage({
@@ -110,8 +113,17 @@ exports.remove_driver = async (req, res) => {
 exports.get_driver_detail = async (req, res) => {
     try {
         const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
-
-        const driver = await DRIVER.findOne({ _id: driverId, is_deleted: false });
+        
+        const driver = await DRIVER.findOne({
+            $and: [
+                {
+                    $or: [
+                        { _id: req.userId },
+                    ]
+                },
+                { is_deleted: false }
+            ]
+        });
         if (!driver) {
             res.send({
                 code: constant.error_code,
@@ -173,11 +185,11 @@ exports.get_drivers = async (req, res) => {
 exports.update_driver = async (req, res) => {
     driverUpload(req, res, async (err) => {
         try {
-            const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+            const driverId = req.userId; // Assuming you pass the driver ID as a URL parameter
             const updates = req.body; // Assuming you send the updated driver data in the request body
-
+            console.log(driverId)
             // Check if the driver exists
-            const existingDriver = await DRIVER.findById(driverId);
+            const existingDriver = await DRIVER.findOne({_id:driverId});
 
             if (!existingDriver || existingDriver.is_deleted) {
                 return res.send({
@@ -185,7 +197,7 @@ exports.update_driver = async (req, res) => {
                     message: 'Driver not found',
                 });
             }
-            data.profile_image = req.file ? req.file.filename : existingDriver.profile_image
+            updates.profile_image = req.file ? req.file.filename : existingDriver.profile_image
             const updatedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, updates, { new: true });
             if (updatedDriver) {
                 res.send({
@@ -208,13 +220,106 @@ exports.update_driver = async (req, res) => {
 exports.get_trips_for_driver = async (req, res) => {
     try {
         let data = req.body
-        let query = req.query
-        let params = req.params
-        let get_trip = await TRIP.find({driver_name:req.userId})
+        let mid = new mongoose.Types.ObjectId(req.userId)
+        // let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
+
+        // let search_value = data.comment ? data.comment : ''
+        // let ids = []
+        // for (let i of getIds) {
+        //     ids.push(i._id)
+        // }
+        // const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+        let search_value = data.comment ? data.comment : ''
+
+        let get_trip = await TRIP.aggregate([
+            {
+                $match: {
+                    $and: [
+                        { driver_name: mid },
+                        { status: true },
+                        { trip_status: req.params.status },
+                        { is_deleted: false },
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+                    ]
+                }
+            },
+            {
+                $lookup: {
+                    from: 'drivers',
+                    localField: 'driver_name',
+                    foreignField: '_id',
+                    as: 'driver',
+                }
+            },
+            {
+                $lookup: {
+                    from: 'vehicles',
+                    localField: 'vehicle',
+                    foreignField: '_id',
+                    as: 'vehicle',
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'created_by',
+                    foreignField: '_id',
+                    as: 'userData',
+                    pipeline: [
+                        {
+                            $lookup: {
+                                from: "agencies",
+                                localField: "_id",
+                                foreignField: "user_id",
+                                as: "agency"
+                            }
+                        },
+                        {
+                            $project: {
+                                'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    trip_from: 1,
+                    trip_to: 1,
+                    pickup_date_time: 1,
+                    trip_status: 1,
+                    createdAt: 1,
+                    created_by: 1,
+                    status: 1,
+                    passenger_detail: 1,
+                    vehicle_type: 1,
+                    comment: 1,
+                    commission: 1,
+                    pay_option: 1,
+                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
+                    driver_name: {
+                        $concat: [
+                            { $arrayElemAt: ["$driver.first_name", 0] },
+                            " ",
+                            { $arrayElemAt: ["$driver.last_name", 0] }
+                        ]
+                    },
+                    vehicle: {
+                        $concat: [
+                            { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+                            " ",
+                            { $arrayElemAt: ["$vehicle.vehicle_model", 0] }
+                        ]
+                    },
+                    trip_id: 1
+                }
+            }
+        ]).sort({ 'createdAt': -1 })
         if (!get_trip) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the trips"
+                message: "Unable to get the trips"
             })
         } else {
             res.send({
@@ -223,6 +328,42 @@ exports.get_trips_for_driver = async (req, res) => {
                 result: get_trip
             })
         }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.login = async (req, res) => {
+    try {
+        let data = req.body
+        let check_phone = await DRIVER.findOne({ phone: data.phone })
+        console.log('check+++++++++++++', check_phone)
+        if (!check_phone) {
+            res.send({
+                code: constant.error_code,
+                message: "Invalid Phone Number"
+            })
+            return
+        }
+        let OTP = randToken.generate(6, "abcdefghijklmnopqrstuvwxyz123456789")
+        let updateData = await DRIVER.findOneAndUpdate({ _id: check_phone._id }, { OTP: OTP }, { new: true })
+        if (!updateData) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to process the request"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Successfully sent OTP",
+                result: { OTP: OTP, _id: updateData._id }
+            })
+        }
+
+
 
     } catch (err) {
         res.send({
@@ -232,30 +373,28 @@ exports.get_trips_for_driver = async (req, res) => {
     }
 }
 
-exports.login_driver = async (req, res) => {
+exports.verify_otp = async (req, res) => {
     try {
         let data = req.body
-        let check_email = await DRIVER.findOne({ email: data.email })
-        console.log(check_email)
-        if (!check_email) {
+        let check_id = await DRIVER.findOne({ _id: data.driverId })
+        if (!check_id) {
             res.send({
                 code: constant.error_code,
-                message: "Invalid Credentials"
+                message: "Something went wrong, please try again"
             })
         } else {
-            let check_password = await bcrypt.compare(data.password, check_email.password)
-            if (!check_password) {
+            let jwtToken = jwt.sign({ userId: check_id._id }, process.env.JWTSECRET, { expiresIn: '365d' })
+            let updateData = await DRIVER.findOneAndUpdate({ _id: check_id._id }, { OTP: 'A0', jwtToken: jwtToken }, { new: true })
+            if (!updateData) {
                 res.send({
                     code: constant.error_code,
-                    message: "Invalid Credentials"
+                    message: "Unable to process the request"
                 })
             } else {
-                const token = jwt.sign({ userId: check_email._id, email: check_email.email }, process.env.JWTSECRET, { expiresIn: '1h' })
                 res.send({
                     code: constant.success_code,
                     message: "Login Successfully",
-                    result: check_email,
-                    jwt: token
+                    result: updateData
                 })
             }
         }
@@ -266,3 +405,4 @@ exports.login_driver = async (req, res) => {
         })
     }
 }
+
