@@ -506,15 +506,45 @@ exports.search_company = async (req, res) => {
         let data = req.body
         let query = req.query.role ? req.query.role : 'COMPANY'
         let searchUser = await USER.aggregate([
+            // {
+            //     $match: {
+            //         $and: [
+            //             { role: query }, { is_deleted: false }, { created_by: new mongoose.Types.ObjectId(req.userId) },
+            //             {
+            //                 $or: [
+            //                     { 'first_name': { '$regex': req.body.name, '$options': 'i' } },
+            //                     { 'last_name': { '$regex': req.body.name, '$options': 'i' } },
+            //                     { 'email': { '$regex': req.body.name, '$options': 'i' } },
+            //                     // { 'email': { '$regex': req.body.name, '$options': 'i' } },
+            //                     { 'phone': { '$regex': req.body.name, '$options': 'i' } },
+
+            //                 ]
+            //             }
+            //         ]
+
+
+            //     }
+
+            // },
+            {
+                $lookup: {
+                    from: "agencies",
+                    localField: "_id",
+                    foreignField: "user_id",
+                    as: "meta"
+                }
+            },
             {
                 $match: {
                     $and: [
                         { role: query }, { is_deleted: false }, { created_by: new mongoose.Types.ObjectId(req.userId) },
                         {
                             $or: [
+                                { 'meta.company_id': { '$regex': req.body.name, '$options': 'i' } },
                                 { 'first_name': { '$regex': req.body.name, '$options': 'i' } },
                                 { 'last_name': { '$regex': req.body.name, '$options': 'i' } },
                                 { 'email': { '$regex': req.body.name, '$options': 'i' } },
+                                // { 'email': { '$regex': req.body.name, '$options': 'i' } },
                                 { 'phone': { '$regex': req.body.name, '$options': 'i' } },
 
                             ]
@@ -524,14 +554,6 @@ exports.search_company = async (req, res) => {
 
                 }
 
-            },
-            {
-                $lookup: {
-                    from: "agencies",
-                    localField: "_id",
-                    foreignField: "user_id",
-                    as: "meta"
-                }
             },
             {
                 $project: {
