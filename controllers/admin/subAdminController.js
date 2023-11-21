@@ -1,5 +1,6 @@
 const USER = require('../../models/user/user_model')
 const AGENCY = require('../../models/user/agency_model')
+const DRIVER = require('../../models/user/driver_model')
 const TRIP = require('../../models/user/trip_model')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -15,6 +16,14 @@ exports.add_sub_admin = async (req, res) => {
         let data = req.body
         let checkEmail = await USER.findOne({ email: data.email, is_deleted: false })
         if (checkEmail) {
+            res.send({
+                code: constant.error_code,
+                message: "Email is already registered"
+            })
+            return;
+        }
+        let checkDEmail = await DRIVER.findOne({ email: data.email, is_deleted: false })
+        if (checkDEmail) {
             res.send({
                 code: constant.error_code,
                 message: "Email is already registered"
@@ -541,6 +550,7 @@ exports.search_company = async (req, res) => {
                         {
                             $or: [
                                 { 'meta.company_id': { '$regex': req.body.name, '$options': 'i' } },
+                                { 'meta.company_name': { '$regex': req.body.name, '$options': 'i' } },
                                 { 'first_name': { '$regex': req.body.name, '$options': 'i' } },
                                 { 'last_name': { '$regex': req.body.name, '$options': 'i' } },
                                 { 'email': { '$regex': req.body.name, '$options': 'i' } },
