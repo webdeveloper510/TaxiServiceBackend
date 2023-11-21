@@ -164,6 +164,7 @@ exports.login = async (req, res) => {
 exports.get_token_detail = async (req, res) => {
     try {
         let data = req.body
+        let result1;
         const userByID = await USER.findOne({ _id: req.userId })
         let getData = await USER.aggregate([
             {
@@ -181,10 +182,20 @@ exports.get_token_detail = async (req, res) => {
             { $unwind: "$company_detail" }
         ])
         if (!userByID) {
+            let get_data = await DRIVER.findOne({_id:req.userId})
+            if(!get_data){
+                res.send({
+                    code: constants.error_code,
+                    message: "Unable to fetch the detail"
+                })
+                return
+            }
             res.send({
-                code: constants.error_code,
-                message: "Unable to fetch the detail"
+                code: constant.success_code,
+                message: "Success",
+                result: get_data
             })
+           
         } else {
             res.send({
                 code: constant.success_code,
