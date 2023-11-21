@@ -217,6 +217,51 @@ exports.update_driver = async (req, res) => {
 
 };
 
+exports.reset_password = async (req, res) => {
+    try {
+        let data = req.body
+        let check_id = await DRIVER.findOne({ _id: req.params.id })
+        if (!check_id) {
+            res.send({
+                code: constant.success_code,
+                message: "Invalid ID"
+            })
+            return
+        }
+        let check_password = await bcrypt.compare(data.oldPassword, check_id.password)
+        if (!check_password) {
+            res.send({
+                code: constant.error_code,
+                message: "Old password is not correct"
+            })
+        } else {
+            let values = {
+                $set: {
+                    password : bcrypt.hashSync(data.password,10)
+                }
+            }
+            let updateData = await DRIVER.findOneAndUpdate({_id:check_id._id},values,{new:true})
+            if(!updateData){
+                res.send({
+                    code:constant.error_code,
+                    message:"Unable to update the password"
+                })
+            }else{
+                res.send({
+                    code:constant.success_code,
+                    message:"Updated Successfully",
+                    checking:updateData.password
+                })
+            }
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
 exports.get_trips_for_driver = async (req, res) => {
     try {
         let data = req.body
