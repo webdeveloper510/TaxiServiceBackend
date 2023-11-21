@@ -2,6 +2,7 @@ require("dotenv").config()
 const constants = require('../../config/constant')
 const USER = require('../../models/user/user_model')
 const AGENCY = require('../../models/user/agency_model')
+const DRIVER = require('../../models/user/driver_model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const randToken = require('rand-token').generator()
@@ -61,6 +62,7 @@ exports.create_super_admin = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         let data = req.body
+        let check_data ;
         let userData = await USER.findOne(
             {
                 $and: [
@@ -77,43 +79,80 @@ exports.login = async (req, res) => {
             }
         )
         if (!userData) {
-            res.send({
-                code: constants.error_code,
-                message: "Invalid Credentials"
+            let check_again = await DRIVER.findOne({
+                $and: [
+                    {
+                        $or: [{ 'email': data.email }, { 'phone': data.email }]
+                    },
+                    {
+                        status: true
+                    },
+                    {
+                        is_deleted: false
+                    }
+                ]
             })
-            return;
-        }
-        let checkPassword = await bcrypt.compare(data.password, userData.password)
-        if (!checkPassword) {
+            if(!check_again){
+                res.send({
+                    code:constant.error_code,
+                    message:"Invalid Credentials"
+                })
+                return;
+            }
+            check_data = check_again
+            let checkPassword = await bcrypt.compare(data.password, check_data.password)
+            if (!checkPassword) {
+                res.send({
+                    code: constants.error_code,
+                    message: "Invalid Credentials"
+                })
+                return;
+            }
+            let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
+            let check_data2 = check_data.toObject()
+            check_data2.role = "DRIVER"
             res.send({
-                code: constants.error_code,
-                message: "Invalid Credentials"
+                code: constants.success_code,
+                message: "Login Successful",
+                result:  check_data2,
+                jwtToken: jwtToken
             })
-            return;
+        }else{
+            check_data = userData
+            let checkPassword = await bcrypt.compare(data.password, check_data.password)
+            if (!checkPassword) {
+                res.send({
+                    code: constants.error_code,
+                    message: "Invalid Credentials"
+                })
+                return;
+            }
+            let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
+            let getData = await USER.aggregate([
+                {
+                    $match: { _id: new mongoose.Types.ObjectId(check_data._id) }
+    
+                },
+                {
+                    $lookup: {
+                        from: "agencies",
+                        localField: "_id",
+                        foreignField: "user_id",
+                        as: "company_detail"
+                    }
+                },
+                { $unwind: "$company_detail" }
+            ])
+            console.log(getData)
+            res.send({
+                code: constants.success_code,
+                message: "Login Successful",
+                result: getData[0] ? getData[0] : check_data,
+                jwtToken: jwtToken
+            })
         }
-        let jwtToken = jwt.sign({ userId: userData._id }, process.env.JWTSECRET, { expiresIn: '365d' })
-        let getData = await USER.aggregate([
-            {
-                $match: { _id: new mongoose.Types.ObjectId(userData._id) }
 
-            },
-            {
-                $lookup: {
-                    from: "agencies",
-                    localField: "_id",
-                    foreignField: "user_id",
-                    as: "company_detail"
-                }
-            },
-            { $unwind: "$company_detail" }
-        ])
-        console.log(getData)
-        res.send({
-            code: constants.success_code,
-            message: "Login Successful",
-            result: getData[0] ? getData[0] : userData,
-            jwtToken: jwtToken
-        })
+       
     } catch (err) {
         res.send({
             code: constants.error_code,

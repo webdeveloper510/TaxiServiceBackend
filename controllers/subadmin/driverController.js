@@ -113,7 +113,7 @@ exports.remove_driver = async (req, res) => {
 exports.get_driver_detail = async (req, res) => {
     try {
         const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
-        
+
         const driver = await DRIVER.findOne({
             $and: [
                 {
@@ -189,7 +189,7 @@ exports.update_driver = async (req, res) => {
             const updates = req.body; // Assuming you send the updated driver data in the request body
             console.log(driverId)
             // Check if the driver exists
-            const existingDriver = await DRIVER.findOne({_id:driverId});
+            const existingDriver = await DRIVER.findOne({ _id: driverId });
 
             if (!existingDriver || existingDriver.is_deleted) {
                 return res.send({
@@ -339,32 +339,32 @@ exports.get_trips_for_driver = async (req, res) => {
 exports.login = async (req, res) => {
     try {
         let data = req.body
-        let check_phone = await DRIVER.findOne({ phone: data.phone })
+        let check_phone = await DRIVER.findOne({ email: data.email })
         console.log('check+++++++++++++', check_phone)
         if (!check_phone) {
             res.send({
                 code: constant.error_code,
-                message: "Invalid Phone Number"
+                message: "Invalid Credentials"
             })
             return
         }
-        let OTP = randToken.generate(6, "abcdefghijklmnopqrstuvwxyz123456789")
-        let updateData = await DRIVER.findOneAndUpdate({ _id: check_phone._id }, { OTP: OTP }, { new: true })
-        if (!updateData) {
+        let check_password = await bcrypt.compare(data.password, check_phone.password)
+
+        if (!check_password) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to process the request"
+                message: "Invalid Credentials"
             })
         } else {
+            let jwtToken = jwt.sign({ userId: check_phone._id }, process.env.JWTSECRET, { expiresIn: '365d' })
+            let updateData = await DRIVER.findOneAndUpdate({ _id: check_phone._id }, { OTP: 'A0', jwtToken: jwtToken }, { new: true })
             res.send({
                 code: constant.success_code,
-                message: "Successfully sent OTP",
-                result: { OTP: OTP, _id: updateData._id }
+                message: "Login Successfully",
+                result: updateData,
+                jwtToken: jwtToken
             })
         }
-
-
-
     } catch (err) {
         res.send({
             code: constant.error_code,
