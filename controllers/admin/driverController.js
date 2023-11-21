@@ -164,7 +164,7 @@ exports.get_drivers = async (req, res) => {
                 $and: [
                     { is_deleted: false },
                     {status:true},
-                    {is_available:true}
+                    // {is_available:true}
                     // {
                     //     $or: [
                     //         { created_by: req.userId },
