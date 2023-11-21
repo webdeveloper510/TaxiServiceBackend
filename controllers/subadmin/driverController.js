@@ -260,7 +260,7 @@ exports.reset_password = async (req, res) => {
             message: err.message
         })
     }
-}
+};
 
 exports.get_trips_for_driver = async (req, res) => {
     try {
@@ -379,7 +379,7 @@ exports.get_trips_for_driver = async (req, res) => {
             message: err.message
         })
     }
-}
+};
 
 exports.login = async (req, res) => {
     try {
@@ -416,7 +416,7 @@ exports.login = async (req, res) => {
             message: err.message
         })
     }
-}
+};
 
 exports.verify_otp = async (req, res) => {
     try {
@@ -449,5 +449,5 @@ exports.verify_otp = async (req, res) => {
             message: err.message
         })
     }
-}
+};
 
