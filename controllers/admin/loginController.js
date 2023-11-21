@@ -67,7 +67,7 @@ exports.login = async (req, res) => {
             {
                 $and: [
                     {
-                        $or: [{ 'email': data.email }, { 'phone': data.email }]
+                        $or: [ { 'email': { '$regex': data.email, '$options': 'i' } },  { 'phone': { '$regex': data.email, '$options': 'i' } },]
                     },
                     {
                         status: true
@@ -82,7 +82,7 @@ exports.login = async (req, res) => {
             let check_again = await DRIVER.findOne({
                 $and: [
                     {
-                        $or: [{ 'email': data.email }, { 'phone': data.email }]
+                        $or: [ { 'email': { '$regex': data.email, '$options': 'i' } },  { 'phone': { '$regex': data.email, '$options': 'i' } }]
                     },
                     {
                         status: true
