@@ -14,11 +14,11 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
-router.post('/login',driverController.login)
+// router.post('/login',driverController.login)
 router.post('/verify_otp',driverController.verify_otp)
 router.put('/update_driver',[verifyToken],driverController.update_driver)
 router.get('/get_driver_detail',[verifyToken],driverController.get_driver_detail)
-router.post('/get_trips_for_driver/:status',[verifyToken],driverController.get_trips_for_driver)
+router.get('/get_trips_for_driver/:status',[verifyToken],driverController.get_trips_for_driver)
 
 
 module.exports = router;
