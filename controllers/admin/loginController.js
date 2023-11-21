@@ -190,10 +190,12 @@ exports.get_token_detail = async (req, res) => {
                 })
                 return
             }
+            let get_data2 = get_data.toObject()
+            get_data2.role = "DRIVER"
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: get_data
+                result: get_data2
             })
            
         } else {
