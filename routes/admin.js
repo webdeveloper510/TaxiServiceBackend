@@ -22,6 +22,13 @@ router.post('/forgot_password',loginController.forgot_password)
 router.post('/reset_password',[verifyToken],loginController.reset_password)
 router.get('/get_token_detail',[verifyToken],loginController.get_token_detail)
 
+// feedback api's
+router.post('/save_feedback',[verifyToken],loginController.save_feedback)
+router.get('/get_feedback',[verifyToken],loginController.get_feedback)
+
+
+
+
 // sub admin api's
 router.post('/add_sub_admin',[verifyToken],subAdminController.add_sub_admin)
 router.post('/search_company',[verifyToken],subAdminController.search_company)

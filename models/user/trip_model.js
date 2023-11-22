@@ -30,6 +30,14 @@ const trip = new Schema({
         type:Number,
         default:0
     },
+    pickup_time:{
+        type:Date,
+        default:Date.now()
+    },
+    drop_time:{
+        type:Date,
+        default:Date.now()
+    },
     amount:{
         type:Object,
     },

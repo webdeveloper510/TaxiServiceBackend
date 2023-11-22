@@ -13,6 +13,9 @@ const mongoose = require('mongoose')
 const randToken = require('rand-token').generator()
 const moment = require('moment')
 
+
+
+
 exports.add_trip = async (req, res) => {
     try {
         let data = req.body
@@ -21,18 +24,37 @@ exports.add_trip = async (req, res) => {
         let token_code = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let check_user = await USER.findOne({ _id: req.userId })
         let currentDate = moment().format('YYYY-MM-DD')
-        let check_id = await TRIP.aggregate([{
-            $match: {
-                createdAt: {
-                    $gte: new Date(currentDate),
-                    $lt: new Date(new Date(currentDate).getTime() + 24 * 60 * 60 * 1000) // Add 1 day to include the entire day
+        let check_id = await TRIP.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(currentDate),
+                        $lt: new Date(new Date(currentDate).getTime() + 24 * 60 * 60 * 1000) // Add 1 day to include the entire day
+                    }
                 }
             }
-        }])
+        ])
         let series = Number(check_id.length) + 1
         data.series_id = token_code + '-' + '000' + series
 
         data.trip_id = 'T' + '-' + data.trip_id
+        let distance = (geolib.getDistance(
+            {
+                latitude: data.trip_from.log,
+                longitude: data.trip_from.lat,
+            },
+            {
+                latitude: data.trip_to.log,
+                longitude: data.trip_to.lat,
+            }
+        ) * 0.00062137
+        ).toFixed(2)
+
+        let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type })
+        let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10
+        if (!data.price) {
+            data.price = fare_per_km * Number(distance)
+        }
         console.log('check===========================', data)
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
@@ -489,7 +511,7 @@ exports.get_recent_trip_super = async (req, res) => {
                     trip_status: 1,
                     createdAt: 1,
                     created_by: 1,
-                    series_id:1,
+                    series_id: 1,
                     status: 1,
                     passenger_detail: 1,
                     vehicle_type: 1,
@@ -691,7 +713,7 @@ exports.get_trip_detail = async (req, res) => {
     try {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.params.id)
-        
+
         let getData = await TRIP.aggregate([
             {
                 $match: {
@@ -745,20 +767,20 @@ exports.get_trip_detail = async (req, res) => {
 
         let distance = (geolib.getDistance(
             {
-              latitude: getData[0].trip_from.log,
-              longitude: getData[0].trip_from.lat,
+                latitude: getData[0].trip_from.log,
+                longitude: getData[0].trip_from.lat,
             },
             {
-              latitude: getData[0].trip_to.log,
-              longitude: getData[0].trip_to.lat,
+                latitude: getData[0].trip_to.log,
+                longitude: getData[0].trip_to.lat,
             }
-          ) * 0.00062137
+        ) * 0.00062137
         ).toFixed(2)
 
-        let getFare = await FARES.findOne({vehicle_type:getData[0].vehicle_type})
+        let getFare = await FARES.findOne({ vehicle_type: getData[0].vehicle_type })
         let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km) : 10
-        if(getData[0].price == 0){
-            getData[0].price = fare_per_km*Number(distance)
+        if (getData[0].price == 0) {
+            getData[0].price = fare_per_km * Number(distance)
         }
         // console.log('data=========',getData[0].price,fare_per_km*Number(distance))
 
@@ -802,10 +824,10 @@ exports.get_counts_dashboard = async (req, res) => {
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
         let bookedTrip = await TRIP.aggregate([
-             {
+            {
                 $match: {
                     $and: [
-                       
+
                         { status: true },
                         { trip_status: "Booked" },
                         { is_deleted: false },
@@ -814,10 +836,10 @@ exports.get_counts_dashboard = async (req, res) => {
             },
         ]);
         let completedTrip = await TRIP.aggregate([
-             {
+            {
                 $match: {
                     $and: [
-                       
+
                         { status: true },
                         { trip_status: "Completed" },
                         { is_deleted: false },
@@ -829,7 +851,7 @@ exports.get_counts_dashboard = async (req, res) => {
             {
                 $match: {
                     $and: [
-                       
+
                         { status: true },
                         { trip_status: "Pending" },
                         { is_deleted: false },
@@ -838,10 +860,10 @@ exports.get_counts_dashboard = async (req, res) => {
             },
         ]);
         let cancelTrip = await TRIP.aggregate([
-             {
+            {
                 $match: {
                     $and: [
-                       
+
                         { status: true },
                         { trip_status: "Canceled" },
                         { is_deleted: false },
@@ -849,7 +871,7 @@ exports.get_counts_dashboard = async (req, res) => {
                 }
             },
         ]);
-        let companyCount = await USER.find({role:'COMPPANY'}).countDocuments();
+        let companyCount = await USER.find({ role: 'COMPPANY' }).countDocuments();
         res.send({
             code: constant.success_code,
             message: "success",
