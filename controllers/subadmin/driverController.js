@@ -334,6 +334,7 @@ exports.get_trips_for_driver = async (req, res) => {
                     trip_to: 1,
                     pickup_date_time: 1,
                     trip_status: 1,
+                    price:1,
                     createdAt: 1,
                     created_by: 1,
                     status: 1,
