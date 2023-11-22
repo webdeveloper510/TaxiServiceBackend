@@ -220,7 +220,7 @@ exports.update_driver = async (req, res) => {
 exports.reset_password = async (req, res) => {
     try {
         let data = req.body
-        let check_id = await DRIVER.findOne({ _id: req.params.id })
+        let check_id = await DRIVER.findOne({ _id: req.userId })
         if (!check_id) {
             res.send({
                 code: constant.success_code,
