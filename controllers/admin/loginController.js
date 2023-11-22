@@ -2,6 +2,7 @@ require("dotenv").config()
 const constants = require('../../config/constant')
 const USER = require('../../models/user/user_model')
 const AGENCY = require('../../models/user/agency_model')
+const FEEDBACK = require('../../models/user/feedback_model')
 const DRIVER = require('../../models/user/driver_model')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -797,6 +798,49 @@ exports.reset_password = async (req, res) => {
     }
 }
 
+
+exports.save_feedback = async(req,res)=>{
+    try{
+        let data = req.body
+        data.user_id = req.userId
+        let save_data = await FEEDBACK(data).save()
+        if(!save_data){
+            res.send({
+                code:constant.error_code,
+                message:"Unable to save the data"
+            })
+        }else{
+            res.send(
+                {
+                    code:constant.success_code,
+                    message:"Saved Successylly"
+                }
+            )
+        }
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}
+
+exports.get_feedback = async(req,res)=>{
+    try{
+        let data = req.body
+        let get_feedbacks = await FEEDBACK.find().sort({createdAt:-1})
+        res.send({
+            code:constant.success_code,
+            message:"Success",
+            result:get_feedbacks
+        })
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}
 
 
 
