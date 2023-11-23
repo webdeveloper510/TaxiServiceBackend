@@ -798,57 +798,79 @@ exports.reset_password = async (req, res) => {
     }
 }
 
-exports.save_feedback = async(req,res)=>{
-    try{
+exports.save_feedback = async (req, res) => {
+    try {
         let data = req.body
         data.user_id = req.userId
         let save_data = await FEEDBACK(data).save()
-        if(!save_data){
+        if (!save_data) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to save the data"
+                code: constant.error_code,
+                message: "Unable to save the data"
             })
-        }else{
+        } else {
             res.send(
                 {
-                    code:constant.success_code,
-                    message:"Saved Successylly"
+                    code: constant.success_code,
+                    message: "Saved Successylly"
                 }
             )
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
 
-exports.get_feedback = async(req,res)=>{
-    try{
+exports.get_feedback = async (req, res) => {
+    try {
         let data = req.body
         let get_feedbacks = await FEEDBACK.aggregate([
             {
-                $lookup:{
-                    from:"users",
-                    localField:"user_id",
-                    foreignField:"_id",
-                    as:"user"
+                $lookup: {
+                    from: "users",
+                    localField: "user_id",
+                    foreignField: "_id",
+                    as: "user",
+                    pipeline: [
+                        {
+                            $lookup: {
+                                from: "agencies",
+                                localField: "_id",
+                                foreignField: "user_id",
+                                as: "company_detail"
+                            }
+                        },
+                        {
+                            $project: {
+                                'company_name': { $arrayElemAt: ["$company_detail.company_name", 0] },
+
+                            }
+                        }
+                    ]
                 }
             },
             {
-                $unwind:"$user"
+                $project: {
+                    _id: 1,
+                    createdAt: 1,
+                    comment: 1,
+                    'company_name': { $arrayElemAt: ["$user.company_name", 0] },
+
+                }
             }
-        ]).sort({createdAt:-1})
+        ]).sort({ createdAt: -1 })
         res.send({
-            code:constant.success_code,
-            message:"Success",
-            result:get_feedbacks
+            code: constant.success_code,
+            message: "Success",
+            result: get_feedbacks
         })
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
