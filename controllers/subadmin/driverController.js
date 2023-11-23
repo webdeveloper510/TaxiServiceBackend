@@ -187,7 +187,7 @@ exports.update_driver = async (req, res) => {
         try {
             const driverId = req.userId; // Assuming you pass the driver ID as a URL parameter
             const updates = req.body; // Assuming you send the updated driver data in the request body
-            console.log(driverId)
+            console.log(updates)
             // Check if the driver exists
             const existingDriver = await DRIVER.findOne({ _id: driverId });
 
