@@ -2,8 +2,8 @@ const constant = require('../../config/constant');
 const DRIVER = require('../../models/user/driver_model'); // Import the Driver model
 const USER = require('../../models/user/user_model'); // Import the Driver model
 const bcrypt = require("bcrypt");
-const multer = require('multer')
-const path = require('path')
+const multer = require('multer');
+const path = require('path');
 
 
 // var driverStorage = multer.diskStorage({
@@ -42,7 +42,7 @@ var driverUpload = multer({
 }).any([
     { name: "driver_image" },
     { name: "driver_documents" }
-])
+]);
 
 
 exports.add_driver = async (req, res) => {
