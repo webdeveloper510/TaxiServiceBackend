@@ -827,7 +827,19 @@ exports.save_feedback = async(req,res)=>{
 exports.get_feedback = async(req,res)=>{
     try{
         let data = req.body
-        let get_feedbacks = await FEEDBACK.find().sort({createdAt:-1})
+        let get_feedbacks = await FEEDBACK.aggregate([
+            {
+                $lookup:{
+                    from:"users",
+                    localField:"user_id",
+                    foreignField:"_id",
+                    as:"user"
+                }
+            },
+            {
+                $unwind:"$user"
+            }
+        ]).sort({createdAt:-1})
         res.send({
             code:constant.success_code,
             message:"Success",
