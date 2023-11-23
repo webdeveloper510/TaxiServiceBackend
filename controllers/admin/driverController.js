@@ -68,7 +68,7 @@ exports.add_driver = async (req, res) => {
             data.profile_image = driver_image.length != 0 ? driver_image[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
             data.driver_documents = driver_documents.length != 0 ? driver_documents[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
             let check_other = await USER.findOne({email:data.email})
-            if(!check_other){
+            if(check_other){
                 res.send({
                     code:constant.error_code,
                     message:"Email Already exist"
