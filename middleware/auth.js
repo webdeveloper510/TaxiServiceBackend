@@ -7,7 +7,7 @@ const constant = require('../config/constant');
 
 // const config = process.env
  verifyToken = (req,res,next) => {
-  let token = req.headers["x-access-token"];
+  let token = req.headers[toLowerCase("x-access-token")];
   console.log('token------', token)
   if (!token) {
       res.send({
