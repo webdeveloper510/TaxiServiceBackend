@@ -6,6 +6,10 @@ const feedback = new Schema({
         type:String,
         default:''
     },
+    title:{
+        type:String,
+        default:''
+    },
     user_id:{
         type:mongoose.Schema.Types.ObjectId,ref:'users'
     }
