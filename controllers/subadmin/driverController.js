@@ -27,6 +27,7 @@ const mongoose = require('mongoose')
 
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
+const { get } = require('../../routes/admin');
 
 const imageStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -237,20 +238,20 @@ exports.reset_password = async (req, res) => {
         } else {
             let values = {
                 $set: {
-                    password : bcrypt.hashSync(data.password,10)
+                    password: bcrypt.hashSync(data.password, 10)
                 }
             }
-            let updateData = await DRIVER.findOneAndUpdate({_id:check_id._id},values,{new:true})
-            if(!updateData){
+            let updateData = await DRIVER.findOneAndUpdate({ _id: check_id._id }, values, { new: true })
+            if (!updateData) {
                 res.send({
-                    code:constant.error_code,
-                    message:"Unable to update the password"
+                    code: constant.error_code,
+                    message: "Unable to update the password"
                 })
-            }else{
+            } else {
                 res.send({
-                    code:constant.success_code,
-                    message:"Updated Successfully",
-                    checking:updateData.password
+                    code: constant.success_code,
+                    message: "Updated Successfully",
+                    checking: updateData.password
                 })
             }
         }
@@ -334,7 +335,7 @@ exports.get_trips_for_driver = async (req, res) => {
                     trip_to: 1,
                     pickup_date_time: 1,
                     trip_status: 1,
-                    price:1,
+                    price: 1,
                     createdAt: 1,
                     created_by: 1,
                     status: 1,
@@ -451,4 +452,55 @@ exports.verify_otp = async (req, res) => {
         })
     }
 };
+
+exports.get_reports = async (req, res) => {
+    try {
+        let data = req.body
+        let query;
+        if (data.filter_type == "all") {
+            query = [
+                { status: true },
+                { trip_status: "Completed" },
+                { driver_name: new mongoose.Types.ObjectId(req.userId) }
+            ]
+
+        } else {
+            query = [
+                { status: true },
+                { trip_status: "Completed" },
+                { driver_name: new mongoose.Types.ObjectId(req.userId) },
+                { pickup_date_time: { $gte: new Date(data.from_date), $lt: new Date(data.to_date) } }
+            ]
+
+        }
+
+
+        let get_data = await TRIP.find({
+            $and: query
+        }
+        )
+        const totalPrice = get_data.reduce((sum, obj) => sum + obj.price, 0);
+        if (!get_data) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to fetch the details"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: {
+                    trips: get_data.length,
+                    earning: totalPrice
+                }
+            })
+        }
+
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
 
