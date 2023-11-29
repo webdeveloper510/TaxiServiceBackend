@@ -10,6 +10,25 @@ const randToken = require('rand-token').generator()
 const nodemailer = require('nodemailer')
 const mongoose = require('mongoose')
 require('dotenv').config();
+const multer = require('multer')
+const path = require('path')
+
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("../../config/cloudinary");
+
+const imageStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: "TaxiBooking",
+        public_id: (req, files) =>
+            `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+        maxFileSize: 10000000,
+    },
+});
+
+var logoUpload = multer({
+    storage: imageStorage
+}).single("logo")
 
 exports.add_sub_admin = async (req, res) => {
     try {
@@ -375,7 +394,6 @@ exports.get_sub_admin_detail = async (req, res) => {
                     'location': { $arrayElemAt: ["$meta.location", 0] }
                 }
             }
-
         ])
         if (check_detail.length == 0) {
             res.send({
@@ -384,7 +402,7 @@ exports.get_sub_admin_detail = async (req, res) => {
             })
         } else {
             let get_name = await AGENCY.findOne({ user_id: check_detail[0]._id })
-            check_detail[0].hotel_name = get_name.company_name?get_name.company_name:'N/A'
+            check_detail[0].hotel_name = get_name.company_name ? get_name.company_name : 'N/A'
             res.send({
                 code: constant.success_code,
                 message: "Success",
@@ -401,64 +419,67 @@ exports.get_sub_admin_detail = async (req, res) => {
 
 exports.edit_sub_admin = async (req, res) => {
     try {
-        let data = req.body
-        let criteria = { _id: req.params.id }
-        let option = { new: true }
-        let checkSubAdmin = await USER.findOne(criteria)
-        if (!checkSubAdmin) {
-            res.send({
-                code: constant.error_code,
-                message: "Invalid ID"
-            })
-            return;
-        }
-        let update_data = await USER.findOneAndUpdate(criteria, data, option)
-        let criteria2 = { user_id: update_data._id }
-        if (checkSubAdmin.email != data.email) {
-            let check_email = await USER.findOne({
-                $or: [
-                    { email: data.email },
-                    // {phone:data.phone},
-                ]
-            })
-            if (check_email) {
+        logoUpload(req, res, async (err) => {
+            let data = req.body
+            let criteria = { _id: req.params.id }
+            let option = { new: true }
+            let checkSubAdmin = await USER.findOne(criteria)
+            if (!checkSubAdmin) {
                 res.send({
                     code: constant.error_code,
-                    message: "Email or phone is already exist"
+                    message: "Invalid ID"
                 })
-                return
+                return;
             }
-        }
-        if (checkSubAdmin.phone != data.phone) {
-            let check_phone = await USER.findOne({
-                $or: [
-                    { phone: data.phone },
-                    // {phone:data.phone},
-                ]
-            })
-            if (check_phone) {
+            let update_data = await USER.findOneAndUpdate(criteria, data, option)
+            let criteria2 = { user_id: update_data._id }
+            if (checkSubAdmin.email != data.email) {
+                let check_email = await USER.findOne({
+                    $or: [
+                        { email: data.email },
+                        // {phone:data.phone},
+                    ]
+                })
+                if (check_email) {
+                    res.send({
+                        code: constant.error_code,
+                        message: "Email or phone is already exist"
+                    })
+                    return
+                }
+            }
+            if (checkSubAdmin.phone != data.phone) {
+                let check_phone = await USER.findOne({
+                    $or: [
+                        { phone: data.phone },
+                        // {phone:data.phone},
+                    ]
+                })
+                if (check_phone) {
+                    res.send({
+                        code: constant.error_code,
+                        message: "Phone or phone is already exist"
+                    })
+                    return
+                }
+            }
+
+            let update_data_meta = await AGENCY.findOneAndUpdate(criteria2, data, option)
+
+            if (!update_data) {
                 res.send({
                     code: constant.error_code,
-                    message: "Phone or phone is already exist"
+                    message: "Unable to update the data"
                 })
-                return
+            } else {
+                res.send({
+                    code: constant.success_code,
+                    message: "Updated Successfull",
+                    result: update_data
+                })
             }
-        }
+        })
 
-        let update_data_meta = await AGENCY.findOneAndUpdate(criteria2, data, option)
-
-        if (!update_data) {
-            res.send({
-                code: constant.error_code,
-                message: "Unable to update the data"
-            })
-        } else {
-            res.send({
-                code: constant.success_code,
-                message: "Updated Successfull",
-                result: update_data
-            })
-        }
     } catch (err) {
         res.send({
             code: constant.error_code,
