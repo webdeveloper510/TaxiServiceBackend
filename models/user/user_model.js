@@ -39,6 +39,14 @@ const user = new Schema({
         type:String,
         default:''
     },
+    background_color:{
+        type:String,
+        default:"#fff"
+    },
+    logo:{
+        type:String,
+        default:"https://res.cloudinary.com/dtkn5djt5/image/upload/v1701238196/jhw4vir6bftgfzim93qw.avif"
+    },
     OTP:{
         type:String,
         default:''
