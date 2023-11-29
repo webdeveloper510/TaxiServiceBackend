@@ -11,8 +11,18 @@ const trip = new Schema({
         default:''
     },
     commission:{
-        type:Object,
-        default:{}
+        type:{
+            commission_type:{
+                type:String,
+            },
+            commission_value: {
+                type:Number
+            }
+        },
+        default:{
+            commission_type:"Percentage",
+            commission_value:0
+        }
     },
     series_id:{
         type:String,

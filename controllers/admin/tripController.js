@@ -747,7 +747,7 @@ exports.get_trip_detail = async (req, res) => {
                         ]
                     },
                     vehicle_model: 1,
-                    commision: 1,
+                    commission: 1,
                     price: 1,
                     vehicle_type: 1,
                     trip_from: 1,
