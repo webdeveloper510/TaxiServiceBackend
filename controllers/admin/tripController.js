@@ -737,7 +737,17 @@ exports.get_trip_detail = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: "users",
+                    localField: "created_by",
+                    foreignField: "_id",
+                    as: "hotel_info"
+                }
+            },
+            {
                 $project: {
+                    'phone': { $arrayElemAt: ["$hotel_info.phone", 0] },
+                    'email': { $arrayElemAt: ["$hotel_info.email", 0] },
                     'vehicle': { $arrayElemAt: ["$vehicle_info.vehicle_model", 0] },
                     'driver_name': {
                         $concat: [
