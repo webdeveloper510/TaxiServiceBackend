@@ -13,6 +13,7 @@ const moment = require('moment')
 const constant = require("../../config/constant")
 const emailConstant = require('../../config/emailConstant')
 const nodemailer = require('nodemailer')
+const stripe = require('stripe')('sk_test_51OH1cSSIpj1PyQQaTWeLDPcDsiROliXqsb2ROV2SvHEXwIBbnM9doAQF4rIqWGTTFM7SK4kBxjMmSXMgcLcJTSVh00l0kUa708');
 
 const mongoose = require("mongoose")
 
@@ -878,3 +879,34 @@ exports.get_feedback = async (req, res) => {
 
 
 
+exports.createPaymentSession = async (req, res) => {
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [{
+              price_data: {
+                // To accept `ideal`, all line items must have currency: eur
+                currency: 'inr',
+                product_data: {
+                  name: 'T-shirt',
+                },
+                unit_amount: 2000,
+              },
+              quantity: 1,
+            }],
+            mode: 'payment',
+            success_url: 'http://localhost:3000//success',
+            cancel_url: 'http://localhost:3000//cancel',
+          });
+          res.send({
+            code: constant.success_code,
+            message: "Success",
+            result: session
+        })
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}

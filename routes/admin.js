@@ -14,6 +14,8 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
 
+router.post('/createPaymentSession',loginController.createPaymentSession)
+
 router.post('/create_super_admin',loginController.create_super_admin)
 router.post('/login',loginController.login)
 router.post('/send_otp',loginController.send_otp)

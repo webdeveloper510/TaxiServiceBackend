@@ -24,7 +24,8 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^6.9.7",
     "path": "^0.12.7",
-    "rand-token": "^1.0.1"
+    "rand-token": "^1.0.1",
+    "stripe": "^14.5.0"
   },
   "main": "app.js",
   "author": "",

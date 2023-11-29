@@ -431,6 +431,9 @@ exports.edit_sub_admin = async (req, res) => {
                 })
                 return;
             }
+            if(req?.file){
+                data.logo = req.file.path
+               }
             let update_data = await USER.findOneAndUpdate(criteria, data, option)
             let criteria2 = { user_id: update_data._id }
             if (checkSubAdmin.email != data.email) {
