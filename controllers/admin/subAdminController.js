@@ -371,7 +371,7 @@ exports.get_sub_admin_detail = async (req, res) => {
                     last_name: 1,
                     email: 1,
                     // company_id:1,
-                    // company_name:1,
+                    created_by:1,
                     phone: 1,
                     profile_image: 1,
                     role: 1,
@@ -396,7 +396,7 @@ exports.get_sub_admin_detail = async (req, res) => {
                 }
             }
         ])
-        let get_color = await USER.findOne({_id:check_detail[0]._id})
+        let get_color = await USER.findOne({_id:check_detail[0].created_by})
         if (check_detail.length == 0) {
             res.send({
                 code: constant.error_code,
@@ -405,7 +405,7 @@ exports.get_sub_admin_detail = async (req, res) => {
         } else {
             let get_name = await AGENCY.findOne({ user_id: check_detail[0]._id })
             check_detail[0].hotel_name = get_name.company_name ? get_name.company_name : 'N/A'
-            check_detail[0].meta = get_color.toObject();
+            check_detail[0].meta = get_color?.toObject();
             const result = check_detail[0]
 
             res.send({
