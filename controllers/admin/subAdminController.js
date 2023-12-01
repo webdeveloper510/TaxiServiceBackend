@@ -376,6 +376,8 @@ exports.get_sub_admin_detail = async (req, res) => {
                     profile_image: 1,
                     role: 1,
                     status: 1,
+                    logo: 1,
+                    background_color: 1,
                     'land': { $arrayElemAt: ["$meta.land", 0] },
                     'post_code': { $arrayElemAt: ["$meta.post_code", 0] },
                     'house_number': { $arrayElemAt: ["$meta.house_number", 0] },
@@ -390,11 +392,11 @@ exports.get_sub_admin_detail = async (req, res) => {
                     'saluation': { $arrayElemAt: ["$meta.saluation", 0] },
                     'company_name': { $arrayElemAt: ["$meta.company_name", 0] },
                     'company_id': { $arrayElemAt: ["$meta.company_id", 0] },
-                    'commision': { $arrayElemAt: ["$meta.commision", 0] },
                     'location': { $arrayElemAt: ["$meta.location", 0] }
                 }
             }
         ])
+        let get_color = await USER.findOne({_id:check_detail[0]._id})
         if (check_detail.length == 0) {
             res.send({
                 code: constant.error_code,
@@ -403,10 +405,14 @@ exports.get_sub_admin_detail = async (req, res) => {
         } else {
             let get_name = await AGENCY.findOne({ user_id: check_detail[0]._id })
             check_detail[0].hotel_name = get_name.company_name ? get_name.company_name : 'N/A'
+            check_detail[0].meta = get_color.toObject();
+            const result = check_detail[0]
+
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: check_detail[0]
+                result,
+               
             })
         }
     } catch (err) {
