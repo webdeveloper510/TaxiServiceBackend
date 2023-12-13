@@ -19,8 +19,8 @@ exports.initiateStripePayment = async (trip, amount) => {
         },
       ],
       mode: "payment",
-      success_url: "http://localhost:3000//success",
-      cancel_url: "http://localhost:3000//cancel",
+      success_url: `http://localhost:3000/payment/success/${trip._id}`,
+      cancel_url: `http://localhost:3000/payment/cancel/${trip._id}`,
     });
 
     console.log("first step+++++++++++++++++++++", paymentIntent);
