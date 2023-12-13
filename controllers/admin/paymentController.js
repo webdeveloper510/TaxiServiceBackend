@@ -52,18 +52,18 @@ exports.failedTripPay = async (req, res) => {
     try {
         let tripId = req.params.id;
         const trip_by_id = await  TRIP.findById(tripId);
-        // if(!trip_by_id){
-        //     return res.send({
-        //         code: constant.error_code,
-        //         message: "Unable to get the trip by id"
-        //     })
-        // }
-        if(trip_by_id.is_paid){
-          return res.send({
-            code: constant.error_code,
-            message:"Already paid"
-           })
+        if(!trip_by_id){
+            return res.send({
+                code: constant.error_code,
+                message: "Unable to get the trip by id"
+            })
         }
+        // if(trip_by_id.is_paid){
+        //   return res.send({
+        //     code: constant.error_code,
+        //     message:"Already paid"
+        //    })
+        // }
         trip_by_id.is_paid = false;
         trip_by_id.stripe_payment.payment_status = "Failed"
         await trip_by_id.save();
