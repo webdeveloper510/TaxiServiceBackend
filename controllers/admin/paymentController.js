@@ -12,12 +12,12 @@ exports.tripCommissionPayment = async (req, res) => {
                 message: "Unable to get the trip by id"
             })
         }
-        if(trip_by_id.is_paid){
-          return res.send({
-            code: constant.error_code,
-            message:"Already paid"
-           })
-        }
+        // if(trip_by_id.is_paid){
+        //   return res.send({
+        //     code: constant.error_code,
+        //     message:"Already paid"
+        //    })
+        // }
         try {
             // let commission = trip_by_id.commission.commission_value;
             // if( trip_by_id.commission.commission_type === "Percentage"){
@@ -52,12 +52,12 @@ exports.failedTripPay = async (req, res) => {
     try {
         let tripId = req.params.id;
         const trip_by_id = await  TRIP.findById(tripId);
-        if(!trip_by_id){
-            return res.send({
-                code: constant.error_code,
-                message: "Unable to get the trip by id"
-            })
-        }
+        // if(!trip_by_id){
+        //     return res.send({
+        //         code: constant.error_code,
+        //         message: "Unable to get the trip by id"
+        //     })
+        // }
         if(trip_by_id.is_paid){
           return res.send({
             code: constant.error_code,
@@ -92,12 +92,12 @@ exports.successTripPay = async (req, res) => {
                 message: "Unable to get the trip by id"
             })
         }
-        if(trip_by_id.is_paid){
-          return res.send({
-            code: constant.error_code,
-            message:"Already paid"
-           })
-        }
+        // if(trip_by_id.is_paid){
+        //   return res.send({
+        //     code: constant.error_code,
+        //     message:"Already paid"
+        //    })
+        // }
         // check from strip side is payment completed
         // const resultFromStipe = await checkPaymentStatus(
         //     "cs_test_a1rcENK1oN8uuj8vr3CQDbQXv1wjqibuayZHb5PWQmatrW2mwnZg7kZFv0"
