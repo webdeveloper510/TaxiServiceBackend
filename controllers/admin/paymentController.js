@@ -5,7 +5,7 @@ const TRIP = require("../../models/user/trip_model");
 exports.tripCommissionPayment = async (req, res) => {
     try {
         let tripId = req.params.id;
-        const trip_by_id = TRIP.findById(tripId);
+        const trip_by_id = await  TRIP.findById(tripId);
         if(!trip_by_id){
             return res.send({
                 code: constant.error_code,
@@ -27,6 +27,7 @@ exports.tripCommissionPayment = async (req, res) => {
             res.send({
                 code: constant.success_code,
                 result: paymentResult,
+                trip_by_id,
                 message: "Success fully payment is created",
                 // commission
             })
