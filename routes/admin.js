@@ -7,6 +7,7 @@ var agencyController = require('../controllers/admin/agencyController');
 var driverController = require('../controllers/admin/driverController');
 var fareController = require('../controllers/admin/fareController');
 var tripController = require('../controllers/admin/tripController');
+let paymentController = require('../controllers/admin/paymentController.js');
 const { verifyToken } = require('../middleware/auth');
 
 /* GET home page. */
@@ -84,6 +85,9 @@ router.post('/get_trip_by_company/:status',[verifyToken],tripController.get_trip
 router.get('/get_trip_detail/:id',tripController.get_trip_detail)
 router.put('/alocate_driver/:id',[verifyToken],tripController.alocate_driver)
 router.get('/get_counts_dashboard',[verifyToken],tripController.get_counts_dashboard)
+
+// trip payment
+router.post('/pay_trip_commission/:id',[verifyToken],paymentController.tripCommissionPayment)
 
 
 
