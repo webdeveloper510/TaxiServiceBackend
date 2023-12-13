@@ -1,11 +1,11 @@
 const { initiateStripePayment } = require("../../Service/Stripe");
 const constant = require("../../config/constant");
-const trip_model = require("../../models/user/trip_model");
+const TRIP = require("../../models/user/trip_model");
 
 exports.tripCommissionPayment = async (req, res) => {
     try {
         let tripId = req.params.id;
-        const trip_by_id = trip_model.findById(tripId);
+        const trip_by_id = TRIP.findById(tripId);
         if(!trip_by_id){
             return res.send({
                 code: constant.error_code,
