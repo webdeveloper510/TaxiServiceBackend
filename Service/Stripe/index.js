@@ -53,3 +53,29 @@ exports.initiateStripePayment = async (trip, amount) => {
     throw error;
   }
 };
+
+exports.checkPaymentStatus = async (paymentIntentId) => {
+  try {
+    // Retrieve the payment intent from Stripe using the paymentIntentId
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    console.log("🚀 ~ file: index.js:61 ~ exports.checkPaymentStatus= ~ paymentIntent:", paymentIntent)
+
+    // Check the status of the payment intent
+    const paymentStatus = paymentIntent.status;
+
+    // You can customize this logic based on your requirements
+    if (paymentStatus === 'succeeded') {
+      // Payment is completed
+      return { success: true, message: 'Payment completed successfully' };
+    } else if (paymentStatus === 'requires_payment_method') {
+      // Payment requires a valid payment method
+      return { success: false, message: 'Payment requires a valid payment method' };
+    } else {
+      // Handle other payment statuses if needed
+      return { success: false, message: 'Payment not completed' };
+    }
+  } catch (error) {
+    console.error('Error checking payment status:', error);
+    throw error;
+  }
+};
