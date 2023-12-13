@@ -87,7 +87,9 @@ router.put('/alocate_driver/:id',[verifyToken],tripController.alocate_driver)
 router.get('/get_counts_dashboard',[verifyToken],tripController.get_counts_dashboard)
 
 // trip payment
-router.post('/pay_trip_commission/:id',[verifyToken],paymentController.tripCommissionPayment)
+router.post('/pay_trip_commission/:id',[verifyToken],paymentController.tripCommissionPayment);
+router.post('/failed_trip_commission/:id',[verifyToken],paymentController.failedTripPay);
+router.post('/success_trip_commission/:id',[verifyToken],paymentController.successTripPay)
 
 
 
