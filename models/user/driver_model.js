@@ -90,7 +90,31 @@ const driver = new Schema({
     },
     created_by: {
         type: mongoose.Schema.Types.ObjectId,ref:'users',
-    }
+    },
+    location: {
+        type: {
+          type: String,
+          enum: ["Point"],
+          default: "Point",
+          require: true,
+        },
+        coordinates: {
+          type: [Number],
+          default: [null, null],
+        },
+      },
+      locationUpdatedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      isSocketConnected: {
+        type: Boolean,
+        default: false,
+      },
+      socketId: {
+        type: String,
+        default: null,
+      },
 }, { timestamps: true })
 
 module.exports = mongoose.model('driver', driver)

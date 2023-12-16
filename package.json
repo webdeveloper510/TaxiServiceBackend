@@ -25,6 +25,7 @@
     "nodemailer": "^6.9.7",
     "path": "^0.12.7",
     "rand-token": "^1.0.1",
+    "socket.io": "^4.7.2",
     "stripe": "^14.5.0"
   },
   "main": "app.js",

@@ -12,18 +12,20 @@ exports.tripCommissionPayment = async (req, res) => {
                 message: "Unable to get the trip by id"
             })
         }
-        // if(trip_by_id.is_paid){
-        //   return res.send({
-        //     code: constant.error_code,
-        //     message:"Already paid"
-        //    })
-        // }
+        if(trip_by_id.is_paid){
+          return res.send({
+            code: constant.error_code,
+            message:"Already paid"
+           })
+        }
         try {
-            // let commission = trip_by_id.commission.commission_value;
-            // if( trip_by_id.commission.commission_type === "Percentage"){
-            //     commission =( trip_by_id.amount *  trip_by_id.commission.commission_value)/100
-            // }
-            const paymentResult = await initiateStripePayment(trip_by_id,100);
+            let commission = trip_by_id.commission.commission_value;
+            console.log("🚀 ~ file: paymentController.js:23 ~ exports.tripCommissionPayment= ~ commission:", commission)
+            if( trip_by_id.commission.commission_type === "Percentage" && trip_by_id.commission.commission_value > 0 ){
+                commission =( trip_by_id.price *  trip_by_id.commission.commission_value)/100
+            }
+            console.log("🚀 ~ file: paymentController`.js:23 ~ exports.tripCommissionPayment= ~ commission:", commission)
+            const paymentResult = await initiateStripePayment(trip_by_id,commission*100);
             res.send({
                 code: constant.success_code,
                 result: paymentResult,
@@ -58,12 +60,12 @@ exports.failedTripPay = async (req, res) => {
                 message: "Unable to get the trip by id"
             })
         }
-        // if(trip_by_id.is_paid){
-        //   return res.send({
-        //     code: constant.error_code,
-        //     message:"Already paid"
-        //    })
-        // }
+        if(trip_by_id.is_paid){
+          return res.send({
+            code: constant.error_code,
+            message:"Already paid"
+           })
+        }
         trip_by_id.is_paid = false;
         trip_by_id.stripe_payment.payment_status = "Failed"
         await trip_by_id.save();
@@ -92,12 +94,12 @@ exports.successTripPay = async (req, res) => {
                 message: "Unable to get the trip by id"
             })
         }
-        // if(trip_by_id.is_paid){
-        //   return res.send({
-        //     code: constant.error_code,
-        //     message:"Already paid"
-        //    })
-        // }
+        if(trip_by_id.is_paid){
+          return res.send({
+            code: constant.error_code,
+            message:"Already paid"
+           })
+        }
         // check from strip side is payment completed
         // const resultFromStipe = await checkPaymentStatus(
         //     "cs_test_a1rcENK1oN8uuj8vr3CQDbQXv1wjqibuayZHb5PWQmatrW2mwnZg7kZFv0"
