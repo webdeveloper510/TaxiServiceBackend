@@ -82,12 +82,12 @@ exports.failedTripPay = async (req, res) => {
         message: "Unable to get the trip by id",
       });
     }
-    if (trip_by_id.is_paid) {
-      return res.send({
-        code: constant.error_code,
-        message: "Already paid",
-      });
-    }
+    // if (trip_by_id.is_paid) {
+    //   return res.send({
+    //     code: constant.error_code,
+    //     message: "Already paid",
+    //   });
+    // }
     trip_by_id.is_paid = false;
     trip_by_id.stripe_payment.payment_status = "Failed";
     await trip_by_id.save();
