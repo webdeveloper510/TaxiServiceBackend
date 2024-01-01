@@ -67,11 +67,11 @@ exports.add_driver = async (req, res) => {
             data.created_by = req.userId // Assuming you have user authentication
             data.profile_image = driver_image.length != 0 ? driver_image[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
             data.driver_documents = driver_documents.length != 0 ? driver_documents[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
-            let check_other = await USER.findOne({email:data.email})
-            if(check_other){
+            let check_other = await USER.findOne({ email: data.email })
+            if (check_other) {
                 res.send({
-                    code:constant.error_code,
-                    message:"Email Already exist"
+                    code: constant.error_code,
+                    message: "Email Already exist"
                 })
                 return
             }
@@ -103,19 +103,19 @@ exports.remove_driver = async (req, res) => {
         const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
         // You may want to add additional checks to ensure the driver exists or belongs to the agency user
-        const removedDriver = await DRIVER.findOneAndDelete({_id:driverId});
-        if(!removedDriver){
+        const removedDriver = await DRIVER.findOneAndDelete({ _id: driverId });
+        if (!removedDriver) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to delete the driver"
+                code: constant.error_code,
+                message: "Unable to delete the driver"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Deleted Successfully"
+                code: constant.success_code,
+                message: "Deleted Successfully"
             })
         }
-        
+
     } catch (err) {
         res.send({
             code: constant.error_code,
@@ -170,7 +170,7 @@ exports.get_drivers = async (req, res) => {
             {
                 $and: [
                     { is_deleted: false },
-                    {status:true},
+                    { status: true },
                     // {is_available:true}
                     // {
                     //     $or: [
@@ -293,3 +293,79 @@ exports.update_driver = async (req, res) => {
     })
 
 };
+
+exports.updateLocation = async (req, res) => {
+    try {
+        let data = req.body
+        let criteria = { _id: data.driverId };
+        let option = { new: true };
+        let newValue = {
+            $set: {
+                location: data.location
+            }
+        };
+        let updateLocation = await DRIVER.findOneAndUpdate(criteria, newValue, option)
+        if (!updateLocation) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to update the location"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Updated Successfully"
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.get_active_drivers = async(req,res)=>{
+    try{
+        let getDrivers = await DRIVER.find({is_available:true,is_login:true}).sort({createdAt:-1})
+        if(!getDrivers){
+            res.send({
+                code:constant.error_code,
+                message:"Unable to fetch the drivers"
+            })
+        }else{
+            res.send({
+                code:constant.success_code,
+                message:"Success",
+                result:getDrivers
+            })
+        }
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}
+
+exports.logout = async(req,res)=>{
+    try{
+        let data = req.body
+        let updateLogin = await DRIVER.findOneAndUpdate({_id:data.driverId},{is_login:false},{new:true})
+        if(!updateLogin){
+            res.send({
+                code:constant.error_code,
+                message:"Unable to logout"
+            })
+        }else{
+            res.send({
+                code:constant.success_code,
+                message:"Logout successfully"
+            })
+        }
+    }catch(err){
+        res.send({
+            code:constant.error_code,
+            message:err.message
+        })
+    }
+}

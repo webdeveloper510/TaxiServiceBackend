@@ -50,9 +50,9 @@ const driver = new Schema({
         type: String,
         default: ''
     },
-    OTP:{
-        type:String,
-        default:'a0'
+    OTP: {
+        type: String,
+        default: 'a0'
     },
     gender: {
         type: String,
@@ -71,10 +71,10 @@ const driver = new Schema({
         default: false
     },
     agency_user_id: {
-        type: mongoose.Schema.Types.ObjectId,ref:'users',
+        type: mongoose.Schema.Types.ObjectId, ref: 'users',
     },
     deleted_by: {
-        type: mongoose.Schema.Types.ObjectId,ref:'users',
+        type: mongoose.Schema.Types.ObjectId, ref: 'users',
     },
     status: {
         type: Boolean,
@@ -84,37 +84,41 @@ const driver = new Schema({
         type: Boolean,
         default: false
     },
-    driver_status:{
-        type:String,
-        enum : ['Active','Inactive'],
+    driver_status: {
+        type: String,
+        enum: ['Active', 'Inactive'],
     },
     created_by: {
-        type: mongoose.Schema.Types.ObjectId,ref:'users',
+        type: mongoose.Schema.Types.ObjectId, ref: 'users',
     },
     location: {
         type: {
-          type: String,
-          enum: ["Point"],
-          default: "Point",
-          require: true,
+            type: String,
+            enum: ["Point"],
+            default: "Point",
+            require: true,
         },
         coordinates: {
-          type: [Number],
-          default: [null, null],
+            type: [Number],
+            default: [null, null],
         },
-      },
-      locationUpdatedAt: {
+    },
+    is_login:{
+        type:Boolean,
+        default:false
+    },
+    locationUpdatedAt: {
         type: Date,
         default: Date.now,
-      },
-      isSocketConnected: {
+    },
+    isSocketConnected: {
         type: Boolean,
         default: false,
-      },
-      socketId: {
+    },
+    socketId: {
         type: String,
         default: null,
-      },
+    },
 }, { timestamps: true })
 
 module.exports = mongoose.model('driver', driver)

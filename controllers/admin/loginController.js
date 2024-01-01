@@ -111,6 +111,7 @@ exports.login = async (req, res) => {
                 return;
             }
             let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
+            let updateLogin = await DRIVER.findOneAndUpdate({_id:check_data._id},{is_login:true},{new:true})
             let check_data2 = check_data.toObject()
             check_data2.role = "DRIVER"
             res.send({
@@ -876,7 +877,6 @@ exports.get_feedback = async (req, res) => {
         })
     }
 }
-
 
 
 exports.createPaymentSession = async (req, res) => {
