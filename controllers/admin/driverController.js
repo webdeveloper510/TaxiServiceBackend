@@ -299,21 +299,20 @@ exports.updateLocation = async (req, res) => {
         let data = req.body
         let criteria = { _id: data.driverId };
         let option = { new: true };
-        let newValue = {
-            $set: {
-                location: data.location
-            }
-        };
-        let updateLocation = await DRIVER.findOneAndUpdate(criteria, newValue, option)
+        
+        let updateLocation = await DRIVER.findOneAndUpdate(criteria,  {
+            location: data.location,
+            city: data.city
+        }, option);
         if (!updateLocation) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to update the location"
+                message: "Unable to update the location",
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Updated Successfully"
+                message: "Updated Successfully",
             })
         }
     } catch (err) {
