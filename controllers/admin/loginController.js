@@ -122,6 +122,12 @@ exports.login = async (req, res) => {
             })
         } else {
             check_data = userData
+            if (!check_data.status) {
+                return res.send({
+                    code: constant.error_code,
+                    message: "You are blocked by administration. Please contact adminstation"
+                })
+            }
             let checkPassword = await bcrypt.compare(data.password, check_data.password)
             if (!checkPassword) {
                 res.send({
