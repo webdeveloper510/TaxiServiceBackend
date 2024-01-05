@@ -307,7 +307,6 @@ exports.get_sub_admins = async (req, res) => {
                     profile_image: 1,
                     role: 1,
                     status: 1,
-                    commission,
                     'land': { $arrayElemAt: ["$meta.land", 0] },
                     'post_code': { $arrayElemAt: ["$meta.post_code", 0] },
                     'house_number': { $arrayElemAt: ["$meta.house_number", 0] },
@@ -372,13 +371,12 @@ exports.get_sub_admin_detail = async (req, res) => {
                     last_name: 1,
                     email: 1,
                     // company_id:1,
-                    created_by:1,
+                    created_by: 1,
                     phone: 1,
                     profile_image: 1,
                     role: 1,
                     status: 1,
                     logo: 1,
-                    commission,
                     background_color: 1,
                     'land': { $arrayElemAt: ["$meta.land", 0] },
                     'post_code': { $arrayElemAt: ["$meta.post_code", 0] },
@@ -394,11 +392,12 @@ exports.get_sub_admin_detail = async (req, res) => {
                     'saluation': { $arrayElemAt: ["$meta.saluation", 0] },
                     'company_name': { $arrayElemAt: ["$meta.company_name", 0] },
                     'company_id': { $arrayElemAt: ["$meta.company_id", 0] },
-                    'location': { $arrayElemAt: ["$meta.location", 0] }
+                    'location': { $arrayElemAt: ["$meta.location", 0] },
+                    'commision': { $arrayElemAt: ["$meta.commision", 0] },
                 }
             }
         ])
-        let get_color = await USER.findOne({_id:check_detail[0].created_by})
+        let get_color = await USER.findOne({ _id: check_detail[0].created_by })
         if (check_detail.length == 0) {
             res.send({
                 code: constant.error_code,
@@ -414,7 +413,7 @@ exports.get_sub_admin_detail = async (req, res) => {
                 code: constant.success_code,
                 message: "Success",
                 result,
-               
+
             })
         }
     } catch (err) {
@@ -439,7 +438,7 @@ exports.edit_sub_admin = async (req, res) => {
                 })
                 return;
             }
-           data.logo = req.file ? req.file.path : checkSubAdmin.logo
+            data.logo = req.file ? req.file.path : checkSubAdmin.logo
             let update_data = await USER.findOneAndUpdate(criteria, data, option)
             let criteria2 = { user_id: update_data._id }
             if (checkSubAdmin.email != data.email) {
