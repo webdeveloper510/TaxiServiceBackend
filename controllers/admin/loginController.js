@@ -72,9 +72,6 @@ exports.login = async (req, res) => {
                         $or: [{ 'email': { '$regex': data.email, '$options': 'i' } }, { 'phone': { '$regex': data.email, '$options': 'i' } },]
                     },
                     {
-                        status: true
-                    },
-                    {
                         is_deleted: false
                     }
                 ]
@@ -85,9 +82,6 @@ exports.login = async (req, res) => {
                 $and: [
                     {
                         $or: [{ 'email': { '$regex': data.email, '$options': 'i' } }, { 'phone': { '$regex': data.email, '$options': 'i' } }]
-                    },
-                    {
-                        status: true
                     },
                     {
                         is_deleted: false
@@ -101,6 +95,12 @@ exports.login = async (req, res) => {
                 })
                 return;
             }
+            if (!check_again.status) {
+                return res.send({
+                    code: constant.error_code,
+                    message: "You are blocked by administration. Please contact adminstation"
+                })
+            }
             check_data = check_again
             let checkPassword = await bcrypt.compare(data.password, check_data.password)
             if (!checkPassword) {
@@ -111,7 +111,7 @@ exports.login = async (req, res) => {
                 return;
             }
             let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
-            let updateLogin = await DRIVER.findOneAndUpdate({_id:check_data._id},{is_login:true},{new:true})
+            let updateLogin = await DRIVER.findOneAndUpdate({ _id: check_data._id }, { is_login: true }, { new: true })
             let check_data2 = check_data.toObject()
             check_data2.role = "DRIVER"
             res.send({
@@ -884,21 +884,21 @@ exports.createPaymentSession = async (req, res) => {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
-              price_data: {
-                // To accept `ideal`, all line items must have currency: eur
-                currency: 'inr',
-                product_data: {
-                  name: 'T-shirt',
+                price_data: {
+                    // To accept `ideal`, all line items must have currency: eur
+                    currency: 'inr',
+                    product_data: {
+                        name: 'T-shirt',
+                    },
+                    unit_amount: 2000,
                 },
-                unit_amount: 2000,
-              },
-              quantity: 1,
+                quantity: 1,
             }],
             mode: 'payment',
             success_url: 'http://localhost:3000//success',
             cancel_url: 'http://localhost:3000//cancel',
-          });
-          res.send({
+        });
+        res.send({
             code: constant.success_code,
             message: "Success",
             result: session
