@@ -68,12 +68,16 @@ const user = new Schema(
       type: Boolean,
       default: true,
     },
+    commission: {
+      type: Number,
+      default: true,
+    },
     created_by: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
       default: "",
     },
-    
+
   },
   { timestamps: true }
 );
