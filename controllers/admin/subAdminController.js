@@ -72,7 +72,7 @@ exports.add_sub_admin = async (req, res) => {
         if (check_hotel) {
             res.send({
                 code: constant.error_code,
-                message: "Already exist with this id"
+                message: "Already exist with this Hotel ID"
             })
             return;
         }
@@ -197,7 +197,6 @@ exports.add_sub_admin = async (req, res) => {
                     <tbody style="margin-top: 5px;">
                       <tr class="" style="border-bottom: 1px solid #cccccc38;">
                     <td class="">
-                    <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
                     </td>
                     </tr>
                     <tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
@@ -205,8 +204,8 @@ exports.add_sub_admin = async (req, res) => {
                     <td>
                     <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
                     <td class="" style="color:#444; font-weight: 400;"><br>
-                     A property management application that helps you manage your real estate portfolio with ease and efficiency. <br><br>
-                      You have successfully been registered to use Taxi Service App as a <em>Customer</em><br>
+                    <br><br>
+                      You have successfully been registered to use Taxi Service as a <em>Customer</em><br>
                      <br>
                       Your login credentials are provided below:
                     <br>
@@ -451,7 +450,7 @@ exports.edit_sub_admin = async (req, res) => {
                 if (check_email) {
                     res.send({
                         code: constant.error_code,
-                        message: "Email or phone is already exist"
+                        message: "Email is already exist"
                     })
                     return
                 }
@@ -466,7 +465,7 @@ exports.edit_sub_admin = async (req, res) => {
                 if (check_phone) {
                     res.send({
                         code: constant.error_code,
-                        message: "Phone or phone is already exist"
+                        message: "Phone is already exist"
                     })
                     return
                 }

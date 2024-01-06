@@ -331,6 +331,7 @@ exports.get_trips_for_driver = async (req, res) => {
             {
                 $project: {
                     _id: 1,
+                    'customer_phone': { $arrayElemAt: ["$userData.phone", 0] },
                     trip_from: 1,
                     trip_to: 1,
                     is_paid: 1,
