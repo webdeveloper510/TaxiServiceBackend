@@ -61,12 +61,11 @@ exports.get_trip = async (req, res) => {
 
         if (req.params.status == 'Pending') {
             query = [
-                { created_by: mid },
+                { created_by: mid, status: true },
                 {
                     $or: [
                         { trip_status: req.params.status },
                         { trip_status: "Accepted" },
-                        { status: true }
                     ]
                 },
                 { is_deleted: false },
