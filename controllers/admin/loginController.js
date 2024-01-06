@@ -633,12 +633,12 @@ exports.verify_otp = async (req, res) => {
         let data = req.body
         let checkEmail;
         let checkEmail1 = await USER.findOne({ email: req.body.email })
-        if (!checkEmail) {
+        if (!checkEmail1) {
             let checkEmail2 = await DRIVER.findOne({ email: req.body.email })
             if (!checkEmail2) {
                 res.send({
                     code: constant.error_code,
-                    message: "Invalid ID"
+                    message: "Invalid Email"
                 })
                 return;
             }
