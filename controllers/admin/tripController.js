@@ -772,6 +772,7 @@ exports.get_trip_detail = async (req, res) => {
                     trip_status: 1,
                     createdAt: 1,
                     updatedAt: 1,
+                    pay_option: 1
                 }
             }
         ])
