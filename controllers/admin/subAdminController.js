@@ -438,29 +438,32 @@ exports.edit_sub_admin = async (req, res) => {
                 return;
             }
             data.logo = req.file ? req.file.path : checkSubAdmin.logo
-            let update_data = await USER.findOneAndUpdate(criteria, data, option)
-            let criteria2 = { user_id: update_data._id }
+            // let update_data = await USER.findOneAndUpdate(criteria, data, option)
+            // let criteria2 = { user_id: update_data._id }
             if (checkSubAdmin.email != data.email) {
                 let check_email = await USER.findOne({
-                    $or: [
-                        { email: data.email },
-                        // {phone:data.phone},
-                    ]
+                    // $or: [
+                    //     { email: data.email },
+                    //     // {phone:data.phone},
+                    // ]
+                    email: data.email
                 })
                 if (check_email) {
-                    res.send({
+                    console.log("🚀 ~ file: subAdminController.js:452 ~ logoUpload ~ check_email:", check_email)
+                    return res.send({
                         code: constant.error_code,
                         message: "Email is already exist"
                     })
-                    return
+
                 }
             }
             if (checkSubAdmin.phone != data.phone) {
                 let check_phone = await USER.findOne({
-                    $or: [
-                        { phone: data.phone },
-                        // {phone:data.phone},
-                    ]
+                    // $or: [
+                    //     { phone: data.phone },
+                    //     // {phone:data.phone},
+                    // ]
+                    phone: data.phone
                 })
                 if (check_phone) {
                     res.send({
@@ -471,6 +474,8 @@ exports.edit_sub_admin = async (req, res) => {
                 }
             }
 
+            let update_data = await USER.findOneAndUpdate(criteria, data, option)
+            let criteria2 = { user_id: update_data._id }
             let update_data_meta = await AGENCY.findOneAndUpdate(criteria2, data, option)
 
             if (!update_data) {

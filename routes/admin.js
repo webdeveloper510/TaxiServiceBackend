@@ -71,6 +71,7 @@ router.get('/get_active_drivers', [verifyToken], driverController.get_active_dri
 // fare api's
 router.post('/add_fare', [verifyToken], fareController.add_fare)
 router.get('/get_fares', [verifyToken], fareController.get_fares)
+router.get('/get_fares/:id', fareController.get_fares)
 router.get('/get_fare_detail/:id', [verifyToken], fareController.get_fare_detail)
 router.delete('/delete_fare/:id', [verifyToken], fareController.delete_fare)
 router.put('/edit_fare/:id', [verifyToken], fareController.edit_fare)
