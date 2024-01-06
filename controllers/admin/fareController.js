@@ -9,7 +9,7 @@ const constant = require('../../config/constant')
 exports.add_fare = async (req, res) => {
     try {
         let data = req.body
-        let checkFare = await FARE.findOne({ vehicle_type: data.vehicle_type, created_by: req.userId,is_deleted:false })
+        let checkFare = await FARE.findOne({ vehicle_type: data.vehicle_type, created_by: req.userId, is_deleted: false })
         if (checkFare) {
             res.send({
                 code: constant.error_code,
@@ -19,16 +19,16 @@ exports.add_fare = async (req, res) => {
         }
         data.created_by = req.userId
         let save_data = await FARE(data).save()
-        if(!save_data){
+        if (!save_data) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to create the fare"
+                code: constant.error_code,
+                message: "Unable to create the fare"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Saved successfully",
-                result:save_data
+                code: constant.success_code,
+                message: "Saved successfully",
+                result: save_data
             })
         }
     } catch (err) {
@@ -39,117 +39,124 @@ exports.add_fare = async (req, res) => {
     }
 }
 
-exports.get_fares = async(req,res)=>{
-    try{
+exports.get_fares = async (req, res) => {
+    try {
         let data = req.body
-        let get_user = await USER.findOne({_id:req.userId})
+        let userId = req.params.id;
+        let get_user = await USER.findOne({ _id: req.userId || userId });
+        if (!get_user) {
+            res.send({
+                code: constant.error_code,
+                message: "Check your token or id"
+            })
+        }
         let getData = await FARE.find({
-            $and:[
+            $and: [
                 {
-                    $or:[
-                        {created_by:req.userId},
-                        {created_by:get_user.created_by}
+                    $or: [
+                        { created_by: req.userId },
+                        { created_by: get_user.created_by }
                     ]
                 },
-                {is_deleted:false}
+                { is_deleted: false }
             ]
-        }).sort({'createdAt':-1})
-        if(!getData){
+        }).sort({ 'createdAt': -1 })
+        if (!getData) {
             res.send({
-                code:constant.error_code,
-                message:"No Data Found"
+                code: constant.error_code,
+                message: "No Data Found"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Successfully fetched",
-                result:getData
+                code: constant.success_code,
+                message: "Successfully fetched",
+                result: getData
             })
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
 
-exports.get_fare_detail = async(req,res)=>{
-    try{
+exports.get_fare_detail = async (req, res) => {
+    try {
         let data = req.body
-        let getFareDetail = await FARE.findOne({_id:req.params.id})
-        if(!getFareDetail){
+        let getFareDetail = await FARE.findOne({ _id: req.params.id })
+        if (!getFareDetail) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to fetch the details"
+                code: constant.error_code,
+                message: "Unable to fetch the details"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Success",
-                resizeTo:getFareDetail
+                code: constant.success_code,
+                message: "Success",
+                resizeTo: getFareDetail
             })
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
 
-exports.delete_fare = async(req,res)=>{
-    try{
+exports.delete_fare = async (req, res) => {
+    try {
         let data = req.params
-        let criteria = {_id:data.id}
+        let criteria = { _id: data.id }
         let newValue = {
-            $set:{
-                is_deleted:true
+            $set: {
+                is_deleted: true
             }
         }
-        let option = {new:true}
-        let delete_fare = await FARE.findByIdAndUpdate(criteria,newValue,option)
-        if(!delete_fare){
+        let option = { new: true }
+        let delete_fare = await FARE.findByIdAndUpdate(criteria, newValue, option)
+        if (!delete_fare) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to delete the fare"
+                code: constant.error_code,
+                message: "Unable to delete the fare"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Deleted Successfully"
+                code: constant.success_code,
+                message: "Deleted Successfully"
             })
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
 
-exports.edit_fare = async(req,res)=>{
-    try{
+exports.edit_fare = async (req, res) => {
+    try {
         let data = req.body
-        let criteria = {_id:req.params.id}
-        let option = {new:true}
-        let update_fare = await FARE.findByIdAndUpdate(criteria,data,option)
-        if(!update_fare){
+        let criteria = { _id: req.params.id }
+        let option = { new: true }
+        let update_fare = await FARE.findByIdAndUpdate(criteria, data, option)
+        if (!update_fare) {
             res.send({
-                code:constant.error_code,
-                message:"Unable to update the fare"
+                code: constant.error_code,
+                message: "Unable to update the fare"
             })
-        }else{
+        } else {
             res.send({
-                code:constant.success_code,
-                message:"Updated Successfully",
-                result:update_fare
+                code: constant.success_code,
+                message: "Updated Successfully",
+                result: update_fare
             })
         }
-    }catch(err){
+    } catch (err) {
         res.send({
-            code:constant.error_code,
-            message:err.message
+            code: constant.error_code,
+            message: err.message
         })
     }
 }
