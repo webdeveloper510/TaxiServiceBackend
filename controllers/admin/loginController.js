@@ -631,6 +631,7 @@ background:#ccc;
 exports.verify_otp = async (req, res) => {
     try {
         let data = req.body
+
         let checkEmail;
         let checkEmail1 = await USER.findOne({ email: req.body.email })
         if (!checkEmail1) {
@@ -655,7 +656,7 @@ exports.verify_otp = async (req, res) => {
                 message: "OTP verified successfully"
             })
         } else {
-            if (data.OTP != checkEmail.OTP) {
+            if (data.OTP != checkEmail1.OTP) {
                 res.send({
                     code: constant.error_code,
                     message: "Invalid OTP"
@@ -666,7 +667,7 @@ exports.verify_otp = async (req, res) => {
                 code: constant.success_code,
                 message: "OTP verified successfully"
             })
-            // console.log('current', moment().format(), 'expiry-----', checkEmail.otp_expiry)
+            // console.log('current', moment().format(), 'expiry-----', checkEmail1.otp_expiry)
             // const currentDate = new Date(moment().format());
             // // Expiry date
             // const expiryDate = new Date(checkEmail.otp_expiry);
@@ -682,6 +683,7 @@ exports.verify_otp = async (req, res) => {
 
         }
     } catch (err) {
+        console.log(err)
         res.send({
             code: constant.error_code,
             message: err.message
