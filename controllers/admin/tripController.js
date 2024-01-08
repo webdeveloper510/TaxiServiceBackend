@@ -662,7 +662,7 @@ exports.alocate_driver = async (req, res) => {
                 $set: {
                     driver_name: check_driver._id,
                     vehicle: data.vehicle,
-                    trip_status: data.status
+                    trip_status: check_driver.auto_accept ? "Booked" : data.status
                 }
             }
             let option = { new: true }
