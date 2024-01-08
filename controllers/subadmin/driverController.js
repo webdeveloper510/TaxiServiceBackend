@@ -321,17 +321,29 @@ exports.get_trips_for_driver = async (req, res) => {
                             }
                         },
                         {
-                            $project: {
-                                'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
+                            $unwind: {
+                                path: '$agency'
                             }
-                        }
+                        },
+                        // {
+                        //     $project: {
+                        //         'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
+                        //         'cvompany_name': { $arrayElemAt: ["$agency.phone", 0] },
+                        //     }
+                        // }
                     ]
+                }
+            },
+            {
+                $unwind: {
+                    path: '$userData'
                 }
             },
             {
                 $project: {
                     _id: 1,
-                    'customer_phone': { $arrayElemAt: ["$userData.phone", 0] },
+                    // userData: 1,
+                    customer_phone: "$userData.phone",
                     trip_from: 1,
                     trip_to: 1,
                     is_paid: 1,
@@ -346,7 +358,7 @@ exports.get_trips_for_driver = async (req, res) => {
                     comment: 1,
                     commission: 1,
                     pay_option: 1,
-                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
+                    company_name: "$userData.company_name",
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
