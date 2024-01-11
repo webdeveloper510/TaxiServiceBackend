@@ -358,7 +358,7 @@ exports.get_trips_for_driver = async (req, res) => {
                     comment: 1,
                     commission: 1,
                     pay_option: 1,
-                    company_name: "$userData.company_name",
+                    company_name: "$userData.agency.company_name",
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
