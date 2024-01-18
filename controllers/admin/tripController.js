@@ -746,10 +746,10 @@ exports.get_trip_detail = async (req, res) => {
             },
             {
                 $lookup: {
-                    from: "aggencies",
-                    localField: "user_id",
-                    foreignField: "_id",
-                    as: "aggencyInfo"
+                    from: "agencies",
+                    localField: "created_by",
+                    foreignField: "user_id",
+                    as: "company_detail"
                 }
             },
             {
@@ -766,7 +766,7 @@ exports.get_trip_detail = async (req, res) => {
                             { $arrayElemAt: ["$driver_info.last_name", 0] }
                         ]
                     },
-                    "hotel_location":{ $arrayElemAt: ["$aggencyInfo.hotel_location", 0] },
+                    "hotel_location":{ $arrayElemAt: ["$company_detail.hotel_location", 0] },
                     vehicle_model: 1,
                     commission: 1,
                     price: 1,
