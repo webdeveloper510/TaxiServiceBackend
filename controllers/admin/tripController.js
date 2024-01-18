@@ -750,6 +750,7 @@ exports.get_trip_detail = async (req, res) => {
                     'email': { $arrayElemAt: ["$hotel_info.email", 0] },
                     'vehicle': { $arrayElemAt: ["$vehicle_info.vehicle_model", 0] },
                     'driverInfo': { $arrayElemAt: ["$driver_info", 0] },
+                    'hotelImage': { $arrayElemAt: ["$hotel_info.profile_image", 0] },
                     'driver_name': {
                         $concat: [
                             { $arrayElemAt: ["$driver_info.first_name", 0] },
