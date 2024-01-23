@@ -13,7 +13,7 @@ exports.add_fare = async (req, res) => {
         if (checkFare) {
             res.send({
                 code: constant.error_code,
-                message: "You already added fare this vehicle type"
+                message: "You have already added fare for this vehicle type"
             })
             return;
         }

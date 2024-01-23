@@ -451,16 +451,12 @@ exports.get_recent_trip_super = async (req, res) => {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
         let search_value = data.comment ? data.comment : ''
-        console.log('check++++++++++++++', mid)
+        console.log('check++++++++++++++', mid);
+        
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
-                    $and: [
-                        // { created_by: mid },
-                        { is_deleted: false },
-                        { 'comment': { '$regex': search_value, '$options': 'i' } },
-
-                    ]
+                    is_deleted: false,
                 }
             },
             {
@@ -535,6 +531,18 @@ exports.get_recent_trip_super = async (req, res) => {
                     },
                     trip_id: 1
                 }
+            },
+            {
+                $match:{
+                    $or: [
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_to.address': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_from.address': { '$regex': search_value, '$options': 'i' } },
+                        { 'company_name': { '$regex': search_value, '$options': 'i' } },
+                        { 'series_id': { '$regex': search_value, '$options': 'i' } },
+                        
+                    ]
+                }
             }
         ]).sort({ 'createdAt': -1 })
         if (!get_trip) {
@@ -543,6 +551,7 @@ exports.get_recent_trip_super = async (req, res) => {
                 message: "Unable to get the trips"
             })
         } else {
+            console.log("🚀 ~ exports.get_recent_trip_super= ~ get_trip:",search_value, get_trip)
             res.send({
                 code: constant.success_code,
                 message: "Success",

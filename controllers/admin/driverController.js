@@ -75,6 +75,14 @@ exports.add_driver = async (req, res) => {
                 })
                 return
             }
+            let check_other1 = await DRIVER.findOne({ email: data.email })
+            if (check_other1) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Email Already exist"
+                })
+                return
+            }
             let save_driver = await DRIVER(data).save()
             if (!save_driver) {
                 res.send({
