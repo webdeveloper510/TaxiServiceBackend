@@ -77,7 +77,10 @@ const user = new Schema(
       ref: "users",
       default: "",
     },
-
+    totalBalance: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
