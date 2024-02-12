@@ -306,6 +306,7 @@ exports.get_sub_admins = async (req, res) => {
                     profile_image: 1,
                     role: 1,
                     status: 1,
+                    totalBalance: 1,
                     'land': { $arrayElemAt: ["$meta.land", 0] },
                     'post_code': { $arrayElemAt: ["$meta.post_code", 0] },
                     'house_number': { $arrayElemAt: ["$meta.house_number", 0] },
@@ -377,6 +378,7 @@ exports.get_sub_admin_detail = async (req, res) => {
                     status: 1,
                     logo: 1,
                     background_color: 1,
+                    totalBalance: 1,
                     'land': { $arrayElemAt: ["$meta.land", 0] },
                     'post_code': { $arrayElemAt: ["$meta.post_code", 0] },
                     'house_number': { $arrayElemAt: ["$meta.house_number", 0] },
@@ -579,7 +581,7 @@ exports.search_company = async (req, res) => {
             {
                 $match: {
                     $and: [
-                        { role: query }, { is_deleted: false }, { created_by: new mongoose.Types.ObjectId(req.userId) },
+                        { role: query }, { is_deleted: false },
                         {
                             $or: [
                                 { 'meta.company_id': { '$regex': req.body.name, '$options': 'i' } },
@@ -610,6 +612,7 @@ exports.search_company = async (req, res) => {
                     createdAt: -1,
                     profile_image: 1,
                     role: 1,
+                    totalBalance: 1,
                     status: 1,
                     'land': { $arrayElemAt: ["$meta.land", 0] },
                     'post_code': { $arrayElemAt: ["$meta.post_code", 0] },

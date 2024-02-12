@@ -19,7 +19,7 @@ exports.initiateStripePayment = async (trip, amount) => {
         },
       ],
       mode: "payment",
-      success_url: `https://taxi-service-demo.vercel.app/payment/success/${trip._id}`,
+      success_url: `http://localhost:3000/payment/success/${trip._id}`,
       cancel_url: `https://taxi-service-demo.vercel.app/payment/cancel/${trip._id}`,
     });
 
