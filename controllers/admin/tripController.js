@@ -142,7 +142,7 @@ exports.get_trip = async (req, res) => {
                         },
                         { status: true },
                         { trip_status: req.params.status },
-                        // { is_deleted: false },
+                        { is_deleted: false },
                         { 'comment': { '$regex': search_value, '$options': 'i' } },
                     ]
                 }
