@@ -130,7 +130,6 @@ exports.get_trip = async (req, res) => {
             ids.push(i._id)
         }
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
-        console.log(mid, objectIds)
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
@@ -143,7 +142,7 @@ exports.get_trip = async (req, res) => {
                         },
                         { status: true },
                         { trip_status: req.params.status },
-                        { is_deleted: false },
+                        // { is_deleted: false },
                         { 'comment': { '$regex': search_value, '$options': 'i' } },
                     ]
                 }
