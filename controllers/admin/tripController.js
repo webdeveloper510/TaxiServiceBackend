@@ -219,7 +219,7 @@ exports.get_trip = async (req, res) => {
                     trip_id: 1
                 }
             }
-        ]).sort({ 'createdAt': -1 })
+        ]).sort({ 'updatedAt': -1 })
         if (!get_trip) {
             res.send({
                 code: constant.error_code,
