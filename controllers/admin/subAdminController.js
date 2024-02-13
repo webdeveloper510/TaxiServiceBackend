@@ -581,7 +581,7 @@ exports.search_company = async (req, res) => {
             {
                 $match: {
                     $and: [
-                        { role: query }, { is_deleted: false },
+                        { role: query }, { is_deleted: false }, { created_by: new mongoose.Types.ObjectId(req.userId) },
                         {
                             $or: [
                                 { 'meta.company_id': { '$regex': req.body.name, '$options': 'i' } },
