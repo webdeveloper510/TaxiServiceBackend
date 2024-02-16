@@ -333,7 +333,7 @@ exports.updateLocation = async (req, res) => {
 
 exports.get_active_drivers = async(req,res)=>{
     try{
-        let getDrivers = await DRIVER.find({is_available:true,is_login:true}).sort({createdAt:-1})
+        let getDrivers = await DRIVER.find({status:true,is_login:true}).sort({createdAt:-1})
         if(!getDrivers){
             res.send({
                 code:constant.error_code,
