@@ -77,6 +77,12 @@ exports.login = async (req, res) => {
                 ]
             }
         )
+        if (userData && !userData.status) {
+            return res.send({
+                code: constant.error_code,
+                message: "You are blocked by administration. Please contact administration"
+            })
+        }
         if (!userData) {
             let check_again = await DRIVER.findOne({
                 $and: [
@@ -94,12 +100,6 @@ exports.login = async (req, res) => {
                     message: "Invalid Credentials"
                 })
                 return;
-            }
-            if (!check_again.status) {
-                return res.send({
-                    code: constant.error_code,
-                    message: "You are blocked by administration. Please contact adminstation"
-                })
             }
             check_data = check_again
             let checkPassword = await bcrypt.compare(data.password, check_data.password)
