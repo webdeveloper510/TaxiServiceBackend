@@ -19,7 +19,7 @@ exports.initiateStripePayment = async (trip, amount) => {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.FRONTEND_URL}/${trip._id}`,
+      success_url: `${process.env.FRONTEND_URL}/payment/success/${trip._id}`,
       cancel_url: `${process.env.FRONTEND_URL}/payment/cancel/${trip._id}`,
     });
 
