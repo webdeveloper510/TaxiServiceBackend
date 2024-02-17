@@ -205,7 +205,7 @@ exports.add_sub_admin = async (req, res) => {
                     <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
                     <td class="" style="color:#444; font-weight: 400;"><br>
                     <br><br>
-                      You have successfully been registered to use Taxi Service as a <em>Customer</em><br>
+                      You have successfully been registered to use Taxi Service as a <em>${data.role=="COMPANY"? "company": "customer"}</em><br>
                      <br>
                       Your login credentials are provided below:
                     <br>
@@ -252,7 +252,6 @@ exports.add_sub_admin = async (req, res) => {
                     </body></html>`
             };
             await transporter.sendMail(mailOptions);
-            console.log(transporter.sendMail(mailOptions))
             // Welcome to Taxi Service, your email is ${data.email} and password is ${passwordEmail}
 
 

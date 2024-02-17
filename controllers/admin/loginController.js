@@ -76,8 +76,8 @@ exports.login = async (req, res) => {
                     }
                 ]
             }
-        )
-        if (userData && !userData.status) {
+        ).populate("created_by")
+        if (userData && userData.role != "SUPER_ADMIN" &&  (!userData.status || !userData?.created_by?.status)) {
             return res.send({
                 code: constant.error_code,
                 message: "You are blocked by administration. Please contact administration"
@@ -101,7 +101,9 @@ exports.login = async (req, res) => {
                 })
                 return;
             }
+            
             check_data = check_again
+            
             let checkPassword = await bcrypt.compare(data.password, check_data.password)
             if (!checkPassword) {
                 res.send({
@@ -110,6 +112,15 @@ exports.login = async (req, res) => {
                 })
                 return;
             }
+            if (check_again.is_login) {
+                res.send({
+                    code: constant.error_code,
+                    message: "You need to logout from previous device first"
+                })
+                return;
+            }
+            check_again.is_login = true;
+            await check_again.save();
             let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
             let updateLogin = await DRIVER.findOneAndUpdate({ _id: check_data._id }, { is_login: true }, { new: true })
             let check_data2 = check_data.toObject()
@@ -163,6 +174,7 @@ exports.login = async (req, res) => {
 
 
     } catch (err) {
+        console.log("🚀 ~ exports.login= ~ err:", err)
         res.send({
             code: constants.error_code,
             message: err.message
@@ -376,19 +388,18 @@ background:#ccc;
 <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
 </td>
 </tr>
-<tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
+<tr class=""><td class="headline"> Taxi Service!</td></tr>
 <tr>
 <td>
 <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
 <td class="" style="color:#444; font-weight: 400;"><br>
- A property management application that helps you manage your real estate portfolio with ease and efficiency. <br><br>
-  You have successfully been registered to use Taxi Service App as a <em>Customer</em><br>
+There was a request to change your password!
  <br>
-  Your login credentials are provided below:
+  Your OTP is provided below:
 <br>
 <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${check_driver.email}</span> 
  <br>
-  <span style="font-weight:bold;">Password: &nbsp;</span><span style="font-weight:lighter;" class="">${data.OTP}</span>
+  <span style="font-weight:bold;">OTP: &nbsp;</span><span style="font-weight:lighter;" class="">${data.OTP}</span>
 <br><br>  
 <br></td>
 </tr>
@@ -398,7 +409,6 @@ background:#ccc;
 <tr>
 <td class="">
 <div class="">
-<a style="background-color:#ffcc54;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://taxi-service-demo.vercel.app/login">Visit Account and Start Managing</a>
 </div>
  <br>
 </td>
@@ -412,12 +422,6 @@ background:#ccc;
 <tr>
 <td class="" style="color:#444;
                     ">
-<p>The password was auto-generated, however feel free to change it 
-  
-    <a href="" style="text-decoration: underline;">
-      here</a>
-  
-  </p>
   </td>
 </tr>
 </tbody></table></td>
@@ -558,19 +562,18 @@ background:#ccc;
     <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
     </td>
     </tr>
-    <tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
+    <tr class=""><td class="headline"> Taxi Service!</td></tr>
     <tr>
     <td>
     <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
     <td class="" style="color:#444; font-weight: 400;"><br>
-     A property management application that helps you manage your real estate portfolio with ease and efficiency. <br><br>
-      You have successfully been registered to use Taxi Service App as a <em>Customer</em><br>
+    There was a request to change your password!
      <br>
-      Your login credentials are provided below:
+      Your OTP is provided below:
     <br>
     <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${check_email.email}</span> 
      <br>
-      <span style="font-weight:bold;">Password: &nbsp;</span><span style="font-weight:lighter;" class="">${data.OTP}</span>
+      <span style="font-weight:bold;">OTP: &nbsp;</span><span style="font-weight:lighter;" class="">${data.OTP}</span>
     <br><br>  
     <br></td>
     </tr>
@@ -580,7 +583,6 @@ background:#ccc;
     <tr>
     <td class="">
     <div class="">
-    <a style="background-color:#ffcc54;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://taxi-service-demo.vercel.app/login">Visit Account and Start Managing</a>
     </div>
      <br>
     </td>
@@ -594,12 +596,6 @@ background:#ccc;
     <tr>
     <td class="" style="color:#444;
                         ">
-    <p>The password was auto-generated, however feel free to change it 
-      
-        <a href="" style="text-decoration: underline;">
-          here</a>
-      
-      </p>
       </td>
     </tr>
     </tbody></table></td>
