@@ -53,7 +53,7 @@ exports.add_trip = async (req, res) => {
         let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type })
         let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10
         if (!data.price) {
-            data.price = fare_per_km * Number(distance)
+            data.price = (fare_per_km * Number(distance)).toFixed(2);
         }
         console.log('check===========================', data)
         let add_trip = await TRIP(data).save()
@@ -219,7 +219,7 @@ exports.get_trip = async (req, res) => {
                     trip_id: 1
                 }
             }
-        ]).sort({ 'updatedAt': -1 })
+        ]).sort({ 'createdAt': -1 })
         if (!get_trip) {
             res.send({
                 code: constant.error_code,
