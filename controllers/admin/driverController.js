@@ -339,21 +339,21 @@ exports.get_drivers = async (req, res) => {
         const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
         let getDetail = await USER.findOne({ _id: req.userId })
         console.log(getDetail)
-        const drivers = await DRIVER.find(
-            {
-                $and: [
-                    { is_deleted: false },
-                    { status: true },
-                    // {is_available:true}
-                    // {
-                    //     $or: [
-                    //         { created_by: req.userId },
-                    //         { created_by: getDetail.created_by }
-                    //     ]
-                    // }
-                ]
-            }
-        ).sort({ 'createdAt': -1 });
+        // const drivers = await DRIVER.find(
+        //     {
+        //         $and: [
+        //             { is_deleted: false },
+        //             { status: true },
+        //             // {is_available:true}
+        //             // {
+        //             //     $or: [
+        //             //         { created_by: req.userId },
+        //             //         { created_by: getDetail.created_by }
+        //             //     ]
+        //             // }
+        //         ]
+        //     }
+        // ).sort({ 'createdAt': -1 });
         // const driver = await DRIVER.aggregate([
         //     {
         //         $match:{
@@ -395,8 +395,8 @@ exports.get_drivers = async (req, res) => {
             {
                 $match: {
                     is_deleted: false,
-                    status: true,
-                    is_login: true,
+                    // status: true,
+                    // is_login: true,
                 },
             },
             {
