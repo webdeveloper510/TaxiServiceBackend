@@ -119,8 +119,6 @@ exports.login = async (req, res) => {
                 })
                 return;
             }
-            check_again.is_login = true;
-            await check_again.save();
             let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
             let updateLogin = await DRIVER.findOneAndUpdate({ _id: check_data._id }, { is_login: true }, { new: true })
             let check_data2 = check_data.toObject()
