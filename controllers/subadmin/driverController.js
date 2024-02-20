@@ -28,6 +28,7 @@ const mongoose = require('mongoose')
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const { get } = require('../../routes/admin');
+const trip_model = require('../../models/user/trip_model');
 
 const imageStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
