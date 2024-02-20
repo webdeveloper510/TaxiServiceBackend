@@ -115,7 +115,7 @@ exports.login = async (req, res) => {
                 })
                 return;
             }
-            if (check_again.is_login) {
+            if (data.is_app && check_again.is_login) {
                 res.send({
                     code: constant.error_code,
                     message: "You need to logout from previous device first"
