@@ -271,6 +271,7 @@ exports.payCompany = async (req, res) => {
 exports.getCommissionTrans = async (req, res) => {
   try {
     console.log("🚀 ~ exports.getCommissionTrans= ~ req.userId,:", req.userId,)
+    const user = await user_model.findById(req.userId);
     const query = req.query.role == "SUPER_ADMIN" ? {
       from: new mongoose.Types.ObjectId(req.userId),
       fromType: "SUPER_ADMIN",
@@ -341,6 +342,7 @@ exports.getCommissionTrans = async (req, res) => {
       ])
       return amount[0]?.totalEarnings || 0;
     }
+
     const result = await Promise.all([allSuperTrans, allDriverTrans]);
     const date = new Date()
     res.send({
@@ -348,6 +350,7 @@ exports.getCommissionTrans = async (req, res) => {
       message: "You paid company commission successfully",
       allSuperTrans : result[0],
       allDriverTrans : result[1],
+      totalBalance : user.totalBalance,
       totalEarning: await getTotalAmount( new Date(1,1,1).setHours(0, 0, 0, 0)),
       totalEarningLastSevenDays: await getTotalAmount( new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).setHours(0, 0, 0, 0)),
       totalEarningFromMonth: await getTotalAmount(new Date(date.getFullYear(), date.getMonth(), 1).setHours(0, 0, 0, 0)),
