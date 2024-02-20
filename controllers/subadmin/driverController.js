@@ -131,10 +131,13 @@ exports.get_driver_detail = async (req, res) => {
                 message: "Unable to fetch the detail"
             })
         } else {
+            const completedTrips = await trip_model.find({driver_name: driverId, trip_status: "Completed", is_paid: false}).countDocuments();
+            const result = driver.toObject();
+            result.totalTrips = completedTrips
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: driver
+                result
             })
         }
         // if (driver && driver.is_deleted === false) {
