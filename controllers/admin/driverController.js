@@ -77,10 +77,18 @@ exports.add_driver = async (req, res) => {
                 return
             }
             let check_other1 = await DRIVER.findOne({ email: data.email })
+            let check_other2 = await DRIVER.findOne({ phone: data.phone })
             if (check_other1) {
                 res.send({
                     code: constant.error_code,
                     message: "Email Already exist"
+                })
+                return
+            }
+            if (check_other2) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Phone Already exist"
                 })
                 return
             }
@@ -308,6 +316,9 @@ exports.get_driver_detail = async (req, res) => {
                 message: "Unable to fetch the detail"
             })
         } else {
+            const completedTrips = await trip_model.find({driver_name: driverId, trip_status: "Completed", is_paid: false}).countDocuments();
+            const result = driver.toObject();
+            result.totalTrips = completedTrips
             res.send({
                 code: constant.success_code,
                 message: "Success",
