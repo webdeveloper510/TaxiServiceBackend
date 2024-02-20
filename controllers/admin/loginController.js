@@ -16,6 +16,7 @@ const nodemailer = require('nodemailer')
 const stripe = require('stripe')('sk_test_51OH1cSSIpj1PyQQaTWeLDPcDsiROliXqsb2ROV2SvHEXwIBbnM9doAQF4rIqWGTTFM7SK4kBxjMmSXMgcLcJTSVh00l0kUa708');
 
 const mongoose = require("mongoose")
+const trip_model = require("../../models/user/trip_model")
 
 exports.create_super_admin = async (req, res) => {
     try {
@@ -94,6 +95,7 @@ exports.login = async (req, res) => {
                     }
                 ]
             })
+            
             if (!check_again) {
                 res.send({
                     code: constant.error_code,
@@ -101,8 +103,9 @@ exports.login = async (req, res) => {
                 })
                 return;
             }
-            
+            const completedTrips = await trip_model.find({driver_name: check_again._id, trip_status: "Completed", is_paid: false}).countDocuments();
             check_data = check_again
+           
             
             let checkPassword = await bcrypt.compare(data.password, check_data.password)
             if (!checkPassword) {
@@ -112,17 +115,18 @@ exports.login = async (req, res) => {
                 })
                 return;
             }
-            if (check_again.is_login) {
-                res.send({
-                    code: constant.error_code,
-                    message: "You need to logout from previous device first"
-                })
-                return;
-            }
+            // if (check_again.is_login) {
+            //     res.send({
+            //         code: constant.error_code,
+            //         message: "You need to logout from previous device first"
+            //     })
+            //     return;
+            // }
             let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
             let updateLogin = await DRIVER.findOneAndUpdate({ _id: check_data._id }, { is_login: true }, { new: true })
             let check_data2 = check_data.toObject()
-            check_data2.role = "DRIVER"
+            check_data2.role = "DRIVER";
+            check_data2.totalTrips = completedTrips;
             res.send({
                 code: constants.success_code,
                 message: "Login Successful",
