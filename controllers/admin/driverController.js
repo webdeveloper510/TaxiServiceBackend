@@ -24,6 +24,7 @@ const nodemailer = require('nodemailer');
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const emailConstant = require('../../config/emailConstant');
+const trip_model = require('../../models/user/trip_model');
 
 const imageStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -322,7 +323,7 @@ exports.get_driver_detail = async (req, res) => {
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: driver
+                result
             })
         }
         // if (driver && driver.is_deleted === false) {
