@@ -115,13 +115,13 @@ exports.login = async (req, res) => {
                 })
                 return;
             }
-            // if (check_again.is_login) {
-            //     res.send({
-            //         code: constant.error_code,
-            //         message: "You need to logout from previous device first"
-            //     })
-            //     return;
-            // }
+            if (check_again.is_login) {
+                res.send({
+                    code: constant.error_code,
+                    message: "You need to logout from previous device first"
+                })
+                return;
+            }
             let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
             let updateLogin = await DRIVER.findOneAndUpdate({ _id: check_data._id }, { is_login: true }, { new: true })
             let check_data2 = check_data.toObject()
