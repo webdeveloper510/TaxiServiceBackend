@@ -39,13 +39,14 @@ exports.tripCommissionPayment = async (req, res) => {
         commission =
           (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
       }
+      commission = commission.toFixed(2);
       console.log(
         "🚀 ~ file: paymentController`.js:23 ~ exports.tripCommissionPayment= ~ commission:",
         commission
       );
       const paymentResult = await initiateStripePayment(
         trip_by_id,
-        commission * 100
+        (commission * 100)
       );
       res.send({
         code: constant.success_code,

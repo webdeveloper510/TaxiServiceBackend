@@ -536,7 +536,26 @@ exports.update_driver = async (req, res) => {
             }
             req.body.profile_image = driver_image.length != 0 ? driver_image[0] : existingDriver.profile_image
             req.body.driver_documents = driver_documents.length != 0 ? driver_documents[0] : existingDriver.driver_documents
-            updates.email = existingDriver.email
+            if(updates.email != existingDriver.email){
+                let check_other1 = await DRIVER.findOne({ email:updates.email })
+                if (check_other1) {
+                    res.send({
+                        code: constant.error_code,
+                        message: "Email Already exist with different account"
+                    })
+                    return
+                }
+            }
+            if(updates.phone != existingDriver.phone){
+                let check_other2 = await DRIVER.findOne({ phone: updates.phone })
+                if (check_other2) {
+                    res.send({
+                        code: constant.error_code,
+                        message: "Phone Already exist with different account"
+                    })
+                    return
+                }
+            }
             const updatedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, updates, { new: true });
             if (updatedDriver) {
                 res.send({
