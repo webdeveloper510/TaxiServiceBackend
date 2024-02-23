@@ -23,6 +23,7 @@ const user_model = require('../models/user/user_model');
             'status':400,
             Message:"auth token verification failed"
           })
+          return
       }
     // let checkUser =  USER.findOne({_id:decoded.userId,isDeleted:false})
     // console.log(checkUser.email,'================')
@@ -33,8 +34,14 @@ const user_model = require('../models/user/user_model');
     //   })
     //   return;
     // }
-    const user = await user_model.findById(decoded.userId).populate("created_by");
-
+    const user = await user_model.findById(decoded?.userId).populate("created_by");
+      if(!user){
+        res.send({
+          'status':400,
+          message:"user not found"
+        })
+        return
+      }
     if(user && user.role != "SUPER_ADMIN" && (!user.status || !user?.created_by?.status) ){
       return res.send({
         code: constant.error_code,
