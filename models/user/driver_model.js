@@ -91,7 +91,7 @@ const driver = new Schema({
         enum: ['Active', 'Inactive'],
     },
     created_by: {
-        type: mongoose.Schema.Types.ObjectId, ref: 'users',
+        type: mongoose.Schema.Types.ObjectId, ref: 'user',
     },
     isVerified: {
         type: Boolean,

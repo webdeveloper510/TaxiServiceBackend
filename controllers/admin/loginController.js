@@ -186,6 +186,7 @@ exports.login = async (req, res) => {
 
 exports.get_token_detail = async (req, res) => {
     try {
+        console.log("api runing-----------")
         let data = req.body
         let result1;
         const userByID = await USER.findOne({ _id: req.userId })
