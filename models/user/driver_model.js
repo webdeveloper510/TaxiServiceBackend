@@ -46,7 +46,7 @@ const driver = new Schema({
     },
     profile_image: {
         type: String,
-        default: ''
+        default: 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
     },
     driver_documents: {
         type: String,
