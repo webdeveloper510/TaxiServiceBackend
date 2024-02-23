@@ -57,7 +57,7 @@ router.post('/add_agency', [verifyToken], agencyController.add_agency)
 
 
 // driver api's
-router.post('/add_driver', [verifyToken], driverController.add_driver)
+router.post('/add_driver', driverController.add_driver)
 router.get('/get_drivers', [verifyToken], driverController.get_drivers)
 router.get('/get_drivers_super', [verifyToken], driverController.get_drivers_super)
 router.get('/get_driver_detail/:id', [verifyToken], driverController.get_driver_detail)

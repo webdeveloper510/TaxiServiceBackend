@@ -32,11 +32,13 @@ const driver = new Schema({
     },
     email: {
         type: String,
-        default: ''
+        default: '',
+        index: true
     },
     phone: {
         type: String,
-        default: ''
+        default: '',
+        index: true
     },
     password: {
         type: String,
@@ -90,6 +92,18 @@ const driver = new Schema({
     },
     created_by: {
         type: mongoose.Schema.Types.ObjectId, ref: 'users',
+    },
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false,
+    },
+    isDocUploaded: {
+        type: Boolean,
+        default: false
     },
     location: {
         type: {
