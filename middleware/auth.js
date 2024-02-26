@@ -5,6 +5,7 @@ const USER = require('../models/user/user_model');
 const constant = require('../config/constant');
 const user_model = require('../models/user/user_model');
 const driver_model = require('../models/user/driver_model');
+const constants = require('../config/constant')
 
 
 // const config = process.env
@@ -23,7 +24,7 @@ const driver_model = require('../models/user/driver_model');
       console.log("🚀 ~ jwt.verify ~ decoded:", decoded)
       if (err) {
           res.send({
-            'status':400,
+            code: constant.error_code,
             Message:"auth token verification failed"
           })
           return
@@ -37,28 +38,24 @@ const driver_model = require('../models/user/driver_model');
     //   })
     //   return;
     // }
-    console.log("1-----------------")
+    
     let user = await user_model.findById(decoded?.userId).populate("created_by");
       console.log("🚀 ~ jwt.verify ~ user:", user)
       if(!user){
-    console.log("2-----------------")
-
         user = await driver_model.findById(decoded?.userId).populate("created_by");
-        console.log("🚀 ~ jwt.verify ~ user:", user)
-    console.log("3-----------------")
-    user = user.toObject();
+           user = user.toObject();
         user.role = "DRIVER"
       }
       if(!user){
-    console.log("4-----------------")
 
         res.send({
-          'status':400,
+          code: constant.error_code,
           message:"user not found"
         })
         return
       }
-    if(user && (user.role != "SUPER_ADMIN" || user.role != "DRIVER") && (!user.status || !user?.created_by?.status) ){
+      console.log("🚀 ~ jwt.verify ~ user:", user)
+    if(user && (user.role != "SUPER_ADMIN" && user.role != "DRIVER") && (!user.status || !user?.created_by?.status) ){
       return res.send({
         code: constant.error_code,
         message: "You are blocked by administration. Please contact administration"

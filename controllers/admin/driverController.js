@@ -607,6 +607,32 @@ exports.updateLocation = async (req, res) => {
         })
     }
 }
+exports.updateVerification = async (req, res) => {
+    try {
+       
+        const {id} = req.params;
+        
+        let updateDriver = await DRIVER.findOneAndUpdate({_id: id},  {
+           $set: {isVerified: true}
+        });
+        if (!updateDriver) {
+            return res.send({
+                code: constant.error_code,
+                message: "Unable to update the verification",
+            })
+        } 
+        res.send({
+                code: constant.success_code,
+                message: "Updated Successfully",
+         })
+        
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
 
 exports.get_active_drivers = async(req,res)=>{
     try{

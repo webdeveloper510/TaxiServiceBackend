@@ -93,6 +93,26 @@ const trip = new Schema({
         ],
         default:[]
     },
+    passengerCount:{
+        type:Number,
+        default:1
+    },
+    customerDetails:{
+        type:{
+            name: {
+                type:String,
+            },
+            phone: {
+                type:String,
+            },
+            email: {
+                type:String,
+            },
+            address: {
+                type:String,
+            }
+        }
+    },
     created_by:{
         type:mongoose.Schema.Types.ObjectId,ref:'users',
     },

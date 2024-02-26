@@ -36,6 +36,7 @@ router.get('/get_feedback', [verifyToken], loginController.get_feedback)
 router.post('/add_sub_admin', [verifyToken], subAdminController.add_sub_admin)
 router.post('/search_company', [verifyToken], subAdminController.search_company)
 router.get('/send_request_trip/:id', [verifyToken], subAdminController.send_request_trip)
+router.post('/favoriteDriver/:id', [verifyToken], subAdminController.favoriteDriver)
 router.get('/get_sub_admins', [verifyToken], subAdminController.get_sub_admins)
 router.get('/get_sub_admin_detail/:userId', subAdminController.get_sub_admin_detail)
 router.put('/edit_sub_admin/:id', [verifyToken], subAdminController.edit_sub_admin)
@@ -64,6 +65,8 @@ router.get('/get_driver_detail/:id', [verifyToken], driverController.get_driver_
 router.put('/update_driver/:id', [verifyToken], driverController.update_driver)
 router.delete('/remove_driver/:id', [verifyToken], driverController.remove_driver)
 router.put('/updateLocation', [verifyToken], driverController.updateLocation)
+router.post('/updateVerification/:id', [verifyToken], driverController.updateVerification)
+
 router.put('/logout', [verifyToken], driverController.logout)
 router.get('/get_active_drivers', [verifyToken], driverController.get_active_drivers)
 

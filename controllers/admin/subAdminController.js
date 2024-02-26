@@ -1,3 +1,4 @@
+
 const USER = require('../../models/user/user_model')
 const AGENCY = require('../../models/user/agency_model')
 const DRIVER = require('../../models/user/driver_model')
@@ -15,6 +16,7 @@ const path = require('path')
 
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
+const driver_model = require('../../models/user/driver_model');
 
 const imageStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -853,3 +855,34 @@ exports.send_request_trip = async (req, res) => {
         })
     }
 }
+exports.favoriteDriver = async (req, res) => {
+    try {
+        const driverId = req.params.id;
+        const driver = await driver_model.findById(driverId);
+        if(!driver){
+            return res.send({
+                code: constant.error_code,
+                message: "Driver not found"
+            })
+        }
+      const user = req.user
+      if (!user.favoriteDrivers.includes(driverId)) {
+        await user.updateOne({ $push: { favoriteDrivers: driverId } });
+        return res.send({
+            code: constant.success_code,
+            message: "Driver Added successfully in favorite driver"
+        })
+      } else {
+        await user.updateOne({ $pull: { favoriteDrivers: driverId } });
+        return res.send({
+            code: constant.success_code,
+            message: "Driver removed successfully from favorite driver"
+        })
+      }
+    } catch (err) {
+        return res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+  }
