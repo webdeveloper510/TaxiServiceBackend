@@ -11,6 +11,10 @@ const user = new Schema(
       type: String,
       default: "",
     },
+    favoriteDrivers: {
+      type: [{ type: Schema.Types.ObjectId, ref: 'driver' }],
+      default:[],
+    },
     email: {
       type: String,
       default: "",
