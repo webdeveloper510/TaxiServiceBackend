@@ -447,10 +447,20 @@ exports.get_drivers = async (req, res) => {
             },
         ]);
         if (driver) {
+            // const newDriver = driver.map(d=>d.toJson());
+            const fv = getDetail.favoriteDrivers.map(id=>id.toString());
+            const result = driver.map((d)=>{
+                let isFavorite = false;
+                if(fv.includes(d._id.toString())){
+                    isFavorite = true;
+                }
+                d.isFavorite = isFavorite;
+                return d;
+            })
             res.send({
                 code: constant.success_code,
                 message: 'Driver list retrieved successfully',
-                result: driver,
+                result: result,
             });
         } else {
             res.send({
