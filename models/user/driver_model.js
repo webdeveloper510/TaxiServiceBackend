@@ -133,6 +133,7 @@ const driver = new Schema({
         type: String,
         default: null,
     },
+    defaultVehicle:{ type: Schema.Types.ObjectId, ref: 'vehicle', default: null}
 }, { timestamps: true })
 
 module.exports = mongoose.model('driver', driver)
