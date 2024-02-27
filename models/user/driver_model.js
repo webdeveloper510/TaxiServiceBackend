@@ -10,7 +10,15 @@ const driver = new Schema({
         type: String,
         default: ''
     },
-    address_1: {
+    bankNumber: {
+        type: String,
+        default: ''
+    },
+    companyName: {
+        type: String,
+        default: ''
+    },
+    kvk: {
         type: String,
         default: ''
     },
@@ -133,6 +141,7 @@ const driver = new Schema({
         type: String,
         default: null,
     },
+    currentTrip:{ type: Schema.Types.ObjectId, ref: 'trip', default: null},
     defaultVehicle:{ type: Schema.Types.ObjectId, ref: 'vehicle', default: null}
 }, { timestamps: true })
 
