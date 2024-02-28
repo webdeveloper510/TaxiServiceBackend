@@ -440,11 +440,11 @@ exports.get_drivers = async (req, res) => {
                     },
                 },
             },
-            {
-                $match: {
-                    totalUnpaidTrips: 0,
-                },
-            },
+            // {
+            //     $match: {
+            //         totalUnpaidTrips: 0,
+            //     },
+            // },
         ]);
         if (driver) {
             // const newDriver = driver.map(d=>d.toJson());
