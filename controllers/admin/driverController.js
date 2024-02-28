@@ -526,15 +526,17 @@ exports.update_driver = async (req, res) => {
             var driver_documents = []
             // var imagePortfolioLogo = []
             let file = req.files
-            for (i = 0; i < file.length; i++) {
-                if (file[i].fieldname == 'driver_image') {
-                    driver_image.push(file[i].path);
-                } else if (file[i].fieldname == 'driver_documents') {
-                    driver_documents.push(file[i].path);
-
+            if(file){
+                for (i = 0; i < file.length; i++) {
+                    if (file[i].fieldname == 'driver_image') {
+                        driver_image.push(file[i].path);
+                    } else if (file[i].fieldname == 'driver_documents') {
+                        driver_documents.push(file[i].path);
+    
+                    }
                 }
+    
             }
-
             const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
             const updates = req.body; // Assuming you send the updated driver data in the request body
 
@@ -648,7 +650,7 @@ exports.updateVerification = async (req, res) => {
 
 exports.get_active_drivers = async(req,res)=>{
     try{
-        let getDrivers = await DRIVER.find({status:true,is_login:true}).sort({createdAt:-1})
+        let getDrivers = await DRIVER.find({status:true,is_login:true}).populate("defaultVehicle").sort({createdAt:-1})
         if(!getDrivers){
             res.send({
                 code:constant.error_code,
