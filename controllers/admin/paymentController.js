@@ -46,7 +46,7 @@ exports.tripCommissionPayment = async (req, res) => {
       );
       const paymentResult = await initiateStripePayment(
         trip_by_id,
-        (commission * 100)
+        parseInt(commission * 100)
       );
       res.send({
         code: constant.success_code,
