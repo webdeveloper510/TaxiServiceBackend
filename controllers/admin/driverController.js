@@ -554,6 +554,9 @@ exports.update_driver = async (req, res) => {
             if(updates.isDocUploaded){
                 updates.isDocUploaded = req.body.isDocUploaded == "true"
             }
+            if(updates.is_available){
+                updates.is_available = req.body.is_available == "true"
+            }
             if(updates.email != existingDriver.email){
                 let check_other1 = await DRIVER.findOne({ email:updates.email })
                 if (check_other1) {
