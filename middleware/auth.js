@@ -43,8 +43,10 @@ const constants = require('../config/constant')
       console.log("🚀 ~ jwt.verify ~ user:", user)
       if(!user){
         user = await driver_model.findById(decoded?.userId).populate("created_by");
-           user = user.toObject();
-        user.role = "DRIVER"
+          if(user){
+            user = user.toObject();
+            user.role = "DRIVER"
+          }
       }
       if(!user){
 
