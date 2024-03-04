@@ -39,13 +39,20 @@ const constants = require('../config/constant')
     //   return;
     // }
     
-    let user = await user_model.findById(decoded?.userId).populate("created_by");
+    let user = await user_model.findOne({_id:decoded?.userId}).populate("created_by");
       console.log("🚀 ~ jwt.verify ~ user:", user)
       if(!user){
         user = await driver_model.findById(decoded?.userId).populate("created_by");
           if(user){
             user = user.toObject();
             user.role = "DRIVER"
+            if(user.jwtToken != token){
+              res.send({
+                code: constant.error_code,
+                message:"Token is expired"
+              })
+              return
+            }
           }
       }
       if(!user){
