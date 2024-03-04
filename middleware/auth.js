@@ -24,7 +24,7 @@ const constants = require('../config/constant')
       console.log("🚀 ~ jwt.verify ~ decoded:", decoded)
       if (err) {
           res.send({
-            code: constant.error_code,
+            code: constant.tokenError,
             Message:"auth token verification failed"
           })
           return
@@ -48,7 +48,7 @@ const constants = require('../config/constant')
             user.role = "DRIVER"
             if(user.jwtToken != token){
               res.send({
-                code: constant.error_code,
+                code: constant.tokenError,
                 message:"Token is expired"
               })
               return
@@ -58,7 +58,7 @@ const constants = require('../config/constant')
       if(!user){
 
         res.send({
-          code: constant.error_code,
+          code: constant.tokenError,
           message:"user not found"
         })
         return
@@ -66,7 +66,7 @@ const constants = require('../config/constant')
       console.log("🚀 ~ jwt.verify ~ user:", user)
     if(user && (user.role != "SUPER_ADMIN" && user.role != "DRIVER") && (!user.status || !user?.created_by?.status) ){
       return res.send({
-        code: constant.error_code,
+        code: constant.tokenError,
         message: "You are blocked by administration. Please contact administration"
     })
     }
