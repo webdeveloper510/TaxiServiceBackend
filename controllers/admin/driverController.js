@@ -653,6 +653,7 @@ exports.updateVerification = async (req, res) => {
 
 exports.get_active_drivers = async(req,res)=>{
     try{
+        let getDetail = await USER.findOne({ _id: req.userId })
         let getDrivers = await DRIVER.find({status:true,is_login:true,defaultVehicle: { $ne: null } }).populate("defaultVehicle").sort({createdAt:-1})
         if(!getDrivers){
             res.send({
@@ -660,7 +661,7 @@ exports.get_active_drivers = async(req,res)=>{
                 message:"Unable to fetch the drivers"
             })
         }else{
-            const fv = getDrivers.favoriteDrivers.map(id=>id.toString());
+            const fv = getDetail.favoriteDrivers.map(id=>id.toString());
             const result = getDrivers.map((d)=>{
                 let isFavorite = false;
                 if(fv.includes(d._id.toString())){
