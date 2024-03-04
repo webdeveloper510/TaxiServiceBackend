@@ -662,7 +662,8 @@ exports.get_active_drivers = async(req,res)=>{
             })
         }else{
             const fv = getDetail.favoriteDrivers.map(id=>id.toString());
-            const result = getDrivers.map((d)=>{
+            const driver = getDrivers.map(d=>d.toObject());
+            const result = driver.map((d)=>{
                 let isFavorite = false;
                 if(fv.includes(d._id.toString())){
                     isFavorite = true;
