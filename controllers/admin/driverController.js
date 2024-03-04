@@ -660,10 +660,19 @@ exports.get_active_drivers = async(req,res)=>{
                 message:"Unable to fetch the drivers"
             })
         }else{
+            const fv = getDrivers.favoriteDrivers.map(id=>id.toString());
+            const result = getDrivers.map((d)=>{
+                let isFavorite = false;
+                if(fv.includes(d._id.toString())){
+                    isFavorite = true;
+                }
+                d.isFavorite = isFavorite;
+                return d;
+            })
             res.send({
                 code:constant.success_code,
                 message:"Success",
-                result:getDrivers
+                result
             })
         }
     }catch(err){
