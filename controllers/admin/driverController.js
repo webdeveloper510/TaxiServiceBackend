@@ -661,7 +661,7 @@ exports.get_active_drivers = async(req,res)=>{
                 message:"Unable to fetch the drivers"
             })
         }else{
-            const fv = getDetail.favoriteDrivers.map(id=>id.toString());
+            const fv = getDetail?.favoriteDrivers?.map(id=>id.toString()) || [];
             const driver = getDrivers.map(d=>d.toObject());
             const result = driver.map((d)=>{
                 let isFavorite = false;
