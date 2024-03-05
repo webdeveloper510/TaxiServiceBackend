@@ -362,6 +362,18 @@ exports.get_drivers = async (req, res) => {
         const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
         let getDetail = await USER.findOne({ _id: req.userId })
         console.log(getDetail)
+        const search = req.query.search || "";
+        const query = {
+            is_deleted: false,
+        }
+        if(search.length > 0){
+            query.$or = [
+                { 'email': { '$regex': search, '$options': 'i' } },
+                { 'phone': { '$regex': search, '$options': 'i' } },
+                { 'first_name': { '$regex': search, '$options': 'i' } },
+                { 'address_1': { '$regex': search, '$options': 'i' } },
+            ]
+        }
         // const drivers = await DRIVER.find(
         //     {
         //         $and: [
@@ -416,11 +428,19 @@ exports.get_drivers = async (req, res) => {
         // ])
         const driver = await DRIVER.aggregate([
             {
-                $match: {
-                    is_deleted: false,
-                    // status: true,
-                    // is_login: true,
-                },
+                 $match: query
+                //  {
+                //     is_deleted: false,
+                //     $or:[
+                //         { 'email': { '$regex': search, '$options': 'i' } },
+                //         { 'phone': { '$regex': search, '$options': 'i' } },
+                //         { 'first_name': { '$regex': search, '$options': 'i' } },
+                //         { 'address_1': { '$regex': search, '$options': 'i' } },
+                //     ]
+           
+                //     // status: true,
+                //     // is_login: true,
+                // },
             },
             {
                 $lookup: {
@@ -490,20 +510,32 @@ exports.get_drivers_super = async (req, res) => {
         const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
         let getDetail = await USER.findOne({ _id: req.userId })
         console.log(getDetail)
+        const search = req.query.search ||'';
+        const query = {
+            is_deleted: false,
+        }
+        if(search.length > 0){
+            query.$or = [
+                { 'email': { '$regex': search, '$options': 'i' } },
+                { 'phone': { '$regex': search, '$options': 'i' } },
+                { 'first_name': { '$regex': search, '$options': 'i' } },
+                { 'address_1': { '$regex': search, '$options': 'i' } },
+            ]
+        }
         const drivers = await DRIVER.find(
-            {
-                $and: [
-                    { is_deleted: false },
-                    // {status:true},
-                    // {is_available:true}
-                    // {
-                    //     $or: [
-                    //         { created_by: req.userId },
-                    //         { created_by: getDetail.created_by }
-                    //     ]
-                    // }
-                ]
-            }
+            query
+            // {
+
+                
+            //         // {status:true},
+            //         // {is_available:true}
+            //         // {
+            //         //     $or: [
+            //         //         { created_by: req.userId },
+            //         //         { created_by: getDetail.created_by }
+            //         //     ]
+            //         // }
+            // }
         ).sort({ 'createdAt': -1 });
 
         if (drivers) {
