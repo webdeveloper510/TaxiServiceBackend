@@ -1,3 +1,4 @@
+require("dotenv").config()
 const constant = require('../../config/constant');
 const DRIVER = require('../../models/user/driver_model'); // Import the Driver model
 const USER = require('../../models/user/user_model'); // Import the Driver model
@@ -5,6 +6,7 @@ const bcrypt = require("bcrypt");
 const multer = require('multer');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken')
 
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -81,6 +83,7 @@ exports.add_driver = async (req, res) => {
             data.created_by = superAdmin // Assuming you have user authentication
              let check_other1 = await DRIVER.findOne({ email: data.email })
             let check_other2 = await DRIVER.findOne({ phone: data.phone })
+
             if (check_other1) {
                 res.send({
                     code: constant.error_code,
@@ -96,6 +99,10 @@ exports.add_driver = async (req, res) => {
                 return
             }
             let save_driver = await DRIVER(data).save()
+            let jwtToken = jwt.sign({ userId: save_driver._id }, process.env.JWTSECRET, { expiresIn: '365d' })
+            save_driver.jwtToken = jwtToken;
+            await save_driver.save();
+            
             if (!save_driver) {
                 res.send({
                     code: constant.error_code,
@@ -270,6 +277,7 @@ exports.add_driver = async (req, res) => {
                     code: constant.success_code,
                     message: 'Driver created successfully',
                     result: save_driver,
+                    jwtToken
                 })
             }
         } catch (err) {
