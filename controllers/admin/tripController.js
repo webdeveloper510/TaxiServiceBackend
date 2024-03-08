@@ -201,6 +201,8 @@ exports.get_trip = async (req, res) => {
                     comment: 1,
                     commission: 1,
                     pay_option: 1,
+                    customerDetails:1,
+                    passengerCount:1,
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
@@ -287,6 +289,8 @@ exports.get_trip_for_hotel = async (req, res) => {
                     is_deleted: 1,
                     passenger_detail: 1,
                     createdAt: 1,
+                    customerDetails:1,
+                    passengerCount:1,
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
@@ -406,6 +410,8 @@ exports.get_recent_trip = async (req, res) => {
                     comment: 1,
                     commission: 1,
                     pay_option: 1,
+                    customerDetails:1,
+                    passengerCount:1,
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
@@ -513,6 +519,8 @@ exports.get_recent_trip_super = async (req, res) => {
                     comment: 1,
                     commission: 1,
                     pay_option: 1,
+                    customerDetails:1,
+                    passengerCount:1,
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
@@ -603,6 +611,8 @@ exports.get_trip_by_company = async (req, res) => {
                     trip_from: 1,
                     trip_to: 1,
                     createdAt: 1,
+                    customerDetails:1,
+                    passengerCount:1,
                     pickup_date_time: 1,
                     trip_status: 1,
                     passenger_detail: 1,
@@ -790,7 +800,9 @@ exports.get_trip_detail = async (req, res) => {
                     trip_status: 1,
                     createdAt: 1,
                     updatedAt: 1,
-                    pay_option: 1
+                    pay_option: 1,
+                    customerDetails:1,
+                    passengerCount:1
                 }
             }
         ])
