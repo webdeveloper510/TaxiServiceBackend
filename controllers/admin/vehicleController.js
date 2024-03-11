@@ -172,6 +172,7 @@ exports.get_vehicle_type = async (req, res) => {
     try {
         let data = req.body
         let getData = await VEHICLE.find({ vehicle_type: req.params.vehicle_type })
+        console.log("🚀 ~ exports.get_vehicle_type= ~ getData:", getData)
         if (!getData) {
             res.send({
                 code: constant.error_code,

@@ -12,7 +12,7 @@ const constants = require('../config/constant')
  verifyToken = async (req,res,next) => {
   try{
     let token = req.headers["x-access-token"];
-  console.log('token------', token)
+ 
   if (!token) {
       res.send({
         'status':400,
@@ -21,7 +21,7 @@ const constants = require('../config/constant')
 
   }else{
   jwt.verify(token, process.env.JWTSECRET, async(err, decoded) => {
-      console.log("🚀 ~ jwt.verify ~ decoded:", decoded)
+     
       if (err) {
           res.send({
             code: constant.tokenError,
@@ -40,7 +40,7 @@ const constants = require('../config/constant')
     // }
     
     let user = await user_model.findOne({_id:decoded?.userId}).populate("created_by");
-      console.log("🚀 ~ jwt.verify ~ user:", user)
+    
       if(!user){
         user = await driver_model.findById(decoded?.userId).populate("created_by");
           if(user){
@@ -63,7 +63,7 @@ const constants = require('../config/constant')
         })
         return
       }
-      console.log("🚀 ~ jwt.verify ~ user:", user)
+      
     if(user && (user.role != "SUPER_ADMIN" && user.role != "DRIVER") && (!user.status || !user?.created_by?.status) ){
       return res.send({
         code: constant.tokenError,
