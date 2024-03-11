@@ -40,21 +40,39 @@ module.exports = [
   //   "seats": 60
   // }
   {
-    name: "Sedan",
+    name: "B7",
+    fullName: "minivan 7",
     seats: 0,
     start_price: 3.60,
     per_km: 2.65,
     per_min: 0.44
   },
   {
-    name: "Minivan",
+    name: "B6 ",
+    fullName: "minivan 6",
     seats: 0,
     start_price: 7.33,
     per_km: 3.34,
     per_min: 0.49
   },
   {
-    name: "Luxury",
+    name: "S",
+    fullName: "station wagon",
+    seats: 0,
+    start_price: 30.49,
+    per_km: 7.49,
+    per_min: 4.29
+  },
+  {
+    name: "A",
+    fullName: "normal sedan",
+    seats: 0,
+    start_price: 30.49,
+    per_km: 7.49,
+    per_min: 4.29
+  },{
+    name: "L",
+    fullName: "limousine",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
