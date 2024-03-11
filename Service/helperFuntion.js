@@ -2,6 +2,7 @@ require("dotenv").config()
 const jwt = require("jsonwebtoken");
 const User = require("../models/user/user_model");
 const driver_model = require("../models/user/driver_model");
+const user_model = require("../models/user/user_model");
 
 exports.driverDetailsByToken = async (token) => {
     console.log("🚀 ~ file: helperFuntion.js:6 ~ exports.driverDetailsByToken= ~ token:", token)
@@ -12,4 +13,12 @@ exports.driverDetailsByToken = async (token) => {
   console.log("🚀 ~ file: helperFuntion.js:11 ~ exports.driverDetailsByToken= ~ driver:", driver)
   return driver
   
+}
+exports.userDetailsByToken = async (token) => {
+  const {userId} = jwt.verify(token, process.env.JWTSECRET);
+console.log("getCustomerDetailsByTokenId===>", userId)
+//   // find driver by id in database
+const user =  await user_model.findOne({_id : userId})
+return user
+
 }

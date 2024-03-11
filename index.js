@@ -13,7 +13,7 @@ var usersRouter = require('./routes/users');
 var subAdminRouter = require('./routes/subadmin');
 var driverRouter = require('./routes/driver');
 const { Server } = require("socket.io");
-const { driverDetailsByToken } = require("./Service/helperFuntion");
+const { driverDetailsByToken, userDetailsByToken } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 var app = express();
 app.use(cors())
@@ -82,6 +82,21 @@ io.on("connection", (socket) => {
       io.to(socket.id).emit("driverConnection",{
         code:200,
         message: "connected successfully with driver id: " + driverByToken._id
+      })
+    }
+  });
+  socket.on("addUser", async ({ token }) => {
+
+    const userByToken = await userDetailsByToken(token);
+    console.log("🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:", userByToken)
+    
+    if (userByToken) {
+      userByToken.isSocketConnected = true;
+      userByToken.socketId = socket.id;
+      await userByToken.save();
+      io.to(socket.id).emit("userConnection",{
+        code:200,
+        message: "connected successfully with user id: " + userByToken._id
       })
     }
   });
