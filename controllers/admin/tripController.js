@@ -202,6 +202,7 @@ exports.get_trip = async (req, res) => {
                     commission: 1,
                     pay_option: 1,
                     customerDetails:1,
+                    price:1,
                     passengerCount:1,
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
