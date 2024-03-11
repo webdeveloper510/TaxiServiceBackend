@@ -371,6 +371,7 @@ exports.get_drivers = async (req, res) => {
                 { 'email': { '$regex': search, '$options': 'i' } },
                 { 'phone': { '$regex': search, '$options': 'i' } },
                 { 'first_name': { '$regex': search, '$options': 'i' } },
+                { 'last_name': { '$regex': search, '$options': 'i' } },
                 { 'address_1': { '$regex': search, '$options': 'i' } },
             ]
         }
@@ -451,6 +452,22 @@ exports.get_drivers = async (req, res) => {
                 },
             },
             {
+                $lookup: {
+                    from: "vehicles",
+                    localField: "defaultVehicle",
+                    foreignField: "_id",
+                    as: "defaultVehicle",
+                },
+            },
+            {
+                $unwind:
+                  {
+                    path: "$defaultVehicle",
+                    preserveNullAndEmptyArrays: true
+                  }
+              
+            },
+            {
                 $addFields: {
                     totalUnpaidTrips: {
                         $size: {
@@ -507,9 +524,6 @@ exports.get_drivers = async (req, res) => {
 
 exports.get_drivers_super = async (req, res) => {
     try {
-        const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
-        let getDetail = await USER.findOne({ _id: req.userId })
-        console.log(getDetail)
         const search = req.query.search ||'';
         const query = {
             is_deleted: false,
@@ -519,24 +533,13 @@ exports.get_drivers_super = async (req, res) => {
                 { 'email': { '$regex': search, '$options': 'i' } },
                 { 'phone': { '$regex': search, '$options': 'i' } },
                 { 'first_name': { '$regex': search, '$options': 'i' } },
+                { 'last_name': { '$regex': search, '$options': 'i' } },
                 { 'address_1': { '$regex': search, '$options': 'i' } },
             ]
         }
         const drivers = await DRIVER.find(
             query
-            // {
-
-                
-            //         // {status:true},
-            //         // {is_available:true}
-            //         // {
-            //         //     $or: [
-            //         //         { created_by: req.userId },
-            //         //         { created_by: getDetail.created_by }
-            //         //     ]
-            //         // }
-            // }
-        ).sort({ 'createdAt': -1 });
+        ).populate("defaultVehicle").sort({ 'createdAt': -1 });
 
         if (drivers) {
             res.send({
