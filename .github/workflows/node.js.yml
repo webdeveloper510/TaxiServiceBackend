@@ -26,4 +26,4 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: echo "${{secrets.PROD_ENV}}" >.env
-    - run: pm2 restart 1
+    - run: pm2 restart 0
