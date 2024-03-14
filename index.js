@@ -12,6 +12,7 @@ var adminRouter = require('./routes/admin');
 var usersRouter = require('./routes/users');
 var subAdminRouter = require('./routes/subadmin');
 var driverRouter = require('./routes/driver');
+var apiRouter = require('./routes/index.js');
 const { Server } = require("socket.io");
 const { driverDetailsByToken, userDetailsByToken } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
@@ -37,10 +38,11 @@ app.use((req, res, next) => {
 
 app.use('/uploads/',express.static('./uploads'))
 
-app.use('/admin', adminRouter);
-app.use('/users', usersRouter);
-app.use('/subadmin', subAdminRouter);
-app.use('/driver', driverRouter);
+// app.use('/admin', adminRouter);
+// app.use('/users', usersRouter);
+// app.use('/subadmin', subAdminRouter);
+// app.use('/driver', driverRouter);
+app.use('/api', apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
