@@ -122,7 +122,10 @@ io.on("connection", (socket) => {
   });
   socket.on("cancelDriverTrip", async ({ tripId }) => {
     if(!tripId) {
-      return
+      return io.to(socket.id).emit("driverNotification", {
+        code: 200,
+        message: "Trip id not valid"
+      } )
     }
    try {
     const driverBySocketId = await driver_model.findOne({ socketId: socket.id });
@@ -161,7 +164,10 @@ io.on("connection", (socket) => {
     }
    } catch (error) {
     console.log("🚀 ~ socket.on ~ error:", error)
-    
+    return io.to(socket.id).emit("driverNotification", {
+      code: 200,
+      message: "There is some"
+    } )
    }
   });
   socket.on("disconnect", async () => {
