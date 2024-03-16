@@ -85,6 +85,14 @@ const user = new Schema(
       type: Number,
       default: 0,
     },
+    isSocketConnected: {
+      type: Boolean,
+      default: false,
+    },
+    socketId: {
+        type: String,
+        default: null,
+    },
   },
   { timestamps: true }
 );

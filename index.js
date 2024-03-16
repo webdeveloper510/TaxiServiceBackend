@@ -16,6 +16,8 @@ var apiRouter = require('./routes/index.js');
 const { Server } = require("socket.io");
 const { driverDetailsByToken, userDetailsByToken } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
+const trip_model = require("./models/user/trip_model.js");
+const user_model = require("./models/user/user_model");
 var app = express();
 app.use(cors())
 const httpServer = http.createServer(app)
@@ -81,7 +83,7 @@ io.on("connection", (socket) => {
       driverByToken.isSocketConnected = true;
       driverByToken.socketId = socket.id;
       await driverByToken.save();
-      io.to(socket.id).emit("driverConnection",{
+      io.to(socket.id).emit("driverNotification",{
         code:200,
         message: "connected successfully with driver id: " + driverByToken._id
       })
@@ -117,6 +119,50 @@ io.on("connection", (socket) => {
       } )
       
     }
+  });
+  socket.on("cancelDriverTrip", async ({ tripId }) => {
+    if(!tripId) {
+      return
+    }
+   try {
+    const driverBySocketId = await driver_model.findOne({ socketId: socket.id });
+    console.log("🚀 ~ socket.on ~ driverBySocketId:", driverBySocketId)
+    if (driverBySocketId) {
+      const trip = await trip_model.findById(tripId);
+      console.log("🚀 ~ socket.on ~ trip:", trip)
+      if(!trip){
+        return io.to(socket.id).emit("driverNotification", {
+          code: 200,
+          message: "Trip id not valid"
+        } )
+      }
+      if(trip.driver_name.toString() == driverBySocketId._id.toString()) {
+        trip.driver_name = null;
+        trip.trip_status = "Pending";
+        await trip.save();
+        const user = await user_model.findById(trip.created_by).populate("created_by");
+        if(user.role = "HOTEL") {
+          io.to(user?.created_by?.socketId).emit("tripCancelledBYDriver", {
+            trip,
+            message: "Trip canceled successfully"
+          } )
+        }else{
+          io.to(user.socketId).emit("tripCancelledBYDriver", {
+            trip,
+            message: "Trip canceled successfully"
+          } )
+        }
+        io.to(socket.id).emit("driverNotification", {
+          code: 200,
+          message: "Trip canceled successfully"
+        } )
+      }
+      
+    }
+   } catch (error) {
+    console.log("🚀 ~ socket.on ~ error:", error)
+    
+   }
   });
   socket.on("disconnect", async () => {
     const driverBySocketId = await driver_model.findOne({ socketId: socket.id });
