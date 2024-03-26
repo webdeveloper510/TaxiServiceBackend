@@ -70,8 +70,8 @@ httpServer.listen(PORT,()=>console.log(`app listening at http://localhost:${PORT
 
 io.on("connection", (socket) => {
   socket.on("addNewDriver", async ({ token, longitude, latitude }) => {
-
-    const driverByToken = await driverDetailsByToken(token);
+    try{
+      const driverByToken = await driverDetailsByToken(token);
     console.log("🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:", driverByToken)
     
     if (driverByToken) {
@@ -88,20 +88,27 @@ io.on("connection", (socket) => {
         message: "connected successfully with driver id: " + driverByToken._id
       })
     }
+    }catch(err){
+      console.log("🚀 ~ socket.on ~ err:", err)
+    }
   });
   socket.on("addUser", async ({ token }) => {
-
-    const userByToken = await userDetailsByToken(token);
-    console.log("🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:", userByToken)
-    
-    if (userByToken) {
-      userByToken.isSocketConnected = true;
-      userByToken.socketId = socket.id;
-      await userByToken.save();
-      io.to(socket.id).emit("userConnection",{
-        code:200,
-        message: "connected successfully with user id: " + userByToken._id
-      })
+    try{
+      const userByToken = await userDetailsByToken(token);
+      console.log("🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:", userByToken)
+      
+      if (userByToken) {
+        userByToken.isSocketConnected = true;
+        userByToken.socketId = socket.id;
+        await userByToken.save();
+        io.to(socket.id).emit("userConnection",{
+          code:200,
+          message: "connected successfully with user id: " + userByToken._id
+        })
+      }
+    }catch(err){
+      console.log("🚀 ~ socket.on ~ err:", err)
+      
     }
   });
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
