@@ -16,7 +16,7 @@ exports.driverDetailsByToken = async (token) => {
 }
 exports.userDetailsByToken = async (token) => {
   const {userId} = jwt.verify(token, process.env.JWTSECRET);
-console.log("getCustomerDetailsByTokenId===>", userId)
+  console.log("🚀 ~ exports.userDetailsByToken= ~ userId:", userId)
 //   // find driver by id in database
 const user =  await user_model.findOne({_id : userId})
 return user

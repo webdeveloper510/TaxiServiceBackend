@@ -79,7 +79,7 @@ const user = new Schema(
     created_by: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
-      default: "",
+      default: null,
     },
     totalBalance: {
       type: Number,

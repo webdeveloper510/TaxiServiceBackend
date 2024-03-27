@@ -93,7 +93,16 @@ io.on("connection", (socket) => {
     }
   });
   socket.on("addUser", async ({ token }) => {
+    if(!token || token == ""){
+      io.to(socket.id).emit("userConnection",{
+        code:200,
+        message: "token is required"
+      })
+
+      return
+    }
     try{
+      console.log("🚀 ~ socket.on ~ token:", token)
       const userByToken = await userDetailsByToken(token);
       console.log("🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:", userByToken)
       

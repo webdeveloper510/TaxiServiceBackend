@@ -55,7 +55,6 @@ exports.add_trip = async (req, res) => {
         if (!data.price) {
             data.price = (fare_per_km * Number(distance)).toFixed(2);
         }
-        console.log('check===========================', data)
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
             res.send({
@@ -96,7 +95,6 @@ exports.add_trip_link = async (req, res) => {
         data.series_id = token_code + '-' + '000' + series
 
         data.trip_id = 'T' + '-' + data.trip_id
-        console.log('check===========================', data)
         let add_trip = await TRIP(data).save()
         if (!add_trip) {
             res.send({
@@ -457,8 +455,7 @@ exports.get_recent_trip_super = async (req, res) => {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
         let search_value = data.comment ? data.comment : ''
-        console.log('check++++++++++++++', mid);
-        
+     
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
@@ -559,7 +556,7 @@ exports.get_recent_trip_super = async (req, res) => {
                 message: "Unable to get the trips"
             })
         } else {
-            console.log("🚀 ~ exports.get_recent_trip_super= ~ get_trip:",search_value, get_trip)
+           
             res.send({
                 code: constant.success_code,
                 message: "Success",
@@ -825,10 +822,7 @@ exports.get_trip_detail = async (req, res) => {
         if (getData[0].price == 0) {
             getData[0].price = fare_per_km * Number(distance)
         }
-        // console.log('data=========',getData[0].price,fare_per_km*Number(distance))
-
-
-        // return
+        
 
         if (!getData[0]) {
             res.send({
