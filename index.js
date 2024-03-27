@@ -75,6 +75,10 @@ io.on("connection", (socket) => {
     console.log("🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:", driverByToken)
     
     if (driverByToken) {
+      await driver_model.updateMany({socketId: socket.id},{$set:{
+        isSocketConnected : false,
+        socketId: null
+      }})
       driverByToken.location = {
         type: "Point",
         coordinates: [longitude, latitude],
@@ -107,6 +111,10 @@ io.on("connection", (socket) => {
       console.log("🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:", userByToken)
       
       if (userByToken) {
+        await user_model.updateMany({socketId: socket.id},{$set:{
+          isSocketConnected : false,
+          socketId: null
+        }})
         userByToken.isSocketConnected = true;
         userByToken.socketId = socket.id;
         await userByToken.save();
