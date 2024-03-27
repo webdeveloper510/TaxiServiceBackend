@@ -165,7 +165,7 @@ exports.login = async (req, res) => {
                 },
                 { $unwind: "$company_detail" }
             ])
-            console.log(getData)
+          
             res.send({
                 code: constants.success_code,
                 message: "Login Successful",
@@ -186,7 +186,7 @@ exports.login = async (req, res) => {
 
 exports.get_token_detail = async (req, res) => {
     try {
-        console.log("api runing-----------")
+       
         let data = req.body
         let result1;
         const userByID = await USER.findOne({ _id: req.userId })
@@ -453,7 +453,7 @@ There was a request to change your password!
                     message: "Unable to send the otp please try again"
                 })
             } else {
-                console.log('check+++++++++++', check_email)
+              
                 var transporter = nodemailer.createTransport(emailConstant.credentials);
                 var mailOptions = {
                     from: emailConstant.from_email,
