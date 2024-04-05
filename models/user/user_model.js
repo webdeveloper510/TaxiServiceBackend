@@ -93,6 +93,15 @@ const user = new Schema(
         type: String,
         default: null,
     },
+    isDriver: {
+      type: Boolean,
+      default: false
+  },
+  driver_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "driver",
+    default: null,
+  },
   },
   { timestamps: true }
 );
