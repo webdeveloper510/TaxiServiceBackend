@@ -884,6 +884,7 @@ exports.switchToDriver = async (req, res) => {
       const result = driverData.toObject();
       driverData.jwtToken = jwtToken;
       result.role = "DRIVER";
+      await driverData.save();
       res.send({
         code: constant.success_code,
         message: "data fetch successfully",
