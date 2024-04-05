@@ -828,6 +828,7 @@ exports.convertIntoDriver = async (req, res) => {
         phone: user.phone,
         isCompany: true,
         created_by: user._id,
+        isDocUploaded: true,
       }).save();
       let jwtToken = jwt.sign(
         { userId: save_driver._id },
