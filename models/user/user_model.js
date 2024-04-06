@@ -97,7 +97,7 @@ const user = new Schema(
       type: Boolean,
       default: false
   },
-  driver_id: {
+  driverId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "driver",
     default: null,

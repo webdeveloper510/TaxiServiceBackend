@@ -838,10 +838,15 @@ exports.convertIntoDriver = async (req, res) => {
       save_driver.jwtToken = jwtToken;
       const result = save_driver.toObject();
       result.role = "DRIVER";
-      console.log("🚀 ~ driverUpload ~ save_driver:", save_driver);
       req.user.isDriver = true;
+      console.log("🚀 ~ driverUpload ~ save_driver:", save_driver._id)
       req.user.driverId = save_driver._id;
       await req.user.save();
+      const newUser = await user_model.updateOne({_id:req.user._id},{
+        driverId : save_driver._id,
+        isDriver : true,
+        jwtToken: jwtToken,
+      })
       await save_driver.save();
       if (!save_driver) {
         res.send({
