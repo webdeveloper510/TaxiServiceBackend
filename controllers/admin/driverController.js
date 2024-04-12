@@ -707,14 +707,74 @@ exports.updateVerification = async (req, res) => {
 
 exports.get_active_drivers = async (req, res) => {
   try {
+    let currentDate = new Date();
+    let startOfCurrentWeek = new Date(currentDate);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    startOfCurrentWeek.setDate(
+      startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+    ); // Set to Monday of current week
     let getDetail = await USER.findOne({ _id: req.userId });
-    let getDrivers = await DRIVER.find({
-      status: true,
-      is_login: true,
-      defaultVehicle: { $ne: null },
-    })
-      .populate("defaultVehicle")
-      .sort({ createdAt: -1 });
+    // let getDrivers = await DRIVER.find({
+    //   status: true,
+    //   is_login: true,
+    //   defaultVehicle: { $ne: null },
+    // })
+    //   .populate("defaultVehicle")
+    //   .sort({ createdAt: -1 });
+    let getDrivers = await DRIVER.aggregate([
+      {
+        $match: {
+          status: true,
+          is_login: true,
+          defaultVehicle: { $ne: null },
+        },
+      },
+      {
+        $lookup: {
+          from: "vehicles", // Assuming the collection name for vehicles is "vehicles"
+          localField: "defaultVehicle",
+          foreignField: "_id",
+          as: "defaultVehicle",
+        },
+      },
+      {
+        $unwind: "$defaultVehicle",
+      },
+      {
+        $lookup: {
+          localField: "_id",
+          foreignField: "driver_name",
+          from: "trips",
+          as: "tripData",
+          pipeline: [
+            {
+              $match: {
+                is_paid: "false",
+                trip_status: "Completed",
+                drop_time: {
+                  $lte: startOfCurrentWeek,
+                },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          totalUnpaidTrips: {
+            $size: "$tripData",
+          },
+        },
+      },
+      {
+        $match: {
+          totalUnpaidTrips: 0,
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+    ]);
     if (!getDrivers) {
       res.send({
         code: constant.error_code,
@@ -722,7 +782,7 @@ exports.get_active_drivers = async (req, res) => {
       });
     } else {
       const fv = getDetail?.favoriteDrivers?.map((id) => id.toString()) || [];
-      const driver = getDrivers.map((d) => d.toObject());
+      const driver = getDrivers.map((d) => d);
       const result = driver.map((d) => {
         let isFavorite = false;
         if (fv.includes(d._id.toString())) {
@@ -738,6 +798,7 @@ exports.get_active_drivers = async (req, res) => {
       });
     }
   } catch (err) {
+    console.log("🚀 ~ exports.get_active_drivers= ~ err:", err);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -839,14 +900,17 @@ exports.convertIntoDriver = async (req, res) => {
       const result = save_driver.toObject();
       result.role = "DRIVER";
       req.user.isDriver = true;
-      console.log("🚀 ~ driverUpload ~ save_driver:", save_driver._id)
+      console.log("🚀 ~ driverUpload ~ save_driver:", save_driver._id);
       req.user.driverId = save_driver._id;
       await req.user.save();
-      const newUser = await user_model.updateOne({_id:req.user._id},{
-        driverId : save_driver._id,
-        isDriver : true,
-        jwtToken: jwtToken,
-      })
+      const newUser = await user_model.updateOne(
+        { _id: req.user._id },
+        {
+          driverId: save_driver._id,
+          isDriver: true,
+          jwtToken: jwtToken,
+        }
+      );
       await save_driver.save();
       if (!save_driver) {
         res.send({
@@ -908,36 +972,36 @@ exports.switchToDriver = async (req, res) => {
 };
 
 exports.switchToCompany = async (req, res) => {
-    try {
-      let user = req.user;
-  
-      let companyData = await user_model.findOne({ email: user.email });
-      if (!companyData) {
-        res.send({
-          code: constant.error_code,
-          message: "You don not have company profile",
-        });
-      } else {
-        let jwtToken = jwt.sign(
-          { userId: companyData._id },
-          process.env.JWTSECRET,
-          { expiresIn: "365d" }
-        );
-        const result = companyData.toObject();
-        companyData.jwtToken = jwtToken;
-        result.role = "COMPANY";
-        res.send({
-          code: constant.success_code,
-          message: "data fetch successfully",
-          result,
-          jwtToken,
-        });
-      }
-    } catch (err) {
-      console.log("🚀 ~ driverUpload ~ err:", err);
+  try {
+    let user = req.user;
+
+    let companyData = await user_model.findOne({ email: user.email });
+    if (!companyData) {
       res.send({
         code: constant.error_code,
-        message: err.message,
+        message: "You don not have company profile",
+      });
+    } else {
+      let jwtToken = jwt.sign(
+        { userId: companyData._id },
+        process.env.JWTSECRET,
+        { expiresIn: "365d" }
+      );
+      const result = companyData.toObject();
+      companyData.jwtToken = jwtToken;
+      result.role = "COMPANY";
+      res.send({
+        code: constant.success_code,
+        message: "data fetch successfully",
+        result,
+        jwtToken,
       });
     }
-  };
+  } catch (err) {
+    console.log("🚀 ~ driverUpload ~ err:", err);
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};

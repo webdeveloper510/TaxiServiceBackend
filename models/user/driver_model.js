@@ -52,6 +52,10 @@ const driver = new Schema({
         type: String,
         default: ''
     },
+    deviceToken: {
+        type: String,
+        default: null
+    },
     profile_image: {
         type: String,
         default: 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'

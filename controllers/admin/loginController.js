@@ -1,291 +1,368 @@
-require("dotenv").config()
-const constants = require('../../config/constant')
-const USER = require('../../models/user/user_model')
-const AGENCY = require('../../models/user/agency_model')
-const FEEDBACK = require('../../models/user/feedback_model')
-const DRIVER = require('../../models/user/driver_model')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const randToken = require('rand-token').generator()
-const multer = require('multer')
-const path = require('path')
-const moment = require('moment')
-const constant = require("../../config/constant")
-const emailConstant = require('../../config/emailConstant')
-const nodemailer = require('nodemailer')
-const stripe = require('stripe')('sk_test_51OH1cSSIpj1PyQQaTWeLDPcDsiROliXqsb2ROV2SvHEXwIBbnM9doAQF4rIqWGTTFM7SK4kBxjMmSXMgcLcJTSVh00l0kUa708');
+require("dotenv").config();
+const constants = require("../../config/constant");
+const USER = require("../../models/user/user_model");
+const AGENCY = require("../../models/user/agency_model");
+const FEEDBACK = require("../../models/user/feedback_model");
+const DRIVER = require("../../models/user/driver_model");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const randToken = require("rand-token").generator();
+const multer = require("multer");
+const path = require("path");
+const moment = require("moment");
+const constant = require("../../config/constant");
+const emailConstant = require("../../config/emailConstant");
+const nodemailer = require("nodemailer");
+const stripe = require("stripe")(
+  "sk_test_51OH1cSSIpj1PyQQaTWeLDPcDsiROliXqsb2ROV2SvHEXwIBbnM9doAQF4rIqWGTTFM7SK4kBxjMmSXMgcLcJTSVh00l0kUa708"
+);
 
-const mongoose = require("mongoose")
-const trip_model = require("../../models/user/trip_model")
+const mongoose = require("mongoose");
+const trip_model = require("../../models/user/trip_model");
 
 exports.create_super_admin = async (req, res) => {
-    try {
-        let data = req.body
-        let checkEmail = await USER.findOne({ email: data.email })
-        if (checkEmail) {
-            res.send({
-                code: constants.error_code,
-                message: "Email is already exist!"
-            })
-            return;
-        }
-        let checkPhone = await USER.findOne({ phone: data.phone })
-        if (checkPhone) {
-            res.send({
-                code: constants.error_code,
-                message: "Phone number is already exist"
-            })
-            return;
-        }
-        let hash = await bcrypt.hashSync(data.password, 10)
-        data.password = hash
-        let save_data = await USER(data).save()
-        if (!save_data) {
-            res.send({
-                code: constants.error_code,
-                message: "Unable to save the data"
-            })
-        } else {
-            let jwtToken = jwt.sign({ userId: save_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
-            save_data.jwtToken = jwtToken
-            res.send({
-                code: constants.success_code,
-                message: "Successfully created",
-                result: save_data
-            })
-        }
-    } catch (err) {
-        res.send({
-            code: constants.error_code,
-            message: err.message
-        })
+  try {
+    let data = req.body;
+    let checkEmail = await USER.findOne({ email: data.email });
+    if (checkEmail) {
+      res.send({
+        code: constants.error_code,
+        message: "Email is already exist!",
+      });
+      return;
     }
-}
+    let checkPhone = await USER.findOne({ phone: data.phone });
+    if (checkPhone) {
+      res.send({
+        code: constants.error_code,
+        message: "Phone number is already exist",
+      });
+      return;
+    }
+    let hash = await bcrypt.hashSync(data.password, 10);
+    data.password = hash;
+    let save_data = await USER(data).save();
+    if (!save_data) {
+      res.send({
+        code: constants.error_code,
+        message: "Unable to save the data",
+      });
+    } else {
+      let jwtToken = jwt.sign(
+        { userId: save_data._id },
+        process.env.JWTSECRET,
+        { expiresIn: "365d" }
+      );
+      save_data.jwtToken = jwtToken;
+      res.send({
+        code: constants.success_code,
+        message: "Successfully created",
+        result: save_data,
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constants.error_code,
+      message: err.message,
+    });
+  }
+};
 
 exports.login = async (req, res) => {
-    try {
-        let data = req.body
-        let check_data;
-        let userData = await USER.findOne(
-            {
-                $and: [
-                    {
-                        $or: [{ 'email': { '$regex': data.email, '$options': 'i' } }, { 'phone': { '$regex': data.email, '$options': 'i' } },]
-                    },
-                    {
-                        is_deleted: false
-                    }
-                ]
-            }
-        ).populate("created_by")
-        if (userData && userData.role != "SUPER_ADMIN" &&  (!userData.status || !userData?.created_by?.status)) {
-            return res.send({
-                code: constant.error_code,
-                message: "You are blocked by administration. Please contact administration"
-            })
-        }
-        if (!userData) {
-            let check_again = await DRIVER.findOne({
-                $and: [
-                    {
-                        $or: [{ 'email': { '$regex': data.email, '$options': 'i' } }, { 'phone': { '$regex': data.email, '$options': 'i' } }]
-                    },
-                    {
-                        is_deleted: false
-                    }
-                ]
-            })
-            
-            if (!check_again) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Invalid Credentials"
-                })
-                return;
-            }
-            const completedTrips = await trip_model.find({driver_name: check_again._id, trip_status: "Completed", is_paid: false}).countDocuments();
-            check_data = check_again
-           
-            
-            let checkPassword = await bcrypt.compare(data.password, check_data.password)
-            if (!checkPassword) {
-                res.send({
-                    code: constants.error_code,
-                    message: "Invalid Credentials"
-                })
-                return;
-            }
-            // if (data.is_app && check_again.is_login) {
-            //     res.send({
-            //         code: constant.error_code,
-            //         message: "You need to logout from previous device first"
-            //     })
-            //     return;
-            // }
-            let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
-            let updateLogin = await DRIVER.findOneAndUpdate({ _id: check_data._id }, { is_login: true, jwtToken }, { new: true })
-            let check_data2 = check_data.toObject()
-            check_data2.role = "DRIVER";
-            check_data2.totalTrips = completedTrips;
-            res.send({
-                code: constants.success_code,
-                message: "Login Successful",
-                result: check_data2,
-                jwtToken: jwtToken
-            })
-        } else {
-            check_data = userData
-            if (!check_data.status) {
-                return res.send({
-                    code: constant.error_code,
-                    message: "You are blocked by administration. Please contact adminstation"
-                })
-            }
-            let checkPassword = await bcrypt.compare(data.password, check_data.password)
-            if (!checkPassword) {
-                res.send({
-                    code: constants.error_code,
-                    message: "Invalid Credentials"
-                })
-                return;
-            }
-            let jwtToken = jwt.sign({ userId: check_data._id }, process.env.JWTSECRET, { expiresIn: '365d' })
-            let getData = await USER.aggregate([
-                {
-                    $match: { _id: new mongoose.Types.ObjectId(check_data._id) }
-
-                },
-                {
-                    $lookup: {
-                        from: "agencies",
-                        localField: "_id",
-                        foreignField: "user_id",
-                        as: "company_detail"
-                    }
-                },
-                { $unwind: "$company_detail" }
-            ])
-          
-            res.send({
-                code: constants.success_code,
-                message: "Login Successful",
-                result: getData[0] ? getData[0] : check_data,
-                jwtToken: jwtToken
-            })
-        }
-
-
-    } catch (err) {
-        console.log("🚀 ~ exports.login= ~ err:", err)
-        res.send({
-            code: constants.error_code,
-            message: err.message
-        })
+  try {
+    let currentDate = new Date();
+    let startOfCurrentWeek = new Date(currentDate);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    startOfCurrentWeek.setDate(
+      startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+    ); // Set to Monday of current week
+    let data = req.body;
+    const deviceToken = data.deviceToken;
+    let check_data;
+    let userData = await USER.findOne({
+      $and: [
+        {
+          $or: [
+            { email: { $regex: data.email, $options: "i" } },
+            { phone: { $regex: data.email, $options: "i" } },
+          ],
+        },
+        {
+          is_deleted: false,
+        },
+      ],
+    }).populate("created_by");
+    if (
+      userData &&
+      userData.role != "SUPER_ADMIN" &&
+      (!userData.status || !userData?.created_by?.status)
+    ) {
+      return res.send({
+        code: constant.error_code,
+        message:
+          "You are blocked by administration. Please contact administration",
+      });
     }
-}
+    if (!userData) {
+      let check_again = await DRIVER.findOne({
+        $and: [
+          {
+            $or: [
+              { email: { $regex: data.email, $options: "i" } },
+              { phone: { $regex: data.email, $options: "i" } },
+            ],
+          },
+          {
+            is_deleted: false,
+          },
+        ],
+      });
+
+      if (!check_again) {
+        res.send({
+          code: constant.error_code,
+          message: "Invalid Credentials",
+        });
+        return;
+      }
+      const completedTrips = await trip_model
+        .find({
+          driver_name: check_again._id,
+          trip_status: "Completed",
+          is_paid: false,
+        })
+        .countDocuments();
+      const totalUnpaidTrips = await trip_model
+        .find({
+          driver_name: check_again._id,
+          trip_status: "Completed",
+          is_paid: false,
+          drop_time: {
+            $lte: startOfCurrentWeek,
+          },
+        })
+        .countDocuments();
+      check_data = check_again;
+
+      let checkPassword = await bcrypt.compare(
+        data.password,
+        check_data.password
+      );
+      if (!checkPassword) {
+        res.send({
+          code: constants.error_code,
+          message: "Invalid Credentials",
+        });
+        return;
+      }
+      // if (data.is_app && check_again.is_login) {
+      //     res.send({
+      //         code: constant.error_code,
+      //         message: "You need to logout from previous device first"
+      //     })
+      //     return;
+      // }
+      let jwtToken = jwt.sign(
+        { userId: check_data._id },
+        process.env.JWTSECRET,
+        { expiresIn: "365d" }
+      );
+      const updateDriver = { is_login: true, jwtToken};
+      if(deviceToken) updateDriver.deviceToken = deviceToken;
+      let updateLogin = await DRIVER.findOneAndUpdate(
+        { _id: check_data._id },
+        updateDriver,
+        { new: true }
+      );
+      let check_data2 = check_data.toObject();
+      check_data2.role = "DRIVER";
+      check_data2.totalTrips = completedTrips;
+      check_data2.totalUnpaidTrips = totalUnpaidTrips;
+      res.send({
+        code: constants.success_code,
+        message: "Login Successful",
+        result: check_data2,
+        jwtToken: jwtToken,
+      });
+    } else {
+      check_data = userData;
+      if (!check_data.status) {
+        return res.send({
+          code: constant.error_code,
+          message:
+            "You are blocked by administration. Please contact adminstation",
+        });
+      }
+      let checkPassword = await bcrypt.compare(
+        data.password,
+        check_data.password
+      );
+      if (!checkPassword) {
+        res.send({
+          code: constants.error_code,
+          message: "Invalid Credentials",
+        });
+        return;
+      }
+      let jwtToken = jwt.sign(
+        { userId: check_data._id },
+        process.env.JWTSECRET,
+        { expiresIn: "365d" }
+      );
+      if(deviceToken) {
+        check_data.deviceToken = deviceToken;
+        await check_data.save();
+      }
+
+      let getData = await USER.aggregate([
+        {
+          $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
+        },
+        {
+          $lookup: {
+            from: "agencies",
+            localField: "_id",
+            foreignField: "user_id",
+            as: "company_detail",
+          },
+        },
+        { $unwind: "$company_detail" },
+      ]);
+
+      res.send({
+        code: constants.success_code,
+        message: "Login Successful",
+        result: getData[0] ? getData[0] : check_data,
+        jwtToken: jwtToken,
+      });
+    }
+  } catch (err) {
+    console.log("🚀 ~ exports.login= ~ err:", err);
+    res.send({
+      code: constants.error_code,
+      message: err.message,
+    });
+  }
+};
 
 exports.get_token_detail = async (req, res) => {
-    try {
-       
-        let data = req.body
-        let result1;
-        const userByID = await USER.findOne({ _id: req.userId })
-        let getData = await USER.aggregate([
-            {
-                $match: { _id: new mongoose.Types.ObjectId(req.userId) }
-
-            },
-            {
-                $lookup: {
-                    from: "agencies",
-                    localField: "_id",
-                    foreignField: "user_id",
-                    as: "company_detail"
-                }
-            },
-            { $unwind: "$company_detail" }
-        ])
-        if (!userByID) {
-            let get_data = await DRIVER.findOne({ _id: req.userId })
-            if (!get_data) {
-                res.send({
-                    code: constants.error_code,
-                    message: "Unable to fetch the detail"
-                })
-                return
-            }
-            let get_data2 = get_data.toObject()
-            get_data2.role = "DRIVER"
-            res.send({
-                code: constant.success_code,
-                message: "Success",
-                result: get_data2
-            })
-
-        } else {
-            res.send({
-                code: constant.success_code,
-                message: "Success",
-                result: getData[0] ? getData[0] : userByID
-            })
-        }
-    } catch (err) {
+  try {
+    let currentDate = new Date();
+    let startOfCurrentWeek = new Date(currentDate);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    startOfCurrentWeek.setDate(
+      startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+    ); // Set to Monday of current week
+    let data = req.body;
+    
+    let result1;
+    const userByID = await USER.findOne({ _id: req.userId });
+    let getData = await USER.aggregate([
+      {
+        $match: { _id: new mongoose.Types.ObjectId(req.userId) },
+      },
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "_id",
+          foreignField: "user_id",
+          as: "company_detail",
+        },
+      },
+      { $unwind: "$company_detail" },
+    ]);
+    if (!userByID) {
+      let get_data = await DRIVER.findOne({ _id: req.userId });
+      if (!get_data) {
         res.send({
-
-            code: constants.error_code,
-            message: err.message
+          code: constants.error_code,
+          message: "Unable to fetch the detail",
+        });
+        return;
+      }
+      const totalUnpaidTrips = await trip_model
+        .find({
+          driver_name: get_data._id,
+          trip_status: "Completed",
+          is_paid: false,
+          drop_time: {
+            $lte: startOfCurrentWeek,
+          },
         })
+        .countDocuments();
+      let get_data2 = get_data.toObject();
+      get_data2.totalUnpaidTrips = totalUnpaidTrips;
+      get_data2.role = "DRIVER";
+      res.send({
+        code: constant.success_code,
+        message: "Success",
+        result: get_data2,
+      });
+    } else {
+      res.send({
+        code: constant.success_code,
+        message: "Success",
+        result: getData[0] ? getData[0] : userByID,
+      });
     }
-}
+  } catch (err) {
+    res.send({
+      code: constants.error_code,
+      message: err.message,
+    });
+  }
+};
 
 exports.send_otp = async (req, res) => {
-    try {
-        let data = req.body
-        let check_email = await USER.findOne({
-            $and: [
-                {
-                    $or: [{ 'email': data.email }, { 'phone': data.email }]
-                },
-                {
-                    status: true
-                },
-                {
-                    is_deleted: false
-                }
-            ]
-        })
-        if (!check_email) {
-            let check_driver = await DRIVER.findOne(
-                {
-                    $and: [
-                        {
-                            $or: [{ 'email': data.email }, { 'phone': data.email }]
-                        },
-                        {
-                            status: true
-                        },
-                        {
-                            is_deleted: false
-                        }
-                    ]
-                }
-            )
-            if (!check_driver) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Invalid email IDs"
-                })
-                return;
-            }
-            data.OTP = randToken.generate(4, '123456789')
-            data.otp_expiry = moment().add('minutes', 1).format()
-            let updateUser = await DRIVER.findOneAndUpdate({ _id: check_driver._id }, data, { new: true })
-            var transporter = nodemailer.createTransport(emailConstant.credentials);
-            var mailOptions = {
-                from: emailConstant.from_email,
-                to: check_driver.email,
-                subject: "Reset your password",
-                html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  try {
+    let data = req.body;
+    let check_email = await USER.findOne({
+      $and: [
+        {
+          $or: [{ email: data.email }, { phone: data.email }],
+        },
+        {
+          status: true,
+        },
+        {
+          is_deleted: false,
+        },
+      ],
+    });
+    if (!check_email) {
+      let check_driver = await DRIVER.findOne({
+        $and: [
+          {
+            $or: [{ email: data.email }, { phone: data.email }],
+          },
+          {
+            status: true,
+          },
+          {
+            is_deleted: false,
+          },
+        ],
+      });
+      if (!check_driver) {
+        res.send({
+          code: constant.error_code,
+          message: "Invalid email IDs",
+        });
+        return;
+      }
+      data.OTP = randToken.generate(4, "123456789");
+      data.otp_expiry = moment().add("minutes", 1).format();
+      let updateUser = await DRIVER.findOneAndUpdate(
+        { _id: check_driver._id },
+        data,
+        { new: true }
+      );
+      var transporter = nodemailer.createTransport(emailConstant.credentials);
+      var mailOptions = {
+        from: emailConstant.from_email,
+        to: check_driver.email,
+        subject: "Reset your password",
+        html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
   @import url(https://fonts.googleapis.com/css?family=Nunito);
@@ -433,33 +510,35 @@ There was a request to change your password!
 </td>
 </tr>
 </tbody></table>
-</body></html>`
-            };
-            await transporter.sendMail(mailOptions);
+</body></html>`,
+      };
+      await transporter.sendMail(mailOptions);
 
-            res.send({
-                code: constant.success_code,
-                message: "OTP sent successfully",
-                otp: data.OTP
-            })
-
-        } else {
-            data.OTP = randToken.generate(4, '123456789')
-            data.otp_expiry = moment().add('minutes', 1).format()
-            let updateUser = await USER.findOneAndUpdate({ _id: check_email._id }, data, { new: true })
-            if (!updateUser) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Unable to send the otp please try again"
-                })
-            } else {
-              
-                var transporter = nodemailer.createTransport(emailConstant.credentials);
-                var mailOptions = {
-                    from: emailConstant.from_email,
-                    to: check_email.email,
-                    subject: "Reset your password",
-                    html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+      res.send({
+        code: constant.success_code,
+        message: "OTP sent successfully",
+        otp: data.OTP,
+      });
+    } else {
+      data.OTP = randToken.generate(4, "123456789");
+      data.otp_expiry = moment().add("minutes", 1).format();
+      let updateUser = await USER.findOneAndUpdate(
+        { _id: check_email._id },
+        data,
+        { new: true }
+      );
+      if (!updateUser) {
+        res.send({
+          code: constant.error_code,
+          message: "Unable to send the otp please try again",
+        });
+      } else {
+        var transporter = nodemailer.createTransport(emailConstant.credentials);
+        var mailOptions = {
+          from: emailConstant.from_email,
+          to: check_email.email,
+          subject: "Reset your password",
+          html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
     <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
       @import url(https://fonts.googleapis.com/css?family=Nunito);
@@ -607,313 +686,319 @@ There was a request to change your password!
     </td>
     </tr>
     </tbody></table>
-    </body></html>`
-                };
-                await transporter.sendMail(mailOptions);
+    </body></html>`,
+        };
+        await transporter.sendMail(mailOptions);
 
-                res.send({
-                    code: constant.success_code,
-                    message: "OTP sent successfully",
-                    otp: data.OTP
-                })
-            }
-
-        }
-    } catch (err) {
         res.send({
-            code: constant.error_code,
-            message: err.message
-        })
+          code: constant.success_code,
+          message: "OTP sent successfully",
+          otp: data.OTP,
+        });
+      }
     }
-}
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
 
 exports.verify_otp = async (req, res) => {
-    try {
-        let data = req.body
+  try {
+    let data = req.body;
 
-        let checkEmail;
-        let checkEmail1 = await USER.findOne({ email: req.body.email })
-        if (!checkEmail1) {
-            let checkEmail2 = await DRIVER.findOne({ email: req.body.email })
-            if (!checkEmail2) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Invalid Email"
-                })
-                return;
-            }
-            let checkEmail = checkEmail2
-            if (data.OTP != checkEmail.OTP) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Invalid OTP"
-                })
-                return;
-            }
-            res.send({
-                code: constant.success_code,
-                message: "OTP verified successfully"
-            })
-        } else {
-            if (data.OTP != checkEmail1.OTP) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Invalid OTP"
-                })
-                return;
-            }
-            res.send({
-                code: constant.success_code,
-                message: "OTP verified successfully"
-            })
-            // console.log('current', moment().format(), 'expiry-----', checkEmail1.otp_expiry)
-            // const currentDate = new Date(moment().format());
-            // // Expiry date
-            // const expiryDate = new Date(checkEmail.otp_expiry);
-            // if (expiryDate > currentDate) {
-            //     res.send({
-            //         code: constant.error_code,
-            //         message: "Your otp is expired"
-            //     })
-            //     return;
-            // }
-
-
-
-        }
-    } catch (err) {
-        console.log(err)
+    let checkEmail;
+    let checkEmail1 = await USER.findOne({ email: req.body.email });
+    if (!checkEmail1) {
+      let checkEmail2 = await DRIVER.findOne({ email: req.body.email });
+      if (!checkEmail2) {
         res.send({
-            code: constant.error_code,
-            message: err.message
-        })
+          code: constant.error_code,
+          message: "Invalid Email",
+        });
+        return;
+      }
+      let checkEmail = checkEmail2;
+      if (data.OTP != checkEmail.OTP) {
+        res.send({
+          code: constant.error_code,
+          message: "Invalid OTP",
+        });
+        return;
+      }
+      res.send({
+        code: constant.success_code,
+        message: "OTP verified successfully",
+      });
+    } else {
+      if (data.OTP != checkEmail1.OTP) {
+        res.send({
+          code: constant.error_code,
+          message: "Invalid OTP",
+        });
+        return;
+      }
+      res.send({
+        code: constant.success_code,
+        message: "OTP verified successfully",
+      });
+      // console.log('current', moment().format(), 'expiry-----', checkEmail1.otp_expiry)
+      // const currentDate = new Date(moment().format());
+      // // Expiry date
+      // const expiryDate = new Date(checkEmail.otp_expiry);
+      // if (expiryDate > currentDate) {
+      //     res.send({
+      //         code: constant.error_code,
+      //         message: "Your otp is expired"
+      //     })
+      //     return;
+      // }
     }
-}
+  } catch (err) {
+    console.log(err);
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
 
 exports.forgot_password = async (req, res) => {
-    try {
-        let data = req.body
-        let criteria = { email: data.email }
-        let check_email = await USER.findOne(criteria)
-        if (!check_email) {
-            let check_driver = await DRIVER.findOne(criteria)
-            if (!check_driver) {
-                res.send({
-                    code: constant.error_code,
-                    message: 'Please enter valid email'
-                })
-                return
-            }
-            let option = { new: true }
-            let hash = bcrypt.hashSync(data.password, 10)
-            let newValue = {
-                $set: {
-                    password: hash,
-                    OTP: ''
-                }
-            }
-
-            let updatePassword = await DRIVER.findOneAndUpdate(criteria, newValue, option)
-            if (!updatePassword) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Unable to udpate the password"
-                })
-            } else {
-                res.send({
-                    code: constant.success_code,
-                    message: "Updated Successfully"
-                })
-            }
-
-        } else {
-            let option = { new: true }
-            let hash = bcrypt.hashSync(data.password, 10)
-            let newValue = {
-                $set: {
-                    password: hash,
-                    OTP: ''
-                }
-            }
-
-            let updatePassword = await USER.findOneAndUpdate(criteria, newValue, option)
-            if (!updatePassword) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Unable to udpate the password"
-                })
-            } else {
-                res.send({
-                    code: constant.success_code,
-                    message: "Updated Successfully"
-                })
-            }
-
-        }
-
-
-    } catch (err) {
+  try {
+    let data = req.body;
+    let criteria = { email: data.email };
+    let check_email = await USER.findOne(criteria);
+    if (!check_email) {
+      let check_driver = await DRIVER.findOne(criteria);
+      if (!check_driver) {
         res.send({
-            code: constant.error_code,
-            message: err.message
-        })
+          code: constant.error_code,
+          message: "Please enter valid email",
+        });
+        return;
+      }
+      let option = { new: true };
+      let hash = bcrypt.hashSync(data.password, 10);
+      let newValue = {
+        $set: {
+          password: hash,
+          OTP: "",
+        },
+      };
+
+      let updatePassword = await DRIVER.findOneAndUpdate(
+        criteria,
+        newValue,
+        option
+      );
+      if (!updatePassword) {
+        res.send({
+          code: constant.error_code,
+          message: "Unable to udpate the password",
+        });
+      } else {
+        res.send({
+          code: constant.success_code,
+          message: "Updated Successfully",
+        });
+      }
+    } else {
+      let option = { new: true };
+      let hash = bcrypt.hashSync(data.password, 10);
+      let newValue = {
+        $set: {
+          password: hash,
+          OTP: "",
+        },
+      };
+
+      let updatePassword = await USER.findOneAndUpdate(
+        criteria,
+        newValue,
+        option
+      );
+      if (!updatePassword) {
+        res.send({
+          code: constant.error_code,
+          message: "Unable to udpate the password",
+        });
+      } else {
+        res.send({
+          code: constant.success_code,
+          message: "Updated Successfully",
+        });
+      }
     }
-}
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
 
 exports.reset_password = async (req, res) => {
-    try {
-        let data = req.body
-        let check_email = await USER.findOne({ _id: req.userId })
-        if (!check_email) {
-            res.send({
-                code: constant.error_code,
-                message: "Invalid ID"
-            })
-        } else {
-            let comparePassword = await bcrypt.compare(data.oldPassword, check_email.password)
-            if (!comparePassword) {
-                res.send({
-                    code: constant.error_code,
-                    message: "Old password is not correct"
-                })
-            } else {
-                let hashedPassword = await bcrypt.hashSync(data.password, 10);
-                let newValue = {
-                    $set: {
-                        password: hashedPassword
-                    }
-                }
-                let criteria = { _id: req.userId }
-                let option = { new: true }
-                let updateUser = await USER.findOneAndUpdate(criteria, newValue, option)
-                if (!updateUser) {
-                    res.send({
-                        code: constant.error_code,
-                        message: "Unable to update the password"
-                    })
-                } else {
-                    res.send({
-                        code: constant.success_code,
-                        message: "Updated Successfully"
-                    })
-                }
-            }
-        }
-    } catch (err) {
+  try {
+    let data = req.body;
+    let check_email = await USER.findOne({ _id: req.userId });
+    if (!check_email) {
+      res.send({
+        code: constant.error_code,
+        message: "Invalid ID",
+      });
+    } else {
+      let comparePassword = await bcrypt.compare(
+        data.oldPassword,
+        check_email.password
+      );
+      if (!comparePassword) {
         res.send({
+          code: constant.error_code,
+          message: "Old password is not correct",
+        });
+      } else {
+        let hashedPassword = await bcrypt.hashSync(data.password, 10);
+        let newValue = {
+          $set: {
+            password: hashedPassword,
+          },
+        };
+        let criteria = { _id: req.userId };
+        let option = { new: true };
+        let updateUser = await USER.findOneAndUpdate(
+          criteria,
+          newValue,
+          option
+        );
+        if (!updateUser) {
+          res.send({
             code: constant.error_code,
-            message: err.message
-        })
+            message: "Unable to update the password",
+          });
+        } else {
+          res.send({
+            code: constant.success_code,
+            message: "Updated Successfully",
+          });
+        }
+      }
     }
-}
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
 
 exports.save_feedback = async (req, res) => {
-    try {
-        let data = req.body
-        data.user_id = req.userId
-        let save_data = await FEEDBACK(data).save()
-        if (!save_data) {
-            res.send({
-                code: constant.error_code,
-                message: "Unable to save the data"
-            })
-        } else {
-            res.send(
-                {
-                    code: constant.success_code,
-                    message: "Saved Successylly"
-                }
-            )
-        }
-    } catch (err) {
-        res.send({
-            code: constant.error_code,
-            message: err.message
-        })
+  try {
+    let data = req.body;
+    data.user_id = req.userId;
+    let save_data = await FEEDBACK(data).save();
+    if (!save_data) {
+      res.send({
+        code: constant.error_code,
+        message: "Unable to save the data",
+      });
+    } else {
+      res.send({
+        code: constant.success_code,
+        message: "Saved Successylly",
+      });
     }
-}
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
 
 exports.get_feedback = async (req, res) => {
-    try {
-        let data = req.body
-        let get_feedbacks = await FEEDBACK.aggregate([
+  try {
+    let data = req.body;
+    let get_feedbacks = await FEEDBACK.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
+          pipeline: [
             {
-                $lookup: {
-                    from: "users",
-                    localField: "user_id",
-                    foreignField: "_id",
-                    as: "user",
-                    pipeline: [
-                        {
-                            $lookup: {
-                                from: "agencies",
-                                localField: "_id",
-                                foreignField: "user_id",
-                                as: "company_detail"
-                            }
-                        },
-                        {
-                            $project: {
-                                'company_name': { $arrayElemAt: ["$company_detail.company_name", 0] },
-
-                            }
-                        }
-                    ]
-                }
+              $lookup: {
+                from: "agencies",
+                localField: "_id",
+                foreignField: "user_id",
+                as: "company_detail",
+              },
             },
             {
-                $project: {
-                    _id: 1,
-                    createdAt: 1,
-                    comment: 1,
-                    title: 1,
-                    'company_name': { $arrayElemAt: ["$user.company_name", 0] },
-
-                }
-            }
-        ]).sort({ createdAt: -1 })
-        res.send({
-            code: constant.success_code,
-            message: "Success",
-            result: get_feedbacks
-        })
-    } catch (err) {
-        res.send({
-            code: constant.error_code,
-            message: err.message
-        })
-    }
-}
-
+              $project: {
+                company_name: {
+                  $arrayElemAt: ["$company_detail.company_name", 0],
+                },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          createdAt: 1,
+          comment: 1,
+          title: 1,
+          company_name: { $arrayElemAt: ["$user.company_name", 0] },
+        },
+      },
+    ]).sort({ createdAt: -1 });
+    res.send({
+      code: constant.success_code,
+      message: "Success",
+      result: get_feedbacks,
+    });
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
 
 exports.createPaymentSession = async (req, res) => {
-    try {
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: [{
-                price_data: {
-                    // To accept `ideal`, all line items must have currency: eur
-                    currency: 'inr',
-                    product_data: {
-                        name: 'T-shirt',
-                    },
-                    unit_amount: 2000,
-                },
-                quantity: 1,
-            }],
-            mode: 'payment',
-            success_url: 'http://localhost:3000//success',
-            cancel_url: 'http://localhost:3000//cancel',
-        });
-        res.send({
-            code: constant.success_code,
-            message: "Success",
-            result: session
-        })
-    } catch (err) {
-        res.send({
-            code: constant.error_code,
-            message: err.message
-        })
-    }
-}
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            // To accept `ideal`, all line items must have currency: eur
+            currency: "inr",
+            product_data: {
+              name: "T-shirt",
+            },
+            unit_amount: 2000,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: "http://localhost:3000//success",
+      cancel_url: "http://localhost:3000//cancel",
+    });
+    res.send({
+      code: constant.success_code,
+      message: "Success",
+      result: session,
+    });
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
