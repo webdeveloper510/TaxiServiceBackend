@@ -93,6 +93,10 @@ const user = new Schema(
         type: String,
         default: null,
     },
+    deviceToken: {
+      type: String,
+      default: ''
+  },
     isDriver: {
       type: Boolean,
       default: false

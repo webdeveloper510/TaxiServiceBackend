@@ -173,11 +173,29 @@ io.on("connection", (socket) => {
             trip,
             message: "Trip canceled successfully"
           } )
+          await  fcm.send({
+            to: user?.created_by?.deviceToken,
+            data: {
+                message: "Trip canceled by driver",
+                title:"tripCancelByDriver",
+                trip,
+                driver:driverBySocketId
+            }
+        })
         }else{
           io.to(user.socketId).emit("tripCancelledBYDriver", {
             trip,
             message: "Trip canceled successfully"
           } )
+          await  fcm.send({
+            to: user?.deviceToken,
+            data: {
+              message: "Trip canceled by driver",
+              title:"tripCancelByDriver",
+                trip,
+                driver:driverBySocketId
+            }
+        })
         }
         io.to(socket.id).emit("driverNotification", {
           code: 200,
