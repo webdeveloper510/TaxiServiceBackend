@@ -18,6 +18,7 @@ const { driverDetailsByToken, userDetailsByToken } = require("./Service/helperFu
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
+const fcm = require("./config/fcm.js");
 var app = express();
 app.use(cors())
 const httpServer = http.createServer(app)
