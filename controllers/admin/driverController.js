@@ -759,18 +759,18 @@ exports.get_active_drivers = async (req, res) => {
           ],
         },
       },
-      // {
-      //   $project: {
-      //     totalUnpaidTrips: {
-      //       $size: "$tripData",
-      //     },
-      //   },
-      // },
-      // {
-      //   $match: {
-      //     totalUnpaidTrips: 0,
-      //   },
-      // },
+      {
+        $addFields: {
+          totalUnpaidTrips: {
+            $size: "$tripData",
+          },
+        },
+      },
+      {
+        $match: {
+          totalUnpaidTrips: 0,
+        },
+      },
       {
         $sort: { createdAt: -1 },
       },
