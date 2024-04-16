@@ -1,34 +1,38 @@
-require("dotenv").config()
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const db = require('./config/db')
-const http = require('http')
-const cors = require('cors')
-const User = require('./models/user/user_model')
-var adminRouter = require('./routes/admin');
-var usersRouter = require('./routes/users');
-var subAdminRouter = require('./routes/subadmin');
-var driverRouter = require('./routes/driver');
-var apiRouter = require('./routes/index.js');
+require("dotenv").config();
+var createError = require("http-errors");
+var express = require("express");
+var path = require("path");
+var cookieParser = require("cookie-parser");
+var logger = require("morgan");
+const db = require("./config/db");
+const http = require("http");
+const cors = require("cors");
+const User = require("./models/user/user_model");
+var adminRouter = require("./routes/admin");
+var usersRouter = require("./routes/users");
+var subAdminRouter = require("./routes/subadmin");
+var driverRouter = require("./routes/driver");
+var apiRouter = require("./routes/index.js");
 const { Server } = require("socket.io");
-const { driverDetailsByToken, userDetailsByToken } = require("./Service/helperFuntion");
+const {
+  driverDetailsByToken,
+  userDetailsByToken,
+} = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
 const fcm = require("./config/fcm.js");
+const { default: axios } = require("axios");
 var app = express();
-app.use(cors())
-const httpServer = http.createServer(app)
+app.use(cors());
+const httpServer = http.createServer(app);
 // view engine setup
 
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 const io = new Server(httpServer, {
   cors: {
     origin: "*",
@@ -39,98 +43,115 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/uploads/',express.static('./uploads'))
+app.use("/uploads/", express.static("./uploads"));
 
 // app.use('/admin', adminRouter);
 // app.use('/users', usersRouter);
 // app.use('/subadmin', subAdminRouter);
 // app.use('/driver', driverRouter);
-app.use('/api', apiRouter);
+app.use("/api", apiRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  res.locals.error = req.app.get("env") === "development" ? err : {};
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render("error");
 });
 
-const PORT = process.env.PORT
-httpServer.listen(PORT,()=>console.log(`app listening at http://localhost:${PORT}`))
-
-
-
+const PORT = process.env.PORT;
+httpServer.listen(PORT, () =>
+  console.log(`app listening at http://localhost:${PORT}`)
+);
 
 io.on("connection", (socket) => {
   socket.on("addNewDriver", async ({ token, longitude, latitude }) => {
-    try{
+    try {
       const driverByToken = await driverDetailsByToken(token);
-    console.log("🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:", driverByToken)
-    
-    if (driverByToken) {
-      await driver_model.updateMany({socketId: socket.id},{$set:{
-        isSocketConnected : false,
-        socketId: null
-      }})
-      driverByToken.location = {
-        type: "Point",
-        coordinates: [longitude, latitude],
-      };
-      driverByToken.locationUpdatedAt = new Date();
-      driverByToken.isSocketConnected = true;
-      driverByToken.socketId = socket.id;
-      await driverByToken.save();
-      io.to(socket.id).emit("driverNotification",{
-        code:200,
-        message: "connected successfully with driver id: " + driverByToken._id
-      })
-    }
-    }catch(err){
-      console.log("🚀 ~ socket.on ~ err:", err)
+      console.log(
+        "🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:",
+        driverByToken
+      );
+
+      if (driverByToken) {
+        await driver_model.updateMany(
+          { socketId: socket.id },
+          {
+            $set: {
+              isSocketConnected: false,
+              socketId: null,
+            },
+          }
+        );
+        driverByToken.location = {
+          type: "Point",
+          coordinates: [longitude, latitude],
+        };
+        driverByToken.locationUpdatedAt = new Date();
+        driverByToken.isSocketConnected = true;
+        driverByToken.socketId = socket.id;
+        await driverByToken.save();
+        io.to(socket.id).emit("driverNotification", {
+          code: 200,
+          message:
+            "connected successfully with driver id: " + driverByToken._id,
+        });
+      }
+    } catch (err) {
+      console.log("🚀 ~ socket.on ~ err:", err);
     }
   });
   socket.on("addUser", async ({ token }) => {
-    if(!token || token == ""){
-      io.to(socket.id).emit("userConnection",{
-        code:200,
-        message: "token is required"
-      })
+    if (!token || token == "") {
+      io.to(socket.id).emit("userConnection", {
+        code: 200,
+        message: "token is required",
+      });
 
-      return
+      return;
     }
-    try{
-      console.log("🚀 ~ socket.on ~ token:", token)
+    try {
+      console.log("🚀 ~ socket.on ~ token:", token);
       const userByToken = await userDetailsByToken(token);
-      console.log("🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:", userByToken)
-      
+      console.log(
+        "🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:",
+        userByToken
+      );
+
       if (userByToken) {
-        await user_model.updateMany({socketId: socket.id},{$set:{
-          isSocketConnected : false,
-          socketId: null
-        }})
+        await user_model.updateMany(
+          { socketId: socket.id },
+          {
+            $set: {
+              isSocketConnected: false,
+              socketId: null,
+            },
+          }
+        );
         userByToken.isSocketConnected = true;
         userByToken.socketId = socket.id;
         await userByToken.save();
-        io.to(socket.id).emit("userConnection",{
-          code:200,
-          message: "connected successfully with user id: " + userByToken._id
-        })
+        io.to(socket.id).emit("userConnection", {
+          code: 200,
+          message: "connected successfully with user id: " + userByToken._id,
+        });
       }
-    }catch(err){
-      console.log("🚀 ~ socket.on ~ err:", err)
-      
+    } catch (err) {
+      console.log("🚀 ~ socket.on ~ err:", err);
     }
   });
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
-    const driverBySocketId = await driver_model.findOne({ socketId: socket.id });
+    const driverBySocketId = await driver_model.findOne({
+      socketId: socket.id,
+    });
     if (driverBySocketId) {
       driverBySocketId.location = {
         type: "Point",
@@ -140,81 +161,126 @@ io.on("connection", (socket) => {
       await driverBySocketId.save();
       io.to(socket.id).emit("UpdateLocationDriver", {
         code: 200,
-        message: "location updated successfully"
-      } )
-      
+        message: "location updated successfully",
+      });
     }
   });
   socket.on("cancelDriverTrip", async ({ tripId }) => {
-    if(!tripId) {
+    if (!tripId) {
       return io.to(socket.id).emit("driverNotification", {
         code: 200,
-        message: "Trip id not valid"
-      } )
+        message: "Trip id not valid",
+      });
     }
-   try {
-    const driverBySocketId = await driver_model.findOne({ socketId: socket.id });
-    console.log("🚀 ~ socket.on ~ driverBySocketId:", driverBySocketId)
-    if (driverBySocketId) {
-      const trip = await trip_model.findById(tripId);
-      console.log("🚀 ~ socket.on ~ trip:", trip)
-      if(!trip){
-        return io.to(socket.id).emit("driverNotification", {
-          code: 200,
-          message: "Trip id not valid"
-        } )
-      }
-      if(trip.driver_name.toString() == driverBySocketId._id.toString()) {
-        trip.driver_name = null;
-        trip.trip_status = "Pending";
-        await trip.save();
-        const user = await user_model.findById(trip.created_by).populate("created_by");
-        if(user.role = "HOTEL") {
-          io.to(user?.created_by?.socketId).emit("tripCancelledBYDriver", {
-            trip,
-            message: "Trip canceled successfully"
-          } )
-          await  fcm.send({
-            to: user?.created_by?.deviceToken,
-            data: {
-                message: "Trip canceled by driver",
-                title:"tripCancelByDriver",
-                trip,
-                driver:driverBySocketId
-            }
-        })
-        }else{
-          io.to(user.socketId).emit("tripCancelledBYDriver", {
-            trip,
-            message: "Trip canceled successfully"
-          } )
-          await  fcm.send({
-            to: user?.deviceToken,
-            data: {
-              message: "Trip canceled by driver",
-              title:"tripCancelByDriver",
-                trip,
-                driver:driverBySocketId
-            }
-        })
+    try {
+      const driverBySocketId = await driver_model.findOne({
+        socketId: socket.id,
+      });
+      console.log("🚀 ~ socket.on ~ driverBySocketId:", driverBySocketId);
+      if (driverBySocketId) {
+        const trip = await trip_model.findById(tripId);
+        console.log("🚀 ~ socket.on ~ trip:", trip);
+        if (!trip) {
+          return io.to(socket.id).emit("driverNotification", {
+            code: 200,
+            message: "Trip id not valid",
+          });
         }
-        io.to(socket.id).emit("driverNotification", {
-          code: 200,
-          message: "Trip canceled successfully"
-        } )
+        if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
+          trip.driver_name = null;
+          trip.trip_status = "Pending";
+          await trip.save();
+          const user = await user_model
+            .findById(trip.created_by)
+            .populate("created_by");
+          if ((user.role = "HOTEL")) {
+            io.to(user?.created_by?.socketId).emit("tripCancelledBYDriver", {
+              trip,
+              message: "Trip canceled successfully",
+            });
+            //   await  fcm.send({
+            //     // to: user?.created_by?.deviceToken,
+            //     to: user?.created_by?.deviceToken,
+            //     data: {
+            //         message: "Trip canceled by driver",
+            //         title:"tripCancelByDriver",
+            //         trip,
+            //         driver:driverBySocketId
+            //     }
+            // })
+            const response = await axios.post(
+              "https://fcm.googleapis.com/fcm/send",
+              {
+                to: user?.created_by?.deviceToken,
+                notification: {
+                  message: "Trip canceled by driver",
+                  title: "tripCancelByDriver",
+                  trip,
+                  driver: driverBySocketId,
+                },
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization:
+                    `key=${process.env.FCM_SERVER_KEY}`,
+                },
+              }
+            );
+            console.log("🚀 ~ socket.on ~ response:", response)
+          } else {
+            io.to(user.socketId).emit("tripCancelledBYDriver", {
+              trip,
+              message: "Trip canceled successfully",
+            });
+            // await fcm.send({
+            //   to: user?.deviceToken,
+            //   data: {
+            //     message: "Trip canceled by driver",
+            //     title: "tripCancelByDriver",
+            //     trip,
+            //     driver: driverBySocketId,
+            //   },
+            // });
+            const response = await axios.post(
+              "https://fcm.googleapis.com/fcm/send",
+              {
+                to:user?.deviceToken,
+                notification: {
+                  message: "Trip canceled by driver",
+                  title: "tripCancelByDriver",
+                  trip,
+                  driver: driverBySocketId,
+                },
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization:
+                    `key=${process.env.FCM_SERVER_KEY}`,
+                },
+              }
+            );
+            console.log("🚀 ~ socket.on ~ response:", response)
+          }
+          io.to(socket.id).emit("driverNotification", {
+            code: 200,
+            message: "Trip canceled successfully",
+          });
+        }
       }
-      
+    } catch (error) {
+      console.log("🚀 ~ socket.on ~ error:", error);
+      return io.to(socket.id).emit("driverNotification", {
+        code: 200,
+        message: "There is some",
+      });
     }
-   } catch (error) {
-    console.log("🚀 ~ socket.on ~ error:", error)
-    return io.to(socket.id).emit("driverNotification", {
-      code: 200,
-      message: "There is some"
-    } )
-   }
   });
   socket.on("disconnect", async () => {
-    const driverBySocketId = await driver_model.findOne({ socketId: socket.id });
+    const driverBySocketId = await driver_model.findOne({
+      socketId: socket.id,
+    });
     if (driverBySocketId) {
       driverBySocketId.isSocketConnected = false;
       driverBySocketId.socketId = null;
@@ -222,7 +288,5 @@ io.on("connection", (socket) => {
     }
   });
 });
-
-
 
 module.exports = app;
