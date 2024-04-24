@@ -35,6 +35,7 @@ var logoUpload = multer({
 exports.add_sub_admin = async (req, res) => {
     try {
         let data = req.body
+        data.email = data.email.toLowerCase()
         let checkEmail = await USER.findOne({ email: data.email, is_deleted: false })
         if (checkEmail) {
             res.send({
