@@ -937,6 +937,12 @@ exports.convertIntoDriver = async (req, res) => {
 
 exports.switchToDriver = async (req, res) => {
   try {
+    let currentDate = new Date();
+    let startOfCurrentWeek = new Date(currentDate);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    startOfCurrentWeek.setDate(
+      startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+    ); // Set to Monday of current week
     let user = req.user;
 
     let driverData = await DRIVER.findOne({ email: user.email });
