@@ -50,6 +50,7 @@ exports.add_driver = async (req, res) => {
   // driverUpload(req, res, async (err) => {
   try {
     const data = req.body;
+    data.email = data?.email?.toLowerCase()
     var driver_image = [];
     var driver_documents = [];
     // var imagePortfolioLogo = []
@@ -580,7 +581,7 @@ exports.update_driver = async (req, res) => {
       }
       const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
       const updates = req.body; // Assuming you send the updated driver data in the request body
-
+      updates.email = updates.email.toLowerCase()
       // Check if the driver exists
       const existingDriver = await DRIVER.findById(driverId);
 
