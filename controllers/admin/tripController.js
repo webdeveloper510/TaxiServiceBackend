@@ -783,7 +783,7 @@ exports.get_trip_detail = async (req, res) => {
                         ]
                     },
                     "hotel_location":{ $arrayElemAt: ["$company_detail.hotel_location", 0] },
-                    vehicle_model: 1,
+                    vehicle_model: 1, 
                     commission: 1,
                     price: 1,
                     vehicle_type: 1,
@@ -800,7 +800,8 @@ exports.get_trip_detail = async (req, res) => {
                     updatedAt: 1,
                     pay_option: 1,
                     customerDetails:1,
-                    passengerCount:1
+                    passengerCount:1,
+                    is_paid:1,
                 }
             }
         ])
