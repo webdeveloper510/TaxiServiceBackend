@@ -951,7 +951,18 @@ exports.switchToDriver = async (req, res) => {
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
-      const result = driverData.toObject();
+      const totalUnpaidTrips = await trip_model
+      .find({
+        driver_name: driverData._id,
+        trip_status: "Completed",
+        is_paid: false,
+        drop_time: {
+          $lte: startOfCurrentWeek,
+        },
+      })
+      .countDocuments();
+    let result = driverData.toObject();
+    result.totalUnpaidTrips = totalUnpaidTrips;
       driverData.jwtToken = jwtToken;
       result.role = "DRIVER";
       await driverData.save();
