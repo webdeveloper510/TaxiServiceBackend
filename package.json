@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.556.0",
     "aws-sdk": "^2.1606.0",
     "axios": "^1.6.8",
     "bcrypt": "^5.1.1",

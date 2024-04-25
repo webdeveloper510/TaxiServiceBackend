@@ -55,9 +55,9 @@ exports.add_vehicle = async (req, res) => {
             let file = req.files
             for (i = 0; i < file.length; i++) {
                 if (file[i].fieldname == 'vehicle_photo') {
-                    vehicle_photo.push(file[i].path);
+                    vehicle_photo.push(file[i].location);
                 } else if (file[i].fieldname == 'vehicle_documents') {
-                    vehicle_documents.push(file[i].path);
+                    vehicle_documents.push(file[i].location);
 
                 }
             }
@@ -270,9 +270,9 @@ exports.edit_vehicle = async (req, res) => {
             let file = req.files
             for (i = 0; i < file.length; i++) {
                 if (file[i].fieldname == 'vehicle_photo') {
-                    vehicle_photo.push(file[i].path);
+                    vehicle_photo.push(file[i].location);
                 } else if (file[i].fieldname == 'vehicle_documents') {
-                    vehicle_documents.push(file[i].path);
+                    vehicle_documents.push(file[i].location);
 
                 }
             }
