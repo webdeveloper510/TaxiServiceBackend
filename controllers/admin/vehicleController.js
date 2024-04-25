@@ -7,6 +7,7 @@ const constant = require('../../config/constant')
 
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
+const driver_model = require('../../models/user/driver_model')
 
 const imageStorage = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -121,6 +122,47 @@ exports.get_vehicles = async (req, res) => {
                 code: constant.success_code,
                 message: "Success",
                 result: get_vehicle
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+exports.get_vehicles_by_driverid = async (req, res) => {
+    try {
+        const driverData = await driver_model.findOne({_id:req.params.id});
+        if(!driverData){
+            res.send({
+                code: constant.error_code,
+                message: "Wrong driver id"
+            })
+        }
+        let get_vehicle = await VEHICLE.find({
+            $and: [
+                { is_deleted: false },
+                { created_by: req.params.id },
+                // {
+                //     $or: [
+                //         { created_by: req.userId },
+                //         { created_by: getUser.created_by },
+                //     ]
+                // }
+            ]
+        }).sort({ 'createdAt': -1 })
+        if (!get_vehicle) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to fetch the details"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: get_vehicle,
+                defaulVehicle: driverData.defaultVehicle
             })
         }
     } catch (err) {
