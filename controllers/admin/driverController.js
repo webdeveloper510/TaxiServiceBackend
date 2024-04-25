@@ -22,7 +22,9 @@ const jwt = require("jsonwebtoken");
 // var driverUpload = multer({
 //     storage: driverStorage
 // }).single("driver_image")
-
+const aws = require('aws-sdk');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const emailConstant = require("../../config/emailConstant");
@@ -694,6 +696,339 @@ exports.updateVerification = async (req, res) => {
         message: "Unable to update the verification",
       });
     }
+    var transporter = nodemailer.createTransport(emailConstant.credentials);
+    var mailOptions = {
+      from: emailConstant.from_email,
+      to: updateDriver.email,
+      subject: "",
+      html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
+@import url(https://fonts.googleapis.com/css?family=Nunito);
+
+/* Take care of image borders and formatting */
+
+img {
+  max-width: 600px;
+  outline: none;
+  text-decoration: none;
+  -ms-interpolation-mode: bicubic;
+}
+html{
+  margin: 0;
+  padding:0;
+}
+
+a {
+  text-decoration: none;
+  border: 0;
+  outline: none;
+  color: #bbbbbb;
+}
+
+a img {
+  border: none;
+}
+
+/* General styling */
+
+td, h1, h2, h3  {
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 400;
+}
+
+td {
+  text-align: center;
+}
+
+body {
+  -webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust:none;
+  width: 100%;
+  height: 100%;
+  color: #666;
+  background: #fff;
+  font-size: 16px;
+  width: 100%;
+  padding: 0px;
+  margin: 0px;
+}
+
+ table {
+  border-collapse: collapse !important;
+}
+
+.headline {
+  color: #444;
+  font-size: 36px;
+      padding-top: 10px;
+}
+
+.force-full-width {
+width: 100% !important;
+}
+
+
+</style><style media="screen" type="text/css">
+    @media screen {
+      td, h1, h2, h3 {
+        font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
+      }
+    }
+</style><style media="only screen and (max-width: 480px)" type="text/css">
+  /* Mobile styles */
+  @media only screen and (max-width: 480px) {
+
+    table[class="w320"] {
+      width: 320px !important;
+    }
+  }
+</style>
+<style type="text/css"></style>
+
+</head>
+<body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
+<table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="
+  margin-top: 30px;
+  margin-bottom: 10px;
+border-radius: 10px;
+box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);
+background:#ccc;
+">
+<tbody><tr>
+<td align="center" bgcolor="#fff" class="" valign="top" width="100%">
+<center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
+<tbody><tr>
+<td align="center" class="" valign="top">
+<table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
+<tbody style="margin-top: 5px;">
+<tr class="" style="border-bottom: 1px solid #cccccc38;">
+<td class="">
+<img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
+</td>
+</tr>
+<tr class=""><td class="headline"> Taxi Service!</td></tr>
+<tr>
+<td>
+<center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
+<td class="" style="color:#444; font-weight: 400;"><br>
+Your account has been verified successfully.
+<br>
+<br>
+<br></td>
+</tr>
+</tbody></table></center>
+</td>
+</tr>
+<tr>
+<td class="">
+<div class="">
+</div>
+<br>
+</td>
+</tr>
+</tbody>
+
+</table>
+
+<table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
+<tbody>
+<tr>
+<td class="" style="color:#444;
+                  ">
+</td>
+</tr>
+</tbody></table></td>
+</tr>
+</tbody></table></center>
+</td>
+</tr>
+</tbody></table>
+</body></html>`,
+    };
+    await transporter.sendMail(mailOptions);
+
+
+    res.send({
+      code: constant.success_code,
+      message: "Updated Successfully",
+    });
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+exports.rejectVerification = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let updateDriver = await DRIVER.findOneAndUpdate(
+      { _id: id },
+      {
+        $set: { isDocUploaded: false },
+      }
+    );
+    if (!updateDriver) {
+      return res.send({
+        code: constant.error_code,
+        message: "Unable to update the verification",
+      });
+    }
+    var transporter = nodemailer.createTransport(emailConstant.credentials);
+    var mailOptions = {
+      from: emailConstant.from_email,
+      to: updateDriver.email,
+      subject: "",
+      html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
+@import url(https://fonts.googleapis.com/css?family=Nunito);
+
+/* Take care of image borders and formatting */
+
+img {
+  max-width: 600px;
+  outline: none;
+  text-decoration: none;
+  -ms-interpolation-mode: bicubic;
+}
+html{
+  margin: 0;
+  padding:0;
+}
+
+a {
+  text-decoration: none;
+  border: 0;
+  outline: none;
+  color: #bbbbbb;
+}
+
+a img {
+  border: none;
+}
+
+/* General styling */
+
+td, h1, h2, h3  {
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: 400;
+}
+
+td {
+  text-align: center;
+}
+
+body {
+  -webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust:none;
+  width: 100%;
+  height: 100%;
+  color: #666;
+  background: #fff;
+  font-size: 16px;
+  width: 100%;
+  padding: 0px;
+  margin: 0px;
+}
+
+ table {
+  border-collapse: collapse !important;
+}
+
+.headline {
+  color: #444;
+  font-size: 36px;
+      padding-top: 10px;
+}
+
+.force-full-width {
+width: 100% !important;
+}
+
+
+</style><style media="screen" type="text/css">
+    @media screen {
+      td, h1, h2, h3 {
+        font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
+      }
+    }
+</style><style media="only screen and (max-width: 480px)" type="text/css">
+  /* Mobile styles */
+  @media only screen and (max-width: 480px) {
+
+    table[class="w320"] {
+      width: 320px !important;
+    }
+  }
+</style>
+<style type="text/css"></style>
+
+</head>
+<body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
+<table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="
+  margin-top: 30px;
+  margin-bottom: 10px;
+border-radius: 10px;
+box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);
+background:#ccc;
+">
+<tbody><tr>
+<td align="center" bgcolor="#fff" class="" valign="top" width="100%">
+<center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
+<tbody><tr>
+<td align="center" class="" valign="top">
+<table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
+<tbody style="margin-top: 5px;">
+<tr class="" style="border-bottom: 1px solid #cccccc38;">
+<td class="">
+<img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
+</td>
+</tr>
+<tr class=""><td class="headline"> Taxi Service!</td></tr>
+<tr>
+<td>
+<center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
+<td class="" style="color:#444; font-weight: 400;"><br>
+Your account verification faild.
+<br>
+<br>
+<br></td>
+</tr>
+</tbody></table></center>
+</td>
+</tr>
+<tr>
+<td class="">
+<div class="">
+</div>
+<br>
+</td>
+</tr>
+</tbody>
+
+</table>
+
+<table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
+<tbody>
+<tr>
+<td class="" style="color:#444;
+                  ">
+</td>
+</tr>
+</tbody></table></td>
+</tr>
+</tbody></table></center>
+</td>
+</tr>
+</tbody></table>
+</body></html>`,
+    };
+    await transporter.sendMail(mailOptions);
+
+
     res.send({
       code: constant.success_code,
       message: "Updated Successfully",
@@ -959,17 +1294,17 @@ exports.switchToDriver = async (req, res) => {
         { expiresIn: "365d" }
       );
       const totalUnpaidTrips = await trip_model
-      .find({
-        driver_name: driverData._id,
-        trip_status: "Completed",
-        is_paid: false,
-        drop_time: {
-          $lte: startOfCurrentWeek,
-        },
-      })
-      .countDocuments();
-    let result = driverData.toObject();
-    result.totalUnpaidTrips = totalUnpaidTrips;
+        .find({
+          driver_name: driverData._id,
+          trip_status: "Completed",
+          is_paid: false,
+          drop_time: {
+            $lte: startOfCurrentWeek,
+          },
+        })
+        .countDocuments();
+      let result = driverData.toObject();
+      result.totalUnpaidTrips = totalUnpaidTrips;
       driverData.jwtToken = jwtToken;
       result.role = "DRIVER";
       await driverData.save();
