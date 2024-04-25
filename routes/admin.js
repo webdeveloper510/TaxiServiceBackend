@@ -47,6 +47,7 @@ router.delete('/delete_sub_admin/:id', [verifyToken], subAdminController.delete_
 router.get('/get_vehicle_types', vehicleController.get_vehicle_types)
 router.post('/add_vehicle', [verifyToken], vehicleController.add_vehicle)
 router.get('/get_vehicles', [verifyToken], vehicleController.get_vehicles)
+router.get('/get_vehicles_by_driverid:id', [verifyToken], vehicleController.get_vehicles_by_driverid)
 router.get('/get_vehicles_with_type/:vehicle_type', [verifyToken], vehicleController.get_vehicles_with_type)
 router.get('/get_vehicle_type/:vehicle_type', [verifyToken], vehicleController.get_vehicle_type)
 router.put('/edit_vehicle/:id', [verifyToken], vehicleController.edit_vehicle)
