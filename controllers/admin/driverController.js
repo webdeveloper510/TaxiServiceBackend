@@ -28,6 +28,8 @@ const emailConstant = require("../../config/emailConstant");
 const trip_model = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
 const imageStorage = require("../../config/awss3");
+const aws = require('aws-sdk');
+const multerS3 = require('multer-s3');
 
 // const imageStorage = new CloudinaryStorage({
 //   cloudinary: cloudinary,
@@ -80,15 +82,16 @@ exports.add_driver = async (req, res) => {
     data.created_by = superAdmin; // Assuming you have user authentication
     let check_other1 = await DRIVER.findOne({ email: data.email });
     let check_other2 = await DRIVER.findOne({ phone: data.phone });
-
-    if (check_other1) {
+    let check_other3 = await user_model.findOne({ email: data.email });
+    let check_other4 = await user_model.findOne({ phone: data.phone });
+    if (check_other1 || check_other3) {
       res.send({
         code: constant.error_code,
         message: "Email Already exist",
       });
       return;
     }
-    if (check_other2) {
+    if (check_other2 || check_other4) {
       res.send({
         code: constant.error_code,
         message: "Phone Already exist",
@@ -111,168 +114,167 @@ exports.add_driver = async (req, res) => {
       });
     } else {
       // mail
-      // var transporter = nodemailer.createTransport(emailConstant.credentials);
-      // var mailOptions = {
-      //     from: emailConstant.from_email,
-      //     to: save_driver.email,
-      //     subject: "Welcome mail",
-      //     html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-      //         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-      //         <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>PropTech Kenya Welcome Email</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
-      //           @import url(https://fonts.googleapis.com/css?family=Nunito);
+      var transporter = nodemailer.createTransport(emailConstant.credentials);
+      var mailOptions = {
+          from: emailConstant.from_email,
+          to: save_driver.email,
+          subject: "Welcome mail",
+          html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+              "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+              <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>PropTech Kenya Welcome Email</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
+                @import url(https://fonts.googleapis.com/css?family=Nunito);
 
-      //           /* Take care of image borders and formatting */
+                /* Take care of image borders and formatting */
 
-      //           img {
-      //             max-width: 600px;
-      //             outline: none;
-      //             text-decoration: none;
-      //             -ms-interpolation-mode: bicubic;
-      //           }
-      //           html{
-      //             margin: 0;
-      //             padding:0;
-      //           }
+                img {
+                  max-width: 600px;
+                  outline: none;
+                  text-decoration: none;
+                  -ms-interpolation-mode: bicubic;
+                }
+                html{
+                  margin: 0;
+                  padding:0;
+                }
 
-      //           a {
-      //             text-decoration: none;
-      //             border: 0;
-      //             outline: none;
-      //             color: #bbbbbb;
-      //           }
+                a {
+                  text-decoration: none;
+                  border: 0;
+                  outline: none;
+                  color: #bbbbbb;
+                }
 
-      //           a img {
-      //             border: none;
-      //           }
+                a img {
+                  border: none;
+                }
 
-      //           /* General styling */
+                /* General styling */
 
-      //           td, h1, h2, h3  {
-      //             font-family: Helvetica, Arial, sans-serif;
-      //             font-weight: 400;
-      //           }
+                td, h1, h2, h3  {
+                  font-family: Helvetica, Arial, sans-serif;
+                  font-weight: 400;
+                }
 
-      //           td {
-      //             text-align: center;
-      //           }
+                td {
+                  text-align: center;
+                }
 
-      //           body {
-      //             -webkit-font-smoothing:antialiased;
-      //             -webkit-text-size-adjust:none;
-      //             width: 100%;
-      //             height: 100%;
-      //             color: #666;
-      //             background: #fff;
-      //             font-size: 16px;
-      //             width: 100%;
-      //             padding: 0px;
-      //             margin: 0px;
-      //           }
+                body {
+                  -webkit-font-smoothing:antialiased;
+                  -webkit-text-size-adjust:none;
+                  width: 100%;
+                  height: 100%;
+                  color: #666;
+                  background: #fff;
+                  font-size: 16px;
+                  width: 100%;
+                  padding: 0px;
+                  margin: 0px;
+                }
 
-      //            table {
-      //             border-collapse: collapse !important;
-      //           }
+                 table {
+                  border-collapse: collapse !important;
+                }
 
-      //           .headline {
-      //             color: #444;
-      //             font-size: 36px;
-      //                 padding-top: 10px;
-      //           }
+                .headline {
+                  color: #444;
+                  font-size: 36px;
+                      padding-top: 10px;
+                }
 
-      //          .force-full-width {
-      //           width: 100% !important;
-      //          }
+               .force-full-width {
+                width: 100% !important;
+               }
 
-      //           </style><style media="screen" type="text/css">
-      //               @media screen {
-      //                 td, h1, h2, h3 {
-      //                   font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
-      //                 }
-      //               }
-      //           </style><style media="only screen and (max-width: 480px)" type="text/css">
-      //             /* Mobile styles */
-      //             @media only screen and (max-width: 480px) {
+                </style><style media="screen" type="text/css">
+                    @media screen {
+                      td, h1, h2, h3 {
+                        font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
+                      }
+                    }
+                </style><style media="only screen and (max-width: 480px)" type="text/css">
+                  /* Mobile styles */
+                  @media only screen and (max-width: 480px) {
 
-      //               table[class="w320"] {
-      //                 width: 320px !important;
-      //               }
-      //             }
-      //           </style>
-      //           <style type="text/css"></style>
+                    table[class="w320"] {
+                      width: 320px !important;
+                    }
+                  }
+                </style>
+                <style type="text/css"></style>
 
-      //           </head>
-      //           <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
-      //         <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="
-      //             margin-top: 30px;
-      //             margin-bottom: 10px;
-      //           border-radius: 10px;
-      //          box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);
-      //         background:#ccc;
-      //           ">
-      //         <tbody><tr>
-      //         <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
-      //         <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
-      //         <tbody><tr>
-      //         <td align="center" class="" valign="top">
-      //         <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
-      //         <tbody style="margin-top: 5px;">
-      //           <tr class="" style="border-bottom: 1px solid #cccccc38;">
-      //         <td class="">
-      //         </td>
-      //         </tr>
-      //         <tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
-      //         <tr>
-      //         <td>
-      //         <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
-      //         <td class="" style="color:#444; font-weight: 400;"><br>
-      //         <br><br>
-      //           You have successfully been registered to use Taxi Service as a <em> driver</em><br>
-      //          <br>
-      //           Your login credentials are provided below:
-      //         <br>
-      //         <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${save_driver.email}</span>
-      //          <br>
-      //           <span style="font-weight:bold;">Password: &nbsp;</span><span style="font-weight:lighter;" class="">${"Test@123"}</span>
-      //         <br><br>
-      //         <br></td>
-      //         </tr>
-      //         </tbody></table></center>
-      //         </td>
-      //         </tr>
-      //         <tr>
-      //         <td class="">
-      //         <div class="">
-      //         <a style="background-color:#ffcc54;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://taxi-service-demo.vercel.app/login">Visit Account and Start Managing</a>
-      //         </div>
-      //          <br>
-      //         </td>
-      //         </tr>
-      //         </tbody>
+                </head>
+                <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
+              <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="
+                  margin-top: 30px;
+                  margin-bottom: 10px;
+                border-radius: 10px;
+               box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);
+              background:#ccc;
+                ">
+              <tbody><tr>
+              <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
+              <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
+              <tbody><tr>
+              <td align="center" class="" valign="top">
+              <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
+              <tbody style="margin-top: 5px;">
+                <tr class="" style="border-bottom: 1px solid #cccccc38;">
+              <td class="">
+              </td>
+              </tr>
+              <tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
+              <tr>
+              <td>
+              <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
+              <td class="" style="color:#444; font-weight: 400;"><br>
+              <br><br>
+                You have successfully been registered to use Taxi Service as a <em> driver</em><br>
+               <br>
+                Your login credentials are provided below:
+              <br>
+              <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${save_driver.email}</span>
+               <br>
+              <br><br>
+              <br></td>
+              </tr>
+              </tbody></table></center>
+              </td>
+              </tr>
+              <tr>
+              <td class="">
+              <div class="">
+              <a style="background-color:#ffcc54;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://taxi-service-demo.vercel.app/login">Visit Account and Start Managing</a>
+              </div>
+               <br>
+              </td>
+              </tr>
+              </tbody>
 
-      //           </table>
+                </table>
 
-      //         <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
-      //         <tbody>
-      //         <tr>
-      //         <td class="" style="color:#444;
-      //                             ">
-      //         <p>The password was auto-generated, however feel free to change it
+              <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
+              <tbody>
+              <tr>
+              <td class="" style="color:#444;
+                                  ">
+              <p>The password was auto-generated, however feel free to change it
 
-      //             <a href="" style="text-decoration: underline;">
-      //               here</a>
+                  <a href="" style="text-decoration: underline;">
+                    here</a>
 
-      //           </p>
-      //           </td>
-      //         </tr>
-      //         </tbody></table></td>
-      //         </tr>
-      //         </tbody></table></center>
-      //         </td>
-      //         </tr>
-      //         </tbody></table>
-      //         </body></html>`
-      // };
-      // await transporter.sendMail(mailOptions);
+                </p>
+                </td>
+              </tr>
+              </tbody></table></td>
+              </tr>
+              </tbody></table></center>
+              </td>
+              </tr>
+              </tbody></table>
+              </body></html>`
+      };
+      await transporter.sendMail(mailOptions);
       res.send({
         code: constant.success_code,
         message: "Driver created successfully",
@@ -565,6 +567,15 @@ exports.get_drivers_super = async (req, res) => {
 
 exports.update_driver = async (req, res) => {
   driverUpload(req, res, async (err) => {
+    console.log('file++++44444++++++++',req.files)
+
+    if(err){
+      console.log("🚀 ~ driverUpload ~ err:", err.stack)
+      res.send({
+        code: constant.error_code,
+        message: err.message,
+      });
+    }
     try {
       var driver_image = [];
       var driver_documents = [];
@@ -573,15 +584,15 @@ exports.update_driver = async (req, res) => {
       if (file) {
         for (i = 0; i < file.length; i++) {
           if (file[i].fieldname == "driver_image") {
-            driver_image.push(file[i].path);
+            driver_image.push(file[i].location);
           } else if (file[i].fieldname == "driver_documents") {
-            driver_documents.push(file[i].path);
+            driver_documents.push(file[i].location);
           }
         }
       }
       const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
       const updates = req.body; // Assuming you send the updated driver data in the request body
-      updates.email = updates.email.toLowerCase()
+      if(updates.email )updates.email = updates.email.toLowerCase()
       // Check if the driver exists
       const existingDriver = await DRIVER.findById(driverId);
 
@@ -1177,9 +1188,9 @@ exports.convertIntoDriver = async (req, res) => {
       let file = req.files;
       for (i = 0; i < file.length; i++) {
         if (file[i].fieldname == "driver_image") {
-          driver_image.push(file[i].path);
+          driver_image.push(file[i].location);
         } else if (file[i].fieldname == "driver_documents") {
-          driver_documents.push(file[i].path);
+          driver_documents.push(file[i].location);
         }
       }
 
