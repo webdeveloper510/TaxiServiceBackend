@@ -22,27 +22,25 @@ const jwt = require("jsonwebtoken");
 // var driverUpload = multer({
 //     storage: driverStorage
 // }).single("driver_image")
-const aws = require('aws-sdk');
-const multer = require('multer');
-const multerS3 = require('multer-s3');
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const emailConstant = require("../../config/emailConstant");
 const trip_model = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
+const imageStorage = require("../../config/awss3");
 
-const imageStorage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "TaxiBooking",
-    // allowedFormats: ["jpg", "jpeg", "png"],
-    public_id: (req, files) =>
-      `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
-    // format: async (req, file) => "jpg", // Convert all uploaded images to JPEG format
-    // transformation: [{ width: 500, height: 500, crop: "limit" }],
-    maxFileSize: 10000000,
-  },
-});
+// const imageStorage = new CloudinaryStorage({
+//   cloudinary: cloudinary,
+//   params: {
+//     folder: "TaxiBooking",
+//     // allowedFormats: ["jpg", "jpeg", "png"],
+//     public_id: (req, files) =>
+//       `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+//     // format: async (req, file) => "jpg", // Convert all uploaded images to JPEG format
+//     // transformation: [{ width: 500, height: 500, crop: "limit" }],
+//     maxFileSize: 10000000,
+//   },
+// });
 
 var driverUpload = multer({
   storage: imageStorage,

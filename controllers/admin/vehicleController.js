@@ -8,16 +8,17 @@ const constant = require('../../config/constant')
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require('../../models/user/driver_model')
+const imageStorage = require('../../config/awss3')
 
-const imageStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: "TaxiBooking",
-        public_id: (req, files) =>
-            `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
-        maxFileSize: 10000000,
-    },
-});
+// const imageStorage = new CloudinaryStorage({
+//     cloudinary: cloudinary,
+//     params: {
+//         folder: "TaxiBooking",
+//         public_id: (req, files) =>
+//             `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+//         maxFileSize: 10000000,
+//     },
+// });
 
 var vehicleUpload = multer({
     storage: imageStorage
