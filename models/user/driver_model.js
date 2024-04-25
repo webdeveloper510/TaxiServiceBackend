@@ -26,6 +26,10 @@ const driver = new Schema({
         type: String,
         default: ''
     },
+    address_1: {
+        type: String,
+        default: ''
+    },
     city: {
         type: String,
         default: ''
