@@ -217,6 +217,7 @@ io.on("connection", (socket) => {
                   title: "tripCancelByDriver",
                   trip,
                   driver: driverBySocketId,
+                  sound: "default"
                 },
               },
               {
@@ -251,6 +252,7 @@ io.on("connection", (socket) => {
                   title: "tripCancelByDriver",
                   trip,
                   driver: driverBySocketId,
+                  sound: "default"
                 },
               },
               {
