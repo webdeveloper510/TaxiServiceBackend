@@ -203,7 +203,7 @@ io.on("connection", (socket) => {
             //     to: user?.created_by?.deviceToken,
             //     data: {
             //         message: "Trip canceled by driver",
-            //         title:"tripCancelByDriver",
+            //         title:"Trip canceled by driver",
             //         trip,
             //         driver:driverBySocketId
             //     }
@@ -214,7 +214,7 @@ io.on("connection", (socket) => {
                 to: user?.created_by?.deviceToken,
                 notification: {
                   message: "Trip canceled by driver",
-                  title: "tripCancelByDriver",
+                  title: "Trip canceled by driver",
                   trip,
                   driver: driverBySocketId,
                   sound: "default"
@@ -238,7 +238,7 @@ io.on("connection", (socket) => {
             //   to: user?.deviceToken,
             //   data: {
             //     message: "Trip canceled by driver",
-            //     title: "tripCancelByDriver",
+            //     title: "Trip canceled by driver",
             //     trip,
             //     driver: driverBySocketId,
             //   },
@@ -249,7 +249,7 @@ io.on("connection", (socket) => {
                 to:user?.deviceToken,
                 notification: {
                   message: "Trip canceled by driver",
-                  title: "tripCancelByDriver",
+                  title: "Trip canceled by driver",
                   trip,
                   driver: driverBySocketId,
                   sound: "default"

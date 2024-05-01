@@ -28,8 +28,8 @@ const emailConstant = require("../../config/emailConstant");
 const trip_model = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
 const imageStorage = require("../../config/awss3");
-const aws = require('aws-sdk');
-const multerS3 = require('multer-s3');
+const aws = require("aws-sdk");
+const multerS3 = require("multer-s3");
 
 // const imageStorage = new CloudinaryStorage({
 //   cloudinary: cloudinary,
@@ -52,7 +52,7 @@ exports.add_driver = async (req, res) => {
   // driverUpload(req, res, async (err) => {
   try {
     const data = req.body;
-    data.email = data?.email?.toLowerCase()
+    data.email = data?.email?.toLowerCase();
     var driver_image = [];
     var driver_documents = [];
     // var imagePortfolioLogo = []
@@ -84,17 +84,31 @@ exports.add_driver = async (req, res) => {
     let check_other2 = await DRIVER.findOne({ phone: data.phone });
     let check_other3 = await user_model.findOne({ email: data.email });
     let check_other4 = await user_model.findOne({ phone: data.phone });
-    if (check_other1 || check_other3) {
+    if (check_other1) {
       res.send({
         code: constant.error_code,
         message: "Email Already exist",
       });
       return;
     }
-    if (check_other2 || check_other4) {
+    if (check_other2) {
       res.send({
         code: constant.error_code,
         message: "Phone Already exist",
+      });
+      return;
+    }
+    if (check_other3) {
+      res.send({
+        code: constant.error_code,
+        message: "This email is already registered as a Company. Sign in to register as a driver.",
+      });
+      return;
+    }
+    if (check_other4) {
+      res.send({
+        code: constant.error_code,
+        message: "This phone is already registered as a Company. Sign in to register as a driver.",
       });
       return;
     }
@@ -116,10 +130,10 @@ exports.add_driver = async (req, res) => {
       // mail
       var transporter = nodemailer.createTransport(emailConstant.credentials);
       var mailOptions = {
-          from: emailConstant.from_email,
-          to: save_driver.email,
-          subject: "Welcome mail",
-          html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        from: emailConstant.from_email,
+        to: save_driver.email,
+        subject: "Welcome mail",
+        html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
               <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>PropTech Kenya Welcome Email</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
                 @import url(https://fonts.googleapis.com/css?family=Nunito);
@@ -229,7 +243,7 @@ exports.add_driver = async (req, res) => {
               <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
               <td class="" style="color:#444; font-weight: 400;"><br>
               <br><br>
-                You have successfully been registered to use Taxi Service as a <em> driver</em><br>
+              Thank you for registering with us as a driver. Your driver profile is currently under review. Once approved, you'll receive an email notification and can log in. Thank you for your patience.<br>
                <br>
                 Your login credentials are provided below:
               <br>
@@ -272,7 +286,7 @@ exports.add_driver = async (req, res) => {
               </td>
               </tr>
               </tbody></table>
-              </body></html>`
+              </body></html>`,
       };
       await transporter.sendMail(mailOptions);
       res.send({
@@ -567,10 +581,10 @@ exports.get_drivers_super = async (req, res) => {
 
 exports.update_driver = async (req, res) => {
   driverUpload(req, res, async (err) => {
-    console.log('file++++44444++++++++',req.files)
+    console.log("file++++44444++++++++", req.files);
 
-    if(err){
-      console.log("🚀 ~ driverUpload ~ err:", err.stack)
+    if (err) {
+      console.log("🚀 ~ driverUpload ~ err:", err.stack);
       res.send({
         code: constant.error_code,
         message: err.message,
@@ -592,7 +606,7 @@ exports.update_driver = async (req, res) => {
       }
       const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
       const updates = req.body; // Assuming you send the updated driver data in the request body
-      if(updates.email )updates.email = updates.email.toLowerCase()
+      if (updates.email) updates.email = updates.email.toLowerCase();
       // Check if the driver exists
       const existingDriver = await DRIVER.findById(driverId);
 
@@ -709,7 +723,7 @@ exports.updateVerification = async (req, res) => {
     var mailOptions = {
       from: emailConstant.from_email,
       to: updateDriver.email,
-      subject: "",
+      subject: "Driver Verified Successfully",
       html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
@@ -821,7 +835,7 @@ background:#ccc;
 <td>
 <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
 <td class="" style="color:#444; font-weight: 400;"><br>
-Your account has been verified successfully.
+We are pleased to inform you that your driver account has been verified successfully! You can now log in and access your account.
 <br>
 <br>
 <br></td>
@@ -856,7 +870,6 @@ Your account has been verified successfully.
 </body></html>`,
     };
     await transporter.sendMail(mailOptions);
-
 
     res.send({
       code: constant.success_code,
@@ -1001,7 +1014,7 @@ background:#ccc;
 <td>
 <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
 <td class="" style="color:#444; font-weight: 400;"><br>
-Your account verification faild.
+We regret to inform you that the documents provided for your driver profile verification have failed to meet our requirements. Kindly review your profile and resubmit the necessary documents. Alternatively, you can reach out to our customer support for further assistance.
 <br>
 <br>
 <br></td>
@@ -1036,7 +1049,6 @@ Your account verification faild.
 </body></html>`,
     };
     await transporter.sendMail(mailOptions);
-
 
     res.send({
       code: constant.success_code,
