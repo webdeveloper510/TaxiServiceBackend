@@ -56,8 +56,34 @@ exports.get_trip = async (req, res) => {
         let mid = new mongoose.Types.ObjectId(req.userId)
         let query;
         let search_value = data.comment ? data.comment : ''
+        let dateFilter = data.dateFilter; // Corrected variable name
+        if(!["all","this_week","this_month","this_year"].includes(dateFilter)){
+            dateFilter = "all"
+        }
 
-
+        // Update the query based on the date filter
+        let dateQuery = {};
+        if (dateFilter !== "all") {
+            let startDate, endDate;
+            switch(dateFilter) {
+                case "this_week":
+                    startDate = moment().startOf('week');
+                    endDate = moment().endOf('week');
+                    break;
+                case "this_month":
+                    startDate = moment().startOf('month');
+                    endDate = moment().endOf('month');
+                    break;
+                case "this_year":
+                    startDate = moment().startOf('year');
+                    endDate = moment().endOf('year');
+                    break;
+                default:
+                    break;
+            }
+            dateQuery = { createdAt: { $gte: startDate, $lte: endDate } };
+        }
+        console.log("🚀 ~ exports.get_trip= ~ dateQuery:", dateQuery)
 
         if (req.params.status == 'Pending') {
             query = [
@@ -70,18 +96,16 @@ exports.get_trip = async (req, res) => {
                 },
                 { is_deleted: false },
                 { 'comment': { '$regex': search_value, '$options': 'i' } },
-
+                dateQuery // Add date filter query here
             ]
         } else {
             query = [
                 { created_by: mid },
                 { trip_status: req.params.status },
                 { 'comment': { '$regex': search_value, '$options': 'i' } },
-
+                dateQuery // Add date filter query here
             ]
         }
-
-        console.log('aaaaaaaaaaaaaaaaaaa', query)
 
         let get_trip = await TRIP.aggregate([
             {
@@ -157,6 +181,7 @@ exports.get_trip = async (req, res) => {
         })
     }
 }
+
 
 exports.get_recent_trip = async (req, res) => {
     try {
