@@ -127,6 +127,38 @@ exports.get_trip = async (req, res) => {
         for (let i of getIds) {
             ids.push(i._id)
         }
+        let dateFilter = data.dateFilter; // Corrected variable name
+        if(!["all","this_week","this_month","this_year"].includes(dateFilter)){
+            dateFilter = "all"
+        }
+
+        // Update the query based on the date filter
+        let dateQuery = {};
+        if (dateFilter !== "all") {
+            let startDate, endDate;
+            const today = new Date();
+            switch(dateFilter) {
+                case "this_week":
+                    const todayDay = today.getDay();
+                    startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - todayDay);
+                    endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (6 - todayDay));
+                    break;
+                case "this_month":
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    break;
+                case "this_year":
+                    startDate = new Date(today.getFullYear(), 0, 1);
+                    endDate = new Date(today.getFullYear(), 11, 31);
+                    break;
+                default:
+                    break;
+            }
+            dateQuery = { createdAt: { $gte: startDate, $lte: endDate } };
+        }
+        
+        console.log("🚀 ~ exports.get_trip= ~ dateQuery:", dateQuery)
+
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
         let get_trip = await TRIP.aggregate([
             {
@@ -142,6 +174,7 @@ exports.get_trip = async (req, res) => {
                         { trip_status: req.params.status },
                         { is_deleted: false },
                         { 'comment': { '$regex': search_value, '$options': 'i' } },
+                        dateQuery
                     ]
                 }
             },
