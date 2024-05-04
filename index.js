@@ -186,6 +186,7 @@ io.on("connection", (socket) => {
             message: "Trip id not valid",
           });
         }
+        
         if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
           trip.driver_name = null;
           trip.trip_status = "Pending";
