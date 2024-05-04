@@ -29,7 +29,7 @@ exports.sendNotification = async(to,message,title,data)=>{
     const response = await axios.post(
       "https://fcm.googleapis.com/fcm/send",
       {
-        to: driverById?.deviceToken,
+        to,
         notification: {
           message,
           title,
