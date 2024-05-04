@@ -12,6 +12,7 @@ const geolib = require('geolib')
 const mongoose = require('mongoose')
 const randToken = require('rand-token').generator()
 const moment = require('moment')
+const { sendNotification } = require('../../Service/helperFuntion')
 
 
 
@@ -711,7 +712,7 @@ exports.alocate_driver = async (req, res) => {
                 $set: {
                     driver_name: check_driver._id,
                     vehicle: data.vehicle,
-                    trip_status: check_driver.auto_accept ? "Booked" : data.status
+                    trip_status: data.status
                 }
             }
             let option = { new: true }
@@ -723,6 +724,15 @@ exports.alocate_driver = async (req, res) => {
                     message: "Unable to allocate the driver"
                 })
             } else {
+                try {
+                    await sendNotification(check_driver.deviceToken,"New Trip allocated" , "New Trip allocated", update_trip )
+                } catch (error) {
+                    console.log("🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error)
+                   return res.send({
+                    code: constant.success_code,
+                    message: "Driver allocated successfully but notification is not sended"
+                })
+                }
                 res.send({
                     code: constant.success_code,
                     message: "Driver allocated successfully"
@@ -975,6 +985,8 @@ exports.get_counts_dashboard = async (req, res) => {
 //         })
 //     }
 // }
+
+
 
 
 
