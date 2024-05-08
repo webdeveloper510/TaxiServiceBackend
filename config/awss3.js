@@ -3,6 +3,7 @@ const aws = require('aws-sdk');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const { S3Client } = require('@aws-sdk/client-s3');
+
 // Configure AWS SDK with your credentials
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS,
@@ -11,7 +12,6 @@ aws.config.update({
 });
 
 // Create a new instance of the S3 service
-// const s3 = new aws.S3();
 let s3 = new S3Client({
   region: 'us-east-1',
   credentials: {
@@ -35,4 +35,12 @@ const imageStorage = multerS3({
     cb(null, `taxibooking/item-${uniqueId}`);
   }
 })
-module.exports = imageStorage
+
+// Configure Multer with increased file size limit
+const maxSize = 100 * 1024 * 1024; // 10 MB
+const upload = multer({
+  storage: imageStorage,
+  limits: { fileSize: maxSize }
+}).single('file'); // 'file' is the name of the field in your form
+
+module.exports = upload;
