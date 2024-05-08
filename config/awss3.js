@@ -40,7 +40,7 @@ const imageStorage = multerS3({
 const maxSize = 100 * 1024 * 1024; // 10 MB
 const upload = multer({
   storage: imageStorage,
-  limits: { fileSize: maxSize }
+  // limits: { fileSize: maxSize }
 }).single('file'); // 'file' is the name of the field in your form
 
 module.exports = upload;
