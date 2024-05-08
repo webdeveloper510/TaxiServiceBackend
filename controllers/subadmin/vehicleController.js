@@ -25,7 +25,8 @@ const imageStorage = require('../../config/awss3')
 // });
 
 var vehicleUpload = multer({
-    storage: imageStorage
+    storage: imageStorage,
+    limits: { fileSize: 100 * 1024 * 1024 }
 }).single("vehicle_photo")
 
 exports.get_vehicle_types = async (req, res) => {

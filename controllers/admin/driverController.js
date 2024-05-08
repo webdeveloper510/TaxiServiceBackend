@@ -46,6 +46,7 @@ const multerS3 = require("multer-s3");
 
 var driverUpload = multer({
   storage: imageStorage,
+  limits: { fileSize: 100 * 1024 * 1024 }
 }).any([{ name: "driver_image" }, { name: "driver_documents" }]);
 
 exports.add_driver = async (req, res) => {

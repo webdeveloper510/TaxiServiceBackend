@@ -45,7 +45,8 @@ const imageStorage = require('../../config/awss3');
 // });
 
 var driverUpload = multer({
-    storage: imageStorage
+    storage: imageStorage,
+    limits: { fileSize: 100 * 1024 * 1024 }
 }).single("driver_image")
 
 
