@@ -13,20 +13,21 @@ const mongoose = require('mongoose')
 require('dotenv').config();
 const multer = require('multer')
 const path = require('path')
+const imageStorage = require("../../config/awss3");
 
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require('../../models/user/driver_model');
 
-const imageStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: "TaxiBooking",
-        public_id: (req, files) =>
-            `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
-        maxFileSize: 10000000,
-    },
-});
+// const imageStorage = new CloudinaryStorage({
+//     cloudinary: cloudinary,
+//     params: {
+//         folder: "TaxiBooking",
+//         public_id: (req, files) =>
+//             `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+//         maxFileSize: 100000000000,
+//     },
+// });
 
 var logoUpload = multer({
     storage: imageStorage
