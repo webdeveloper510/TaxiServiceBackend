@@ -30,7 +30,8 @@ const driver_model = require('../../models/user/driver_model');
 // });
 
 var logoUpload = multer({
-    storage: imageStorage
+    storage: imageStorage,
+    limits: { fileSize: 100 * 1024 * 1024 }
 }).single("logo")
 
 exports.add_sub_admin = async (req, res) => {
