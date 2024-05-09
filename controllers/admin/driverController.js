@@ -1125,6 +1125,28 @@ exports.get_active_drivers = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          localField: "_id",
+          foreignField: "driver_name",
+          from: "trips",
+          as: "tripDataActive",
+          pipeline: [
+            {
+              $match: {
+                trip_status: "Active",
+              },
+            },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          totalActiveTrip: {
+            $size: "$tripDataActive",
+          },
+        },
+      },
+      {
         $match: {
           totalUnpaidTrips: 0,
         },
