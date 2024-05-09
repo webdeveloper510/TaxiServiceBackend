@@ -4,6 +4,7 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+var cron = require("node-cron")
 const db = require("./config/db");
 const http = require("http");
 const cors = require("cors");
@@ -17,6 +18,7 @@ const { Server } = require("socket.io");
 const {
   driverDetailsByToken,
   userDetailsByToken,
+  sendNotification,
 } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
@@ -292,4 +294,44 @@ io.on("connection", (socket) => {
   });
 });
 
+async function checkTripsAndSendNotifications() {
+  try {
+    console.log("cron job running every minute")
+    const currentDate = new Date();
+    const fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
+  const trips = await trip_model.find({ pickup_time: { $lte: fifteenMinutesBefore },fifteenMinuteNotification:false }).populate("driver_name");
+  console.log("🚀 ~ checkTripsAndSendNotifications ~ trips:", trips)
+  const notifications = [];
+  const ids = []
+  trips.forEach(trip => {
+    const message = `Your trip is scheduled in 15 minutes. Please get ready!`;
+    ids.push(trip._id);
+    
+    if(trip?.driver_name?.deviceToken){
+      notifications.push(sendNotification(trip?.driver_name?.deviceToken,message,"Trip start in 15 minute",trip))
+    }
+    
+
+  });
+  const res = await Promise.all(notifications);
+    console.log("🚀 ~ checkTripsAndSendNotifications ~ res:", res)
+    await trip_model.updateMany({_id:{$in:ids}},{$set:{
+      fifteenMinuteNotification:true
+    }})
+  } catch (error) {
+    console.log("🚀 ~ checkTripsAndSendNotifications ~ error:", error)
+    
+  }
+}
+
+// Schedule the task using cron
+cron.schedule('* * * * *', checkTripsAndSendNotifications);
+
+
+
 module.exports = app;
+
+
+
+
+

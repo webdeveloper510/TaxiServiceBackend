@@ -3,7 +3,7 @@ const Schema = mongoose.Schema
 
 const trip = new Schema({
     driver_name:{
-        type:mongoose.Schema.Types.ObjectId,ref:'drivers',
+        type:mongoose.Schema.Types.ObjectId,ref:'driver',
         default:null
     },
     vehicle_type:{
@@ -141,6 +141,10 @@ const trip = new Schema({
         },
     },
     is_paid:{
+        type: Boolean,
+        default: false,
+    },
+    fifteenMinuteNotification:{
         type: Boolean,
         default: false,
     }
