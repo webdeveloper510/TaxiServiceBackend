@@ -196,7 +196,7 @@ io.on("connection", (socket) => {
           const user = await user_model
             .findById(trip.created_by)
             .populate("created_by");
-          if ((user.role = "HOTEL")) {
+          if ((user.role == "HOTEL")) {
             io.to(user?.created_by?.socketId).emit("tripCancelledBYDriver", {
               trip,
               message: "Trip canceled successfully",
@@ -271,6 +271,108 @@ io.on("connection", (socket) => {
           io.to(socket.id).emit("driverNotification", {
             code: 200,
             message: "Trip canceled successfully",
+          });
+        }
+      }
+    } catch (error) {
+      console.log("🚀 ~ socket.on ~ error:", error);
+      return io.to(socket.id).emit("driverNotification", {
+        code: 200,
+        message: "There is some",
+      });
+    }
+  });
+  socket.on("activeDriverTrip", async ({ tripId }) => {
+    if (!tripId) {
+      return io.to(socket.id).emit("driverNotification", {
+        code: 200,
+        message: "Trip id not valid",
+      });
+    }
+    try {
+      const driverBySocketId = await driver_model.findOne({
+        socketId: socket.id,
+      });
+      console.log("🚀 ~ socket.on ~ driverBySocketId:", driverBySocketId);
+      if (driverBySocketId) {
+        const trip = await trip_model.findById(tripId);
+        console.log("🚀 ~ socket.on ~ trip:", trip);
+        if (!trip) {
+          return io.to(socket.id).emit("driverNotification", {
+            code: 200,
+            message: "Trip id not valid",
+          });
+        }
+        
+        if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
+          const user = await user_model
+            .findById(trip.created_by)
+            .populate("created_by");
+          if ((user.role == "HOTEL")) {
+            io.to(user?.created_by?.socketId).emit("tripActiveBYDriver", {
+              trip,
+              message: "Trip active successfully",
+            });
+            const response = await axios.post(
+              "https://fcm.googleapis.com/fcm/send",
+              {
+                to: user?.created_by?.deviceToken,
+                notification: {
+                  message: "Trip start by driver",
+                  title: "Trip start by driver",
+                  trip,
+                  driver: driverBySocketId,
+                  sound: "default"
+                },
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization:
+                    `key=${process.env.FCM_SERVER_KEY}`,
+                },
+              }
+            );
+            console.log("🚀 ~ socket.on ~ response:", response)
+          } else {
+            io.to(user.socketId).emit("tripActiveBYDriver", {
+              trip,
+              message: "Trip active successfully",
+            });
+            // await fcm.send({
+            //   to: user?.deviceToken,
+            //   data: {
+            //     message: "Trip canceled by driver",
+            //     title: "Trip canceled by driver",
+            //     trip,
+            //     driver: driverBySocketId,
+            //   },
+            // });
+            const response = await axios.post(
+              "https://fcm.googleapis.com/fcm/send",
+              {
+                to:user?.deviceToken,
+                notification: {
+                  message: "Trip start by driver",
+                  title: "Trip start by driver",
+                  trip,
+                  driver: driverBySocketId,
+                  sound: "default"
+                },
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization:
+                    `key=${process.env.FCM_SERVER_KEY}`,
+                },
+              }
+            );
+            console.log("🚀 ~ socket.on ~ response:", response)
+          }
+          io.to(socket.id).emit("driverNotification", {
+            code: 200,
+            message: "Trip active successfully",
           });
         }
       }
