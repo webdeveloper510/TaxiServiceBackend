@@ -1129,11 +1129,11 @@ exports.get_active_drivers = async (req, res) => {
           localField: "_id",
           foreignField: "driver_name",
           from: "trips",
-          as: "tripDataActive",
+          as: "tripDataBooked",
           pipeline: [
             {
               $match: {
-                trip_status: "Active",
+                trip_status: "Booked",
               },
             },
           ],
@@ -1141,8 +1141,8 @@ exports.get_active_drivers = async (req, res) => {
       },
       {
         $addFields: {
-          totalActiveTrip: {
-            $size: "$tripDataActive",
+          totalBookedTrip: {
+            $size: "$tripDataBooked",
           },
         },
       },
