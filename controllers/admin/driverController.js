@@ -1085,6 +1085,7 @@ exports.get_active_drivers = async (req, res) => {
           status: true,
           is_login: true,
           defaultVehicle: { $ne: null },
+          deviceToken:{ $ne: null },
         },
       },
       {

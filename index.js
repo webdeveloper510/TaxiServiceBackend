@@ -216,8 +216,8 @@ io.on("connection", (socket) => {
               {
                 to: user?.created_by?.deviceToken,
                 notification: {
-                  message: "Trip canceled by driver",
-                  title: "Trip canceled by driver",
+                  message: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
+                  title: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
                   sound: "default"
@@ -251,8 +251,8 @@ io.on("connection", (socket) => {
               {
                 to:user?.deviceToken,
                 notification: {
-                  message: "Trip canceled by driver",
-                  title: "Trip canceled by driver",
+                  message:  `Trip canceled by driver and trip ID is ${trip.trip_id}`,
+                  title:  `Trip canceled by driver and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
                   sound: "default"
@@ -318,8 +318,8 @@ io.on("connection", (socket) => {
               {
                 to: user?.created_by?.deviceToken,
                 notification: {
-                  message: "Trip start by driver",
-                  title: "Trip start by driver",
+                  message:  `Trip start by driver and trip ID is ${trip.trip_id}`,
+                  title:  `Trip start by driver and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
                   sound: "default"
@@ -353,8 +353,8 @@ io.on("connection", (socket) => {
               {
                 to:user?.deviceToken,
                 notification: {
-                  message: "Trip start by driver",
-                  title: "Trip start by driver",
+                  message: `Trip start by driver and trip ID is ${trip.trip_id}`,
+                  title: `Trip start by driver and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
                   sound: "default"
