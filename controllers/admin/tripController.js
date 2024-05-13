@@ -711,7 +711,7 @@ exports.alocate_driver = async (req, res) => {
             let newValues = {
                 $set: {
                     driver_name: check_driver._id,
-                    vehicle: data.vehicle,
+                    vehicle: check_driver.defaultVehicle,
                     trip_status: data.status
                 }
             }
