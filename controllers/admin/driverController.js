@@ -659,11 +659,13 @@ exports.update_driver = async (req, res) => {
         { new: true }
       );
       if (updatedDriver) {
-        if(req.body.isDocUploaded == "true"){
+        console.log("🚀 ~ driverUpload ~ updatedDriver:", updatedDriver,req.body.isDocUploaded)
+        if(req.body.isDocUploaded ){
+          console.log("in the right zone============>>>>>>>>")
           var transporter = nodemailer.createTransport(emailConstant.credentials);
       var mailOptions = {
         from: emailConstant.from_email,
-        to: save_driver.email,
+        to: updatedDriver.email,
         subject: "Welcome mail",
         html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -779,7 +781,7 @@ exports.update_driver = async (req, res) => {
                <br>
                 Your login credentials are provided below:
               <br>
-              <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${save_driver.email}</span>
+              <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${updatedDriver?.email}</span>
                <br>
               <br><br>
               <br></td>
