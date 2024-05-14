@@ -401,7 +401,8 @@ async function checkTripsAndSendNotifications() {
     console.log("cron job running every minute")
     const currentDate = new Date();
     const fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
-  const trips = await trip_model.find({ pickup_date_time: { $lte: fifteenMinutesBefore },fifteenMinuteNotification:false }).populate("driver_name");
+    const thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
+  const trips = await trip_model.find({ pickup_date_time: { $lte: fifteenMinutesBefore },pickup_date_time:{$gte:thirteenMinutesBefore},fifteenMinuteNotification:false }).populate("driver_name");
   console.log("🚀 ~ checkTripsAndSendNotifications ~ trips:", trips)
   const notifications = [];
   const ids = []
