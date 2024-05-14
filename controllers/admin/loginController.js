@@ -142,6 +142,12 @@ exports.login = async (req, res) => {
           },
         })
         .countDocuments();
+        const totalActiveTrips = await trip_model
+        .find({
+          driver_name: check_again._id,
+          trip_status: "Active",
+        })
+        .countDocuments();
       check_data = check_again;
 
       let checkPassword = await bcrypt.compare(
@@ -178,6 +184,7 @@ exports.login = async (req, res) => {
       check_data2.role = "DRIVER";
       check_data2.totalTrips = completedTrips;
       check_data2.totalUnpaidTrips = totalUnpaidTrips;
+      check_data2.totalActiveTrips = totalActiveTrips
       res.send({
         code: constants.success_code,
         message: "Login Successful",
