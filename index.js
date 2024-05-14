@@ -407,11 +407,11 @@ async function checkTripsAndSendNotifications() {
   const notifications = [];
   const ids = []
   trips.forEach(trip => {
-    const message = `Your trip is scheduled in 15 minutes. Please get ready!`;
+    const message = `Your trip have ID ${trip._id} is scheduled in 15 minutes. Please get ready!`;
     ids.push(trip._id);
     
     if(trip?.driver_name?.deviceToken){
-      notifications.push(sendNotification(trip?.driver_name?.deviceToken,message,"Trip start in 15 minute",trip))
+      notifications.push(sendNotification(trip?.driver_name?.deviceToken,message,message,trip))
     }
     
 
