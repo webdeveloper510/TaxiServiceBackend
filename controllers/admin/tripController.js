@@ -725,7 +725,7 @@ exports.alocate_driver = async (req, res) => {
                 })
             } else {
                 try {
-                    await sendNotification(check_driver.deviceToken,"New Trip allocated" , "New Trip allocated", update_trip )
+                    await sendNotification(check_driver.deviceToken,"New Trip is allocated have ID "+update_trip.trip_id ,"New Trip is allocated have ID "+update_trip.trip_id, update_trip )
                 } catch (error) {
                     console.log("🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error)
                    return res.send({
