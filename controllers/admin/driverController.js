@@ -1518,6 +1518,8 @@ exports.switchToDriver = async (req, res) => {
       result.totalUnpaidTrips = totalUnpaidTrips;
       driverData.jwtToken = jwtToken;
       result.role = "DRIVER";
+      driverData.is_login = true
+
       await driverData.save();
       res.send({
         code: constant.success_code,
