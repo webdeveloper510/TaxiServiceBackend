@@ -174,7 +174,6 @@ exports.get_trip = async (req, res) => {
                         { status: true },
                         { trip_status: req.params.status },
                         { is_deleted: false },
-                        { 'comment': { '$regex': search_value, '$options': 'i' } },
                         dateQuery
                     ]
                 }
@@ -253,7 +252,18 @@ exports.get_trip = async (req, res) => {
                     },
                     trip_id: 1
                 }
-            }
+            },
+            {$match:{
+                $or:[
+                    { 'comment': { '$regex': search_value, '$options': 'i' } },
+                    { 'trip_id': { '$regex': search_value, '$options': 'i' } },
+                    { 'driver_name': { '$regex': search_value, '$options': 'i' } },
+                    { 'trip_from.address': { '$regex': search_value, '$options': 'i' } },
+                    { 'trip_to.address': { '$regex': search_value, '$options': 'i' } },
+                    { 'company_name': { '$regex': search_value, '$options': 'i' } },
+
+                ]
+            }}
         ]).sort({ 'createdAt': -1 })
         if (!get_trip) {
             res.send({
