@@ -808,7 +808,7 @@ exports.forgot_password = async (req, res) => {
       } else {
         res.send({
           code: constant.success_code,
-          message: "Updated Successfully",
+          message: "changed successfully",
         });
       }
     } else {
@@ -834,7 +834,7 @@ exports.forgot_password = async (req, res) => {
       } else {
         res.send({
           code: constant.success_code,
-          message: "Updated Successfully",
+          message: "changed successfully",
         });
       }
     }
@@ -887,7 +887,7 @@ exports.reset_password = async (req, res) => {
         } else {
           res.send({
             code: constant.success_code,
-            message: "Updated Successfully",
+            message: "changed successfully",
           });
         }
       }

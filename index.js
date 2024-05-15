@@ -163,7 +163,7 @@ io.on("connection", (socket) => {
       await driverBySocketId.save();
       io.to(socket.id).emit("UpdateLocationDriver", {
         code: 200,
-        message: "location updated successfully",
+        message: "location changed successfully",
       });
     }
   });
