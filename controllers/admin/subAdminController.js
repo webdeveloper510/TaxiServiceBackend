@@ -13,11 +13,11 @@ const mongoose = require('mongoose')
 require('dotenv').config();
 const multer = require('multer')
 const path = require('path')
-const imageStorage = require("../../config/awss3");
 
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require('../../models/user/driver_model');
+const imageStorage = require('../../config/awss3');
 
 // const imageStorage = new CloudinaryStorage({
 //     cloudinary: cloudinary,
@@ -286,7 +286,7 @@ exports.get_sub_admins = async (req, res) => {
 
         let get_data = await USER.aggregate([
             {
-                $match: { role: query, is_deleted: false, created_by: new mongoose.Types.ObjectId(req.userId) }
+                $match: { role: query, is_deleted: false, status: false,created_by: new mongoose.Types.ObjectId(req.userId) }
 
             },
             {
@@ -398,6 +398,7 @@ exports.get_sub_admin_detail = async (req, res) => {
                     'company_name': { $arrayElemAt: ["$meta.company_name", 0] },
                     'company_id': { $arrayElemAt: ["$meta.company_id", 0] },
                     'location': { $arrayElemAt: ["$meta.location", 0] },
+                    'hotel_location': { $arrayElemAt: ["$meta.hotel_location", 0] },
                     'commision': { $arrayElemAt: ["$meta.commision", 0] },
                 }
             }
@@ -443,7 +444,8 @@ exports.edit_sub_admin = async (req, res) => {
                 })
                 return;
             }
-            data.logo = req.file ? req.file.path : checkSubAdmin.logo
+            
+            data.logo = req?.file?.location ? req.file.location : checkSubAdmin.logo
             // let update_data = await USER.findOneAndUpdate(criteria, data, option)
             // let criteria2 = { user_id: update_data._id }
             if (checkSubAdmin.email != data.email) {
@@ -492,7 +494,7 @@ exports.edit_sub_admin = async (req, res) => {
             } else {
                 res.send({
                     code: constant.success_code,
-                    message: "Updated Successfull",
+                    message: "changed successfully",
                     result: update_data
                 })
             }

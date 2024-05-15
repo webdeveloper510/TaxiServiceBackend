@@ -388,7 +388,7 @@ exports.edit_trip = async (req, res) => {
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Updated Successfully",
+                message: "changed successfully",
                 result: update_trip
             })
         }
