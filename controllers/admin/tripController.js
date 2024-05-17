@@ -13,9 +13,23 @@ const mongoose = require('mongoose')
 const randToken = require('rand-token').generator()
 const moment = require('moment')
 const { sendNotification } = require('../../Service/helperFuntion')
+const trip_model = require('../../models/user/trip_model')
 
 
+const tripIsBooked = async(tripId) => {
+    console.log("🚀 ~ tripIsBooked ~ tripId:", tripId)
+    try{
 
+        const tripById = await trip_model.findOne({_id:tripId,trip_status:"Accepted"});
+    if(tripById){
+        tripById.driver_name = null;
+        tripById.trip_status = "Pending";
+        await tripById.save()
+    }
+    }catch(err){
+        console.log("🚀 ~ tripIsBooked ~ err:", err)
+    }
+}
 
 exports.add_trip = async (req, res) => {
     try {
@@ -735,14 +749,25 @@ exports.alocate_driver = async (req, res) => {
                 })
             } else {
                 try {
+                    
                     await sendNotification(check_driver.deviceToken,"New Trip is allocated have ID "+update_trip.trip_id ,"New Trip is allocated have ID "+update_trip.trip_id, update_trip )
                 } catch (error) {
                     console.log("🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error)
-                   return res.send({
-                    code: constant.success_code,
-                    message: "Driver allocated successfully"
-                })
+                    
+                //    return res.send({
+                //     code: constant.success_code,
+                //     message: "Driver allocated successfully"
+                // })
                 }
+                try {
+                    console.log("🚀 ~ exports.alocate_driver= ~ check_driver.socketId:", check_driver.socketId,check_driver)
+                    req?.io?.to(check_driver.socketId)?.emit("newTrip",update_trip)
+                } catch (error) {
+                    console.log("🚀 ~ exports.alocate_driver= ~ error:", error)
+                    
+                }
+                    
+                setTimeout(()=>{tripIsBooked(update_trip._id)},20*1000)
                 res.send({
                     code: constant.success_code,
                     message: "Driver allocated successfully"
