@@ -389,10 +389,17 @@ exports.get_trips_for_driver = async (req, res) => {
                 message: "Unable to get the trips"
             })
         } else {
+            const totalActiveTrips = await TRIP
+        .find({
+          driver_name: req.userId,
+          trip_status: "Active",
+        })
+        .countDocuments();
             res.send({
                 code: constant.success_code,
                 message: "Success",
-                result: get_trip
+                result: get_trip,
+                totalActiveTrips
             })
         }
     } catch (err) {
