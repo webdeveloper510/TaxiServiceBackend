@@ -740,7 +740,7 @@ exports.alocate_driver = async (req, res) => {
                     console.log("🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error)
                    return res.send({
                     code: constant.success_code,
-                    message: "Driver allocated successfully but notification is not sended"
+                    message: "Driver allocated successfully"
                 })
                 }
                 res.send({
