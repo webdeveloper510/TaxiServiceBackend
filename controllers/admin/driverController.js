@@ -1251,6 +1251,8 @@ exports.get_active_drivers = async (req, res) => {
         $match: {
           status: true,
           is_login: true,
+          isVerified:true,
+          isDocUploaded:true,
           defaultVehicle: { $ne: null },
         },
       },
