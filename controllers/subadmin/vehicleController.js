@@ -157,7 +157,7 @@ exports.edit_vehicle = async (req, res) => {
         } else {
             res.send({
                 code: constant.success_code,
-                message: "changed successfully",
+                message: "updated successfully",
                 result: updateVehicle
             })
         }

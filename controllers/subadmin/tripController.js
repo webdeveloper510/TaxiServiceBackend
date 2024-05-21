@@ -53,6 +53,7 @@ exports.add_trip = async (req, res) => {
 exports.get_trip = async (req, res) => {
     try {
         let data = req.body
+        console.log("🚀 ~ exports.get_trip= ~ data:", data)
         let mid = new mongoose.Types.ObjectId(req.userId)
         let query;
         let search_value = data.comment ? data.comment : ''
@@ -95,14 +96,28 @@ exports.get_trip = async (req, res) => {
                     ]
                 },
                 { is_deleted: false },
-                { 'comment': { '$regex': search_value, '$options': 'i' } },
+                {
+                    $or: [
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_id': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_from.address': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_to.address': { '$regex': search_value, '$options': 'i' } },
+                    ]
+                },
                 dateQuery // Add date filter query here
             ]
         } else {
             query = [
                 { created_by: mid },
                 { trip_status: req.params.status },
-                { 'comment': { '$regex': search_value, '$options': 'i' } },
+                {
+                    $or: [
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_id': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_from.address': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_to.address': { '$regex': search_value, '$options': 'i' } },
+                    ]
+                },
                 dateQuery // Add date filter query here
             ]
         }
@@ -388,7 +403,7 @@ exports.edit_trip = async (req, res) => {
         } else {
             res.send({
                 code: constant.success_code,
-                message: "changed successfully",
+                message: "updated successfully",
                 result: update_trip
             })
         }
