@@ -58,7 +58,7 @@ exports.add_sub_admin = async (req, res) => {
         if (checkPhone) {
             res.send({
                 code: constant.error_code,
-                message: "Phone is already exist"
+                message: "Phone Number is already exist"
             })
             return;
         }
@@ -476,7 +476,7 @@ exports.edit_sub_admin = async (req, res) => {
                 if (check_phone) {
                     res.send({
                         code: constant.error_code,
-                        message: "Phone is already exist"
+                        message: "Phone Number is already exist"
                     })
                     return
                 }
@@ -494,7 +494,7 @@ exports.edit_sub_admin = async (req, res) => {
             } else {
                 res.send({
                     code: constant.success_code,
-                    message: "changed successfully",
+                    message: "updated successfully",
                     result: update_data
                 })
             }

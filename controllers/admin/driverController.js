@@ -109,7 +109,7 @@ exports.add_driver = async (req, res) => {
     if (check_other4) {
       res.send({
         code: constant.error_code,
-        message: "This phone is already registered as a Company. Sign in to register as a driver.",
+        message: "This Phone Number is already registered as a Company. Sign in to register as a driver.",
       });
       return;
     }
@@ -826,7 +826,7 @@ exports.update_driver = async (req, res) => {
         }
         res.send({
           code: constant.success_code,
-          message: "Driver changed successfully",
+          message: "Driver updated successfully",
           result: updatedDriver,
         });
       }
@@ -861,7 +861,7 @@ exports.updateLocation = async (req, res) => {
     } else {
       res.send({
         code: constant.success_code,
-        message: "changed successfully",
+        message: "updated successfully",
       });
     }
   } catch (err) {
@@ -1041,7 +1041,7 @@ We are pleased to inform you that your driver account has been verified successf
 
     res.send({
       code: constant.success_code,
-      message: "changed successfully",
+      message: "updated successfully",
     });
   } catch (err) {
     res.send({
@@ -1220,7 +1220,7 @@ We regret to inform you that the documents provided for your driver profile veri
 
     res.send({
       code: constant.success_code,
-      message: "changed successfully",
+      message: "updated successfully",
     });
   } catch (err) {
     res.send({

@@ -149,7 +149,7 @@ exports.edit_fare = async (req, res) => {
         } else {
             res.send({
                 code: constant.success_code,
-                message: "changed successfully",
+                message: "updated successfully",
                 result: update_fare
             })
         }
