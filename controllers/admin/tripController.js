@@ -761,7 +761,7 @@ exports.alocate_driver = async (req, res) => {
                 }
                 try {
                     console.log("🚀 ~ exports.alocate_driver= ~ check_driver.socketId:", check_driver.socketId,check_driver)
-                    req?.io?.to(check_driver.socketId)?.emit("newTrip",update_trip)
+                    req?.io?.to(check_driver.socketId)?.emit("newTrip",{trip:update_trip,company:req.user})
                 } catch (error) {
                     console.log("🚀 ~ exports.alocate_driver= ~ error:", error)
                     
