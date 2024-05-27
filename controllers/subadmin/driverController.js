@@ -209,7 +209,7 @@ exports.update_driver = async (req, res) => {
             if (updatedDriver) {
                 res.send({
                     code: constant.success_code,
-                    message: 'Driver updated successfully',
+                    message: 'Driver Updated successfully',
                     result: updatedDriver,
                 });
             }
@@ -256,7 +256,7 @@ exports.reset_password = async (req, res) => {
             } else {
                 res.send({
                     code: constant.success_code,
-                    message: "updated successfully",
+                    message: "Updated successfully",
                     checking: updateData.password
                 })
             }

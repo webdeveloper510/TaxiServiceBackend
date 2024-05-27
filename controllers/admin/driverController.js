@@ -826,7 +826,7 @@ exports.update_driver = async (req, res) => {
         }
         res.send({
           code: constant.success_code,
-          message: "Driver updated successfully",
+          message: "Driver Updated successfully",
           result: updatedDriver,
         });
       }
@@ -861,7 +861,7 @@ exports.updateLocation = async (req, res) => {
     } else {
       res.send({
         code: constant.success_code,
-        message: "updated successfully",
+        message: "Updated successfully",
       });
     }
   } catch (err) {
@@ -1041,7 +1041,7 @@ We are pleased to inform you that your driver account has been verified successf
 
     res.send({
       code: constant.success_code,
-      message: "updated successfully",
+      message: "Updated successfully",
     });
   } catch (err) {
     res.send({
@@ -1220,7 +1220,7 @@ We regret to inform you that the documents provided for your driver profile veri
 
     res.send({
       code: constant.success_code,
-      message: "updated successfully",
+      message: "Updated successfully",
     });
   } catch (err) {
     res.send({
