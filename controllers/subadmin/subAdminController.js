@@ -122,7 +122,7 @@ exports.edit_sub_admin = async (req, res) => {
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Updated Successfull",
+                message:"Updated successfull",
                 result:update_data
             })
         }
