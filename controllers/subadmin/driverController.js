@@ -134,7 +134,7 @@ exports.get_driver_detail = async (req, res) => {
                 message: "Unable to fetch the detail"
             })
         } else {
-            const completedTrips = await trip_model.find({driver_name: driverId, trip_status: "Completed", is_paid: false}).countDocuments();
+            const completedTrips = await trip_model.find({ driver_name: driverId, trip_status: "Completed", is_paid: false }).countDocuments();
             const result = driver.toObject();
             result.totalTrips = completedTrips
             res.send({
@@ -389,17 +389,33 @@ exports.get_trips_for_driver = async (req, res) => {
                 message: "Unable to get the trips"
             })
         } else {
+            let startOfCurrentWeek = new Date(currentDate);
+            startOfCurrentWeek.setHours(0, 0, 0, 0);
+            startOfCurrentWeek.setDate(
+                startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+            );
             const totalActiveTrips = await TRIP
-        .find({
-          driver_name: req.userId,
-          trip_status: "Active",
-        })
-        .countDocuments();
+                .find({
+                    driver_name: req.userId,
+                    trip_status: "Active",
+                })
+                .countDocuments();
+            const totalUnpaidTrips = await TRIP
+                .find({
+                    driver_name: req.userId,
+                    trip_status: "Completed",
+                    is_paid: false,
+                    drop_time: {
+                        $lte: startOfCurrentWeek,
+                    },
+                })
+                .countDocuments();
             res.send({
                 code: constant.success_code,
                 message: "Success",
                 result: get_trip,
-                totalActiveTrips
+                totalActiveTrips,
+                totalUnpaidTrips
             })
         }
     } catch (err) {
