@@ -389,6 +389,7 @@ exports.get_trips_for_driver = async (req, res) => {
                 message: "Unable to get the trips"
             })
         } else {
+            let currentDate = new Date();
             let startOfCurrentWeek = new Date(currentDate);
             startOfCurrentWeek.setHours(0, 0, 0, 0);
             startOfCurrentWeek.setDate(
