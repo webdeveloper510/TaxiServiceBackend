@@ -4,7 +4,7 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-var cron = require("node-cron")
+var cron = require("node-cron");
 const db = require("./config/db");
 const http = require("http");
 const cors = require("cors");
@@ -188,7 +188,7 @@ io.on("connection", (socket) => {
             message: "Trip id not valid",
           });
         }
-        
+
         if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
           trip.driver_name = null;
           trip.trip_status = "Pending";
@@ -196,7 +196,7 @@ io.on("connection", (socket) => {
           const user = await user_model
             .findById(trip.created_by)
             .populate("created_by");
-          if ((user.role == "HOTEL")) {
+          if (user.role == "HOTEL") {
             io.to(user?.created_by?.socketId).emit("tripCancelledBYDriver", {
               trip,
               message: "Trip canceled successfully",
@@ -220,18 +220,17 @@ io.on("connection", (socket) => {
                   title: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
-                  sound: "default"
+                  sound: "default",
                 },
               },
               {
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization:
-                    `key=${process.env.FCM_SERVER_KEY}`,
+                  Authorization: `key=${process.env.FCM_SERVER_KEY}`,
                 },
               }
             );
-            console.log("🚀 ~ socket.on ~ response:", response)
+            console.log("🚀 ~ socket.on ~ response:", response);
           } else {
             io.to(user.socketId).emit("tripCancelledBYDriver", {
               trip,
@@ -249,30 +248,118 @@ io.on("connection", (socket) => {
             const response = await axios.post(
               "https://fcm.googleapis.com/fcm/send",
               {
-                to:user?.deviceToken,
+                to: user?.deviceToken,
                 notification: {
-                  message:  `Trip canceled by driver and trip ID is ${trip.trip_id}`,
-                  title:  `Trip canceled by driver and trip ID is ${trip.trip_id}`,
+                  message: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
+                  title: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
-                  sound: "default"
+                  sound: "default",
                 },
               },
               {
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization:
-                    `key=${process.env.FCM_SERVER_KEY}`,
+                  Authorization: `key=${process.env.FCM_SERVER_KEY}`,
                 },
               }
             );
-            console.log("🚀 ~ socket.on ~ response:", response)
+            console.log("🚀 ~ socket.on ~ response:", response);
           }
           io.to(socket.id).emit("driverNotification", {
             code: 200,
             message: "Trip canceled successfully",
           });
         }
+      }
+    } catch (error) {
+      console.log("🚀 ~ socket.on ~ error:", error);
+      return io.to(socket.id).emit("driverNotification", {
+        code: 200,
+        message: "There is some",
+      });
+    }
+  });
+  socket.on("acceptDriverTrip", async ({ tripId }) => {
+    if (!tripId) {
+      return io.to(socket.id).emit("driverNotification", {
+        code: 200,
+        message: "Trip id not valid",
+      });
+    }
+    try {
+      const driverBySocketId = await driver_model.findOne({
+        socketId: socket.id,
+      });
+      console.log("🚀 ~ socket.on ~ driverBySocketId:", driverBySocketId);
+      if (driverBySocketId) {
+        const trip = await trip_model.findById(tripId);
+        console.log("🚀 ~ socket.on ~ trip:", trip);
+        if (!trip) {
+          return io.to(socket.id).emit("driverNotification", {
+            code: 200,
+            message: "Trip id not valid",
+          });
+        }
+        const user = await user_model
+          .findById(trip.created_by)
+          .populate("created_by");
+        if (user.role == "HOTEL") {
+          io.to(user?.created_by?.socketId).emit("tripAcceptedBYDriver", {
+            trip,
+            message: "Trip accepted successfully",
+          });
+          const response = await axios.post(
+            "https://fcm.googleapis.com/fcm/send",
+            {
+              to: user?.created_by?.deviceToken,
+              notification: {
+                message: `Trip accepted by driver and trip ID is ${trip.trip_id}`,
+                title: `Trip accepted by driver and trip ID is ${trip.trip_id}`,
+                trip,
+                driver: driverBySocketId,
+                sound: "default",
+              },
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `key=${process.env.FCM_SERVER_KEY}`,
+              },
+            }
+          );
+          console.log("🚀 ~ socket.on ~ response:", response);
+        } else {
+          io.to(user.socketId).emit("tripAcceptedBYDriver", {
+            trip,
+            message: "Trip accepted successfully",
+          });
+
+          const response = await axios.post(
+            "https://fcm.googleapis.com/fcm/send",
+            {
+              to: user?.deviceToken,
+              notification: {
+                message: `Trip accepted by driver and trip ID is ${trip.trip_id}`,
+                title: `Trip accepted by driver and trip ID is ${trip.trip_id}`,
+                trip,
+                driver: driverBySocketId,
+                sound: "default",
+              },
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `key=${process.env.FCM_SERVER_KEY}`,
+              },
+            }
+          );
+          console.log("🚀 ~ socket.on ~ response:", response);
+        }
+        io.to(socket.id).emit("driverNotification", {
+          code: 200,
+          message: "Trip accepted successfully",
+        });
       }
     } catch (error) {
       console.log("🚀 ~ socket.on ~ error:", error);
@@ -303,12 +390,12 @@ io.on("connection", (socket) => {
             message: "Trip id not valid",
           });
         }
-        
+
         if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
           const user = await user_model
             .findById(trip.created_by)
             .populate("created_by");
-          if ((user.role == "HOTEL")) {
+          if (user.role == "HOTEL") {
             io.to(user?.created_by?.socketId).emit("tripActiveBYDriver", {
               trip,
               message: "Trip active successfully",
@@ -318,22 +405,21 @@ io.on("connection", (socket) => {
               {
                 to: user?.created_by?.deviceToken,
                 notification: {
-                  message:  `Trip start by driver and trip ID is ${trip.trip_id}`,
-                  title:  `Trip start by driver and trip ID is ${trip.trip_id}`,
+                  message: `Trip start by driver and trip ID is ${trip.trip_id}`,
+                  title: `Trip start by driver and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
-                  sound: "default"
+                  sound: "default",
                 },
               },
               {
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization:
-                    `key=${process.env.FCM_SERVER_KEY}`,
+                  Authorization: `key=${process.env.FCM_SERVER_KEY}`,
                 },
               }
             );
-            console.log("🚀 ~ socket.on ~ response:", response)
+            console.log("🚀 ~ socket.on ~ response:", response);
           } else {
             io.to(user.socketId).emit("tripActiveBYDriver", {
               trip,
@@ -351,24 +437,23 @@ io.on("connection", (socket) => {
             const response = await axios.post(
               "https://fcm.googleapis.com/fcm/send",
               {
-                to:user?.deviceToken,
+                to: user?.deviceToken,
                 notification: {
                   message: `Trip start by driver and trip ID is ${trip.trip_id}`,
                   title: `Trip start by driver and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
-                  sound: "default"
+                  sound: "default",
                 },
               },
               {
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization:
-                    `key=${process.env.FCM_SERVER_KEY}`,
+                  Authorization: `key=${process.env.FCM_SERVER_KEY}`,
                 },
               }
             );
-            console.log("🚀 ~ socket.on ~ response:", response)
+            console.log("🚀 ~ socket.on ~ response:", response);
           }
           io.to(socket.id).emit("driverNotification", {
             code: 200,
@@ -398,43 +483,51 @@ io.on("connection", (socket) => {
 
 async function checkTripsAndSendNotifications() {
   try {
-    console.log("cron job running every minute")
+    console.log("cron job running every minute");
     const currentDate = new Date();
     const fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
     const thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
-  const trips = await trip_model.find({ pickup_date_time: { $lte: fifteenMinutesBefore },pickup_date_time:{$gte:thirteenMinutesBefore},fifteenMinuteNotification:false }).populate("driver_name");
-  console.log("🚀 ~ checkTripsAndSendNotifications ~ trips:", trips)
-  const notifications = [];
-  const ids = []
-  trips.forEach(trip => {
-    const message = `Your trip have ID ${trip._id} is scheduled in 15 minutes. Please get ready!`;
-    ids.push(trip._id);
-    
-    if(trip?.driver_name?.deviceToken){
-      notifications.push(sendNotification(trip?.driver_name?.deviceToken,message,message,trip))
-    }
-    
+    const trips = await trip_model
+      .find({
+        pickup_date_time: { $lte: fifteenMinutesBefore },
+        pickup_date_time: { $gte: thirteenMinutesBefore },
+        fifteenMinuteNotification: false,
+      })
+      .populate("driver_name");
+    console.log("🚀 ~ checkTripsAndSendNotifications ~ trips:", trips);
+    const notifications = [];
+    const ids = [];
+    trips.forEach((trip) => {
+      const message = `Your trip have ID ${trip._id} is scheduled in 15 minutes. Please get ready!`;
+      ids.push(trip._id);
 
-  });
-  const res = await Promise.all(notifications);
-    console.log("🚀 ~ checkTripsAndSendNotifications ~ res:", res)
-    await trip_model.updateMany({_id:{$in:ids}},{$set:{
-      fifteenMinuteNotification:true
-    }})
+      if (trip?.driver_name?.deviceToken) {
+        notifications.push(
+          sendNotification(
+            trip?.driver_name?.deviceToken,
+            message,
+            message,
+            trip
+          )
+        );
+      }
+    });
+    const res = await Promise.all(notifications);
+    console.log("🚀 ~ checkTripsAndSendNotifications ~ res:", res);
+    await trip_model.updateMany(
+      { _id: { $in: ids } },
+      {
+        $set: {
+          fifteenMinuteNotification: true,
+        },
+      }
+    );
   } catch (error) {
-    console.log("🚀 ~ checkTripsAndSendNotifications ~ error:", error)
-    
+    console.log("🚀 ~ checkTripsAndSendNotifications ~ error:", error);
   }
 }
 
 // Schedule the task using cron
-cron.schedule('* * * * *', checkTripsAndSendNotifications);
-
-
+cron.schedule("* * * * *", checkTripsAndSendNotifications);
 
 module.exports = app;
-
-
-
-
-

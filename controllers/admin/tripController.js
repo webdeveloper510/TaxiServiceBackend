@@ -1,3 +1,4 @@
+require("dotenv").config();
 const AGENCY = require('../../models/user/agency_model')
 const DRIVER = require('../../models/user/driver_model')
 const USER = require('../../models/user/user_model')
@@ -14,17 +15,73 @@ const randToken = require('rand-token').generator()
 const moment = require('moment')
 const { sendNotification } = require('../../Service/helperFuntion')
 const trip_model = require('../../models/user/trip_model')
+const user_model = require('../../models/user/user_model')
+const { default: axios } = require('axios')
 
 
-const tripIsBooked = async(tripId) => {
+const tripIsBooked = async(tripId,io) => {
     console.log("🚀 ~ tripIsBooked ~ tripId:", tripId)
     try{
-
         const tripById = await trip_model.findOne({_id:tripId,trip_status:"Accepted"});
     if(tripById){
         tripById.driver_name = null;
         tripById.trip_status = "Pending";
         await tripById.save()
+        const user = await user_model
+        .findById(tripById.created_by)
+        .populate("created_by");
+      if (user.role == "HOTEL") {
+        io.to(user?.created_by?.socketId).emit("tripNotAcceptedBYDriver", {
+            trip:tripById,
+          message: "Trip not accepted",
+        });
+        const response = await axios.post(
+          "https://fcm.googleapis.com/fcm/send",
+          {
+            to: user?.created_by?.deviceToken,
+            notification: {
+              message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+              title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+              tripById,
+              driver: driverBySocketId,
+              sound: "default",
+            },
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `key=${process.env.FCM_SERVER_KEY}`,
+            },
+          }
+        );
+        console.log("🚀 ~ socket.on ~ response:", response);
+      } else {
+        io.to(user.socketId).emit("tripNotAcceptedBYDriver", {
+            tripById,
+          message: "Trip not accepted successfully",
+        });
+
+        const response = await axios.post(
+          "https://fcm.googleapis.com/fcm/send",
+          {
+            to: user?.deviceToken,
+            notification: {
+              message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+              title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+              tripById,
+              driver: driverBySocketId,
+              sound: "default",
+            },
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `key=${process.env.FCM_SERVER_KEY}`,
+            },
+          }
+        );
+        console.log("🚀 ~ socket.on ~ response:", response);
+      }
     }
     }catch(err){
         console.log("🚀 ~ tripIsBooked ~ err:", err)
@@ -767,7 +824,7 @@ exports.alocate_driver = async (req, res) => {
                     
                 }
                     
-                setTimeout(()=>{tripIsBooked(update_trip._id)},20*1000)
+                setTimeout(()=>{tripIsBooked(update_trip._id,req.io)},20*1000)
                 res.send({
                     code: constant.success_code,
                     message: "Driver allocated successfully"
