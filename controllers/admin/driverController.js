@@ -1494,7 +1494,7 @@ exports.switchToDriver = async (req, res) => {
     ); // Set to Monday of current week
     let user = req.user;
 
-    let driverData = await DRIVER.findOne({ email: user.email });
+    let driverData = await DRIVER.findOne({ email: user.email, is_deleted:false });
     if (!driverData) {
       res.send({
         code: constant.error_code,
@@ -1543,7 +1543,7 @@ exports.switchToCompany = async (req, res) => {
   try {
     let user = req.user;
 
-    let companyData = await user_model.findOne({ email: user.email });
+    let companyData = await user_model.findOne({ email: user.email, is_deleted:false });
     if (!companyData) {
       res.send({
         code: constant.error_code,
