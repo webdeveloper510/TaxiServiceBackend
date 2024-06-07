@@ -1410,9 +1410,9 @@ exports.convertIntoDriver = async (req, res) => {
           : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg";
       let user = req.user;
 
-      let check_other1 = await DRIVER.findOne({ email: user.email });
+      let check_other1 = await DRIVER.findOne({ email: user.email, is_deleted:false });
 
-      let check_other2 = await DRIVER.findOne({ phone: user.phone });
+      let check_other2 = await DRIVER.findOne({ phone: user.phone , is_deleted:false});
 
       if (check_other1) {
         res.send({
