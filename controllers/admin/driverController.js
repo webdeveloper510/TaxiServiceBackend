@@ -1422,24 +1422,9 @@ exports.convertIntoDriver = async (req, res) => {
           : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg";
       let user = req.user;
 
-      let check_other1 = await DRIVER.findOne({ email: user.email, is_deleted:false });
+      let check_other1 = await DRIVER.findOneAndDelete({ email: user.email});
 
-      let check_other2 = await DRIVER.findOne({ phone: user.phone , is_deleted:false});
-
-      if (check_other1) {
-        res.send({
-          code: constant.error_code,
-          message: "Email Already exist",
-        });
-        return;
-      }
-      if (check_other2) {
-        res.send({
-          code: constant.error_code,
-          message: "Phone Already exist",
-        });
-        return;
-      }
+      let check_other2 = await DRIVER.findOneAndDelete({ phone: user.phone });
 
       let save_driver = await DRIVER({
         ...data,
