@@ -314,17 +314,29 @@ exports.remove_driver = async (req, res) => {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
     // You may want to add additional checks to ensure the driver exists or belongs to the agency user
-    const removedDriver = await DRIVER.findOneAndDelete({ _id: driverId });
+    const removedDriver = await DRIVER.findOneAndUpdate({ _id: driverId },{ is_deleted: false});
+    
     if (!removedDriver) {
       res.send({
         code: constant.error_code,
         message: "Unable to delete the driver",
       });
     } else {
-      res.send({
-        code: constant.success_code,
-        message: "Deleted Successfully",
-      });
+      let companyData = await user_model.findOne({ email: removedDriver.email, is_deleted:false });
+      if (!companyData) {
+        res.send({
+          code: constant.success_code,
+          message: "Deleted Successfully",
+        });
+      } else {
+        companyData.isDriver = false;
+        companyData.driverId = null ;
+        await companyData.save()
+        res.send({
+          code: constant.success_code,
+          message: "Deleted Successfully",
+        });
+      }
     }
   } catch (err) {
     res.send({
@@ -1563,6 +1575,33 @@ exports.switchToCompany = async (req, res) => {
         message: "data fetch successfully",
         result,
         jwtToken,
+      });
+    }
+  } catch (err) {
+    console.log("🚀 ~ driverUpload ~ err:", err);
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
+exports.deleteDriver = async (req, res) => {
+  try {
+    let driver = await DRIVER.findOneAndUpdate({_id:req.params.id},{is_deleted:true})
+    let companyData = await user_model.findOne({ email: driver.email, is_deleted:false });
+    if (!companyData) {
+      res.send({
+        code: constant.success_code,
+        message: "Deleted successfully",
+      });
+    } else {
+      companyData.isDriver = false;
+      companyData.driverId = null ;
+      await companyData.save()
+      res.send({
+        code: constant.success_code,
+        message: "Deleted successfully",
       });
     }
   } catch (err) {
