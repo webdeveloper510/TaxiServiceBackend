@@ -324,12 +324,18 @@ exports.getCommissionTrans = async (req, res) => {
     }).populate("trip").populate("from").sort({
       createdAt: -1
     })
-    const getTotalAmount = async(start)=>{
+    const getTotalAmount = async(startDate)=>{
       const amount = await transaction.aggregate([
         {
           $match:{
             to: new mongoose.Types.ObjectId(req.userId),
             fromType: "DRIVER",
+            
+          }
+        },
+        {
+          $match: {
+            createdAt: {$gte: new Date(startDate)}
           }
         },
         {
@@ -341,6 +347,7 @@ exports.getCommissionTrans = async (req, res) => {
           }
         }
       ])
+  
       return amount[0]?.totalEarnings || 0;
     }
 
