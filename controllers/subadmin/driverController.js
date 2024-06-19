@@ -134,7 +134,7 @@ exports.get_driver_detail = async (req, res) => {
                 message: "Unable to fetch the detail"
             })
         } else {
-            const completedTrips = await trip_model.find({ driver_name: driverId, trip_status: "Completed", is_paid: true }).countDocuments();
+            const completedTrips = await trip_model.find({ driver_name: req.userId, trip_status: "Completed", is_paid: true }).countDocuments();
             const result = driver.toObject();
             result.totalTrips = completedTrips
             res.send({

@@ -363,7 +363,7 @@ exports.get_driver_detail = async (req, res) => {
         .find({
           driver_name: driverId,
           trip_status: "Completed",
-          is_paid: false,
+          is_paid: true,
         })
         .countDocuments();
       const result = driver.toObject();
