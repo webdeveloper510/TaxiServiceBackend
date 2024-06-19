@@ -796,7 +796,7 @@ exports.alocate_driver = async (req, res) => {
                     trip_status: data.status
                 }
             }
-            if(check_driver._id.toString() == req.userId.toString()){
+            if(check_driver._id.toString() == req?.user?.driverId?.toString()){
                 newValues = {
                     $set: {
                         driver_name: check_driver._id,
@@ -816,7 +816,7 @@ exports.alocate_driver = async (req, res) => {
             } else {
                 try {
                     
-                    if(check_driver._id.toString() != req.userId.toString()){await sendNotification(check_driver.deviceToken,"New Trip is allocated have ID "+update_trip.trip_id ,"New Trip is allocated have ID "+update_trip.trip_id, update_trip )
+                    if(check_driver._id.toString() != req?.user?.driverId?.toString()){await sendNotification(check_driver.deviceToken,"New Trip is allocated have ID "+update_trip.trip_id ,"New Trip is allocated have ID "+update_trip.trip_id, update_trip )
                     }
                 } catch (error) {
                     console.log("🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error)
