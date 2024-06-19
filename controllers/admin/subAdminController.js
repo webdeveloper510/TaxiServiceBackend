@@ -519,13 +519,18 @@ exports.delete_sub_admin = async (req, res) => {
                 deleted_by_id: req.userId
             }
         }
-        let deleteSubAdmin = await USER.findOneAndUpdate(criteria, newValue, option)
+        let deleteSubAdmin = await USER.findOneAndUpdate(criteria, newValue, option);
         if (!deleteSubAdmin) {
             res.send({
                 code: constant.error_code,
                 message: "Unable to delete the sub admin"
             })
         } else {
+            let deleteDriver = await driver_model.findOneAndUpdate({email:deleteSubAdmin.email},{$set:{
+                is_deleted:true
+            }})
+            console.log("🚀 ~ exports.delete_sub_admin= ~ deleteDriver:", deleteDriver)
+
             res.send({
                 code: constant.success_code,
                 message: "Deleted"

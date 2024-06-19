@@ -39,10 +39,10 @@ const constants = require('../config/constant')
     //   return;
     // }
     
-    let user = await user_model.findOne({_id:decoded?.userId}).populate("created_by");
+    let user = await user_model.findOne({_id:decoded?.userId, is_deleted: false}).populate("created_by");
     
       if(!user){
-        user = await driver_model.findById(decoded?.userId).populate("created_by");
+        user = await driver_model.findOne({_id:decoded?.userId,is_deleted:false}).populate("created_by");
           if(user){
             user = user.toObject();
             user.role = "DRIVER"
@@ -65,6 +65,12 @@ const constants = require('../config/constant')
       }
       
     if(user && (user.role != "SUPER_ADMIN" && user.role != "DRIVER") && (!user.status || !user?.created_by?.status) ){
+      return res.send({
+        code: constant.tokenError,
+        message: "You are blocked by administration. Please contact administration"
+    })
+    }
+    if(user.role == "DRIVER" && !user?.created_by?.status){
       return res.send({
         code: constant.tokenError,
         message: "You are blocked by administration. Please contact administration"
