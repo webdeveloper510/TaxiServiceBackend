@@ -321,7 +321,12 @@ exports.get_token_detail = async (req, res) => {
     } else {
       let dataResult =  getData[0];
     // const dataModified = dataResult.toObject();
-    dataResult.driver = dataResult.driver[0];
+    const drivers = dataResult?.driver || []
+    const driverData = drivers[0];
+    if(driverData){
+      dataResult.driver = driverData 
+
+    }
       res.send({
         code: constant.success_code,
         message: "Success",
