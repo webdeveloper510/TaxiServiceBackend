@@ -16,7 +16,8 @@ const moment = require('moment')
 const { sendNotification } = require('../../Service/helperFuntion')
 const trip_model = require('../../models/user/trip_model')
 const user_model = require('../../models/user/user_model')
-const { default: axios } = require('axios')
+const { default: axios } = require('axios');
+const driver_model = require("../../models/user/driver_model");
 
 
 const tripIsBooked = async(tripId,io) => {
@@ -24,12 +25,14 @@ const tripIsBooked = async(tripId,io) => {
     try{
         const tripById = await trip_model.findOne({_id:tripId,trip_status:"Accepted"});
     if(tripById){
+        const updateDriver = await driver_model.findByIdAndUpdate(tripById.driver_name,{is_available:true})
         tripById.driver_name = null;
         tripById.trip_status = "Pending";
         await tripById.save()
         const user = await user_model
         .findById(tripById.created_by)
         .populate("created_by");
+
       if (user.role == "HOTEL") {
         io.to(user?.created_by?.socketId).emit("tripNotAcceptedBYDriver", {
             trip:tripById,
