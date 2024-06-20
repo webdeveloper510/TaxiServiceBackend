@@ -290,9 +290,7 @@ exports.get_token_detail = async (req, res) => {
       //   preserveNullAndEmptyArrays: true
       // }
     ]);
-    let dataResult =  getData[0];
-    // const dataModified = dataResult.toObject();
-    dataResult.driver = dataResult.driver[0];
+    
     if (!userByID) {
       let get_data = await DRIVER.findOne({ _id: req.userId });
       if (!get_data) {
@@ -321,6 +319,9 @@ exports.get_token_detail = async (req, res) => {
         result: get_data2,
       });
     } else {
+      let dataResult =  getData[0];
+    // const dataModified = dataResult.toObject();
+    dataResult.driver = dataResult.driver[0];
       res.send({
         code: constant.success_code,
         message: "Success",
