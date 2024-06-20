@@ -281,11 +281,11 @@ exports.get_token_detail = async (req, res) => {
           from: "drivers",
           localField: "driverId",
           foreignField: "_id",
-          as: "driverId",
+          as: "driver",
         },
       },
       { $unwind: "$company_detail" },
-      { $unwind: "$driverId" },
+      { $unwind: "$driver" },
     ]);
     if (!userByID) {
       let get_data = await DRIVER.findOne({ _id: req.userId });
