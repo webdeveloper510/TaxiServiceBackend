@@ -178,6 +178,8 @@ io.on("connection", (socket) => {
       const driverBySocketId = await driver_model.findOne({
         socketId: socket.id,
       });
+      driverBySocketId.is_available = true;
+      await driverBySocketId.save();
       console.log("🚀 ~ socket.on ~ driverBySocketId:", driverBySocketId);
       if (driverBySocketId) {
         const trip = await trip_model.findById(tripId);
