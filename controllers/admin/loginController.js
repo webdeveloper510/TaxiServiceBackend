@@ -91,7 +91,7 @@ exports.login = async (req, res) => {
           is_deleted: false,
         },
       ],
-    }).populate("created_by");
+    }).populate("created_by driverId");
     if (
       userData &&
       userData.role != "SUPER_ADMIN" &&
@@ -263,7 +263,7 @@ exports.get_token_detail = async (req, res) => {
     let data = req.body;
     
     let result1;
-    const userByID = await USER.findOne({ _id: req.userId });
+    const userByID = await USER.findOne({ _id: req.userId }).populate("driverId");
     let getData = await USER.aggregate([
       {
         $match: { _id: new mongoose.Types.ObjectId(req.userId) },
@@ -276,7 +276,16 @@ exports.get_token_detail = async (req, res) => {
           as: "company_detail",
         },
       },
+      {
+        $lookup: {
+          from: "drivers",
+          localField: "driverId",
+          foreignField: "_id",
+          as: "driverId",
+        },
+      },
       { $unwind: "$company_detail" },
+      { $unwind: "$driverId" },
     ]);
     if (!userByID) {
       let get_data = await DRIVER.findOne({ _id: req.userId });
