@@ -285,8 +285,14 @@ exports.get_token_detail = async (req, res) => {
         },
       },
       { $unwind: "$company_detail" },
-      { $unwind: "$driver" },
+      // {
+      //   path: "driver",
+      //   preserveNullAndEmptyArrays: true
+      // }
     ]);
+    let dataResult =  getData[0];
+    // const dataModified = dataResult.toObject();
+    dataResult.driver = dataResult.driver[0];
     if (!userByID) {
       let get_data = await DRIVER.findOne({ _id: req.userId });
       if (!get_data) {
@@ -318,7 +324,7 @@ exports.get_token_detail = async (req, res) => {
       res.send({
         code: constant.success_code,
         message: "Success",
-        result: getData[0] ? getData[0] : userByID,
+        result: dataResult ? dataResult : userByID,
       });
     }
   } catch (err) {
