@@ -39,7 +39,7 @@ const constants = require('../config/constant')
     //   return;
     // }
     
-    let user = await user_model.findOne({_id:decoded?.userId, is_deleted: false}).populate("created_by");
+    let user = await user_model.findOne({_id:decoded?.userId, is_deleted: false}).populate("created_by").populate("driverId");
     
       if(!user){
         user = await driver_model.findOne({_id:decoded?.userId,is_deleted:false}).populate("created_by");
