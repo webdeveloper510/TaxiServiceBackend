@@ -1558,6 +1558,7 @@ exports.switchToCompany = async (req, res) => {
       const result = companyData.toObject();
       companyData.jwtToken = jwtToken;
       result.role = "COMPANY";
+      result.driver = user
       res.send({
         code: constant.success_code,
         message: "data fetch successfully",
