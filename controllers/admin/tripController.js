@@ -784,7 +784,7 @@ exports.alocate_driver = async (req, res) => {
         }
 
         if (data.status != 'Canceled') {
-            let check_driver = await DRIVER.findOneAndUpdate({ _id: data.driver_name }, { is_available: false })
+            let check_driver = await DRIVER.findOne({ _id: data.driver_name })
             if (!check_driver) {
                 res.send({
                     code: constant.error_code,
