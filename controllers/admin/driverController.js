@@ -315,7 +315,7 @@ exports.remove_driver = async (req, res) => {
 
     // You may want to add additional checks to ensure the driver exists or belongs to the agency user
     const removedDriver = await DRIVER.findOneAndUpdate({ _id: driverId },{ $set:{
-      is_deleted: false
+      is_deleted: true
     }});
     
     if (!removedDriver) {
