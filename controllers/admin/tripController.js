@@ -46,7 +46,7 @@ const tripIsBooked = async(tripId,io) => {
               message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
               title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
               tripById,
-              driver: driverBySocketId,
+              driver: updateDriver,
               sound: "default",
             },
           },
