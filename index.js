@@ -77,6 +77,15 @@ httpServer.listen(PORT, () =>
 io.on("connection", (socket) => {
   socket.on("addNewDriver", async ({ token, longitude, latitude }) => {
     try {
+      await driver_model.updateMany(
+        { socketId: socket.id },
+        {
+          $set: {
+            isSocketConnected: false,
+            socketId: null,
+          },
+        }
+      );
       const driverByToken = await driverDetailsByToken(token);
       console.log(
         "🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:",
@@ -84,15 +93,7 @@ io.on("connection", (socket) => {
       );
 
       if (driverByToken) {
-        await driver_model.updateMany(
-          { socketId: socket.id },
-          {
-            $set: {
-              isSocketConnected: false,
-              socketId: null,
-            },
-          }
-        );
+       
         driverByToken.location = {
           type: "Point",
           coordinates: [longitude, latitude],
