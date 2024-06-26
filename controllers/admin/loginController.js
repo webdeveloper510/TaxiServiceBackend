@@ -117,6 +117,7 @@ exports.login = async (req, res) => {
           },
         ],
       });
+      console.log("🚀 ~ exports.login= ~ check_again:", check_again)
 
       if (!check_again) {
         res.send({
