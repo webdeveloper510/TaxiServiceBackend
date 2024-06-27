@@ -348,7 +348,7 @@ exports.send_otp = async (req, res) => {
     let check_email = await USER.findOne({
       $and: [
         {
-          $or: [{ email: data.email }, { phone: data.email }],
+          $or: [{ email: { $regex: data.email, $options: "i" }  }, { phone: { $regex: data.email, $options: "i" }  }],
         },
         {
           status: true,
@@ -362,7 +362,7 @@ exports.send_otp = async (req, res) => {
       let check_driver = await DRIVER.findOne({
         $and: [
           {
-            $or: [{ email: data.email }, { phone: data.email }],
+            $or: [{ email: { $regex: data.email, $options: "i" }  }, { phone: { $regex: data.email, $options: "i" }  }],
           },
           {
             status: true,
@@ -372,6 +372,7 @@ exports.send_otp = async (req, res) => {
           },
         ],
       });
+      console.log("🚀 ~ exports.send_otp= ~ check_driver:", check_driver)
       if (!check_driver) {
         res.send({
           code: constant.error_code,
@@ -546,7 +547,7 @@ There was a request to change your password!
       res.send({
         code: constant.success_code,
         message: "OTP sent successfully",
-        otp: data.OTP,
+       
       });
     } else {
       data.OTP = randToken.generate(4, "123456789");
@@ -722,7 +723,7 @@ There was a request to change your password!
         res.send({
           code: constant.success_code,
           message: "OTP sent successfully",
-          otp: data.OTP,
+         
         });
       }
     }
@@ -739,9 +740,9 @@ exports.verify_otp = async (req, res) => {
     let data = req.body;
 
     let checkEmail;
-    let checkEmail1 = await USER.findOne({ email: req.body.email });
+    let checkEmail1 = await USER.findOne({ email: { $regex: data.email, $options: "i" }  });
     if (!checkEmail1) {
-      let checkEmail2 = await DRIVER.findOne({ email: req.body.email });
+      let checkEmail2 = await DRIVER.findOne({ email: { $regex: data.email, $options: "i" }  });
       if (!checkEmail2) {
         res.send({
           code: constant.error_code,
@@ -797,10 +798,12 @@ exports.verify_otp = async (req, res) => {
 exports.forgot_password = async (req, res) => {
   try {
     let data = req.body;
-    let criteria = { email: data.email };
+    
+    let criteria = { email: { $regex:data.email, $options: "i" }  };
     let check_email = await USER.findOne(criteria);
     if (!check_email) {
       let check_driver = await DRIVER.findOne(criteria);
+      console.log("🚀 ~ exports.forgot_password= ~ check_driver:", check_driver)
       if (!check_driver) {
         res.send({
           code: constant.error_code,
@@ -822,6 +825,7 @@ exports.forgot_password = async (req, res) => {
         newValue,
         option
       );
+      console.log("🚀 ~ exports.forgot_password= ~ updatePassword:", updatePassword)
       if (!updatePassword) {
         res.send({
           code: constant.error_code,
