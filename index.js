@@ -102,6 +102,7 @@ io.on("connection", (socket) => {
         driverByToken.isSocketConnected = true;
         driverByToken.socketId = socket.id;
         await driverByToken.save();
+        console.log("🚀 ~ socket.on ~ add driver token =====", driverByToken)
         io.to(socket.id).emit("driverNotification", {
           code: 200,
           message:
