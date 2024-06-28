@@ -860,6 +860,7 @@ exports.updateLocation = async (req, res) => {
     let criteria = { _id: data.driverId };
     let option = { new: true };
 
+    console.log("location  ____________ >>>>>" , data)
     let updateLocation = await DRIVER.findOneAndUpdate(
       criteria,
       {
