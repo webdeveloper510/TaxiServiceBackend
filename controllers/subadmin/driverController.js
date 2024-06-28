@@ -558,7 +558,13 @@ exports.get_reports = async (req, res) => {
     let get_data = await TRIP.find({
       $and: query,
     });
-    const totalPrice = get_data.reduce((sum, obj) => sum + obj.price, 0);
+    const totalPrice = get_data.reduce((sum, obj) => {
+      let commission = obj?.commission?.commission_value || 0;
+      if(obj?.commission?.commission_type === "Percentage"){
+        commission = obj.price/100* obj.commission.commission_value
+      }
+      return  sum + obj.price - commission
+    } , 0);
     if (!get_data) {
       res.send({
         code: constant.error_code,
@@ -571,6 +577,7 @@ exports.get_reports = async (req, res) => {
         result: {
           trips: get_data.length,
           earning: totalPrice,
+          get_data
         },
       });
     }
