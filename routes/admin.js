@@ -84,7 +84,7 @@ router.get('/get_fare_detail/:id', [verifyToken], fareController.get_fare_detail
 router.delete('/delete_fare/:id', [verifyToken], fareController.delete_fare)
 router.put('/edit_fare/:id', [verifyToken], fareController.edit_fare)
 
-
+console.log("++++++++++++++++++++++++++++++++++++++++++++++++")
 
 // trip api's
 router.post('/add_trip', [verifyToken], tripController.add_trip)

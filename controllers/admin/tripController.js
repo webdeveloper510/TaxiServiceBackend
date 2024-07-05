@@ -18,75 +18,77 @@ const trip_model = require('../../models/user/trip_model')
 const user_model = require('../../models/user/user_model')
 const { default: axios } = require('axios');
 const driver_model = require("../../models/user/driver_model");
+const nodemailer = require("nodemailer");
+const emailConstant = require("../../config/emailConstant");
 
 
-const tripIsBooked = async(tripId,io) => {
+const tripIsBooked = async (tripId, io) => {
     console.log("🚀 ~ tripIsBooked ~ tripId:", tripId)
-    try{
-        const tripById = await trip_model.findOne({_id:tripId,trip_status:"Accepted"});
-    if(tripById){
-        const updateDriver = await driver_model.findByIdAndUpdate(tripById.driver_name,{is_available:true})
-        tripById.driver_name = null;
-        tripById.trip_status = "Pending";
-        await tripById.save()
-        const user = await user_model
-        .findById(tripById.created_by)
-        .populate("created_by");
+    try {
+        const tripById = await trip_model.findOne({ _id: tripId, trip_status: "Accepted" });
+        if (tripById) {
+            const updateDriver = await driver_model.findByIdAndUpdate(tripById.driver_name, { is_available: true })
+            tripById.driver_name = null;
+            tripById.trip_status = "Pending";
+            await tripById.save()
+            const user = await user_model
+                .findById(tripById.created_by)
+                .populate("created_by");
 
-      if (user.role == "HOTEL") {
-        io.to(user?.created_by?.socketId).emit("tripNotAcceptedBYDriver", {
-            trip:tripById,
-          message: "Trip not accepted",
-        });
-        const response = await axios.post(
-          "https://fcm.googleapis.com/fcm/send",
-          {
-            to: user?.created_by?.deviceToken,
-            notification: {
-              message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-              title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-              tripById,
-              driver: updateDriver,
-              sound: "default",
-            },
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-            },
-          }
-        );
-        console.log("🚀 ~ socket.on ~ response:", response);
-      } else {
-        io.to(user.socketId).emit("tripNotAcceptedBYDriver", {
-            tripById,
-          message: "Trip not accepted successfully",
-        });
+            if (user.role == "HOTEL") {
+                io.to(user?.created_by?.socketId).emit("tripNotAcceptedBYDriver", {
+                    trip: tripById,
+                    message: "Trip not accepted",
+                });
+                const response = await axios.post(
+                    "https://fcm.googleapis.com/fcm/send",
+                    {
+                        to: user?.created_by?.deviceToken,
+                        notification: {
+                            message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                            title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                            tripById,
+                            driver: updateDriver,
+                            sound: "default",
+                        },
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `key=${process.env.FCM_SERVER_KEY}`,
+                        },
+                    }
+                );
+                console.log("🚀 ~ socket.on ~ response:", response);
+            } else {
+                io.to(user.socketId).emit("tripNotAcceptedBYDriver", {
+                    tripById,
+                    message: "Trip not accepted successfully",
+                });
 
-        const response = await axios.post(
-          "https://fcm.googleapis.com/fcm/send",
-          {
-            to: user?.deviceToken,
-            notification: {
-              message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-              title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-              tripById,
-              driver: driverBySocketId,
-              sound: "default",
-            },
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-            },
-          }
-        );
-        console.log("🚀 ~ socket.on ~ response:", response);
-      }
-    }
-    }catch(err){
+                const response = await axios.post(
+                    "https://fcm.googleapis.com/fcm/send",
+                    {
+                        to: user?.deviceToken,
+                        notification: {
+                            message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                            title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                            tripById,
+                            driver: driverBySocketId,
+                            sound: "default",
+                        },
+                    },
+                    {
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `key=${process.env.FCM_SERVER_KEY}`,
+                        },
+                    }
+                );
+                console.log("🚀 ~ socket.on ~ response:", response);
+            }
+        }
+    } catch (err) {
         console.log("🚀 ~ tripIsBooked ~ err:", err)
     }
 }
@@ -203,7 +205,7 @@ exports.get_trip = async (req, res) => {
             ids.push(i._id)
         }
         let dateFilter = data.dateFilter; // Corrected variable name
-        if(!["all","this_week","this_month","this_year"].includes(dateFilter)){
+        if (!["all", "this_week", "this_month", "this_year"].includes(dateFilter)) {
             dateFilter = "all"
         }
 
@@ -212,7 +214,7 @@ exports.get_trip = async (req, res) => {
         if (dateFilter !== "all") {
             let startDate, endDate;
             const today = new Date();
-            switch(dateFilter) {
+            switch (dateFilter) {
                 case "this_week":
                     const todayDay = today.getDay();
                     startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - todayDay);
@@ -231,7 +233,7 @@ exports.get_trip = async (req, res) => {
             }
             dateQuery = { createdAt: { $gte: startDate, $lte: endDate } };
         }
-        
+
         console.log("🚀 ~ exports.get_trip= ~ dateQuery:", dateQuery)
 
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
@@ -306,9 +308,9 @@ exports.get_trip = async (req, res) => {
                     comment: 1,
                     commission: 1,
                     pay_option: 1,
-                    customerDetails:1,
-                    price:1,
-                    passengerCount:1,
+                    customerDetails: 1,
+                    price: 1,
+                    passengerCount: 1,
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
@@ -327,17 +329,19 @@ exports.get_trip = async (req, res) => {
                     trip_id: 1
                 }
             },
-            {$match:{
-                $or:[
-                    { 'comment': { '$regex': search_value, '$options': 'i' } },
-                    { 'trip_id': { '$regex': search_value, '$options': 'i' } },
-                    { 'driver_name': { '$regex': search_value, '$options': 'i' } },
-                    { 'trip_from.address': { '$regex': search_value, '$options': 'i' } },
-                    { 'trip_to.address': { '$regex': search_value, '$options': 'i' } },
-                    { 'company_name': { '$regex': search_value, '$options': 'i' } },
+            {
+                $match: {
+                    $or: [
+                        { 'comment': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_id': { '$regex': search_value, '$options': 'i' } },
+                        { 'driver_name': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_from.address': { '$regex': search_value, '$options': 'i' } },
+                        { 'trip_to.address': { '$regex': search_value, '$options': 'i' } },
+                        { 'company_name': { '$regex': search_value, '$options': 'i' } },
 
-                ]
-            }}
+                    ]
+                }
+            }
         ]).sort({ 'createdAt': -1 })
         if (!get_trip) {
             res.send({
@@ -406,8 +410,8 @@ exports.get_trip_for_hotel = async (req, res) => {
                     is_deleted: 1,
                     passenger_detail: 1,
                     createdAt: 1,
-                    customerDetails:1,
-                    passengerCount:1,
+                    customerDetails: 1,
+                    passengerCount: 1,
                     driver_name: {
                         $concat: [
                             { $arrayElemAt: ["$driver.first_name", 0] },
@@ -527,8 +531,8 @@ exports.get_recent_trip = async (req, res) => {
                     comment: 1,
                     commission: 1,
                     pay_option: 1,
-                    customerDetails:1,
-                    passengerCount:1,
+                    customerDetails: 1,
+                    passengerCount: 1,
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
@@ -573,7 +577,7 @@ exports.get_recent_trip_super = async (req, res) => {
         let data = req.body
         let mid = new mongoose.Types.ObjectId(req.userId)
         let search_value = data.comment ? data.comment : ''
-     
+
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
@@ -635,8 +639,8 @@ exports.get_recent_trip_super = async (req, res) => {
                     comment: 1,
                     commission: 1,
                     pay_option: 1,
-                    customerDetails:1,
-                    passengerCount:1,
+                    customerDetails: 1,
+                    passengerCount: 1,
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
@@ -656,14 +660,14 @@ exports.get_recent_trip_super = async (req, res) => {
                 }
             },
             {
-                $match:{
+                $match: {
                     $or: [
                         { 'comment': { '$regex': search_value, '$options': 'i' } },
                         { 'trip_to.address': { '$regex': search_value, '$options': 'i' } },
                         { 'trip_from.address': { '$regex': search_value, '$options': 'i' } },
                         { 'company_name': { '$regex': search_value, '$options': 'i' } },
                         { 'series_id': { '$regex': search_value, '$options': 'i' } },
-                        
+
                     ]
                 }
             }
@@ -674,7 +678,7 @@ exports.get_recent_trip_super = async (req, res) => {
                 message: "Unable to get the trips"
             })
         } else {
-           
+
             res.send({
                 code: constant.success_code,
                 message: "Success",
@@ -727,8 +731,8 @@ exports.get_trip_by_company = async (req, res) => {
                     trip_from: 1,
                     trip_to: 1,
                     createdAt: 1,
-                    customerDetails:1,
-                    passengerCount:1,
+                    customerDetails: 1,
+                    passengerCount: 1,
                     pickup_date_time: 1,
                     trip_status: 1,
                     passenger_detail: 1,
@@ -799,7 +803,7 @@ exports.alocate_driver = async (req, res) => {
                     trip_status: data.status
                 }
             }
-            if(check_driver._id.toString() == req?.user?.driverId?.toString()){
+            if (check_driver._id.toString() == req?.user?.driverId?.toString()) {
                 newValues = {
                     $set: {
                         driver_name: check_driver._id,
@@ -818,26 +822,27 @@ exports.alocate_driver = async (req, res) => {
                 })
             } else {
                 try {
-                    
-                    if(check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked"){await sendNotification(check_driver.deviceToken,"New Trip is allocated have ID "+update_trip.trip_id ,"New Trip is allocated have ID "+update_trip.trip_id, update_trip )
+
+                    if (check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked") {
+                        await sendNotification(check_driver.deviceToken, "New Trip is allocated have ID " + update_trip.trip_id, "New Trip is allocated have ID " + update_trip.trip_id, update_trip)
                     }
                 } catch (error) {
                     console.log("🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error)
-                    
-                //    return res.send({
-                //     code: constant.success_code,
-                //     message: "Driver allocated successfully"
-                // })
+
+                    //    return res.send({
+                    //     code: constant.success_code,
+                    //     message: "Driver allocated successfully"
+                    // })
                 }
                 try {
-                    console.log("🚀 ~ exports.alocate_driver= ~ check_driver.socketId:", check_driver.socketId,check_driver)
-                    req?.io?.to(check_driver.socketId)?.emit("newTrip",{trip:update_trip,company:req.user})
+                    console.log("🚀 ~ exports.alocate_driver= ~ check_driver.socketId:", check_driver.socketId, check_driver)
+                    req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: req.user })
                 } catch (error) {
                     console.log("🚀 ~ exports.alocate_driver= ~ error:", error)
-                    
+
                 }
-                    
-                setTimeout(()=>{tripIsBooked(update_trip._id,req.io)},20*1000)
+
+                setTimeout(() => { tripIsBooked(update_trip._id, req.io) }, 20 * 1000)
                 res.send({
                     code: constant.success_code,
                     message: "Driver allocated successfully"
@@ -930,8 +935,8 @@ exports.get_trip_detail = async (req, res) => {
                             { $arrayElemAt: ["$driver_info.last_name", 0] }
                         ]
                     },
-                    "hotel_location":{ $arrayElemAt: ["$company_detail.hotel_location", 0] },
-                    vehicle_model: 1, 
+                    "hotel_location": { $arrayElemAt: ["$company_detail.hotel_location", 0] },
+                    vehicle_model: 1,
                     commission: 1,
                     price: 1,
                     vehicle_type: 1,
@@ -947,9 +952,9 @@ exports.get_trip_detail = async (req, res) => {
                     createdAt: 1,
                     updatedAt: 1,
                     pay_option: 1,
-                    customerDetails:1,
-                    passengerCount:1,
-                    is_paid:1,
+                    customerDetails: 1,
+                    passengerCount: 1,
+                    is_paid: 1,
                 }
             }
         ])
@@ -971,7 +976,7 @@ exports.get_trip_detail = async (req, res) => {
         if (getData[0].price == 0) {
             getData[0].price = fare_per_km * Number(distance)
         }
-        
+
 
         if (!getData[0]) {
             res.send({
@@ -1081,7 +1086,7 @@ exports.get_counts_dashboard = async (req, res) => {
 exports.add_trip1 = async (req, res) => {
     try {
         let data = req.body
-        data.created_by = data.created_by 
+        data.created_by = data.created_by
         data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let token_code = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         // let check_user = await USER.findOne({ _id: req.userId })
@@ -1100,6 +1105,8 @@ exports.add_trip1 = async (req, res) => {
         data.series_id = token_code + '-' + '000' + series
 
         data.trip_id = 'T' + '-' + data.trip_id
+        console.log("-------------------------------8888888888----------------------ssss-12")
+
         let distance = (geolib.getDistance(
             {
                 latitude: data.trip_from.log,
@@ -1111,26 +1118,199 @@ exports.add_trip1 = async (req, res) => {
             }
         ) * 0.00062137
         ).toFixed(2)
+        console.log("-----------------------------------------------------ssss-12")
 
         let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type })
         let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10
         if (!data.price) {
             data.price = (fare_per_km * Number(distance)).toFixed(2);
         }
-        
-        let add_trip = await TRIP(data).save()
-        if (!add_trip) {
-            res.send({
-                code: constant.error_code,
-                message: "Unable to create the trip"
-            })
-        } else {
-            res.send({
-                code: constant.success_code,
-                message: "Saved Successfully",
-                result: add_trip
-            })
-        }
+        console.log("-----------------------------------3333333-------------------12")
+
+        // let add_trip = await TRIP(data).save()
+
+        var transporter = nodemailer.createTransport(emailConstant.credentials);
+        var mailOptions = {
+            from: emailConstant.from_email,
+            to: data.email,
+            subject: "Welcome mail",
+            html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+                <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>PropTech Kenya Welcome Email</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
+                  @import url(https://fonts.googleapis.com/css?family=Nunito);
+  
+                  /* Take care of image borders and formatting */
+  
+                  img {
+                    max-width: 600px;
+                    outline: none;
+                    text-decoration: none;
+                    -ms-interpolation-mode: bicubic;
+                  }
+                  html{
+                    margin: 0;
+                    padding:0;
+                  }
+  
+                  a {
+                    text-decoration: none;
+                    border: 0;
+                    outline: none;
+                    color: #bbbbbb;
+                  }
+  
+                  a img {
+                    border: none;
+                  }
+  
+                  /* General styling */
+  
+                  td, h1, h2, h3  {
+                    font-family: Helvetica, Arial, sans-serif;
+                    font-weight: 400;
+                  }
+  
+                  td {
+                    text-align: center;
+                  }
+  
+                  body {
+                    -webkit-font-smoothing:antialiased;
+                    -webkit-text-size-adjust:none;
+                    width: 100%;
+                    height: 100%;
+                    color: #666;
+                    background: #fff;
+                    font-size: 16px;
+                    width: 100%;
+                    padding: 0px;
+                    margin: 0px;
+                  }
+  
+                   table {
+                    border-collapse: collapse !important;
+                  }
+  
+                  .headline {
+                    color: #444;
+                    font-size: 36px;
+                        padding-top: 10px;
+                  }
+  
+                 .force-full-width {
+                  width: 100% !important;
+                 }
+  
+                  </style><style media="screen" type="text/css">
+                      @media screen {
+                        td, h1, h2, h3 {
+                          font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
+                        }
+                      }
+                  </style><style media="only screen and (max-width: 480px)" type="text/css">
+                    /* Mobile styles */
+                    @media only screen and (max-width: 480px) {
+  
+                      table[class="w320"] {
+                        width: 320px !important;
+                      }
+                    }
+                  </style>
+                  <style type="text/css"></style>
+  
+                  </head>
+                  <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
+                <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="
+                    margin-top: 30px;
+                    margin-bottom: 10px;
+                  border-radius: 10px;
+                 box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);
+                background:#ccc;
+                  ">
+                <tbody><tr>
+                <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
+                <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
+                <tbody><tr>
+                <td align="center" class="" valign="top">
+                <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
+                <tbody style="margin-top: 5px;">
+                  <tr class="" style="border-bottom: 1px solid #cccccc38;">
+                <td class="">
+                </td>
+                </tr>
+                <tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
+                <tr>
+                <td>
+                <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
+                <td class="" style="color:#444; font-weight: 400;"><br>
+                <br><br>
+                Welcome to Taxi Service!
+  
+  We're pleased to inform you that Step 1 of your registration is successfully completed. Next in line is Step 2, where we kindly ask you to upload necessary details and documents. Following this, our team will promptly review your submission.<br>
+                 <br>
+                  Your login credentials are provided below:
+                <br>
+                <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${data.email}</span>
+                 <br>
+                <br><br>
+                <br></td>
+                </tr>
+                </tbody></table></center>
+                </td>
+                </tr>
+                <tr>
+                <td class="">
+                <div class="">
+                <a style="background-color:#ffcc54;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://taxi-service-demo.vercel.app/login">Visit Account and Start Managing</a>
+                </div>
+                 <br>
+                </td>
+                </tr>
+                </tbody>
+  
+                  </table>
+  
+                <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
+                <tbody>
+                <tr>
+                <td class="" style="color:#444;
+                                    ">
+                <p>The password was auto-generated, however feel free to change it
+  
+                    <a href="" style="text-decoration: underline;">
+                      here</a>
+  
+                  </p>
+                  </td>
+                </tr>
+                </tbody></table></td>
+                </tr>
+                </tbody></table></center>
+                </td>
+                </tr>
+                </tbody></table>
+                </body></html>`,
+        };
+        await transporter.sendMail(mailOptions);
+
+        // if (!add_trip) {
+        //     res.send({
+        //         code: constant.error_code,
+        //         message: "Unable to create the trip"
+        //     })
+        // } else {
+        //     res.send({
+        //         code: constant.success_code,
+        //         message: "Saved Successfully",
+        //         result: add_trip
+        //     })
+        // }
+
+        res.send({
+            code: constant.success_code,
+            message: "Saved Successfully",
+            result: data
+        })
     } catch (err) {
         res.send({
             code: constant.error_code,
