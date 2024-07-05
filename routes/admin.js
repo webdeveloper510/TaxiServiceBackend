@@ -88,6 +88,7 @@ router.put('/edit_fare/:id', [verifyToken], fareController.edit_fare)
 
 // trip api's
 router.post('/add_trip', [verifyToken], tripController.add_trip)
+router.post('/add_trip1', tripController.add_trip1)
 router.post('/add_trip_link', tripController.add_trip_link)
 router.post('/get_trip/:status', [verifyToken], tripController.get_trip)
 router.post('/get_trip_for_hotel/:status', [verifyToken], tripController.get_trip_for_hotel)
@@ -102,8 +103,8 @@ router.get('/get_counts_dashboard', [verifyToken], tripController.get_counts_das
 router.post('/pay_trip_commission/:id', [verifyToken], paymentController.tripCommissionPayment);
 router.post('/failed_trip_commission/:id', [verifyToken], paymentController.failedTripPay);
 router.post('/success_trip_commission/:id', [verifyToken], paymentController.successTripPay);
-router.get("/transactions",[verifyToken], paymentController.getCommissionTrans);
-router.post('/payCompany', [verifyToken], paymentController.payCompany );
+router.get("/transactions", [verifyToken], paymentController.getCommissionTrans);
+router.post('/payCompany', [verifyToken], paymentController.payCompany);
 
 
 
