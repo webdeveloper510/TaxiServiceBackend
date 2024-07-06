@@ -1105,7 +1105,14 @@ exports.add_trip1 = async (req, res) => {
         data.series_id = token_code + '-' + '000' + series
 
         data.trip_id = 'T' + '-' + data.trip_id
-        console.log("-------------------------------8888888888----------------------ssss-12")
+
+        let checkCompanyId = await AGENCY.findOne({ company_id: data.company_id })
+        if (!checkCompanyId) {
+            res.send({
+                code: constant.error_code,
+                message: "Invalid company ID"
+            })
+        }
 
         let distance = (geolib.getDistance(
             {
