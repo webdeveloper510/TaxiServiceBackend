@@ -1337,7 +1337,7 @@ exports.add_trip1 = async (req, res) => {
 
 exports.check_company_id = async (req, res) => {
     try {
-        let checkCompanyId = await AGENCY.findOne({ company_id: data.company_id })
+        let checkCompanyId = await AGENCY.findOne({ company_id: req.params.company_id })
         if (!checkCompanyId) {
             res.send({
                 code: constant.error_code,
