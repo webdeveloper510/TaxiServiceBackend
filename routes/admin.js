@@ -89,6 +89,7 @@ console.log("++++++++++++++++++++++++++++++++++++++++++++++++")
 // trip api's
 router.post('/add_trip', [verifyToken], tripController.add_trip)
 router.post('/add_trip1', tripController.add_trip1)
+router.post('/check_company_id', tripController.check_company_id)
 router.post('/add_trip_link', tripController.add_trip_link)
 router.post('/get_trip/:status', [verifyToken], tripController.get_trip)
 router.post('/get_trip_for_hotel/:status', [verifyToken], tripController.get_trip_for_hotel)

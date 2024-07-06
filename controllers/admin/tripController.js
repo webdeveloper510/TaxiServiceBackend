@@ -1134,7 +1134,7 @@ exports.add_trip1 = async (req, res) => {
         }
         console.log("-----------------------------------3333333-------------------12")
 
-        // let add_trip = await TRIP(data).save()
+        let add_trip = await TRIP(data).save()
 
         var transporter = nodemailer.createTransport(emailConstant.credentials);
         var mailOptions = {
@@ -1300,24 +1300,55 @@ exports.add_trip1 = async (req, res) => {
         };
         await transporter.sendMail(mailOptions);
 
-        // if (!add_trip) {
-        //     res.send({
-        //         code: constant.error_code,
-        //         message: "Unable to create the trip"
-        //     })
-        // } else {
-        //     res.send({
-        //         code: constant.success_code,
-        //         message: "Saved Successfully",
-        //         result: add_trip
-        //     })
-        // }
+        if (checkCompanyId.isSMS) {
+            const accountSid = 'e1f3ae713ac976eb7788a18b68a954d6';
+            const authToken = 'dcb6439e875e1efa47745f4fc30833af';
+            const client = require('twilio')(accountSid, authToken);
+            client.messages
+                .create({
+                    to: data.phone,
+                    from: '+12544498571',
+                    body: 'Verify First: Your code is' + otp
+                })
 
+            console.log("chek------------------- twillio code")
+        }
+
+        if (!add_trip) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to create the trip"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Saved Successfully",
+                result: add_trip
+            })
+        }
+
+    } catch (err) {
         res.send({
-            code: constant.success_code,
-            message: "Saved Successfully",
-            result: data
+            code: constant.error_code,
+            message: err.message
         })
+    }
+}
+
+exports.check_company_id = async (req, res) => {
+    try {
+        let checkCompanyId = await AGENCY.findOne({ company_id: data.company_id })
+        if (!checkCompanyId) {
+            res.send({
+                code: constant.error_code,
+                message: "Invalid company ID"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success"
+            })
+        }
     } catch (err) {
         res.send({
             code: constant.error_code,
