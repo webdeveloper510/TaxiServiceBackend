@@ -123,6 +123,15 @@ io.on("connection", (socket) => {
       return;
     }
     try {
+      await user_model.updateMany(
+        { socketId: socket.id },
+        {
+          $set: {
+            isSocketConnected: false,
+            socketId: null,
+          },
+        }
+      );
       console.log("🚀 ~ socket.on ~ token:", token);
       const userByToken = await userDetailsByToken(token);
       console.log(
