@@ -1141,7 +1141,7 @@ exports.add_trip1 = async (req, res) => {
             from: emailConstant.from_email,
             to: data.email,
             subject: "Welcome mail",
-            html:`<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+            html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
             <html xmlns="http://www.w3.org/1999/xhtml">
               <head>
                 <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
@@ -1396,7 +1396,7 @@ exports.add_trip1 = async (req, res) => {
 
         if (checkCompanyId.isSMS) {
             const accountSid = process.env.accountSid;
-            const authToken =process.env.authToken;
+            const authToken = process.env.authToken;
             const client = require('twilio')(accountSid, authToken);
             client.messages
                 .create({
@@ -1429,27 +1429,7 @@ exports.add_trip1 = async (req, res) => {
     }
 }
 
-exports.check_company_id = async (req, res) => {
-    try {
-        let checkCompanyId = await AGENCY.findOne({ company_id: req.params.company_id })
-        if (!checkCompanyId) {
-            res.send({
-                code: constant.error_code,
-                message: "Invalid company ID"
-            })
-        } else {
-            res.send({
-                code: constant.success_code,
-                message: "Success"
-            })
-        }
-    } catch (err) {
-        res.send({
-            code: constant.error_code,
-            message: err.message
-        })
-    }
-}
+
 
 
 // exports.search_trip_room = async(req,res)=>{
