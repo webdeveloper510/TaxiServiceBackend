@@ -55,7 +55,8 @@ exports.get_fares = async (req, res) => {
                 {
                     $or: [
                         { created_by: req.userId },
-                        { created_by: get_user.created_by }
+                        { created_by: get_user.created_by },
+                        {created_by:get_user._id}
                     ]
                 },
                 { is_deleted: false }
