@@ -836,7 +836,9 @@ exports.alocate_driver = async (req, res) => {
                 }
                 try {
                     console.log("🚀 ~ exports.alocate_driver= ~ check_driver.socketId:", check_driver.socketId, check_driver)
+                    if (check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked") {
                     req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: req.user })
+                    }
                 } catch (error) {
                     console.log("🚀 ~ exports.alocate_driver= ~ error:", error)
 
