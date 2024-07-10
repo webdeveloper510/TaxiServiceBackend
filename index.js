@@ -212,6 +212,7 @@ io.on("connection", (socket) => {
           if (user.role == "HOTEL") {
             io.to(user?.created_by?.socketId).emit("tripCancelledBYDriver", {
               trip,
+              driver,driverBySocketId,
               message: "Trip canceled successfully",
             });
             //   await  fcm.send({
@@ -229,7 +230,7 @@ io.on("connection", (socket) => {
               {
                 to: user?.created_by?.deviceToken,
                 notification: {
-                  message: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
+                  message: `Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,
                   title: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
@@ -247,6 +248,7 @@ io.on("connection", (socket) => {
           } else {
             io.to(user.socketId).emit("tripCancelledBYDriver", {
               trip,
+              driver,driverBySocketId,
               message: "Trip canceled successfully",
             });
             // await fcm.send({
@@ -263,8 +265,8 @@ io.on("connection", (socket) => {
               {
                 to: user?.deviceToken,
                 notification: {
-                  message: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
-                  title: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
+                  message: `Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,
+                  title: `Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,
                   trip,
                   driver: driverBySocketId,
                   sound: "default",
