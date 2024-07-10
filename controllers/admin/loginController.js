@@ -217,10 +217,11 @@ exports.login = async (req, res) => {
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
+      check_data.jwtToken = jwtToken;
       if(deviceToken) {
         check_data.deviceToken = deviceToken;
-        await check_data.save();
       }
+      await check_data.save();
 
       let getData = await USER.aggregate([
         {

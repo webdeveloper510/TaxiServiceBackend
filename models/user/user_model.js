@@ -106,6 +106,10 @@ const user = new Schema(
     ref: "driver",
     default: null,
   },
+  jwtToken: {
+    type: String,
+    default: null,
+},
   },
   { timestamps: true }
 );
