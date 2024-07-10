@@ -189,8 +189,7 @@ io.on("connection", (socket) => {
       const driverBySocketId = await driver_model.findOne({
         socketId: socket.id,
       });
-      driverBySocketId.is_available = true;
-      await driverBySocketId.save();
+
       console.log("🚀 ~ socket.on ~ driverBySocketId:", driverBySocketId);
       if (driverBySocketId) {
         const trip = await trip_model.findById(tripId);
@@ -203,6 +202,8 @@ io.on("connection", (socket) => {
         }
 
         if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
+          driverBySocketId.is_available = true;
+        await driverBySocketId.save();
           trip.driver_name = null;
           trip.trip_status = "Pending";
           await trip.save();
@@ -212,7 +213,7 @@ io.on("connection", (socket) => {
           if (user.role == "HOTEL") {
             io.to(user?.created_by?.socketId).emit("tripCancelledBYDriver", {
               trip,
-              driver,driverBySocketId,
+              driver:driverBySocketId,
               message: "Trip canceled successfully",
             });
             //   await  fcm.send({
@@ -248,7 +249,7 @@ io.on("connection", (socket) => {
           } else {
             io.to(user.socketId).emit("tripCancelledBYDriver", {
               trip,
-              driver,driverBySocketId,
+              driver:driverBySocketId,
               message: "Trip canceled successfully",
             });
             // await fcm.send({
@@ -292,6 +293,7 @@ io.on("connection", (socket) => {
       return io.to(socket.id).emit("driverNotification", {
         code: 200,
         message: "There is some",
+        error
       });
     }
   });
