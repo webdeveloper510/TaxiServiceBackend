@@ -1560,7 +1560,7 @@ exports.switchToCompany = async (req, res) => {
       );
       const result = companyData.toObject();
       companyData.jwtToken = jwtToken;
-      companyData.lastUsedToken= new Date;
+      companyData.lastUsedToken= new Date();
       await companyData.save()
       result.role = "COMPANY";
       result.driver = user
