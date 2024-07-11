@@ -48,6 +48,7 @@ const constants = require('../config/constant')
     
       if(!user){
         user = await driver_model.findOne({_id:decoded?.userId,is_deleted:false,lastUsedToken:{$gte:threeHoursBefore}}).populate("created_by");
+          console.log("🚀 ~ jwt.verify ~ userdriver:", user)
           if(user){
             user.lastUsedToken = new Date();
             await user.save()

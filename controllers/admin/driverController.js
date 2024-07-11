@@ -80,6 +80,7 @@ exports.add_driver = async (req, res) => {
     //     return
     // }
     const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
+    data.lastUsedToken =new Date()
     data.created_by = superAdmin; // Assuming you have user authentication
     let check_other1 = await DRIVER.findOne({ email: data.email });
     let check_other2 = await DRIVER.findOne({ phone: data.phone });
