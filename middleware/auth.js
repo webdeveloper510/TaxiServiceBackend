@@ -38,12 +38,18 @@ const constants = require('../config/constant')
     //   })
     //   return;
     // }
-    
-    let user = await user_model.findOne({_id:decoded?.userId, is_deleted: false, jwtToken:token}).populate("created_by").populate("driverId");
+    const now = new Date();
+      const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+    let user = await user_model.findOne({_id:decoded?.userId, is_deleted: false, jwtToken:token,lastUsedToken:{$gte:threeHoursBefore}}).populate("created_by").populate("driverId");
+    if(user){
+      await user_model.updateOne({_id:user._id},{lastUsedToken:new Date()});
+    }
     
       if(!user){
-        user = await driver_model.findOne({_id:decoded?.userId,is_deleted:false}).populate("created_by");
+        user = await driver_model.findOne({_id:decoded?.userId,is_deleted:false,lastUsedToken:{$gte:threeHoursBefore}}).populate("created_by");
           if(user){
+            user.lastUsedToken = new Date();
+            await user.save()
             user = user.toObject();
             user.role = "DRIVER"
             if(user.jwtToken != token){

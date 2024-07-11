@@ -174,7 +174,7 @@ exports.login = async (req, res) => {
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
-      const updateDriver = { is_login: true, jwtToken};
+      const updateDriver = { is_login: true, jwtToken, lastUsedToken: new Date()};
       if(deviceToken) updateDriver.deviceToken = deviceToken;
       let updateLogin = await DRIVER.findOneAndUpdate(
         { _id: check_data._id },
@@ -218,6 +218,7 @@ exports.login = async (req, res) => {
         { expiresIn: "365d" }
       );
       check_data.jwtToken = jwtToken;
+      check_data.lastUsedToken = new Date();
       if(deviceToken) {
         check_data.deviceToken = deviceToken;
       }

@@ -157,6 +157,10 @@ const driver = new Schema({
         type: Boolean,
         default: false
     },
+    lastUsedToken: {
+        type:Date,
+        default:Date.now()
+    },
     currentTrip:{ type: Schema.Types.ObjectId, ref: 'trip', default: null},
     defaultVehicle:{ type: Schema.Types.ObjectId, ref: 'vehicle', default: null}
 }, { timestamps: true })

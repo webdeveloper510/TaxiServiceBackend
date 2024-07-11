@@ -110,6 +110,10 @@ const user = new Schema(
     type: String,
     default: null,
 },
+  lastUsedToken: {
+    type:Date,
+    default:Date.now()
+},
   },
   { timestamps: true }
 );
