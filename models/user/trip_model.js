@@ -126,7 +126,7 @@ const trip = new Schema({
     },
     trip_status:{
         type:String,
-        enum:['Booked','Active','Completed','Pending','Accepted','Canceled'],
+        enum:['Booked','Active','Completed','Pending','Accepted','Canceled',"Reached"],
         default:'Pending'
     },
     stripe_payment: {

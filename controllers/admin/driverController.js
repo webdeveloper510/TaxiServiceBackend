@@ -1332,6 +1332,29 @@ exports.get_active_drivers = async (req, res) => {
           },
         },
       },
+      //reached count
+      {
+        $lookup: {
+          localField: "_id",
+          foreignField: "driver_name",
+          from: "trips",
+          as: "tripDataReached",
+          pipeline: [
+            {
+              $match: {
+                trip_status: "Reached",
+              },
+            },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          totalReachedTrip: {
+            $size: "$tripDataReached",
+          },
+        },
+      },
       {
         $match: {
           totalUnpaidTrips: 0,
