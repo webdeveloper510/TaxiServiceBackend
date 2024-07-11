@@ -41,6 +41,7 @@ const constants = require('../config/constant')
     const now = new Date();
       const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 60 * 1000);
     let user = await user_model.findOne({_id:decoded?.userId, is_deleted: false, jwtToken:token,lastUsedToken:{$gte:threeHoursBefore}}).populate("created_by").populate("driverId");
+    console.log("🚀 ~ jwt.verify ~ user:", user)
     if(user){
       await user_model.updateOne({_id:user._id},{lastUsedToken:new Date()});
     }

@@ -1518,13 +1518,14 @@ exports.switchToDriver = async (req, res) => {
           },
         })
         .countDocuments();
+        driverData.lastUsedToken= new Date;
+        driverData.jwtToken = jwtToken;
+        driverData.is_login = true
       let result = driverData.toObject();
-      result.totalUnpaidTrips = totalUnpaidTrips;
-      driverData.jwtToken = jwtToken;
-      result.role = "DRIVER";
-      driverData.is_login = true
-
       await driverData.save();
+      result.totalUnpaidTrips = totalUnpaidTrips;
+      result.role = "DRIVER";
+
       res.send({
         code: constant.success_code,
         message: "data fetch successfully",
@@ -1559,6 +1560,8 @@ exports.switchToCompany = async (req, res) => {
       );
       const result = companyData.toObject();
       companyData.jwtToken = jwtToken;
+      companyData.lastUsedToken= new Date;
+      await companyData.save()
       result.role = "COMPANY";
       result.driver = user
       res.send({
