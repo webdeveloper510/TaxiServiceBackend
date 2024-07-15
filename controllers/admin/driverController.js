@@ -80,7 +80,7 @@ exports.add_driver = async (req, res) => {
     //     return
     // }
     const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
-    data.lastUsedToken =new Date()
+    data.lastUsedToken = new Date()
     data.created_by = superAdmin; // Assuming you have user authentication
     let check_other1 = await DRIVER.findOne({ email: data.email });
     let check_other2 = await DRIVER.findOne({ phone: data.phone });
@@ -315,17 +315,19 @@ exports.remove_driver = async (req, res) => {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
     // You may want to add additional checks to ensure the driver exists or belongs to the agency user
-    const removedDriver = await DRIVER.findOneAndUpdate({ _id: driverId },{ $set:{
-      is_deleted: true
-    }});
-    
+    const removedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, {
+      $set: {
+        is_deleted: true
+      }
+    });
+
     if (!removedDriver) {
       res.send({
         code: constant.error_code,
         message: "Unable to delete the driver",
       });
     } else {
-      let companyData = await user_model.findOne({ email: removedDriver.email, is_deleted:false });
+      let companyData = await user_model.findOne({ email: removedDriver.email, is_deleted: false });
       if (!companyData) {
         res.send({
           code: constant.success_code,
@@ -333,7 +335,7 @@ exports.remove_driver = async (req, res) => {
         });
       } else {
         companyData.isDriver = false;
-        companyData.driverId = null ;
+        companyData.driverId = null;
         await companyData.save()
         res.send({
           code: constant.success_code,
@@ -675,15 +677,15 @@ exports.update_driver = async (req, res) => {
         { new: true }
       );
       if (updatedDriver) {
-        console.log("🚀 ~ driverUpload ~ updatedDriver:", updatedDriver,req.body.isDocUploaded)
-        if(req.body.isDocUploaded ){
+        console.log("🚀 ~ driverUpload ~ updatedDriver:", updatedDriver, req.body.isDocUploaded)
+        if (req.body.isDocUploaded) {
           console.log("in the right zone============>>>>>>>>")
           var transporter = nodemailer.createTransport(emailConstant.credentials);
-      var mailOptions = {
-        from: emailConstant.from_email,
-        to: updatedDriver.email,
-        subject: "Welcome mail",
-        html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          var mailOptions = {
+            from: emailConstant.from_email,
+            to: updatedDriver.email,
+            subject: "Welcome mail",
+            html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
               <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>PropTech Kenya Welcome Email</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
                 @import url(https://fonts.googleapis.com/css?family=Nunito);
@@ -837,8 +839,8 @@ exports.update_driver = async (req, res) => {
               </tr>
               </tbody></table>
               </body></html>`,
-      };
-      await transporter.sendMail(mailOptions);
+          };
+          await transporter.sendMail(mailOptions);
         }
         res.send({
           code: constant.success_code,
@@ -861,7 +863,7 @@ exports.updateLocation = async (req, res) => {
     let criteria = { _id: data.driverId };
     let option = { new: true };
 
-    console.log("location  ____________ >>>>>" , data)
+    console.log("location  ____________ >>>>>", data)
     let updateLocation = await DRIVER.findOneAndUpdate(
       criteria,
       {
@@ -1268,8 +1270,8 @@ exports.get_active_drivers = async (req, res) => {
         $match: {
           status: true,
           is_login: true,
-          isVerified:true,
-          isDocUploaded:true,
+          isVerified: true,
+          isDocUploaded: true,
           is_deleted: false,
           defaultVehicle: { $ne: null },
         },
@@ -1411,17 +1413,12 @@ exports.logout = async (req, res) => {
       { new: true }
     );
 
-    if (!updateLogin) {
-      res.send({
-        code: constant.error_code,
-        message: "Unable to logout",
-      });
-    } else {
-      res.send({
-        code: constant.success_code,
-        message: "Logout successfully",
-      });
-    }
+    res.send({
+      code: constant.success_code,
+      message: "Logout successfully",
+    });
+
+
   } catch (err) {
     res.send({
       code: constant.error_code,
@@ -1458,7 +1455,7 @@ exports.convertIntoDriver = async (req, res) => {
           : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg";
       let user = req.user;
 
-      let check_other1 = await DRIVER.findOneAndDelete({ email: user.email});
+      let check_other1 = await DRIVER.findOneAndDelete({ email: user.email });
 
       let check_other2 = await DRIVER.findOneAndDelete({ phone: user.phone });
 
@@ -1484,12 +1481,12 @@ exports.convertIntoDriver = async (req, res) => {
       req.user.isDriver = true;
       console.log("🚀 ~ driverUpload ~ save_driver:", save_driver._id);
       req.user.driverId = save_driver._id;
-     let saveUserData =  await req.user.save();
-     jwtToken = jwt.sign(
-      { userId: saveUserData._id },
-      process.env.JWTSECRET,
-      { expiresIn: "365d" }
-    );
+      let saveUserData = await req.user.save();
+      jwtToken = jwt.sign(
+        { userId: saveUserData._id },
+        process.env.JWTSECRET,
+        { expiresIn: "365d" }
+      );
       const newUser = await user_model.updateOne(
         { _id: req.user._id },
         {
@@ -1532,7 +1529,7 @@ exports.switchToDriver = async (req, res) => {
     ); // Set to Monday of current week
     let user = req.user;
 
-    let driverData = await DRIVER.findOne({ email: user.email, is_deleted:false });
+    let driverData = await DRIVER.findOne({ email: user.email, is_deleted: false });
     if (!driverData) {
       res.send({
         code: constant.error_code,
@@ -1554,9 +1551,9 @@ exports.switchToDriver = async (req, res) => {
           },
         })
         .countDocuments();
-        driverData.lastUsedToken= new Date;
-        driverData.jwtToken = jwtToken;
-        driverData.is_login = true
+      driverData.lastUsedToken = new Date;
+      driverData.jwtToken = jwtToken;
+      driverData.is_login = true
       let result = driverData.toObject();
       await driverData.save();
       result.totalUnpaidTrips = totalUnpaidTrips;
@@ -1582,7 +1579,7 @@ exports.switchToCompany = async (req, res) => {
   try {
     let user = req.user;
 
-    let companyData = await user_model.findOne({ email: user.email, is_deleted:false });
+    let companyData = await user_model.findOne({ email: user.email, is_deleted: false });
     if (!companyData) {
       res.send({
         code: constant.error_code,
@@ -1596,7 +1593,7 @@ exports.switchToCompany = async (req, res) => {
       );
       const result = companyData.toObject();
       companyData.jwtToken = jwtToken;
-      companyData.lastUsedToken= new Date();
+      companyData.lastUsedToken = new Date();
       await companyData.save()
       result.role = "COMPANY";
       result.driver = user
@@ -1618,8 +1615,8 @@ exports.switchToCompany = async (req, res) => {
 
 exports.deleteDriver = async (req, res) => {
   try {
-    let driver = await DRIVER.findOneAndUpdate({_id:req.params.id},{is_deleted:true})
-    let companyData = await user_model.findOne({ email: driver.email, is_deleted:false });
+    let driver = await DRIVER.findOneAndUpdate({ _id: req.params.id }, { is_deleted: true })
+    let companyData = await user_model.findOne({ email: driver.email, is_deleted: false });
     if (!companyData) {
       res.send({
         code: constant.success_code,
@@ -1627,7 +1624,7 @@ exports.deleteDriver = async (req, res) => {
       });
     } else {
       companyData.isDriver = false;
-      companyData.driverId = null ;
+      companyData.driverId = null;
       await companyData.save()
       res.send({
         code: constant.success_code,
