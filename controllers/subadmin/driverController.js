@@ -425,12 +425,23 @@ exports.get_trips_for_driver = async (req, res) => {
           $lte: startOfCurrentWeek,
         },
       }).countDocuments();
+
+      const totalReachedTrip = await TRIP.find({
+        driver_name: req.userId,
+        trip_status: "Reached",
+        is_paid: false,
+        drop_time: {
+          $lte: startOfCurrentWeek,
+        },
+      }).countDocuments();
+
       res.send({
         code: constant.success_code,
         message: "Success",
         result: get_trip,
         totalActiveTrips,
         totalUnpaidTrips,
+        totalReachedTrip
       });
     }
   } catch (err) {
