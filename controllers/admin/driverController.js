@@ -1404,6 +1404,13 @@ exports.logout = async (req, res) => {
       { is_login: false },
       { new: true }
     );
+    let updateLogin1 = await DRIVER.findOneAndUpdate(
+      { _id: data.driverId },
+      { is_login: false },
+      { deviceToken: '' },
+      { new: true }
+    );
+
     if (!updateLogin) {
       res.send({
         code: constant.error_code,
