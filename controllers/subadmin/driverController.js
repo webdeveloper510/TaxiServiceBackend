@@ -430,9 +430,6 @@ exports.get_trips_for_driver = async (req, res) => {
         driver_name: req.userId,
         trip_status: "Reached",
         is_paid: false,
-        drop_time: {
-          $lte: startOfCurrentWeek,
-        },
       }).countDocuments();
 
       res.send({
@@ -571,11 +568,11 @@ exports.get_reports = async (req, res) => {
     });
     const totalPrice = get_data.reduce((sum, obj) => {
       let commission = obj?.commission?.commission_value || 0;
-      if(obj?.commission?.commission_type === "Percentage"){
-        commission = obj.price/100* obj.commission.commission_value
+      if (obj?.commission?.commission_type === "Percentage") {
+        commission = obj.price / 100 * obj.commission.commission_value
       }
-      return  sum + obj.price - commission
-    } , 0);
+      return sum + obj.price - commission
+    }, 0);
     if (!get_data) {
       res.send({
         code: constant.error_code,
