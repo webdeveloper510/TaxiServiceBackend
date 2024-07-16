@@ -68,7 +68,7 @@ const constants = require('../config/constant')
 
         res.send({
           code: constant.tokenError,
-          message:"user not found"
+          message:"Token is expired"
         })
         return
       }
@@ -96,7 +96,7 @@ const constants = require('../config/constant')
   console.log("🚀 ~ verifyToken= ~ err:", err)
   res.send({
     'status':409,
-    Message:"auth token verification failed"
+    Message:"Token is expired"
   })
   return
   }

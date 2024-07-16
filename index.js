@@ -553,7 +553,7 @@ async function logoutDriverAfterThreeHour() {
   try {
     const now = new Date();
     const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 1000);
-  let user = await driver_model.updateMany({lastUsedToken:{$lte:threeHoursBefore}},{is_login:false});
+  let user = await driver_model.updateMany({is_login:true,lastUsedToken:{$lte:threeHoursBefore}},{$set:{is_login:false}});
   console.log("🚀 ~ jwt.verify ~ user:", user)
   } catch (error) {
     console.log("🚀 ~ logout driver 3 hour ~ error:", error);

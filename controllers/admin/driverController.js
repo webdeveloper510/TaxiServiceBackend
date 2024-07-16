@@ -1401,15 +1401,15 @@ exports.get_active_drivers = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     let data = req.body;
-    let updateLogin = await DRIVER.findOneAndUpdate(
-      { _id: data.driverId },
-      { is_login: false },
-      { new: true }
-    );
+    // let updateLogin = await DRIVER.findOneAndUpdate(
+    //   { _id: data.driverId },
+    //   { is_login: false },
+    //   { new: true }
+    // );
     let updateLogin1 = await DRIVER.findOneAndUpdate(
       { _id: data.driverId },
       { is_login: false },
-      { deviceToken: '' },
+      { deviceToken: null },
       { new: true }
     );
 
