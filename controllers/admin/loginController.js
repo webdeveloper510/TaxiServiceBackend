@@ -19,6 +19,7 @@ const stripe = require("stripe")(
 
 const mongoose = require("mongoose");
 const trip_model = require("../../models/user/trip_model");
+const driver_model = require("../../models/user/driver_model");
 
 exports.create_super_admin = async (req, res) => {
   try {
@@ -70,6 +71,7 @@ exports.create_super_admin = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
+   
     let currentDate = new Date();
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
@@ -78,6 +80,20 @@ exports.login = async (req, res) => {
     ); // Set to Monday of current week
     let data = req.body;
     const deviceToken = data.deviceToken;
+    if(deviceToken) {
+      await Promise.all([driver_model.updateMany({
+        deviceToken
+      },{
+        deviceToken:null
+      }),
+      driver_model.updateMany({
+        deviceToken
+      },{
+        deviceToken:null
+      })
+   
+    ])
+    };
     let check_data;
     let userData = await USER.findOne({
       $and: [
@@ -175,7 +191,9 @@ exports.login = async (req, res) => {
         { expiresIn: "365d" }
       );
       const updateDriver = { is_login: true, jwtToken, lastUsedToken: new Date()};
-      if(deviceToken) updateDriver.deviceToken = deviceToken;
+      if(deviceToken) {
+        updateDriver.deviceToken = deviceToken
+      };
       let updateLogin = await DRIVER.findOneAndUpdate(
         { _id: check_data._id },
         updateDriver,
@@ -220,6 +238,7 @@ exports.login = async (req, res) => {
       check_data.jwtToken = jwtToken;
       check_data.lastUsedToken = new Date();
       if(deviceToken) {
+
         check_data.deviceToken = deviceToken;
       }
       await check_data.save();

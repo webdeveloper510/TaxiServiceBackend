@@ -39,7 +39,7 @@ const constants = require('../config/constant')
     //   return;
     // }
     const now = new Date();
-      const threeHoursBefore = new Date(now.getTime() - 2 * 60 * 1000);
+      const threeHoursBefore = new Date(now.getTime() - 3 *60 * 60 * 1000);
     let user = await user_model.findOne({_id:decoded?.userId, is_deleted: false, jwtToken:token,lastUsedToken:{$gte:threeHoursBefore}}).populate("created_by").populate("driverId");
     console.log("🚀 ~ jwt.verify ~ user:", user)
     if(user){
@@ -51,6 +51,7 @@ const constants = require('../config/constant')
           console.log("🚀 ~ jwt.verify ~ userdriver:", user)
           if(user){
             user.lastUsedToken = new Date();
+            user.is_login = false;
             await user.save()
             user = user.toObject();
             user.role = "DRIVER"
@@ -94,7 +95,7 @@ const constants = require('../config/constant')
   }catch(err) {
   console.log("🚀 ~ verifyToken= ~ err:", err)
   res.send({
-    'status':400,
+    'status':409,
     Message:"auth token verification failed"
   })
   return

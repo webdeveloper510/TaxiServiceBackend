@@ -1551,7 +1551,7 @@ exports.switchToDriver = async (req, res) => {
           },
         })
         .countDocuments();
-      driverData.lastUsedToken = new Date;
+      driverData.lastUsedToken = new Date();
       driverData.jwtToken = jwtToken;
       driverData.is_login = true
       let result = driverData.toObject();
