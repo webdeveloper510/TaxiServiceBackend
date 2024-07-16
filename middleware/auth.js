@@ -51,7 +51,7 @@ const constants = require('../config/constant')
           console.log("🚀 ~ jwt.verify ~ userdriver:", user)
           if(user){
             user.lastUsedToken = new Date();
-            user.is_login = false;
+            // user.is_login = false;
             await user.save()
             user = user.toObject();
             user.role = "DRIVER"

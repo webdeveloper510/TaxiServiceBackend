@@ -563,7 +563,7 @@ async function logoutDriverAfterThreeHour() {
 // Schedule the task using cron
 cron.schedule("* * * * *", ()=>{
   checkTripsAndSendNotifications();
-
+  logoutDriverAfterThreeHour()
 });
 
 module.exports = app;
