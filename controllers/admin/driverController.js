@@ -1487,7 +1487,7 @@ exports.convertIntoDriver = async (req, res) => {
         {
           driverId: save_driver._id,
           isDriver: true,
-          jwtToken: jwtToken,
+          
         }
       );
       await save_driver.save();
