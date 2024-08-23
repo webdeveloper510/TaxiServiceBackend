@@ -20,6 +20,7 @@ const stripe = require("stripe")(
 const mongoose = require("mongoose");
 const trip_model = require("../../models/user/trip_model");
 const driver_model = require("../../models/user/driver_model");
+const user_model = require("../../models/user/user_model");
 
 exports.create_super_admin = async (req, res) => {
   try {
@@ -80,20 +81,7 @@ exports.login = async (req, res) => {
     ); // Set to Monday of current week
     let data = req.body;
     const deviceToken = data.deviceToken;
-    if(deviceToken) {
-      await Promise.all([driver_model.updateMany({
-        deviceToken
-      },{
-        deviceToken:null
-      }),
-      driver_model.updateMany({
-        deviceToken
-      },{
-        deviceToken:null
-      })
-   
-    ])
-    };
+    
     let check_data;
     let userData = await USER.findOne({
       $and: [
@@ -185,6 +173,20 @@ exports.login = async (req, res) => {
       //     })
       //     return;
       // }
+      if(deviceToken) {
+        await Promise.all([driver_model.updateMany({
+          deviceToken
+        },{
+          deviceToken:null
+        }),
+        user_model.updateMany({
+          deviceToken
+        },{
+          deviceToken:null
+        })
+     
+      ])
+      };
       let jwtToken = jwt.sign(
         { userId: check_data._id },
         process.env.JWTSECRET,
@@ -211,6 +213,7 @@ exports.login = async (req, res) => {
         jwtToken: jwtToken,
       });
     } else {
+
       check_data = userData;
       if (!check_data.status) {
         return res.send({
@@ -230,6 +233,20 @@ exports.login = async (req, res) => {
         });
         return;
       }
+      if(deviceToken) {
+        await Promise.all([driver_model.updateMany({
+          deviceToken
+        },{
+          deviceToken:null
+        }),
+        user_model.updateMany({
+          deviceToken
+        },{
+          deviceToken:null
+        })
+     
+      ])
+      };
       let jwtToken = jwt.sign(
         { userId: check_data._id },
         process.env.JWTSECRET,

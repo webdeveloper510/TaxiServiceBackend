@@ -552,7 +552,7 @@ async function checkTripsAndSendNotifications() {
 async function logoutDriverAfterThreeHour() {
   try {
     const now = new Date();
-    const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 1000);
+    const threeHoursBefore = new Date(now.getTime() - 3 *60 * 60 * 1000);
   let user = await driver_model.updateMany({is_login:true,lastUsedToken:{$lte:threeHoursBefore}},{$set:{is_login:false}});
   console.log("🚀 ~ jwt.verify ~ user:", user)
   } catch (error) {
@@ -563,7 +563,7 @@ async function logoutDriverAfterThreeHour() {
 // Schedule the task using cron
 cron.schedule("* * * * *", ()=>{
   checkTripsAndSendNotifications();
-  logoutDriverAfterThreeHour()
+  // logoutDriverAfterThreeHour()
 });
 
 module.exports = app;

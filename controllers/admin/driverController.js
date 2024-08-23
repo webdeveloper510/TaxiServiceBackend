@@ -1252,6 +1252,7 @@ We regret to inform you that the documents provided for your driver profile veri
 exports.get_active_drivers = async (req, res) => {
   try {
     let currentDate = new Date();
+    const threeHoursBefore = new Date(now.getTime() - 3 *60 * 60 * 1000);
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
     startOfCurrentWeek.setDate(
@@ -1274,6 +1275,7 @@ exports.get_active_drivers = async (req, res) => {
           isDocUploaded: true,
           is_deleted: false,
           defaultVehicle: { $ne: null },
+          lastUsedToken:{$gte:threeHoursBefore}
         },
       },
       {
@@ -1455,10 +1457,7 @@ exports.convertIntoDriver = async (req, res) => {
           : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg";
       let user = req.user;
 
-      let check_other1 = await DRIVER.findOneAndDelete({ email: user.email });
-
-      let check_other2 = await DRIVER.findOneAndDelete({ phone: user.phone });
-
+     
       let save_driver = await DRIVER({
         ...data,
         first_name: user.first_name,
@@ -1482,11 +1481,7 @@ exports.convertIntoDriver = async (req, res) => {
       console.log("🚀 ~ driverUpload ~ save_driver:", save_driver._id);
       req.user.driverId = save_driver._id;
       let saveUserData = await req.user.save();
-      jwtToken = jwt.sign(
-        { userId: saveUserData._id },
-        process.env.JWTSECRET,
-        { expiresIn: "365d" }
-      );
+      
       const newUser = await user_model.updateOne(
         { _id: req.user._id },
         {
