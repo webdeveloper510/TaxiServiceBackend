@@ -1252,7 +1252,7 @@ We regret to inform you that the documents provided for your driver profile veri
 exports.get_active_drivers = async (req, res) => {
   try {
     let currentDate = new Date();
-    const threeHoursBefore = new Date(now.getTime() - 3 *60 * 60 * 1000);
+    const threeHoursBefore = new Date(currentDate.getTime() - 3 *60 * 60 * 1000);
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
     startOfCurrentWeek.setDate(
