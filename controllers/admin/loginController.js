@@ -81,7 +81,7 @@ exports.login = async (req, res) => {
     ); // Set to Monday of current week
     let data = req.body;
     const deviceToken = data.deviceToken;
-    const mobile = device.platform == "mobile";
+    const mobile = data?.platform == "mobile";
     
     let check_data;
     let userData = await USER.findOne({
