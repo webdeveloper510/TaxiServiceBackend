@@ -1289,7 +1289,7 @@ exports.add_trip1 = async (req, res) => {
                                       </tr>
                                       <tr class="">
                                         <td class="headline">
-                                          Greeting from Taxi Service!
+                                          Greeting from iDispatch!
                                         </td>
                                       </tr>
                                       <tr>
@@ -1310,7 +1310,7 @@ exports.add_trip1 = async (req, res) => {
                                                   >
                                                     <br />
                                                     <br /><br />
-                                                    Greeting from Taxi Service! Your booking
+                                                    Greeting from iDispatch! Your booking
                                                     has been created<br />
                                                     <br />
                                                     by this email:

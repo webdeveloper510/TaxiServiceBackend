@@ -114,6 +114,14 @@ const user = new Schema(
     type:Date,
     default:Date.now()
 },
+jwtTokenMobile: {
+  type: String,
+  default: null,
+},
+lastUsedTokenMobile: {
+  type:Date,
+  default:Date.now()
+},
   },
   { timestamps: true }
 );

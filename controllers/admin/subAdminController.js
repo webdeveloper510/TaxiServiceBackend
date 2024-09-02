@@ -204,13 +204,13 @@ exports.add_sub_admin = async (req, res) => {
                     <td class="">
                     </td>
                     </tr>
-                    <tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
+                    <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
                     <tr>
                     <td>
                     <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
                     <td class="" style="color:#444; font-weight: 400;"><br>
                     <br><br>
-                      You have successfully been registered to use Taxi Service as a <em>${data.role=="COMPANY"? "company": "customer"}</em><br>
+                      You have successfully been registered to use iDispatch as a <em>${data.role=="COMPANY"? "company": "customer"}</em><br>
                      <br>
                       Your login credentials are provided below:
                     <br>
@@ -257,7 +257,7 @@ exports.add_sub_admin = async (req, res) => {
                     </body></html>`
             };
             await transporter.sendMail(mailOptions);
-            // Welcome to Taxi Service, your email is ${data.email} and password is ${passwordEmail}
+            // Welcome to iDispatch, your email is ${data.email} and password is ${passwordEmail}
 
 
 
@@ -799,13 +799,13 @@ exports.send_request_trip = async (req, res) => {
                     <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
                     </td>
                     </tr>
-                    <tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
+                    <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
                     <tr>
                     <td>
                     <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
                     <td class="" style="color:#444; font-weight: 400;"><br>
                      A property management application that helps you manage your real estate portfolio with ease and efficiency. <br><br>
-                      You have successfully been registered to use Taxi Service App as a <em>Customer</em><br>
+                      You have successfully been registered to use iDispatch App as a <em>Customer</em><br>
                      <br>
                       Your login credentials are provided below:
                     <br>

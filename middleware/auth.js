@@ -12,7 +12,8 @@ const constants = require('../config/constant')
  verifyToken = async (req,res,next) => {
   try{
     let token = req.headers["x-access-token"];
- 
+    let platform = req.headers.platform;
+    let isMobile = platform == "mobile"
   if (!token) {
       res.send({
         'status':400,
@@ -40,14 +41,22 @@ const constants = require('../config/constant')
     // }
     const now = new Date();
       const threeHoursBefore = new Date(now.getTime() - 3 *60 * 60 * 1000);
-    let user = await user_model.findOne({_id:decoded?.userId, is_deleted: false, jwtToken:token,lastUsedToken:{$gte:threeHoursBefore}}).populate("created_by").populate("driverId");
+      let query = {_id:decoded?.userId, is_deleted: false}
+      if(isMobile){
+        query.jwtTokenMobile = token;
+        query.lastUsedTokenMobile = {$gte:threeHoursBefore};
+      }else{
+        query.jwtToken = token;
+        query.lastUsedToken = {$gte:threeHoursBefore};
+      }
+    let user = await user_model.findOne(query).populate("created_by").populate("driverId");
     console.log("🚀 ~ jwt.verify ~ user:", user)
     if(user){
       await user_model.updateOne({_id:user._id},{lastUsedToken:new Date()});
     }
     
       if(!user){
-        user = await driver_model.findOne({_id:decoded?.userId,is_deleted:false,lastUsedToken:{$gte:threeHoursBefore}}).populate("created_by");
+        user = await driver_model.findOne(query).populate("created_by");
           console.log("🚀 ~ jwt.verify ~ userdriver:", user)
           if(user){
             user.lastUsedToken = new Date();

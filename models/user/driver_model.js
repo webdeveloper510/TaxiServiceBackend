@@ -76,10 +76,6 @@ const driver = new Schema({
         type: String,
         default: ''
     },
-    jwtToken: {
-        type: String,
-        default: ''
-    },
     is_available: {
         type: Boolean,
         default: true
@@ -160,6 +156,18 @@ const driver = new Schema({
     lastUsedToken: {
         type:Date,
         default:Date.now()
+    },
+    jwtToken: {
+        type: String,
+        default: ''
+    },
+    lastUsedTokenMobile: {
+        type:Date,
+        default:Date.now()
+    },
+    jwtTokenMobile: {
+        type: String,
+        default: ''
     },
     currentTrip:{ type: Schema.Types.ObjectId, ref: 'trip', default: null},
     defaultVehicle:{ type: Schema.Types.ObjectId, ref: 'vehicle', default: null}

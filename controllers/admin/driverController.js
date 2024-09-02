@@ -239,13 +239,13 @@ exports.add_driver = async (req, res) => {
               <td class="">
               </td>
               </tr>
-              <tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
+              <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
               <tr>
               <td>
               <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
               <td class="" style="color:#444; font-weight: 400;"><br>
               <br><br>
-              Welcome to Taxi Service!
+              Welcome to iDispatch!
 
 We're pleased to inform you that Step 1 of your registration is successfully completed. Next in line is Step 2, where we kindly ask you to upload necessary details and documents. Following this, our team will promptly review your submission.<br>
                <br>
@@ -789,7 +789,7 @@ exports.update_driver = async (req, res) => {
               <td class="">
               </td>
               </tr>
-              <tr class=""><td class="headline">Welcome to Taxi Service!</td></tr>
+              <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
               <tr>
               <td>
               <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
@@ -1017,7 +1017,7 @@ background:#ccc;
 <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
 </td>
 </tr>
-<tr class=""><td class="headline"> Taxi Service!</td></tr>
+<tr class=""><td class="headline"> iDispatch!</td></tr>
 <tr>
 <td>
 <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
@@ -1196,7 +1196,7 @@ background:#ccc;
 <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
 </td>
 </tr>
-<tr class=""><td class="headline"> Taxi Service!</td></tr>
+<tr class=""><td class="headline"> iDispatch!</td></tr>
 <tr>
 <td>
 <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
@@ -1275,7 +1275,7 @@ exports.get_active_drivers = async (req, res) => {
           isDocUploaded: true,
           is_deleted: false,
           defaultVehicle: { $ne: null },
-          lastUsedToken:{$gte:threeHoursBefore}
+          lastUsedTokenMobile:{$gte:threeHoursBefore}
         },
       },
       {

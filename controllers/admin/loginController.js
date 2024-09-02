@@ -81,6 +81,7 @@ exports.login = async (req, res) => {
     ); // Set to Monday of current week
     let data = req.body;
     const deviceToken = data.deviceToken;
+    const mobile = device.platform == "mobile";
     
     let check_data;
     let userData = await USER.findOne({
@@ -192,7 +193,15 @@ exports.login = async (req, res) => {
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
-      const updateDriver = { is_login: true, jwtToken, lastUsedToken: new Date()};
+      const updateDriver = { is_login: true};
+      if(mobile){
+        updateDriver.jwtTokenMobile = jwtToken;
+        updateDriver.lastUsedTokenMobile = new Date();
+      }{
+        updateDriver.jwtToken = jwtToken;
+        updateDriver.lastUsedToken = new Date();
+      }
+      
       if(deviceToken) {
         updateDriver.deviceToken = deviceToken
       };
@@ -252,8 +261,13 @@ exports.login = async (req, res) => {
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
-      check_data.jwtToken = jwtToken;
+      if(mobile){
+        check_data.jwtTokenMobile = jwtToken;
+      check_data.lastUsedTokenMobile = new Date();
+      }else{
+        check_data.jwtToken = jwtToken;
       check_data.lastUsedToken = new Date();
+      }
       if(deviceToken) {
 
         check_data.deviceToken = deviceToken;
@@ -536,7 +550,7 @@ background:#ccc;
 <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
 </td>
 </tr>
-<tr class=""><td class="headline"> Taxi Service!</td></tr>
+<tr class=""><td class="headline"> iDispatch!</td></tr>
 <tr>
 <td>
 <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
@@ -712,7 +726,7 @@ There was a request to change your password!
     <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
     </td>
     </tr>
-    <tr class=""><td class="headline"> Taxi Service!</td></tr>
+    <tr class=""><td class="headline"> iDispatch!</td></tr>
     <tr>
     <td>
     <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
