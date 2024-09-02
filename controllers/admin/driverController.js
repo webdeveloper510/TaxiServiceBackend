@@ -379,10 +379,39 @@ exports.get_driver_detail = async (req, res) => {
         .countDocuments();
       const result = driver.toObject();
       result.totalTrips = completedTrips;
+
+      // extra data
+      let currentDate = new Date();
+      let startOfCurrentWeek = new Date(currentDate);
+      startOfCurrentWeek.setHours(0, 0, 0, 0);
+      startOfCurrentWeek.setDate(
+        startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+      );
+      const totalActiveTrips = await TRIP.find({
+        driver_name: driverId,
+        trip_status: "Active",
+      }).countDocuments();
+      const totalUnpaidTrips = await TRIP.find({
+        driver_name: driverId,
+        trip_status: "Completed",
+        is_paid: false,
+        drop_time: {
+          $lte: startOfCurrentWeek,
+        },
+      }).countDocuments();
+
+      const totalReachedTrip = await TRIP.find({
+        driver_name: driverId,
+        trip_status: "Reached",
+        is_paid: false,
+      }).countDocuments();
       res.send({
         code: constant.success_code,
         message: "Success",
         result,
+        totalActiveTrips,
+        totalUnpaidTrips,
+        totalReachedTrip
       });
     }
     // if (driver && driver.is_deleted === false) {
