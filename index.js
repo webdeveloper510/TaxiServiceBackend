@@ -161,6 +161,42 @@ io.on("connection", (socket) => {
       console.log("🚀 ~ socket.on ~ err:", err);
     }
   });
+  socket.on("companyCancelledTrip", async ({ driverId,trip }) => {
+    
+    try {
+      const user = await user_model.findOne({
+        socketId: socket.id,
+      });
+      const driverById = await driver_model.findOne({
+        _id: id,
+      });
+      io.to(driverById.socketId).emit("retrivedTrip",{
+        message: `Your trip has been retrived by company ${user.first_name} ${user.last_name}`,
+        trip: trip
+      })
+      const response = await axios.post(
+        "https://fcm.googleapis.com/fcm/send",
+        {
+          to: driverById?.deviceToken,
+          notification: {
+            message: `Your trip has been retrived by company ${user.first_name} ${user.last_name}`,
+            title: `Your trip has been retrived by company ${user.first_name} ${user.last_name}`,
+            trip,
+            sound: "default",
+          },
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `key=${process.env.FCM_SERVER_KEY}`,
+          },
+        }
+      );
+
+    } catch (err) {
+      console.log("🚀 ~ socket.on ~ err:", err);
+    }
+  });
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
     const driverBySocketId = await driver_model.findOne({
       socketId: socket.id,
@@ -297,6 +333,7 @@ io.on("connection", (socket) => {
       });
     }
   });
+
   socket.on("acceptDriverTrip", async ({ tripId }) => {
     if (!tripId) {
       return io.to(socket.id).emit("driverNotification", {
