@@ -120,7 +120,14 @@ exports.add_driver = async (req, res) => {
       process.env.JWTSECRET,
       { expiresIn: "365d" }
     );
-    save_driver.jwtToken = jwtToken;
+    
+    if(data.platform == "mobile"){
+      save_driver.jwtTokenMobile = jwtToken;
+      save_driver.lastUsedTokenMobile = new Date();
+    }else{
+      save_driver.jwtToken = jwtToken;
+      save_driver.lastUsedToken = new Date();
+    }
     await save_driver.save();
 
     if (!save_driver) {

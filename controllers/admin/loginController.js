@@ -197,7 +197,7 @@ exports.login = async (req, res) => {
       if(mobile){
         updateDriver.jwtTokenMobile = jwtToken;
         updateDriver.lastUsedTokenMobile = new Date();
-      }{
+      }else{
         updateDriver.jwtToken = jwtToken;
         updateDriver.lastUsedToken = new Date();
       }
