@@ -167,9 +167,12 @@ io.on("connection", (socket) => {
       const user = await user_model.findOne({
         socketId: socket.id,
       });
+      console.log("🚀 ~ companyCancelledTrip~ user:", user)
+      
       const driverById = await driver_model.findOne({
-        _id: id,
+        _id: driverId,
       });
+      console.log("🚀 ~companyCancelledTrip~ driverById:", driverById)
       io.to(driverById.socketId).emit("retrivedTrip",{
         message: `Your trip has been retrived by company ${user.first_name} ${user.last_name}`,
         trip: trip

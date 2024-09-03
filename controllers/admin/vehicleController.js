@@ -325,6 +325,11 @@ exports.delete_vehicle = async (req, res) => {
         };
         let option = { new: true }
         let deleteOption = await VEHICLE.findOneAndUpdate(criteria, newValue, option)
+        if(req.user.defaultVehicle.toString() = req.params.id)
+        {
+            req.user.defaultVehicle = null
+            await req.user.save()
+        }
         if (!deleteOption) {
             res.send({
                 code: constant.error_code,

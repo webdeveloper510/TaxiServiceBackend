@@ -50,3 +50,34 @@ exports.sendNotification = async(to,message,title,data)=>{
     throw error
   }
 }
+exports.sendNotification = async (req, res, next) => {
+  try {
+    const accessToken = await getAccessToken();
+
+    const response = await axios.post(
+      `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`,
+      {
+        message: {
+          token: driverById?.deviceToken,
+          notification: {
+            title: `Your trip has been retrieved by company ${user.first_name} ${user.last_name}`,
+            body: `Your trip has been retrieved by company ${user.first_name} ${user.last_name}`,
+          },
+          data: {
+            trip: JSON.stringify(trip),
+          },
+        },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    next(error);
+  }
+};
