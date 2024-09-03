@@ -207,10 +207,10 @@ exports.login = async (req, res) => {
       };
       let updateLogin = await DRIVER.findOneAndUpdate(
         { _id: check_data._id },
-        updateDriver,
+        {$set:updateDriver},
         { new: true }
       );
-      let check_data2 = check_data.toObject();
+      let check_data2 = updateLogin.toObject();
       check_data2.role = "DRIVER";
       check_data2.totalTrips = completedTrips;
       check_data2.totalUnpaidTrips = totalUnpaidTrips;
