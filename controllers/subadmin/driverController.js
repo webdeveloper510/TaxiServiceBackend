@@ -133,6 +133,12 @@ exports.get_driver_detail = async (req, res) => {
         message: "Unable to fetch the detail",
       });
     } else {
+      let currentDate = new Date();
+      let startOfCurrentWeek = new Date(currentDate);
+      startOfCurrentWeek.setHours(0, 0, 0, 0);
+      startOfCurrentWeek.setDate(
+        startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+      );
       const completedTrips = await trip_model
         .find({
           driver_name: req.userId,
