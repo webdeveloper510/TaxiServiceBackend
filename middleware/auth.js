@@ -64,13 +64,6 @@ const constants = require('../config/constant')
             await user.save()
             user = user.toObject();
             user.role = "DRIVER"
-            if(user.jwtToken != token){
-              res.send({
-                code: constant.tokenError,
-                message:"Token is expired"
-              })
-              return
-            }
           }
           
       }
