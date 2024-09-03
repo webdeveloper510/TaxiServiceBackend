@@ -319,6 +319,8 @@ exports.get_trip = async (req, res) => {
                             { $arrayElemAt: ["$driver.last_name", 0] }
                         ]
                     },
+                    driver_id: 
+                            { $arrayElemAt: ["$driver._id", 0] },
                     vehicle: {
                         $concat: [
                             { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
