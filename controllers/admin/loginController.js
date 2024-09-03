@@ -269,7 +269,6 @@ exports.login = async (req, res) => {
       check_data.lastUsedToken = new Date();
       }
       if(deviceToken) {
-
         check_data.deviceToken = deviceToken;
       }
       await check_data.save();

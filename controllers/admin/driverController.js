@@ -82,10 +82,10 @@ exports.add_driver = async (req, res) => {
     const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
     data.lastUsedToken = new Date()
     data.created_by = superAdmin; // Assuming you have user authentication
-    let check_other1 = await DRIVER.findOne({ email: data.email });
-    let check_other2 = await DRIVER.findOne({ phone: data.phone });
-    let check_other3 = await user_model.findOne({ email: data.email });
-    let check_other4 = await user_model.findOne({ phone: data.phone });
+    let check_other1 = await DRIVER.findOne({ email: { $regex: data.email, $options: "i" },is_deleted:false });
+    let check_other2 = await DRIVER.findOne({ phone: data.phone,is_deleted:false });
+    let check_other3 = await user_model.findOne({ email: { $regex: data.email, $options: "i" },is_deleted:false  });
+    let check_other4 = await user_model.findOne({ phone: data.phone ,is_deleted:false });
     if (check_other1) {
       res.send({
         code: constant.error_code,
@@ -1552,6 +1552,8 @@ exports.convertIntoDriver = async (req, res) => {
 
 exports.switchToDriver = async (req, res) => {
   try {
+    let platform = req.headers.platform;
+    let isMobile = platform == "mobile"
     let currentDate = new Date();
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
@@ -1582,8 +1584,13 @@ exports.switchToDriver = async (req, res) => {
           },
         })
         .countDocuments();
-      driverData.lastUsedToken = new Date();
-      driverData.jwtToken = jwtToken;
+        if(isMobile){
+          driverData.jwtTokenMobile = jwtToken;
+        driverData.lastUsedTokenMobile = new Date();
+        }else{
+          driverData.jwtToken = jwtToken;
+        driverData.lastUsedToken = new Date();
+        }
       driverData.is_login = true
       let result = driverData.toObject();
       await driverData.save();
@@ -1608,6 +1615,8 @@ exports.switchToDriver = async (req, res) => {
 
 exports.switchToCompany = async (req, res) => {
   try {
+    let platform = req.headers.platform;
+    let isMobile = platform == "mobile"
     let user = req.user;
 
     let companyData = await user_model.findOne({ email: user.email, is_deleted: false });
@@ -1623,8 +1632,13 @@ exports.switchToCompany = async (req, res) => {
         { expiresIn: "365d" }
       );
       const result = companyData.toObject();
-      companyData.jwtToken = jwtToken;
+      if(isMobile){
+        companyData.jwtTokenMobile = jwtToken;
+      companyData.lastUsedTokenMobile = new Date();
+      }else{
+        companyData.jwtToken = jwtToken;
       companyData.lastUsedToken = new Date();
+      }
       await companyData.save()
       result.role = "COMPANY";
       result.driver = user
