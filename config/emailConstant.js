@@ -1,7 +1,7 @@
 require("dotenv").config()
 module.exports ={
     credentials:{
-        service: "gmail",
+        service: "ZXCS",
         auth: {
             user: process.env.userEmail,
             pass: process.env.userPassword,
