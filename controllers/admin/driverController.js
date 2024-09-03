@@ -1311,7 +1311,7 @@ exports.get_active_drivers = async (req, res) => {
           isDocUploaded: true,
           is_deleted: false,
           defaultVehicle: { $ne: null },
-          // lastUsedTokenMobile:{$gte:threeHoursBefore}
+          lastUsedTokenMobile:{$gte:threeHoursBefore}
         },
       },
       {

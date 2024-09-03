@@ -52,14 +52,27 @@ const constants = require('../config/constant')
     let user = await user_model.findOne(query).populate("created_by").populate("driverId");
     console.log("🚀 ~ jwt.verify ~ user:", user)
     if(user){
-      await user_model.updateOne({_id:user._id},{lastUsedToken:new Date()});
+      let updateLastUse = {}
+      if(isMobile){
+        updateLastUse.lastUsedTokenMobile = new Date();
+      }
+      else {
+        updateLastUse.lastUsedToken = new Date();
+      }
+      await user_model.updateOne({_id:user._id},updateLastUse);
     }
     
       if(!user){
         user = await driver_model.findOne(query).populate("created_by");
           console.log("🚀 ~ jwt.verify ~ userdriver:", user)
           if(user){
-            user.lastUsedToken = new Date();
+            if(isMobile){
+              user.lastUsedTokenMobile = new Date();
+            }
+            else {
+              user.lastUsedToken = new Date();
+            }
+           
             // user.is_login = false;
             await user.save()
             user = user.toObject();
