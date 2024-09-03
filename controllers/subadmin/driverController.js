@@ -140,12 +140,33 @@ exports.get_driver_detail = async (req, res) => {
           is_paid: true,
         })
         .countDocuments();
+        const totalActiveTrips = await trip_model.find({
+          driver_name: req.userId,
+          trip_status: "Active",
+        }).countDocuments();
+        const totalUnpaidTrips = await trip_model.find({
+          driver_name: req.userId,
+          trip_status: "Completed",
+          is_paid: false,
+          drop_time: {
+            $lte: startOfCurrentWeek,
+          },
+        }).countDocuments();
+  
+        const totalReachedTrip = await trip_model.find({
+          driver_name: req.userId,
+          trip_status: "Reached",
+          is_paid: false,
+        }).countDocuments();
       const result = driver.toObject();
       result.totalTrips = completedTrips;
       res.send({
         code: constant.success_code,
         message: "Success",
         result,
+        totalActiveTrips,
+        totalUnpaidTrips,
+        totalReachedTrip
       });
     }
     // if (driver && driver.is_deleted === false) {
