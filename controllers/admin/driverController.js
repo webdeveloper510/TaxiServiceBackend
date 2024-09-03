@@ -387,11 +387,11 @@ exports.get_driver_detail = async (req, res) => {
       startOfCurrentWeek.setDate(
         startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
       );
-      const totalActiveTrips = await TRIP.find({
+      const totalActiveTrips = await trip_model.find({
         driver_name: driverId,
         trip_status: "Active",
       }).countDocuments();
-      const totalUnpaidTrips = await TRIP.find({
+      const totalUnpaidTrips = await trip_model.find({
         driver_name: driverId,
         trip_status: "Completed",
         is_paid: false,
@@ -400,7 +400,7 @@ exports.get_driver_detail = async (req, res) => {
         },
       }).countDocuments();
 
-      const totalReachedTrip = await TRIP.find({
+      const totalReachedTrip = await trip_model.find({
         driver_name: driverId,
         trip_status: "Reached",
         is_paid: false,
