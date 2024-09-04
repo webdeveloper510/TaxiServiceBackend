@@ -94,6 +94,7 @@ exports.add_driver = async (req, res) => {
       return;
     }
     if (check_other2) {
+      console.log("🚀 ~ //driverUpload ~ check_other2:", check_other2)
       res.send({
         code: constant.error_code,
         message: "Phone Already exist",
