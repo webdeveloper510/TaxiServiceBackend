@@ -46,7 +46,7 @@ const multerS3 = require("multer-s3");
 
 var driverUpload = multer({
   storage: imageStorage,
-  limits: { fileSize: 100 * 1024 * 1024 }
+  limits: { fileSize: 100 * 1024 * 1024 },
 }).any([{ name: "driver_image" }, { name: "driver_documents" }]);
 
 exports.add_driver = async (req, res) => {
@@ -80,12 +80,24 @@ exports.add_driver = async (req, res) => {
     //     return
     // }
     const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
-    data.lastUsedToken = new Date()
+    data.lastUsedToken = new Date();
     data.created_by = superAdmin; // Assuming you have user authentication
-    let check_other1 = await DRIVER.findOne({ email: { $regex: data.email, $options: "i" },is_deleted:false });
-    let check_other2 = await DRIVER.findOne({ phone: data.phone,is_deleted:false });
-    let check_other3 = await user_model.findOne({ email: { $regex: data.email, $options: "i" },is_deleted:false  });
-    let check_other4 = await user_model.findOne({ phone: data.phone ,is_deleted:false });
+    let check_other1 = await DRIVER.findOne({
+      email: { $regex: data.email, $options: "i" },
+      is_deleted: false,
+    });
+    let check_other2 = await DRIVER.findOne({
+      phone: data.phone,
+      is_deleted: false,
+    });
+    let check_other3 = await user_model.findOne({
+      email: { $regex: data.email, $options: "i" },
+      is_deleted: false,
+    });
+    let check_other4 = await user_model.findOne({
+      phone: data.phone,
+      is_deleted: false,
+    });
     if (check_other1) {
       res.send({
         code: constant.error_code,
@@ -94,7 +106,7 @@ exports.add_driver = async (req, res) => {
       return;
     }
     if (check_other2) {
-      console.log("🚀 ~ //driverUpload ~ check_other2:", check_other2)
+      console.log("🚀 ~ //driverUpload ~ check_other2:", check_other2);
       res.send({
         code: constant.error_code,
         message: "Phone Already exist",
@@ -104,14 +116,16 @@ exports.add_driver = async (req, res) => {
     if (check_other3) {
       res.send({
         code: constant.error_code,
-        message: "This email is already registered as a Company. Sign in to register as a driver.",
+        message:
+          "This email is already registered as a Company. Sign in to register as a driver.",
       });
       return;
     }
     if (check_other4) {
       res.send({
         code: constant.error_code,
-        message: "This Phone Number is already registered as a Company. Sign in to register as a driver.",
+        message:
+          "This Phone Number is already registered as a Company. Sign in to register as a driver.",
       });
       return;
     }
@@ -121,14 +135,13 @@ exports.add_driver = async (req, res) => {
       process.env.JWTSECRET,
       { expiresIn: "365d" }
     );
-    
-    if(data.platform == "mobile"){
-      save_driver.jwtTokenMobile = jwtToken;
-      save_driver.lastUsedTokenMobile = new Date();
-    }else{
-      save_driver.jwtToken = jwtToken;
-      save_driver.lastUsedToken = new Date();
-    }
+
+    save_driver.jwtTokenMobile = jwtToken;
+    save_driver.lastUsedTokenMobile = new Date();
+
+    save_driver.jwtToken = jwtToken;
+    save_driver.lastUsedToken = new Date();
+
     await save_driver.save();
 
     if (!save_driver) {
@@ -323,11 +336,14 @@ exports.remove_driver = async (req, res) => {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
     // You may want to add additional checks to ensure the driver exists or belongs to the agency user
-    const removedDriver = await DRIVER.findOneAndUpdate({ _id: driverId }, {
-      $set: {
-        is_deleted: true
+    const removedDriver = await DRIVER.findOneAndUpdate(
+      { _id: driverId },
+      {
+        $set: {
+          is_deleted: true,
+        },
       }
-    });
+    );
 
     if (!removedDriver) {
       res.send({
@@ -335,7 +351,10 @@ exports.remove_driver = async (req, res) => {
         message: "Unable to delete the driver",
       });
     } else {
-      let companyData = await user_model.findOne({ email: removedDriver.email, is_deleted: false });
+      let companyData = await user_model.findOne({
+        email: removedDriver.email,
+        is_deleted: false,
+      });
       if (!companyData) {
         res.send({
           code: constant.success_code,
@@ -344,7 +363,7 @@ exports.remove_driver = async (req, res) => {
       } else {
         companyData.isDriver = false;
         companyData.driverId = null;
-        await companyData.save()
+        await companyData.save();
         res.send({
           code: constant.success_code,
           message: "Deleted Successfully",
@@ -364,7 +383,7 @@ exports.get_driver_detail = async (req, res) => {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
     const driver = await DRIVER.findOne({ _id: driverId, is_deleted: false });
-    console.log("🚀 ~ exports.get_driver_detail= ~ driver:", driver)
+    console.log("🚀 ~ exports.get_driver_detail= ~ driver:", driver);
     if (!driver) {
       res.send({
         code: constant.error_code,
@@ -388,31 +407,37 @@ exports.get_driver_detail = async (req, res) => {
       startOfCurrentWeek.setDate(
         startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
       );
-      const totalActiveTrips = await trip_model.find({
-        driver_name: driverId,
-        trip_status: "Active",
-      }).countDocuments();
-      const totalUnpaidTrips = await trip_model.find({
-        driver_name: driverId,
-        trip_status: "Completed",
-        is_paid: false,
-        drop_time: {
-          $lte: startOfCurrentWeek,
-        },
-      }).countDocuments();
+      const totalActiveTrips = await trip_model
+        .find({
+          driver_name: driverId,
+          trip_status: "Active",
+        })
+        .countDocuments();
+      const totalUnpaidTrips = await trip_model
+        .find({
+          driver_name: driverId,
+          trip_status: "Completed",
+          is_paid: false,
+          drop_time: {
+            $lte: startOfCurrentWeek,
+          },
+        })
+        .countDocuments();
 
-      const totalReachedTrip = await trip_model.find({
-        driver_name: driverId,
-        trip_status: "Reached",
-        is_paid: false,
-      }).countDocuments();
+      const totalReachedTrip = await trip_model
+        .find({
+          driver_name: driverId,
+          trip_status: "Reached",
+          is_paid: false,
+        })
+        .countDocuments();
       res.send({
         code: constant.success_code,
         message: "Success",
         result,
         totalActiveTrips,
         totalUnpaidTrips,
-        totalReachedTrip
+        totalReachedTrip,
       });
     }
     // if (driver && driver.is_deleted === false) {
@@ -714,10 +739,16 @@ exports.update_driver = async (req, res) => {
         { new: true }
       );
       if (updatedDriver) {
-        console.log("🚀 ~ driverUpload ~ updatedDriver:", updatedDriver, req.body.isDocUploaded)
+        console.log(
+          "🚀 ~ driverUpload ~ updatedDriver:",
+          updatedDriver,
+          req.body.isDocUploaded
+        );
         if (req.body.isDocUploaded) {
-          console.log("in the right zone============>>>>>>>>")
-          var transporter = nodemailer.createTransport(emailConstant.credentials);
+          console.log("in the right zone============>>>>>>>>");
+          var transporter = nodemailer.createTransport(
+            emailConstant.credentials
+          );
           var mailOptions = {
             from: emailConstant.from_email,
             to: updatedDriver.email,
@@ -900,7 +931,7 @@ exports.updateLocation = async (req, res) => {
     let criteria = { _id: data.driverId };
     let option = { new: true };
 
-    console.log("location  ____________ >>>>>", data)
+    console.log("location  ____________ >>>>>", data);
     let updateLocation = await DRIVER.findOneAndUpdate(
       criteria,
       {
@@ -1289,7 +1320,9 @@ We regret to inform you that the documents provided for your driver profile veri
 exports.get_active_drivers = async (req, res) => {
   try {
     let currentDate = new Date();
-    const threeHoursBefore = new Date(currentDate.getTime() - 3 *60 * 60 * 1000);
+    const threeHoursBefore = new Date(
+      currentDate.getTime() - 3 * 60 * 60 * 1000
+    );
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
     startOfCurrentWeek.setDate(
@@ -1312,7 +1345,7 @@ exports.get_active_drivers = async (req, res) => {
           isDocUploaded: true,
           is_deleted: false,
           defaultVehicle: { $ne: null },
-          lastUsedTokenMobile:{$gte:threeHoursBefore},
+          lastUsedTokenMobile: { $gte: threeHoursBefore },
           // "location.coordinates": { $ne: [null, null] },
         },
       },
@@ -1457,8 +1490,6 @@ exports.logout = async (req, res) => {
       code: constant.success_code,
       message: "Logout successfully",
     });
-
-
   } catch (err) {
     res.send({
       code: constant.error_code,
@@ -1495,7 +1526,6 @@ exports.convertIntoDriver = async (req, res) => {
           : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg";
       let user = req.user;
 
-     
       let save_driver = await DRIVER({
         ...data,
         first_name: user.first_name,
@@ -1520,13 +1550,12 @@ exports.convertIntoDriver = async (req, res) => {
       console.log("🚀 ~ driverUpload ~ save_driver:", save_driver._id);
       req.user.driverId = save_driver._id;
       let saveUserData = await req.user.save();
-      
+
       const newUser = await user_model.updateOne(
         { _id: req.user._id },
         {
           driverId: save_driver._id,
           isDriver: true,
-          
         }
       );
       await save_driver.save();
@@ -1556,8 +1585,8 @@ exports.convertIntoDriver = async (req, res) => {
 exports.switchToDriver = async (req, res) => {
   try {
     let currentDate = new Date();
-    console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile)
-    
+    console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile);
+
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
     startOfCurrentWeek.setDate(
@@ -1565,7 +1594,10 @@ exports.switchToDriver = async (req, res) => {
     ); // Set to Monday of current week
     let user = req.user;
 
-    let driverData = await DRIVER.findOne({ email: user.email, is_deleted: false });
+    let driverData = await DRIVER.findOne({
+      email: user.email,
+      is_deleted: false,
+    });
     if (!driverData) {
       res.send({
         code: constant.error_code,
@@ -1587,18 +1619,18 @@ exports.switchToDriver = async (req, res) => {
           },
         })
         .countDocuments();
-        
-          console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile)
-          
-          driverData.jwtTokenMobile = jwtToken;
-        driverData.lastUsedTokenMobile = new Date();
-       
-          console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile)
 
-          driverData.jwtToken = jwtToken;
-        driverData.lastUsedToken = new Date();
-       
-      driverData.is_login = true
+      console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile);
+
+      driverData.jwtTokenMobile = jwtToken;
+      driverData.lastUsedTokenMobile = new Date();
+
+      console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile);
+
+      driverData.jwtToken = jwtToken;
+      driverData.lastUsedToken = new Date();
+
+      driverData.is_login = true;
       let result = driverData.toObject();
       await driverData.save();
       result.totalUnpaidTrips = totalUnpaidTrips;
@@ -1622,12 +1654,14 @@ exports.switchToDriver = async (req, res) => {
 
 exports.switchToCompany = async (req, res) => {
   try {
-    
-    let isMobile = req.isMobile
-    console.log("🚀 ~ exports.switchToCompany= ~ isMobile:", isMobile)
+    let isMobile = req.isMobile;
+    console.log("🚀 ~ exports.switchToCompany= ~ isMobile:", isMobile);
     let user = req.user;
 
-    let companyData = await user_model.findOne({ email: user.email, is_deleted: false });
+    let companyData = await user_model.findOne({
+      email: user.email,
+      is_deleted: false,
+    });
     if (!companyData) {
       res.send({
         code: constant.error_code,
@@ -1640,14 +1674,14 @@ exports.switchToCompany = async (req, res) => {
         { expiresIn: "365d" }
       );
       const result = companyData.toObject();
-        companyData.jwtTokenMobile = jwtToken;
+      companyData.jwtTokenMobile = jwtToken;
       companyData.lastUsedTokenMobile = new Date();
-        companyData.jwtToken = jwtToken;
+      companyData.jwtToken = jwtToken;
       companyData.lastUsedToken = new Date();
-      
-      await companyData.save()
+
+      await companyData.save();
       result.role = "COMPANY";
-      result.driver = user
+      result.driver = user;
       res.send({
         code: constant.success_code,
         message: "data fetch successfully",
@@ -1666,8 +1700,14 @@ exports.switchToCompany = async (req, res) => {
 
 exports.deleteDriver = async (req, res) => {
   try {
-    let driver = await DRIVER.findOneAndUpdate({ _id: req.params.id }, { is_deleted: true })
-    let companyData = await user_model.findOne({ email: driver.email, is_deleted: false });
+    let driver = await DRIVER.findOneAndUpdate(
+      { _id: req.params.id },
+      { is_deleted: true }
+    );
+    let companyData = await user_model.findOne({
+      email: driver.email,
+      is_deleted: false,
+    });
     if (!companyData) {
       res.send({
         code: constant.success_code,
@@ -1676,7 +1716,7 @@ exports.deleteDriver = async (req, res) => {
     } else {
       companyData.isDriver = false;
       companyData.driverId = null;
-      await companyData.save()
+      await companyData.save();
       res.send({
         code: constant.success_code,
         message: "Deleted successfully",
