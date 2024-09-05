@@ -87,10 +87,7 @@ io.on("connection", (socket) => {
         }
       );
       const driverByToken = await driverDetailsByToken(token);
-      console.log(
-        "🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:",
-        driverByToken
-      );
+      
 
       if (driverByToken) {
        
@@ -134,10 +131,7 @@ io.on("connection", (socket) => {
       );
       console.log("🚀 ~ socket.on ~ token:", token);
       const userByToken = await userDetailsByToken(token);
-      console.log(
-        "🚀 ~ file: index.js:70 ~ socket.on ~ driverByToken:",
-        userByToken
-      );
+     
 
       if (userByToken) {
         await user_model.updateMany(

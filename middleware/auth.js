@@ -14,6 +14,7 @@ const constants = require('../config/constant')
     let token = req.headers["x-access-token"];
     let platform = req.headers.platform;
     let isMobile = platform == "mobile"
+    req.isMobile = isMobile
   if (!token) {
       res.send({
         'status':400,

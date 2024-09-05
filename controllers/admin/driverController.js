@@ -1512,6 +1512,7 @@ exports.convertIntoDriver = async (req, res) => {
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
+      save_driver.jwtTokenMobile = jwtToken;
       save_driver.jwtToken = jwtToken;
       const result = save_driver.toObject();
       result.role = "DRIVER";
@@ -1554,9 +1555,9 @@ exports.convertIntoDriver = async (req, res) => {
 
 exports.switchToDriver = async (req, res) => {
   try {
-    let platform = req.headers.platform;
-    let isMobile = platform == "mobile"
     let currentDate = new Date();
+    console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile)
+    
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
     startOfCurrentWeek.setDate(
@@ -1586,13 +1587,17 @@ exports.switchToDriver = async (req, res) => {
           },
         })
         .countDocuments();
-        if(isMobile){
+        
+          console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile)
+          
           driverData.jwtTokenMobile = jwtToken;
         driverData.lastUsedTokenMobile = new Date();
-        }else{
+       
+          console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile)
+
           driverData.jwtToken = jwtToken;
         driverData.lastUsedToken = new Date();
-        }
+       
       driverData.is_login = true
       let result = driverData.toObject();
       await driverData.save();
@@ -1617,8 +1622,9 @@ exports.switchToDriver = async (req, res) => {
 
 exports.switchToCompany = async (req, res) => {
   try {
-    let platform = req.headers.platform;
-    let isMobile = platform == "mobile"
+    
+    let isMobile = req.isMobile
+    console.log("🚀 ~ exports.switchToCompany= ~ isMobile:", isMobile)
     let user = req.user;
 
     let companyData = await user_model.findOne({ email: user.email, is_deleted: false });
@@ -1634,13 +1640,11 @@ exports.switchToCompany = async (req, res) => {
         { expiresIn: "365d" }
       );
       const result = companyData.toObject();
-      if(isMobile){
         companyData.jwtTokenMobile = jwtToken;
       companyData.lastUsedTokenMobile = new Date();
-      }else{
         companyData.jwtToken = jwtToken;
       companyData.lastUsedToken = new Date();
-      }
+      
       await companyData.save()
       result.role = "COMPANY";
       result.driver = user

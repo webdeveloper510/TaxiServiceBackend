@@ -5,10 +5,10 @@ const driver_model = require("../models/user/driver_model");
 const user_model = require("../models/user/user_model");
 const { default: axios } = require("axios");
 const admin = require('firebase-admin');
-const serviceAccount = require('./path/to/serviceAccountKey.json');
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
+// const serviceAccount = require('./path/to/serviceAccountKey.json');
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount)
+// });
 exports.driverDetailsByToken = async (token) => {
     console.log("🚀 ~ file: helperFuntion.js:6 ~ exports.driverDetailsByToken= ~ token:", token)
     const {userId} = jwt.verify(token, process.env.JWTSECRET);
@@ -52,18 +52,18 @@ exports.sendNotification = async (to,message,title,data)=>{
     //   }
     // );
     
-const messageData = {
-  data: {
-    title,
-    body: message,
-    sound:"default",
-    data
-  },
-  token: to
-};
-const response = admin.messaging().send(messageData);
-console.log ('Notification sent:', response);
-    return response
+// const messageData = {
+//   data: {
+//     title,
+//     body: message,
+//     sound:"default",
+//     data
+//   },
+//   token: to
+// };
+// const response = admin.messaging().send(messageData);
+// console.log ('Notification sent:', response);
+    // return response
   } catch (error) {
     throw error
   }
