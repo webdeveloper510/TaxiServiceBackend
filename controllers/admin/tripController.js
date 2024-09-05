@@ -40,25 +40,26 @@ const tripIsBooked = async (tripId, io) => {
                     trip: tripById,
                     message: "Trip not accepted",
                 });
-                const response = await axios.post(
-                    "https://fcm.googleapis.com/fcm/send",
-                    {
-                        to: user?.created_by?.deviceToken,
-                        notification: {
-                            message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                            title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                            tripById,
-                            driver: updateDriver,
-                            sound: "default",
-                        },
-                    },
-                    {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-                        },
-                    }
-                );
+                const response = await sendNotification(user?.created_by?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver)
+                // await axios.post(
+                //     "https://fcm.googleapis.com/fcm/send",
+                //     {
+                //         to: user?.created_by?.deviceToken,
+                //         notification: {
+                //             message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                //             title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                //             tripById,
+                //             driver: updateDriver,
+                //             sound: "default",
+                //         },
+                //     },
+                //     {
+                //         headers: {
+                //             "Content-Type": "application/json",
+                //             Authorization: `key=${process.env.FCM_SERVER_KEY}`,
+                //         },
+                //     }
+                // );
                 console.log("🚀 ~ socket.on ~ response:", response);
             } else {
                 io.to(user.socketId).emit("tripNotAcceptedBYDriver", {

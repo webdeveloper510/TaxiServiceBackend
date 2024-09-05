@@ -177,24 +177,7 @@ io.on("connection", (socket) => {
         message: `Your trip has been retrived by company ${user.first_name} ${user.last_name}`,
         trip: trip
       })
-      const response = await axios.post(
-        "https://fcm.googleapis.com/fcm/send",
-        {
-          to: driverById?.deviceToken,
-          notification: {
-            message: `Your trip has been retrived by company ${user.first_name} ${user.last_name}`,
-            title: `Your trip has been retrived by company ${user.first_name} ${user.last_name}`,
-            trip,
-            sound: "default",
-          },
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-          },
-        }
-      );
+      const response =  await sendNotification(driverById?.deviceToken,`Your trip has been retrived by company ${user.first_name} ${user.last_name}`,`Your trip has been retrived by company ${user.first_name} ${user.last_name}`,trip)
 
     } catch (err) {
       console.log("🚀 ~ socket.on ~ err:", err);
@@ -265,25 +248,7 @@ io.on("connection", (socket) => {
             //         driver:driverBySocketId
             //     }
             // })
-            const response = await axios.post(
-              "https://fcm.googleapis.com/fcm/send",
-              {
-                to: user?.created_by?.deviceToken,
-                notification: {
-                  message: `Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,
-                  title: `Trip canceled by driver and trip ID is ${trip.trip_id}`,
-                  trip,
-                  driver: driverBySocketId,
-                  sound: "default",
-                },
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-                },
-              }
-            );
+            const response = await sendNotification(user?.created_by?.deviceToken,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId)
             console.log("🚀 ~ socket.on ~ response:", response);
           } else {
             io.to(user.socketId).emit("tripCancelledBYDriver", {
@@ -300,25 +265,7 @@ io.on("connection", (socket) => {
             //     driver: driverBySocketId,
             //   },
             // });
-            const response = await axios.post(
-              "https://fcm.googleapis.com/fcm/send",
-              {
-                to: user?.deviceToken,
-                notification: {
-                  message: `Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,
-                  title: `Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,
-                  trip,
-                  driver: driverBySocketId,
-                  sound: "default",
-                },
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-                },
-              }
-            );
+            const response = await sendNotification(user?.deviceToken,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId) 
             console.log("🚀 ~ socket.on ~ response:", response);
           }
           io.to(socket.id).emit("driverNotification", {
@@ -366,25 +313,8 @@ io.on("connection", (socket) => {
             trip,
             message: "Trip accepted successfully",
           });
-          const response = await axios.post(
-            "https://fcm.googleapis.com/fcm/send",
-            {
-              to: user?.created_by?.deviceToken,
-              notification: {
-                message: `Trip accepted by driver and trip ID is ${trip.trip_id}`,
-                title: `Trip accepted by driver and trip ID is ${trip.trip_id}`,
-                trip,
-                driver: driverBySocketId,
-                sound: "default",
-              },
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-              },
-            }
-          );
+          const response = await sendNotification( user?.created_by?.deviceToken,`Trip accepted by driver and trip ID is ${trip.trip_id}`,`Trip accepted by driver and trip ID is ${trip.trip_id}`,driverBySocketId) 
+           
           console.log("🚀 ~ socket.on ~ response:", response);
         } else {
           io.to(user.socketId).emit("tripAcceptedBYDriver", {
@@ -392,25 +322,7 @@ io.on("connection", (socket) => {
             message: "Trip accepted successfully",
           });
 
-          const response = await axios.post(
-            "https://fcm.googleapis.com/fcm/send",
-            {
-              to: user?.deviceToken,
-              notification: {
-                message: `Trip accepted by driver and trip ID is ${trip.trip_id}`,
-                title: `Trip accepted by driver and trip ID is ${trip.trip_id}`,
-                trip,
-                driver: driverBySocketId,
-                sound: "default",
-              },
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-              },
-            }
-          );
+          const response = await sendNotification( user?.deviceToken,`Trip accepted by driver and trip ID is ${trip.trip_id}`,`Trip accepted by driver and trip ID is ${trip.trip_id}`,driverBySocketId) 
           console.log("🚀 ~ socket.on ~ response:", response);
         }
         io.to(socket.id).emit("driverNotification", {
@@ -457,26 +369,8 @@ io.on("connection", (socket) => {
               trip,
               message: "Trip active successfully",
             });
-            const response = await axios.post(
-              "https://fcm.googleapis.com/fcm/send",
-              {
-                to: user?.created_by?.deviceToken,
-                notification: {
-                  message: `Trip start by driver and trip ID is ${trip.trip_id}`,
-                  title: `Trip start by driver and trip ID is ${trip.trip_id}`,
-                  trip,
-                  driver: driverBySocketId,
-                  sound: "default",
-                },
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-                },
-              }
-            );
-            console.log("🚀 ~ socket.on ~ response:", response);
+            const response = await sendNotification( user?.created_by?.deviceToken,`Trip start by driver and trip ID is ${trip.trip_id}`,`Trip start by driver and trip ID is ${trip.trip_id}`,driverBySocketId) 
+           
           } else {
             io.to(user.socketId).emit("tripActiveBYDriver", {
               trip,
@@ -491,25 +385,9 @@ io.on("connection", (socket) => {
             //     driver: driverBySocketId,
             //   },
             // });
-            const response = await axios.post(
-              "https://fcm.googleapis.com/fcm/send",
-              {
-                to: user?.deviceToken,
-                notification: {
-                  message: `Trip start by driver and trip ID is ${trip.trip_id}`,
-                  title: `Trip start by driver and trip ID is ${trip.trip_id}`,
-                  trip,
-                  driver: driverBySocketId,
-                  sound: "default",
-                },
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-                },
-              }
-            );
+            const response = await sendNotification( user?.deviceToken,`Trip start by driver and trip ID is ${trip.trip_id}`,`Trip start by driver and trip ID is ${trip.trip_id}`,driverBySocketId) 
+           
+           
             console.log("🚀 ~ socket.on ~ response:", response);
           }
           io.to(socket.id).emit("driverNotification", {

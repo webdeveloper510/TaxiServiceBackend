@@ -17,6 +17,7 @@
     "dotenv": "^16.3.1",
     "express": "~4.16.1",
     "fcm-node": "^1.6.1",
+    "firebase-admin": "^12.4.0",
     "geolib": "^3.3.4",
     "http": "0.0.1-security",
     "http-errors": "~1.6.3",

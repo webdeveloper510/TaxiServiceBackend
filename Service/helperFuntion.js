@@ -4,7 +4,11 @@ const User = require("../models/user/user_model");
 const driver_model = require("../models/user/driver_model");
 const user_model = require("../models/user/user_model");
 const { default: axios } = require("axios");
-
+const admin = require('firebase-admin');
+const serviceAccount = require('./path/to/serviceAccountKey.json');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 exports.driverDetailsByToken = async (token) => {
     console.log("🚀 ~ file: helperFuntion.js:6 ~ exports.driverDetailsByToken= ~ token:", token)
     const {userId} = jwt.verify(token, process.env.JWTSECRET);
@@ -24,33 +28,47 @@ return user
 
 }
 
-exports.sendNotification = async(to,message,title,data)=>{
+exports.sendNotification = async (to,message,title,data)=>{
+
   try {
-    const response = await axios.post(
-      "https://fcm.googleapis.com/fcm/send",
-      {
-        to,
-        notification: {
-          message,
-          title,
-          data,
-          sound: "default"
-        },
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization:
-            `key=${process.env.FCM_SERVER_KEY}`,
-        },
-      }
-    );
-    return response;
+
+    // const response = await axios.post(
+    //   "https://fcm.googleapis.com/fcm/send",
+    //   {
+    //     to,
+    //     notification: {
+    //       message,
+    //       title,
+    //       data,
+    //       sound: "default"
+    //     },
+    //   },
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       Authorization:
+    //         `key=${process.env.FCM_SERVER_KEY}`,
+    //     },
+    //   }
+    // );
+    
+const messageData = {
+  data: {
+    title,
+    body: message,
+    sound:"default",
+    data
+  },
+  token: to
+};
+const response = admin.messaging().send(messageData);
+console.log ('Notification sent:', response);
+    return response
   } catch (error) {
     throw error
   }
 }
-// exports.sendNotification = async (req, res, next) => {
+
 //   try {
 //     const accessToken = await getAccessToken();
 
