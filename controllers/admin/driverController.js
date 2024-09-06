@@ -1547,8 +1547,8 @@ exports.convertIntoDriver = async (req, res) => {
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
-      save_driver.jwtTokenMobile = jwtToken;
-      save_driver.jwtToken = jwtToken;
+      if (req.isMobile) save_driver.jwtTokenMobile = jwtToken;
+      else save_driver.jwtToken = jwtToken;
       const result = save_driver.toObject();
       result.role = "DRIVER";
       req.user.isDriver = true;
@@ -1625,15 +1625,14 @@ exports.switchToDriver = async (req, res) => {
         })
         .countDocuments();
 
-      console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile);
-
-      driverData.jwtTokenMobile = jwtToken;
-      driverData.lastUsedTokenMobile = new Date();
-
-      console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile);
-
-      driverData.jwtToken = jwtToken;
-      driverData.lastUsedToken = new Date();
+        console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile);
+        if(req.isMobile){
+        driverData.jwtTokenMobile = jwtToken;
+        driverData.lastUsedTokenMobile = new Date();
+      }else{
+        driverData.jwtToken = jwtToken;
+        driverData.lastUsedToken = new Date();
+      }
 
       driverData.is_login = true;
       let result = driverData.toObject();
@@ -1679,10 +1678,15 @@ exports.switchToCompany = async (req, res) => {
         { expiresIn: "365d" }
       );
       const result = companyData.toObject();
-      companyData.jwtTokenMobile = jwtToken;
-      companyData.lastUsedTokenMobile = new Date();
-      companyData.jwtToken = jwtToken;
-      companyData.lastUsedToken = new Date();
+      if(req.isMobile){
+        companyData.jwtTokenMobile = jwtToken;
+        companyData.lastUsedTokenMobile = new Date();
+      }
+      else{
+        companyData.jwtToken = jwtToken;
+        companyData.lastUsedToken = new Date();
+      }
+      
 
       await companyData.save();
       result.role = "COMPANY";
