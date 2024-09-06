@@ -31,15 +31,16 @@ return user
 exports.sendNotification = async (to,message,title,data)=>{
 
   try {
-    
-const messageData = {
-  data: {
-    title,
-    body: message,
-    sound:"default",
-  },
-  token: to
-};
+    const messageData = {
+      notification: {
+        title: title,       // Notification title (shown in system notification)
+        body: message,      // Notification body (shown in system notification)
+      },
+      data: {
+        sound: "default",
+      },
+      token: to,
+    }; 
 const response = await admin.messaging().send(messageData);
 console.log ('Notification sent:', response);
     return response
