@@ -418,7 +418,7 @@ io.on("connection", (socket) => {
 
 async function checkTripsAndSendNotifications() {
   try {
-    console.log("cron job running every minute");
+    
     const currentDate = new Date();
     const fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
     const thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
@@ -429,7 +429,6 @@ async function checkTripsAndSendNotifications() {
         fifteenMinuteNotification: false,
       })
       .populate("driver_name");
-    console.log("🚀 ~ checkTripsAndSendNotifications ~ trips:", trips);
     const notifications = [];
     const ids = [];
     trips.forEach((trip) => {
@@ -448,7 +447,7 @@ async function checkTripsAndSendNotifications() {
       }
     });
     const res = await Promise.all(notifications);
-    console.log("🚀 ~ checkTripsAndSendNotifications ~ res:", res);
+   
     await trip_model.updateMany(
       { _id: { $in: ids } },
       {
@@ -466,7 +465,7 @@ async function logoutDriverAfterThreeHour() {
     const now = new Date();
     const threeHoursBefore = new Date(now.getTime() - 3 *60 * 60 * 1000);
   let user = await driver_model.updateMany({is_login:true,lastUsedToken:{$lte:threeHoursBefore}},{$set:{is_login:false}});
-  console.log("🚀 ~ jwt.verify ~ user:", user)
+  
   } catch (error) {
     console.log("🚀 ~ logout driver 3 hour ~ error:", error);
   }

@@ -31,33 +31,12 @@ return user
 exports.sendNotification = async (to,message,title,data)=>{
 
   try {
-
-    // const response = await axios.post(
-    //   "https://fcm.googleapis.com/fcm/send",
-    //   {
-    //     to,
-    //     notification: {
-    //       message,
-    //       title,
-    //       data,
-    //       sound: "default"
-    //     },
-    //   },
-    //   {
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Authorization:
-    //         `key=${process.env.FCM_SERVER_KEY}`,
-    //     },
-    //   }
-    // );
     
 const messageData = {
   data: {
     title,
     body: message,
     sound:"default",
-    data
   },
   token: to
 };

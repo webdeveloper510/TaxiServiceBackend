@@ -383,7 +383,7 @@ exports.get_driver_detail = async (req, res) => {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
     const driver = await DRIVER.findOne({ _id: driverId, is_deleted: false });
-    console.log("🚀 ~ exports.get_driver_detail= ~ driver:", driver);
+    
     if (!driver) {
       res.send({
         code: constant.error_code,

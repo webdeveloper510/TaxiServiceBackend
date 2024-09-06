@@ -51,7 +51,7 @@ const constants = require('../config/constant')
         query.lastUsedToken = {$gte:threeHoursBefore};
       }
     let user = await user_model.findOne(query).populate("created_by").populate("driverId");
-    console.log("🚀 ~ jwt.verify ~ user:", user)
+   
     if(user){
       let updateLastUse = {}
       if(isMobile){
