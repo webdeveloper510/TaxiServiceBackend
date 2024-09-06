@@ -77,5 +77,41 @@ module.exports = [
     start_price: 30.49,
     per_km: 7.49,
     per_min: 4.29
-  }
+  },
+  {
+    name: "B8",
+    fullName: "normal sedan",
+    seats: 0,
+    start_price: 30.49,
+    per_km: 7.49,
+    per_min: 4.29
+  },
+  {
+    name: "EV",
+    fullName: "normal sedan",
+    seats: 0,
+    start_price: 30.49,
+    per_km: 7.49,
+    per_min: 4.29
+  },
+  {
+    name: "EQV",
+    fullName: "normal sedan",
+    seats: 0,
+    start_price: 30.49,
+    per_km: 7.49,
+    per_min: 4.29
+  },
+  {
+    name: "ELV",
+    fullName: "normal sedan",
+    seats: 0,
+    start_price: 30.49,
+    per_km: 7.49,
+    per_min: 4.29
+  },
+
 ];
+
+
+
