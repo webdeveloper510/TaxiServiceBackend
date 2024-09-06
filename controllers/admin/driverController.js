@@ -1481,8 +1481,11 @@ exports.logout = async (req, res) => {
     // );
     let updateLogin1 = await DRIVER.findOneAndUpdate(
       { _id: data.driverId },
-      { is_login: false },
-      { deviceToken: null },
+      {
+        $set:{ is_login: false,
+          deviceToken:null
+         }
+      },
       { new: true }
     );
 
