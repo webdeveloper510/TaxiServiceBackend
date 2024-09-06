@@ -1525,7 +1525,7 @@ exports.convertIntoDriver = async (req, res) => {
           ? driver_documents[0]
           : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg";
       let user = req.user;
-      if(user.isUse){
+      if( req.user.isDriver){
         res.json({
           code: constant.error_code,
           message: "Already have a driver",
