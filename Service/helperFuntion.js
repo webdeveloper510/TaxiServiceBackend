@@ -30,17 +30,38 @@ return user
 
 exports.sendNotification = async (to,message,title,data)=>{
 
+  console.log("get token--------------->" , to)
   try {
+    // const messageData = {
+    //   notification: {
+    //     title: title,       // Notification title (shown in system notification)
+    //     body: message,      // Notification body (shown in system notification)
+    //   },
+    //   data: {
+    //     sound: "default",
+    //   },
+    //   token: to,
+    // }; 
+
     const messageData = {
+      token: to,  // The device token to send the message to
       notification: {
-        title: title,       // Notification title (shown in system notification)
-        body: message,      // Notification body (shown in system notification)
+        title: title,       // Notification title
+        body: message,      // Notification body
       },
-      data: {
-        sound: "default",
+      android: {
+        notification: {
+          sound: 'default', // Play default notification sound on Android
+        },
       },
-      token: to,
-    }; 
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default', // Play default notification sound on iOS
+          },
+        },
+      },
+    };
 const response = await admin.messaging().send(messageData);
 console.log ('Notification sent:', response);
     return response
