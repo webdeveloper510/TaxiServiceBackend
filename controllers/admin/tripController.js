@@ -22,8 +22,8 @@ const nodemailer = require("nodemailer");
 const emailConstant = require("../../config/emailConstant");
 const twilio = require('twilio')
 
-const tripIsBooked = async (tripId, io) => {
-    console.log("🚀 ~ tripIsBooked ~ tripId:", tripId)
+const tripIsBooked = async (tripId, driver_full_info , io) => {
+    console.log("🚀 ~ tripIsBooked ~ tripId:", tripId , "after driver_full_info-------", driver_full_info)
     try {
         const tripById = await trip_model.findOne({ _id: tripId, trip_status: "Accepted" });
         if (tripById) {
@@ -40,6 +40,14 @@ const tripIsBooked = async (tripId, io) => {
                     trip: tripById,
                     message: "Trip not accepted .. working vijay",
                 });
+
+                console.log("my socijet id", driver_full_info?.socketId)
+                io.to(driver_full_info?.socketId).emit("popUpClose", {
+                    trip: tripById,
+                    message: "Close up socket connection",
+                });
+
+                
                 const response = await sendNotification(user?.created_by?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver)
                 // await axios.post(
                 //     "https://fcm.googleapis.com/fcm/send",
@@ -782,6 +790,9 @@ exports.get_trip_by_company = async (req, res) => {
 exports.alocate_driver = async (req, res) => {
     try {
         let data = req.body
+
+        console.log('checing data----', data)
+        
         let criteria = { _id: req.params.id }
         let check_trip = await TRIP.findOne(criteria)
         if (!check_trip) {
@@ -792,6 +803,7 @@ exports.alocate_driver = async (req, res) => {
             return;
         }
 
+        let driver_full_info = await DRIVER.findOne({ _id: data.driver_name })
         if (data.status != 'Canceled') {
             let check_driver = await DRIVER.findOne({ _id: data.driver_name })
             if (!check_driver) {
@@ -849,7 +861,9 @@ exports.alocate_driver = async (req, res) => {
 
                 }
 
-                setTimeout(() => { tripIsBooked(update_trip._id, req.io) }, 20 * 1000)
+                console.log("driver_full_info--------------------------------", driver_full_info)
+
+                setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info , req.io) }, 20 * 1000)
                 res.send({
                     code: constant.success_code,
                     message: "Driver allocated successfully"

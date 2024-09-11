@@ -22,6 +22,8 @@ const constants = require('../config/constant')
       })
 
   }else{
+
+    console.log("token--------------------",token)
   jwt.verify(token, process.env.JWTSECRET, async(err, decoded) => {
      
       if (err) {
