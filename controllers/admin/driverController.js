@@ -1479,16 +1479,32 @@ exports.logout = async (req, res) => {
     //   { is_login: false },
     //   { new: true }
     // );
-    let updateLogin1 = await DRIVER.findOneAndUpdate(
-      { _id: data.driverId },
-      {
-        $set:{ is_login: false,
-          deviceToken:null
-         }
-      },
-      { new: true }
-    );
 
+    let driver = await DRIVER.findOne({ _id: data.driverId });
+    let user_info = await USER.findOne({ _id: data.driverId });
+
+    if (driver) { // if driver is logging out
+      let updateLogin1 = await DRIVER.findOneAndUpdate(
+        { _id: data.driverId },
+        {
+          $set:{ is_login: false,
+            deviceToken:null
+           }
+        },
+        { new: true }
+      );
+    } else { // If company logging out
+      let updateLogin1 = await DRIVER.findOneAndUpdate(
+        { _id: user_info?.driverId },
+        {
+          $set:{ is_login: false,
+            deviceToken:null
+           }
+        },
+        { new: true }
+      );
+    }
+    
     res.send({
       code: constant.success_code,
       message: "Logout successfully",
