@@ -38,7 +38,7 @@ const tripIsBooked = async (tripId, io) => {
             if (user.role == "HOTEL") {
                 io.to(user?.created_by?.socketId).emit("tripNotAcceptedBYDriver", {
                     trip: tripById,
-                    message: "Trip not accepted",
+                    message: "Trip not accepted .. working vijay",
                 });
                 const response = await sendNotification(user?.created_by?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver)
                 // await axios.post(
@@ -62,6 +62,8 @@ const tripIsBooked = async (tripId, io) => {
                 // );
                 console.log("🚀 ~ socket.on ~ response:", response);
             } else {
+
+                console.log("socket ching on ternimal----------------" , user)
                 io.to(user.socketId).emit("tripNotAcceptedBYDriver", {
                     tripById,
                     message: "Trip not accepted successfully",
