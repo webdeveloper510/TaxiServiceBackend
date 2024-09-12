@@ -42,6 +42,7 @@ module.exports = [
   {
     name: "B7",
     fullName: "minivan 7",
+    otherName: "van",
     seats: 0,
     start_price: 3.60,
     per_km: 2.65,
@@ -66,6 +67,7 @@ module.exports = [
   {
     name: "A",
     fullName: "normal sedan",
+    otherName: "car",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
@@ -73,6 +75,7 @@ module.exports = [
   },{
     name: "L",
     fullName: "limousine",
+    otherName: "lux",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
