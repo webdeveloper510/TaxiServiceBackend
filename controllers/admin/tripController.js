@@ -805,6 +805,9 @@ exports.alocate_driver = async (req, res) => {
 
         let driver_full_info = await DRIVER.findOne({ _id: data.driver_name })
         if (data.status != 'Canceled') {
+            
+            
+            
             let check_driver = await DRIVER.findOne({ _id: data.driver_name })
             if (!check_driver) {
                 res.send({
@@ -831,6 +834,8 @@ exports.alocate_driver = async (req, res) => {
             }
             let option = { new: true }
 
+            
+
             let update_trip = await TRIP.findOneAndUpdate(criteria, newValues, option)
             if (!update_trip) {
                 res.send({
@@ -838,10 +843,24 @@ exports.alocate_driver = async (req, res) => {
                     message: "Unable to allocate the driver"
                 })
             } else {
-                try {
 
+                
+                try {
+                    
                     if (check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked") {
-                        await sendNotification(check_driver.deviceToken, "New Trip is allocated have ID " + update_trip.trip_id, "New Trip is allocated have ID " + update_trip.trip_id, update_trip)
+                        
+                        let driver_c_data = await USER.findOne({ _id: check_driver.created_by })
+
+                        let token_value = check_driver.deviceToken;
+
+                        if (token_value == null) {
+
+                            token_value = driver_c_data.deviceToken;
+                        }
+                        
+                        await sendNotification(token_value, "New Trip is allocated have ID " + update_trip.trip_id, "New Trip is allocated have ID " + update_trip.trip_id, update_trip)
+
+                        
                     }
                 } catch (error) {
                     console.log("🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error)
