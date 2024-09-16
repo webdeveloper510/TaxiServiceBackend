@@ -3,6 +3,7 @@ const USER = require('../../models/user/user_model')
 const AGENCY = require('../../models/user/agency_model')
 const DRIVER = require('../../models/user/driver_model')
 const TRIP = require('../../models/user/trip_model')
+const { getCompanyNextSequenceValue } = require("../../models/user/company_counter_model")
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const constant = require('../../config/constant');
@@ -68,7 +69,8 @@ exports.add_sub_admin = async (req, res) => {
         data.password = hashedPassword
 
         if (data.role == 'COMPANY') {
-            data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+            // data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+            data.company_id = await getCompanyNextSequenceValue()
             data.company_id = 'C' + '-' + data.company_id
         } else {
             data.company_id = data.company_id
