@@ -793,12 +793,32 @@ exports.check_trip_request = async (req, res) => {
 
         let beforeTwentySeconds = new Date(new Date().getTime() - 20000);
         // beforeTwentySeconds = "2024-09-16T07:46:28.408Z";
-        let find_trip = await TRIP.find({
-                                            'driver_name': req.params.id , 
-                                            'trip_status' : 'Accepted',
-                                            'send_request_date_time':{ $gte: beforeTwentySeconds}
-                                        });
-                                    
+        let find_trip = await TRIP.aggregate([
+
+            {
+                $match: {
+                    $and:[
+                        {
+                            'driver_name': new mongoose.Types.ObjectId(req.params.id) , 
+                            'trip_status' : 'Accepted',
+                            'send_request_date_time':{ $gte: beforeTwentySeconds}
+                        }
+                    ]
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "created_by",
+                    foreignField: "_id",
+                    as: "company"
+                }
+            }
+        ]);
+            
+        console.log('find_trip--------------    ' ,find_trip);
+
+    // return
         if (find_trip.length > 0) {
 
             
@@ -806,7 +826,7 @@ exports.check_trip_request = async (req, res) => {
 
             for (let index in find_trip) {
 
-                find_trip[index] = find_trip[index].toObject();
+                // find_trip[index] = find_trip[index].toObject();
                 let send_request_date_time = find_trip[index].send_request_date_time;
 
                 console.log("send_request_date_time---" , send_request_date_time)
