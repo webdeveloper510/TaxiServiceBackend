@@ -98,6 +98,7 @@ router.post('/get_recent_trip_super', [verifyToken], tripController.get_recent_t
 router.post('/get_trip_by_company/:status', [verifyToken], tripController.get_trip_by_company)
 router.get('/get_trip_detail/:id', tripController.get_trip_detail)
 router.put('/alocate_driver/:id', [verifyToken], tripController.alocate_driver)
+router.get('/check_trip_request/:id', tripController.check_trip_request)
 router.get('/get_counts_dashboard', [verifyToken], tripController.get_counts_dashboard)
 
 // trip payment

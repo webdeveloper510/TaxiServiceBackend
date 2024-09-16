@@ -66,6 +66,10 @@ const trip = new Schema({
     trip_id:{
         type:String,
     },
+    send_request_date_time:{
+        type:Date,
+        default: null
+    },
     pickup_date_time:{
         type:Date,
         default:Date.now()

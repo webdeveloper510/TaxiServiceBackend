@@ -787,12 +787,71 @@ exports.get_trip_by_company = async (req, res) => {
     }
 }
 
+exports.check_trip_request = async (req, res) => {
+
+    if (req.params.id !== null || req.params.id != "") {
+
+        let beforeTwentySeconds = new Date(new Date().getTime() - 20000);
+        // beforeTwentySeconds = "2024-09-16T07:46:28.408Z";
+        let find_trip = await TRIP.find({
+                                            'driver_name': req.params.id , 
+                                            'trip_status' : 'Accepted',
+                                            'send_request_date_time':{ $gte: beforeTwentySeconds}
+                                        });
+                                    
+        if (find_trip.length > 0) {
+
+            
+            let current_date_time = new Date();
+
+            for (let index in find_trip) {
+
+                find_trip[index] = find_trip[index].toObject();
+                let send_request_date_time = find_trip[index].send_request_date_time;
+
+                console.log("send_request_date_time---" , send_request_date_time)
+                console.log("current_date_time---" , current_date_time)
+
+                // Calculate the difference in milliseconds
+                let differenceInMilliseconds = current_date_time - new Date(send_request_date_time);
+                
+                // Convert milliseconds to seconds
+                let differenceInSeconds = differenceInMilliseconds / 1000;
+
+                console.log('differenceInSeconds--------------' ,differenceInSeconds)
+
+                find_trip[index].left_minutes = Math.round(20 - differenceInSeconds);
+                console.log("value['left_minutes']-----" , find_trip[index].left_minutes)
+            }
+            res.send({
+                code: constant.success_code,
+                // query:{'driver_name': req.params.id , 'trip_status' : 'Accepted' , beforeTwentySeconds: beforeTwentySeconds},
+                // id: req.params.id,
+                data: find_trip
+            })
+        } else {
+            res.send({
+                code: constant.error_code,
+                message: 'No trip request found'
+            })
+        }
+        
+    } else {
+
+        res.send({
+            code: constant.error_code,
+            message: 'Invalid driver'
+        })
+    }
+    
+}
+
 exports.alocate_driver = async (req, res) => {
     try {
         let data = req.body
 
         console.log('checing data----', data)
-        
+
         let criteria = { _id: req.params.id }
         let check_trip = await TRIP.findOne(criteria)
         if (!check_trip) {
@@ -803,6 +862,7 @@ exports.alocate_driver = async (req, res) => {
             return;
         }
 
+        
         let driver_full_info = await DRIVER.findOne({ _id: data.driver_name })
         if (data.status != 'Canceled') {
             
@@ -879,6 +939,15 @@ exports.alocate_driver = async (req, res) => {
                     console.log("🚀 ~ exports.alocate_driver= ~ error:", error)
 
                 }
+
+                let current_date_time = new Date();
+                // Update request send time in Trip
+                await TRIP.updateOne(
+                    { _id: req.params.id },               // Filter (find the document by _id)
+                    { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
+                );
+
+                console.log("Date.now()------------" , current_date_time);
 
                 console.log("driver_full_info--------------------------------", driver_full_info)
 
