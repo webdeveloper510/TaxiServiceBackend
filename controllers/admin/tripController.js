@@ -3,6 +3,7 @@ const AGENCY = require('../../models/user/agency_model')
 const DRIVER = require('../../models/user/driver_model')
 const USER = require('../../models/user/user_model')
 const VEHICLETYPE = require('../../models/admin/vehicle_type')
+const { getNextSequenceValue } = require("../../models/user/trip_counter_model")
 var FARES = require('../../models/user/fare_model')
 // const FARES = require('../../models/admin/fare_model')
 const TRIP = require('../../models/user/trip_model')
@@ -108,7 +109,8 @@ exports.add_trip = async (req, res) => {
     try {
         let data = req.body
         data.created_by = data.created_by ? data.created_by : req.userId
-        data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+        // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+        data.trip_id = await getNextSequenceValue();
         let token_code = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
         let check_user = await USER.findOne({ _id: req.userId })
         let currentDate = moment().format('YYYY-MM-DD')
@@ -787,8 +789,9 @@ exports.get_trip_by_company = async (req, res) => {
     }
 }
 
-exports.check_trip_request = async (req, res) => {
 
+exports.check_trip_request = async (req, res) => {
+    const uniqueNumber = await getNextSequenceValue();
     if (req.params.id !== null || req.params.id != "") {
 
         let beforeTwentySeconds = new Date(new Date().getTime() - 20000);
@@ -815,10 +818,7 @@ exports.check_trip_request = async (req, res) => {
                 }
             }
         ]);
-            
-        console.log('find_trip--------------    ' ,find_trip);
-
-    // return
+      
         if (find_trip.length > 0) {
 
             
@@ -829,9 +829,6 @@ exports.check_trip_request = async (req, res) => {
                 // find_trip[index] = find_trip[index].toObject();
                 let send_request_date_time = find_trip[index].send_request_date_time;
 
-                console.log("send_request_date_time---" , send_request_date_time)
-                console.log("current_date_time---" , current_date_time)
-
                 // Calculate the difference in milliseconds
                 let differenceInMilliseconds = current_date_time - new Date(send_request_date_time);
                 
@@ -841,7 +838,7 @@ exports.check_trip_request = async (req, res) => {
                 console.log('differenceInSeconds--------------' ,differenceInSeconds)
 
                 find_trip[index].left_minutes = Math.round(20 - differenceInSeconds);
-                console.log("value['left_minutes']-----" , find_trip[index].left_minutes)
+                
             }
             res.send({
                 code: constant.success_code,
@@ -852,7 +849,8 @@ exports.check_trip_request = async (req, res) => {
         } else {
             res.send({
                 code: constant.error_code,
-                message: 'No trip request found'
+                message: 'No trip request found',
+                uniqueNumber:uniqueNumber
             })
         }
         
