@@ -431,6 +431,7 @@ exports.get_trips_for_driver = async (req, res) => {
           created_by: 1,
           status: 1,
           passenger_detail: 1,
+          customerDetails:1,
           vehicle_type: 1,
           comment: 1,
           commission: 1,
