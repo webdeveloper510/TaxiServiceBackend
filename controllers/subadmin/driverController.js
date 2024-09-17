@@ -380,6 +380,14 @@ exports.get_trips_for_driver = async (req, res) => {
               },
             },
             {
+              $lookup: {
+                from: "users",
+                localField: "created_by",
+                foreignField: "_id",
+                as: "company_user",
+              },
+            },
+            {
               $unwind: {
                 path: "$agency",
               },
@@ -387,6 +395,11 @@ exports.get_trips_for_driver = async (req, res) => {
             {
               $unwind: {
                 path: "$company_agency",
+              },
+            },
+            {
+              $unwind: {
+                path: "$company_user",
               },
             },
             // {
@@ -424,6 +437,7 @@ exports.get_trips_for_driver = async (req, res) => {
           pay_option: 1,
           company_name: "$userData.agency.company_name",
           user_company_name: "$userData.company_agency.company_name",
+          user_company_phone: "$userData.company_user.phone",
           driver_name: {
             $concat: [
               { $arrayElemAt: ["$driver.first_name", 0] },
