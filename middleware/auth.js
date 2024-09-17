@@ -2,6 +2,7 @@ const { verify } = require('crypto');
 const jwt = require('jsonwebtoken');
 var config = require('../config/constant');
 const USER = require('../models/user/user_model');
+const AGENCY = require('../models/user/agency_model');
 const constant = require('../config/constant');
 const user_model = require('../models/user/user_model');
 const driver_model = require('../models/user/driver_model');
@@ -104,6 +105,14 @@ const constants = require('../config/constant')
         message: "You are blocked by administration. Please contact administration"
     })
     }
+    // user=  user.toObject();
+    
+    // let company_extra_details = await AGENCY.findOne({user_id: user._id});
+
+    // if (company_extra_details) {
+    //   user.company_name = company_extra_details?.company_name;
+    // }
+    
     req.user = user;
       req.userId = decoded.userId;
       req.email = decoded.email;

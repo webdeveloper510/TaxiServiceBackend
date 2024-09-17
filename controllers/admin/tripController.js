@@ -972,7 +972,8 @@ exports.alocate_driver = async (req, res) => {
                 setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info , req.io) }, 20 * 1000)
                 res.send({
                     code: constant.success_code,
-                    message: "Driver allocated successfully"
+                    message: "Driver allocated successfully",
+                    data: { trip: update_trip, company: req.user }
                 })
             }
         } else {
