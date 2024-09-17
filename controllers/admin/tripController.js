@@ -791,7 +791,7 @@ exports.get_trip_by_company = async (req, res) => {
 
 
 exports.check_trip_request = async (req, res) => {
-    const uniqueNumber = await getNextSequenceValue();
+    // const uniqueNumber = await getNextSequenceValue();
     if (req.params.id !== null || req.params.id != "") {
 
         let beforeTwentySeconds = new Date(new Date().getTime() - 20000);
@@ -814,7 +814,22 @@ exports.check_trip_request = async (req, res) => {
                     from: "users",
                     localField: "created_by",
                     foreignField: "_id",
-                    as: "company"
+                    as: "company",
+                    pipeline: [
+                        {
+                            $lookup: {
+                                from: "agencies",
+                                localField: "created_by",
+                                foreignField: "user_id",
+                                as: "company_agency",
+                            }
+                        },
+                        {
+                            $addFields: {
+                                company_agency: { $arrayElemAt: ["$company_agency", 0] }
+                            }
+                        }
+                    ]
                 }
             }
         ]);
@@ -850,7 +865,6 @@ exports.check_trip_request = async (req, res) => {
             res.send({
                 code: constant.error_code,
                 message: 'No trip request found',
-                uniqueNumber:uniqueNumber
             })
         }
         
@@ -950,6 +964,20 @@ exports.alocate_driver = async (req, res) => {
                 }
                 try {
                     console.log("🚀 ~ exports.alocate_driver= ~ check_driver.socketId:", check_driver.socketId, check_driver)
+                    
+                    req.user = req.user.toObject();
+                    req.user.user_company_name = "";
+                    req.user.user_company_phone = "";
+
+                    let user_agancy_data = await AGENCY.findOne({ user_id: req.user._id});
+
+                    // Company name a nd phone added
+                    if (user_agancy_data) {
+                        req.user.user_company_name = user_agancy_data.company_name;
+                        req.user.user_company_phone = user_agancy_data.phone;
+                    }
+                    
+
                     if (check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked") {
                     req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: req.user })
                     }
@@ -970,10 +998,12 @@ exports.alocate_driver = async (req, res) => {
                 console.log("driver_full_info--------------------------------", driver_full_info)
 
                 setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info , req.io) }, 20 * 1000)
+
+                
                 res.send({
                     code: constant.success_code,
                     message: "Driver allocated successfully",
-                    data: { trip: update_trip, company: req.user }
+                    // data: { trip: update_trip, company: req.user }
                 })
             }
         } else {
