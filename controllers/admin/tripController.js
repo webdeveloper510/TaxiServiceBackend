@@ -858,7 +858,7 @@ exports.check_trip_request = async (req, res) => {
                 console.log('differenceInSeconds--------------' ,differenceInSeconds)
 
                 find_trip[index].left_minutes = Math.round(20 - differenceInSeconds);
-                find_trip[index].company_name = find_trip[index].company.company_agency.company_name;
+                find_trip[index].user_company_name = find_trip[index].company.company_agency.company_name;
                 
             }
             res.send({
