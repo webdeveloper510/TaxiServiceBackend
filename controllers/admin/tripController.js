@@ -964,10 +964,12 @@ exports.alocate_driver = async (req, res) => {
                 }
                 try {
                     console.log("🚀 ~ exports.alocate_driver= ~ check_driver.socketId:", check_driver.socketId, check_driver)
-                    
+                    update_trip = update_trip.toObject()
                     req.user = req.user.toObject();
                     req.user.user_company_name = "";
                     req.user.user_company_phone = "";
+                    update_trip.user_company_name = "";
+                    update_trip.user_company_phone = "";
 
                     let user_agancy_data = await AGENCY.findOne({ user_id: req.user._id});
 
@@ -975,6 +977,9 @@ exports.alocate_driver = async (req, res) => {
                     if (user_agancy_data) {
                         req.user.user_company_name = user_agancy_data.company_name;
                         req.user.user_company_phone = user_agancy_data.phone;
+
+                        update_trip.user_company_name = user_agancy_data.company_name;
+                        update_trip.user_company_phone = user_agancy_data.phone;
                     }
                     
 
