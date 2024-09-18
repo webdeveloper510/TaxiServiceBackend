@@ -1113,6 +1113,7 @@ exports.get_trip_detail = async (req, res) => {
                     customerDetails: 1,
                     passengerCount: 1,
                     is_paid: 1,
+                    comment:1
                 }
             }
         ])
