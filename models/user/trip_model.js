@@ -120,6 +120,9 @@ const trip = new Schema({
     created_by:{
         type:mongoose.Schema.Types.ObjectId,ref:'users',
     },
+    created_by_company_id: {
+        type:mongoose.Schema.Types.ObjectId,ref:'users',
+    },
     is_deleted:{
         type:Boolean,
         default:false
