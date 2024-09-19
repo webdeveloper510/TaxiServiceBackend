@@ -407,10 +407,7 @@ exports.edit_trip = async (req, res) => {
             })
         } else {
 
-           
-
-
-            if (trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "") {
+            if (data?.trip_status == "Pending" && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "") {
                 console.log("trip_data--------------------" , trip_data);
                 let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
                 
