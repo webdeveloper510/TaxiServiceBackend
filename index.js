@@ -9,6 +9,7 @@ const db = require("./config/db");
 const http = require("http");
 const cors = require("cors");
 const User = require("./models/user/user_model");
+const agency_model = require("./models/user/agency_model.js");
 var adminRouter = require("./routes/admin");
 var usersRouter = require("./routes/users");
 var subAdminRouter = require("./routes/subadmin");
@@ -163,6 +164,11 @@ io.on("connection", (socket) => {
       });
       console.log("🚀 ~ companyCancelledTrip~ user:", user)
       
+      const company_data = await agency_model.findOne({
+        user_id: user._id,
+      });
+
+      console.log("company_data--------------------------------", company_data)
       const driverById = await driver_model.findOne({
         _id: driverId,
       });
