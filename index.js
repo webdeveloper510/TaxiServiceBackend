@@ -174,7 +174,7 @@ io.on("connection", (socket) => {
       });
       console.log("🚀 ~companyCancelledTrip~ driverById:", driverById)
       io.to(driverById.socketId).emit("retrivedTrip",{
-        message: `Your trip has been retrived by company ${user.first_name} ${user.last_name}`,
+        message: `Your trip has been retrived by company ${company_data?.company_name}`,
         trip: trip
       })
       const response =  await sendNotification(driverById?.deviceToken,`Your trip has been retrived by company ${user.first_name} ${user.last_name}`,`Your trip has been retrived by company ${user.first_name} ${user.last_name}`,trip)
