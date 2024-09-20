@@ -34,7 +34,7 @@ const trip = new Schema({
     },
     pay_option:{
         type:String,
-        enum:['Cash','Hotel Account',"Card",]
+        enum:['Cash','Hotel Account',"Card", "ON ACCOUNT"]
     },
     price:{
         type:Number,
