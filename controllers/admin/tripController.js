@@ -283,27 +283,22 @@ exports.get_trip = async (req, res) => {
                     as: 'vehicle',
                 }
             },
+
             {
                 $lookup: {
-                    from: 'users',
-                    localField: 'created_by',
+                    from: 'vehicles',
+                    localField: 'vehicle',
                     foreignField: '_id',
+                    as: 'vehicle',
+                }
+            },
+            
+            {
+                $lookup: {
+                    from: 'agencies',
+                    localField: 'created_by_company_id',
+                    foreignField: 'user_id',
                     as: 'userData',
-                    pipeline: [
-                        {
-                            $lookup: {
-                                from: "agencies",
-                                localField: "_id",
-                                foreignField: "user_id",
-                                as: "agency"
-                            }
-                        },
-                        {
-                            $project: {
-                                'company_name': { $arrayElemAt: ["$agency.company_name", 0] },
-                            }
-                        }
-                    ]
                 }
             },
             {
