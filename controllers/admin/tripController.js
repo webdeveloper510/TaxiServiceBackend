@@ -787,6 +787,10 @@ exports.get_trip_by_company = async (req, res) => {
 
 exports.check_trip_request = async (req, res) => {
     // const uniqueNumber = await getNextSequenceValue();
+
+    
+
+
     if (req.params.id !== null || req.params.id != "") {
 
         let beforeTwentySeconds = new Date(new Date().getTime() - 20000);
@@ -806,25 +810,10 @@ exports.check_trip_request = async (req, res) => {
             },
             {
                 $lookup: {
-                    from: "users",
-                    localField: "created_by",
-                    foreignField: "_id",
+                    from: "agencies",
+                    localField: "created_by_company_id",
+                    foreignField: "user_id",
                     as: "company",
-                    pipeline: [
-                        {
-                            $lookup: {
-                                from: "agencies",
-                                localField: "created_by",
-                                foreignField: "user_id",
-                                as: "company_agency",
-                            }
-                        },
-                        {
-                            $addFields: {
-                                company_agency: { $arrayElemAt: ["$company_agency", 0] }
-                            }
-                        }
-                    ]
                 }
             },
             {
@@ -837,6 +826,9 @@ exports.check_trip_request = async (req, res) => {
         if (find_trip.length > 0) {
 
             
+            
+            
+
             let current_date_time = new Date();
 
             for (let index in find_trip) {
@@ -853,7 +845,8 @@ exports.check_trip_request = async (req, res) => {
                 console.log('differenceInSeconds--------------' ,differenceInSeconds)
 
                 find_trip[index].left_minutes = Math.round(20 - differenceInSeconds);
-                find_trip[index].user_company_name = find_trip[index].company.company_agency.company_name;
+                // find_trip[index].user_company_name = find_trip[index].company.company_agency.company_name;
+                find_trip[index].user_company_name = find_trip[index].company?.company_name;
                 
             }
             res.send({
