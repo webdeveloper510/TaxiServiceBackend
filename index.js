@@ -243,7 +243,7 @@ io.on("connection", (socket) => {
           //   .findById(trip.created_by)
           //   .populate("created_by");
 
-          let user = await user_model.findById(trip.created_by_company_id);
+          let user = await user_model.findById(trip?.created_by_company_id);
           if (user.role == "COMPANY") {
             io.to(user?.socketId).emit("tripCancelledBYDriver", {
               trip,

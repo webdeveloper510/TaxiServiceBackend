@@ -912,7 +912,7 @@ exports.update_driver = async (req, res) => {
         }
         res.send({
           code: constant.success_code,
-          message: "Driver Updated successfully",
+          message: "Driver account updated successfully",
           result: updatedDriver,
         });
       }
