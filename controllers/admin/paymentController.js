@@ -149,8 +149,12 @@ exports.successTripPay = async (req, res) => {
             commission =
             (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
           }
+
+          
       const customer = await user_model.findOne({_id: trip_by_id.created_by});
-      const companyData = await user_model.findOne({_id: customer.created_by});
+
+
+      const companyData = await user_model.findOne({_id: trip_by_id.created_by_company_id});
       const company = await agency_model.findOne({user_id: companyData._id});
       console.log("🚀 ~ exports.successTripPay= ~ company:", company)
       const superAdmin = await user_model.findOne({role: 'SUPER_ADMIN'});
