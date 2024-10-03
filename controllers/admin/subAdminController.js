@@ -900,3 +900,42 @@ exports.favoriteDriver = async (req, res) => {
         })
     }
   }
+
+exports.update_account_access = async (req, res) => {
+
+    try {
+        // USER AGENCY AGENCY
+
+        const driver = await driver_model.findById(req?.body?.driver_id);
+
+        if(!driver){
+            return res.send({
+                code: constant.error_code,
+                message: "Driver not found"
+            })
+        }
+
+        if ( req.user?.role == "COMPANY") {
+
+            // if ()
+
+        } else {
+            return res.send({
+                code: constant.error_code,
+                message: "You didn't have access for this."
+            })
+        }
+
+        return res.send({
+            code: constant.success_code,
+            data: req.user,
+            message: driver
+        })
+    } catch (error) {
+
+        return res.send({
+            code: constant.error_code,
+            message: error.message
+        })
+    }
+}

@@ -111,5 +111,6 @@ router.post('/payCompany', [verifyToken], paymentController.payCompany);
 
 
 
-
+// Account access API
+router.post('/update_account_access', [verifyToken], subAdminController.update_account_access);
 module.exports = router;

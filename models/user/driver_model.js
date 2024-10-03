@@ -56,6 +56,10 @@ const driver = new Schema({
         type: String,
         default: ''
     },
+    company_account_access: {
+        type: [{ type: Schema.Types.ObjectId, ref: 'user' }],
+        default:[],
+      },
     deviceToken: {
         type: String,
         default: null

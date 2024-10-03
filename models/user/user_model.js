@@ -15,6 +15,10 @@ const user = new Schema(
       type: [{ type: Schema.Types.ObjectId, ref: 'driver' }],
       default:[],
     },
+    company_account_access: {
+      type: [{ type: Schema.Types.ObjectId, ref: 'driver' }],
+      default:[],
+    },
     email: {
       type: String,
       default: "",
