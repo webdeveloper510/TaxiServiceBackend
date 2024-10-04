@@ -901,6 +901,9 @@ exports.favoriteDriver = async (req, res) => {
     }
   }
 
+
+  // Account trafrered or revoked from the driver by company -------------------
+
 exports.update_account_access = async (req, res) => {
 
     try {
@@ -917,7 +920,44 @@ exports.update_account_access = async (req, res) => {
 
         if ( req.user?.role == "COMPANY") {
 
-            // if ()
+
+            console.log("company_account_access---" , req.user.company_account_access);
+
+            let user_detail = await USER.findById(req.user._id);
+
+            let mesage_data = ""
+            
+            if (req?.body?.status == constant.ACCOUNT_SHARE_INVOKED) {
+            
+                user_detail.company_account_access =  user_detail.company_account_access.filter( data => data != req.body.driver_id);
+                mesage_data = "Account revoked successfully from the driver";
+            } else {
+
+                let is_already_exist =  user_detail.company_account_access.filter( data => data == req.body.driver_id);
+
+                if (is_already_exist.length == 0) user_detail?.company_account_access.push(req.body.driver_id);
+                
+                mesage_data = "Account shared successfully with the driver"
+            }
+
+            const updatedUser = await USER.findByIdAndUpdate(req.user._id, user_detail, { new: true, runValidators: true });
+
+            if (!updatedUser) {
+                
+                return res.send({
+                    code: constant.error_code,
+                    message: "User not found"
+                })
+            } else {
+
+                return res.send({
+                    code: constant.success_code,
+                    message: mesage_data,
+                    driver_details: driver,
+                    user_details: updatedUser
+                })
+            }
+            
 
         } else {
             return res.send({
@@ -926,16 +966,46 @@ exports.update_account_access = async (req, res) => {
             })
         }
 
-        return res.send({
-            code: constant.success_code,
-            data: req.user,
-            message: driver
-        })
+        
     } catch (error) {
 
         return res.send({
             code: constant.error_code,
             message: error.message
+        })
+    }
+}
+
+exports.get_driver_list = async (req, res) => {
+
+    try{
+
+        const condition = { status: true , is_deleted : false };
+        let driver_list = await DRIVER.find(condition);
+
+        if (driver_list.length == 0) {
+            return res.send({
+                code: constant.error_code,
+                message: "No driver found"
+            })
+        }
+
+        let access_granted = driver_list.filter(driver =>  req.user.company_account_access.includes(driver._id));
+
+        // Get drivers that do not have access
+        let access_pending = driver_list.filter(driver => ! req.user.company_account_access.includes(driver._id));
+
+        return res.send({
+            code: constant.success_code,
+            access_granted: access_granted,
+            access_pending: access_pending,
+            // data: req.user,
+            
+        });
+    } catch (err) {
+        return res.send({
+            code: constant.error_code,
+            message: err.message
         })
     }
 }

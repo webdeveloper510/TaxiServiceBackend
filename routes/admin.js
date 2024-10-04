@@ -113,4 +113,5 @@ router.post('/payCompany', [verifyToken], paymentController.payCompany);
 
 // Account access API
 router.post('/update_account_access', [verifyToken], subAdminController.update_account_access);
+router.get('/get_driver_list', [verifyToken], subAdminController.get_driver_list);
 module.exports = router;
