@@ -916,7 +916,7 @@ exports.update_account_access = async (req, res) => {
                 message: "Driver not found"
             })
         }
-
+        
         console.log("driver token---" , driver)
         console.log("company_account_access---" , req.user);
 
@@ -925,7 +925,7 @@ exports.update_account_access = async (req, res) => {
             let user_detail = await USER.findById(req.user._id);
             let company_detials = await AGENCY.findOne({user_id:req.user._id});
             let driver_company_detials = await USER.findById(driver.created_by);
-
+            
             console.log("company_detials----------" , company_detials)
 
             let mesage_data = "";
@@ -942,17 +942,27 @@ exports.update_account_access = async (req, res) => {
             
                 user_detail.company_account_access =  user_detail.company_account_access.filter( data => data != req.body.driver_id);
                 mesage_data = "Account revoked successfully from the driver";
-                const response =  await sendNotification(driver_token,`Shared Account revoked By ${company_detials.company_name}`,`Account Revoked`,company_detials)
+
+                if (driver_token != ""){
+                    const response =  await sendNotification(driver_token,`Shared Account revoked By ${company_detials.company_name}`,`Account Revoked`,company_detials)
+                }
+                
             
             } else {
 
                 let is_already_exist =  user_detail.company_account_access.filter( data => data == req.body.driver_id);
                 if (is_already_exist.length == 0) user_detail?.company_account_access.push(req.body.driver_id); // Updated if Id is not already exist
                 mesage_data = "Account shared successfully with the driver";
-                const response =  await sendNotification(driver_token,`${company_detials.company_name} shared the account with you`,`Account Shared`,company_detials)
+                
+                if (driver_token != ""){
+                    
+                    const response =  await sendNotification(driver_token,`${company_detials.company_name} shared the account with you`,`Account Shared`,company_detials)
+                }
+                
             
             }
 
+            
             const updatedUser = await USER.findByIdAndUpdate(req.user._id, user_detail, { new: true, runValidators: true });
 
             if (!updatedUser) {
