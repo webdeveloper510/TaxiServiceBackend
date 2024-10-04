@@ -14,7 +14,7 @@ const mongoose = require('mongoose')
 require('dotenv').config();
 const multer = require('multer')
 const path = require('path')
-
+const { sendNotification } = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require('../../models/user/driver_model');
@@ -908,8 +908,7 @@ exports.update_account_access = async (req, res) => {
 
     try {
         // USER AGENCY AGENCY
-
-        const driver = await driver_model.findById(req?.body?.driver_id);
+        const driver = await driver_model.findById(req?.body?.driver_id).populate('created_by');;
 
         if(!driver){
             return res.send({
@@ -918,26 +917,40 @@ exports.update_account_access = async (req, res) => {
             })
         }
 
+        console.log("driver token---" , driver)
+        console.log("company_account_access---" , req.user);
+
         if ( req.user?.role == "COMPANY") {
 
-
-            console.log("company_account_access---" , req.user.company_account_access);
-
             let user_detail = await USER.findById(req.user._id);
+            let company_detials = await AGENCY.findOne({user_id:req.user._id});
+            let driver_company_detials = await USER.findById(driver.created_by);
 
-            let mesage_data = ""
+            console.log("company_detials----------" , company_detials)
+
+            let mesage_data = "";
+            let driver_token = "";
+
+            if (driver.deviceToken == null) {
+                driver_token = driver_company_detials.deviceToken;
+            } else {
+                driver_token = driver.deviceToken;
+            }
             
-            if (req?.body?.status == constant.ACCOUNT_SHARE_INVOKED) {
+            
+            if (req?.body?.status == constant.ACCOUNT_SHARE_REVOKED) {
             
                 user_detail.company_account_access =  user_detail.company_account_access.filter( data => data != req.body.driver_id);
                 mesage_data = "Account revoked successfully from the driver";
+                const response =  await sendNotification(driver_token,`Shared Account revoked By ${company_detials.company_name}`,`Account Revoked`,company_detials)
+            
             } else {
 
                 let is_already_exist =  user_detail.company_account_access.filter( data => data == req.body.driver_id);
-
-                if (is_already_exist.length == 0) user_detail?.company_account_access.push(req.body.driver_id);
-                
-                mesage_data = "Account shared successfully with the driver"
+                if (is_already_exist.length == 0) user_detail?.company_account_access.push(req.body.driver_id); // Updated if Id is not already exist
+                mesage_data = "Account shared successfully with the driver";
+                const response =  await sendNotification(driver_token,`${company_detials.company_name} shared the account with you`,`Account Shared`,company_detials)
+            
             }
 
             const updatedUser = await USER.findByIdAndUpdate(req.user._id, user_detail, { new: true, runValidators: true });
