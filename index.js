@@ -55,9 +55,7 @@ app.use("/uploads/", express.static("./uploads"));
 app.use("/api", apiRouter);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
+
 
 // error handler
 app.use(function (err, req, res, next) {
@@ -70,10 +68,21 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
+app.use((req, res, next) => {
+  res.send({
+    code: 404,
+    message: "Request Not Found"
+  })
+});
+
 const PORT = process.env.PORT;
 httpServer.listen(PORT, () =>
   console.log(`app listening at http://localhost:${PORT}`)
 );
+
+app.use(function (req, res, next) {
+  next(createError(404));
+});
 
 io.on("connection", (socket) => {
   socket.on("addNewDriver", async ({ token, longitude, latitude }) => {

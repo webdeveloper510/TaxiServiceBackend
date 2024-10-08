@@ -92,6 +92,9 @@ router.post('/add_trip1', tripController.add_trip1)
 router.get('/check_company_id/:company_id', tripController.check_company_id)
 router.post('/add_trip_link', tripController.add_trip_link)
 router.post('/get_trip/:status', [verifyToken], tripController.get_trip)
+
+router.post('/get_access_trip/:status', [verifyToken], tripController.get_access_trip)
+
 router.post('/get_trip_for_hotel/:status', [verifyToken], tripController.get_trip_for_hotel)
 router.post('/get_recent_trip', [verifyToken], tripController.get_recent_trip)
 router.post('/get_recent_trip_super', [verifyToken], tripController.get_recent_trip_super)

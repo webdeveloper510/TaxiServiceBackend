@@ -247,9 +247,10 @@ exports.get_trip = async (req, res) => {
             dateQuery = { createdAt: { $gte: startDate, $lte: endDate } };
         }
 
-        console.log("🚀 ~ exports.get_trip= ~ dateQuery:", dateQuery)
+       
 
         const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+
         let get_trip = await TRIP.aggregate([
             {
                 $match: {
@@ -275,15 +276,6 @@ exports.get_trip = async (req, res) => {
                     as: 'driver',
                 }
             },
-            {
-                $lookup: {
-                    from: 'vehicles',
-                    localField: 'vehicle',
-                    foreignField: '_id',
-                    as: 'vehicle',
-                }
-            },
-
             {
                 $lookup: {
                     from: 'vehicles',
@@ -352,6 +344,137 @@ exports.get_trip = async (req, res) => {
                     ]
                 }
             }
+        ]).sort({ 'createdAt': -1 })
+        if (!get_trip) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to get the trips"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: get_trip
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.get_access_trip = async (req, res) => {
+    try {
+
+        console.log("req.body-----" ,req.body)
+        let data = req.body
+
+        let check_company = USER.findById(req.body.company_id);
+
+        if (!check_company && check_company?.is_deleted == true) {
+
+            res.send({
+                code: constant.error_code,
+                message: "Invalid company"
+            })
+        }
+        // let mid = new mongoose.Types.ObjectId(req.userId)
+        // let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
+
+        // let search_value = data.comment ? data.comment : ''
+        // let ids = []
+        // for (let i of getIds) {
+        //     ids.push(i._id)
+        // }
+        
+        // const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+
+        // console.log("objectIds-------" ,req.userId ,"cchhhhhh" , req.user);
+
+        let get_trip = await TRIP.aggregate([
+            {
+                $match: {
+                    $and: [
+                        // {
+                        //     $or: [
+                        //         { created_by: { $in: objectIds } },
+                        //         { created_by: mid },
+                        //     ]
+                        // },
+                        {created_by_company_id: new mongoose.Types.ObjectId(req.body.company_id) },
+                        { status: true },
+                        { trip_status: req.params.status },
+                        { is_deleted: false },
+                       
+                    ]
+                }
+            },
+            {
+                $lookup: {
+                    from: 'drivers',
+                    localField: 'driver_name',
+                    foreignField: '_id',
+                    as: 'driver',
+                }
+            },
+            {
+                $lookup: {
+                    from: 'vehicles',
+                    localField: 'vehicle',
+                    foreignField: '_id',
+                    as: 'vehicle',
+                }
+            },
+            
+            {
+                $lookup: {
+                    from: 'agencies',
+                    localField: 'created_by_company_id',
+                    foreignField: 'user_id',
+                    as: 'userData',
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    trip_from: 1,
+                    trip_to: 1,
+                    pickup_date_time: 1,
+                    trip_status: 1,
+                    createdAt: 1,
+                    created_by: 1,
+                    status: 1,
+                    passenger_detail: 1,
+                    vehicle_type: 1,
+                    comment: 1,
+                    commission: 1,
+                    pay_option: 1,
+                    customerDetails: 1,
+                    price: 1,
+                    passengerCount: 1,
+                    'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
+                    driver_name: {
+                        $concat: [
+                            { $arrayElemAt: ["$driver.first_name", 0] },
+                            " ",
+                            { $arrayElemAt: ["$driver.last_name", 0] }
+                        ]
+                    },
+                    driver_id: 
+                            { $arrayElemAt: ["$driver._id", 0] },
+                    vehicle: {
+                        $concat: [
+                            { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+                            " ",
+                            { $arrayElemAt: ["$vehicle.vehicle_model", 0] }
+                        ]
+                    },
+                    trip_id: 1
+                }
+            },
+            
         ]).sort({ 'createdAt': -1 })
         if (!get_trip) {
             res.send({
