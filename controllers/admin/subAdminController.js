@@ -927,7 +927,7 @@ exports.update_account_access = async (req, res) => {
             let driver_company_detials = await USER.findById(driver.created_by);
             
             console.log("company_detials----------" , company_detials)
-
+            
             let mesage_data = "";
             let driver_token = "";
 
@@ -938,20 +938,28 @@ exports.update_account_access = async (req, res) => {
             }
             
             
+            
             if (req?.body?.status == constant.ACCOUNT_SHARE_REVOKED) {
             
-                user_detail.company_account_access =  user_detail.company_account_access.filter( data => data != req.body.driver_id);
+                user_detail.company_account_access =  user_detail.company_account_access.filter( data => data.toString() != req.body.driver_id.toString());
                 mesage_data = "Account revoked successfully from the driver";
+                driver.company_account_access =  driver.company_account_access.filter( data => data.toString() != req.user._id.toString());
+
+                console.log("driver.company_account_access------------" ,req.user._id , driver.company_account_access);
 
                 if (driver_token != ""){
                     const response =  await sendNotification(driver_token,`Shared Account revoked By ${company_detials.company_name}`,`Account Revoked`,company_detials)
                 }
                 
-            
             } else {
 
-                let is_already_exist =  user_detail.company_account_access.filter( data => data == req.body.driver_id);
+                let is_already_exist =  user_detail.company_account_access.filter( data => data.toString() == req.body.driver_id.toString());
                 if (is_already_exist.length == 0) user_detail?.company_account_access.push(req.body.driver_id); // Updated if Id is not already exist
+
+                // Checking driver account
+                let is_company_already_exist =  driver.company_account_access.filter( data => data.toString() == req.user._id.toString());
+                if (is_company_already_exist.length == 0) driver?.company_account_access.push(req.user._id); // Updated if Id is not already exist
+
                 mesage_data = "Account shared successfully with the driver";
                 
                 if (driver_token != ""){
@@ -964,6 +972,7 @@ exports.update_account_access = async (req, res) => {
 
             
             const updatedUser = await USER.findByIdAndUpdate(req.user._id, user_detail, { new: true, runValidators: true });
+            const updatedDriver = await DRIVER.findByIdAndUpdate(driver._id, driver, { new: true, runValidators: true });
 
             if (!updatedUser) {
                 
