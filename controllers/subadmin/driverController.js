@@ -797,3 +797,34 @@ exports.get_reports = async (req, res) => {
     });
   }
 };
+
+exports.company_access_list = async (req , res) => {
+
+  try {
+
+    const companyIds = req.user.company_account_access.map(access => access.company_id);
+    const companies = await USER.find({ _id: { $in: companyIds } });
+
+    if (companies.length > 0) {
+
+      res.send({
+        code: constant.success_code,
+        message: companies,
+      });
+    } else {
+
+      res.send({
+        code: constant.error_code,
+        message: "You didn't have any access",
+      });
+
+    }
+    
+
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}

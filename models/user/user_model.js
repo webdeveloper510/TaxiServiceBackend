@@ -16,7 +16,11 @@ const user = new Schema(
       default:[],
     },
     company_account_access: {
-      type: [{ type: Schema.Types.ObjectId, ref: 'driver' }],
+      type: [{ 
+        driver_id:{
+          type: Schema.Types.ObjectId, ref: 'driver'
+        }
+       }],
       default:[],
     },
     email: {
