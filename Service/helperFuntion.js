@@ -66,7 +66,7 @@ const response = await admin.messaging().send(messageData);
 console.log ('Notification sent:', response);
     return response
   } catch (error) {
-    throw error
+    return error
   }
 }
 
