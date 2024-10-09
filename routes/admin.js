@@ -35,6 +35,7 @@ router.get('/get_feedback', [verifyToken], loginController.get_feedback)
 // sub admin api's
 router.post('/add_sub_admin', [verifyToken], subAdminController.add_sub_admin)
 router.post('/search_company', [verifyToken], subAdminController.search_company)
+router.post('/access_search_company', [verifyToken], subAdminController.access_search_company)
 router.get('/send_request_trip/:id', [verifyToken], subAdminController.send_request_trip)
 router.post('/favoriteDriver/:id', [verifyToken], subAdminController.favoriteDriver)
 router.get('/get_sub_admins', [verifyToken], subAdminController.get_sub_admins)
@@ -78,6 +79,7 @@ router.get('/get_active_drivers', [verifyToken], driverController.get_active_dri
 
 // fare api's
 router.post('/add_fare', [verifyToken], fareController.add_fare)
+router.post('/access_get_fares', [verifyToken], fareController.access_get_fares)
 router.get('/get_fares', [verifyToken], fareController.get_fares)
 router.get('/get_fares/:id', fareController.get_fares)
 router.get('/get_fare_detail/:id', [verifyToken], fareController.get_fare_detail)
@@ -101,6 +103,7 @@ router.post('/get_recent_trip_super', [verifyToken], tripController.get_recent_t
 router.post('/get_trip_by_company/:status', [verifyToken], tripController.get_trip_by_company)
 router.get('/get_trip_detail/:id', tripController.get_trip_detail)
 router.put('/alocate_driver/:id', [verifyToken], tripController.alocate_driver)
+router.put('/access_alocate_driver/:id', [verifyToken], tripController.access_alocate_driver)
 router.get('/check_trip_request/:id', tripController.check_trip_request)
 router.get('/get_counts_dashboard', [verifyToken], tripController.get_counts_dashboard)
 

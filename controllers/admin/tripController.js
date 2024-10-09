@@ -1158,6 +1158,169 @@ exports.alocate_driver = async (req, res) => {
     }
 }
 
+exports.access_alocate_driver = async (req, res) => {
+
+    
+    try {
+        let data = req.body
+
+        console.log('checing data----', data)
+
+        let criteria = { _id: req.params.id }
+        let check_trip = await TRIP.findOne(criteria)
+        if (!check_trip) {
+            res.send({
+                code: constant.error_code,
+                message: "Invalid trip ID"
+            })
+            return;
+        }
+        
+        let driver_full_info = await DRIVER.findOne({ _id: data.driver_name });
+
+        if (data.status != 'Canceled') {
+            
+            let check_driver = await DRIVER.findOne({ _id: data.driver_name })
+            if (!check_driver) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Driver not available"
+                })
+                return;
+            }
+            let newValues = {
+                $set: {
+                    driver_name: check_driver._id,
+                    vehicle: check_driver.defaultVehicle,
+                    trip_status: data.status
+                }
+            }
+            if (check_driver._id.toString() == req.userId.toString()) {
+                newValues = {
+                    $set: {
+                        driver_name: check_driver._id,
+                        vehicle: check_driver.defaultVehicle,
+                        trip_status: "Booked"
+                    }
+                }
+            }
+            let option = { new: true }
+
+            
+
+            let update_trip = await TRIP.findOneAndUpdate(criteria, newValues, option)
+            if (!update_trip) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Unable to allocate the driver"
+                })
+            } else {
+
+                
+                try {
+                    
+                    if (check_driver._id.toString() !=req.userId.toString() && data.status !== "Booked") {
+                        
+                        let driver_c_data = await USER.findOne({ _id: check_driver.created_by })
+
+                        let token_value = check_driver.deviceToken;
+
+                        if (token_value == null) {
+
+                            token_value = driver_c_data.deviceToken;
+                        }
+                        
+                        await sendNotification(token_value, "New Trip is allocated have ID " + update_trip.trip_id, "New Trip is allocated have ID " + update_trip.trip_id, update_trip)
+
+                        
+                    }
+                } catch (error) {
+                    console.log("🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error)
+
+                    //    return res.send({
+                    //     code: constant.success_code,
+                    //     message: "Driver allocated successfully"
+                    // })
+                }
+                try {
+                    console.log("🚀 ~ exports.alocate_driver= ~ check_driver.socketId:", check_driver.socketId, check_driver)
+                    update_trip = update_trip.toObject()
+                    req.user = req.user.toObject();
+                    req.user.user_company_name = "";
+                    req.user.user_company_phone = "";
+                    update_trip.user_company_name = "";
+                    update_trip.user_company_phone = "";
+
+                    let user_agancy_data = await AGENCY.findOne({ user_id: req.user._id});
+
+                    // Company name a nd phone added
+                    if (user_agancy_data) {
+                        req.user.user_company_name = user_agancy_data.company_name;
+                        req.user.user_company_phone = user_agancy_data.phone;
+
+                        update_trip.user_company_name = user_agancy_data.company_name;
+                        update_trip.user_company_phone = user_agancy_data.phone;
+                    }
+                    
+
+                    if (check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked") {
+                    req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: req.user })
+                    }
+                } catch (error) {
+                    console.log("🚀 ~ exports.alocate_driver= ~ error:", error)
+
+                }
+
+                let current_date_time = new Date();
+                // Update request send time in Trip
+                await TRIP.updateOne(
+                    { _id: req.params.id },               // Filter (find the document by _id)
+                    { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
+                );
+
+                console.log("Date.now()------------" , current_date_time);
+
+                console.log("driver_full_info--------------------------------", driver_full_info)
+
+                setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info , req.io) }, 20 * 1000)
+
+                
+                res.send({
+                    code: constant.success_code,
+                    message: "Driver allocated successfully",
+                    // data: { trip: update_trip, company: req.user }
+                })
+            }
+        } else {
+            let newValues = {
+                $set: {
+                    trip_status: data.status
+                }
+            }
+            let option = { new: true }
+
+            let update_trip = await TRIP.findOneAndUpdate(criteria, newValues, option)
+            if (!update_trip) {
+                res.send({
+                    code: constant.error_code,
+                    message: "Unable to allocate the driver"
+                })
+            } else {
+                res.send({
+                    code: constant.success_code,
+                    message: "Cancelled successfully"
+                })
+            }
+        }
+
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
 exports.get_trip_detail = async (req, res) => {
     try {
         let data = req.body

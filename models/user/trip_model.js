@@ -123,6 +123,10 @@ const trip = new Schema({
     created_by_company_id: {
         type:mongoose.Schema.Types.ObjectId,ref:'users',
     },
+    created_by_accessed_driver_id: { // If driver has company's account to create  , update and delete access
+        type:mongoose.Schema.Types.ObjectId,ref:'drivers', 
+    },
+
     is_deleted:{
         type:Boolean,
         default:false

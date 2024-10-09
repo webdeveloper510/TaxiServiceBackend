@@ -50,6 +50,55 @@ exports.get_fares = async (req, res) => {
                 message: "Check your token or id"
             })
         }
+
+        console.log("chciknig----------" , userId)
+        let getData = await FARE.find({
+            $and: [
+                {
+                    $or: [
+                        { created_by: req.userId },
+                        { created_by: get_user.created_by },
+                        {created_by:get_user._id}
+                    ]
+                },
+                { is_deleted: false }
+            ]
+        }).sort({ 'createdAt': -1 })
+        if (!getData) {
+            res.send({
+                code: constant.error_code,
+                message: "No Data Found"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Successfully fetched",
+                result: getData
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.access_get_fares = async (req, res) => {
+    try {
+        let data = req.body
+        let userId = req.params.id;
+
+        
+        let get_user = await USER.findOne({ _id: req.body.company_id });
+        if (!get_user) {
+            res.send({
+                code: constant.error_code,
+                message: "Check your token or id"
+            })
+        }
+
+        console.log("chciknig----------" , userId)
         let getData = await FARE.find({
             $and: [
                 {
