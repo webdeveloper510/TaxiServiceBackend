@@ -803,7 +803,43 @@ exports.company_access_list = async (req , res) => {
   try {
 
     const companyIds = req.user.company_account_access.map(access => access.company_id);
-    const company_access_list = await USER.find({ _id: { $in: companyIds } });
+    // const company_access_list = await USER.find({ _id: { $in: companyIds } });
+
+    const company_access_list = await USER.aggregate([
+      {
+        $match: {
+          $and: [
+            { _id: { $in: companyIds } }
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "_id",
+          foreignField: "user_id",
+          as: "company_data",
+        },
+      },
+      {
+        $unwind: {
+          path: "$company_data",
+        },
+      },
+
+      {
+        $project: {
+          _id: 1,
+          first_name: 1,
+          last_name:1,
+          email:1,
+          phone:"$company_data.p_number",
+          company_name: "$company_data.company_name",
+          address_1: "$company_data.land",
+        }
+      }
+    ]);
+
 
     if (company_access_list.length > 0) {
 
