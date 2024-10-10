@@ -1245,29 +1245,41 @@ exports.access_alocate_driver = async (req, res) => {
                 try {
                     console.log("🚀 ~ exports.alocate_driver= ~ check_driver.socketId:", check_driver.socketId, check_driver)
                     update_trip = update_trip.toObject()
-                    req.user = req.user.toObject();
-                    req.user.user_company_name = "";
-                    req.user.user_company_phone = "";
+                    console.log("req.user------->>>>>>>>>>>>>" , req.user)
+
+                    let user = await user_model.findOne({_id:req.body.company_id, is_deleted: false}).populate("created_by").populate("driverId");
+                    res.send({
+                        code: constant.success_code,
+                        user:user,
+                    })
+                    user = user.toObject();
+                    user.user_company_name = "";
+                    user.user_company_phone = "";
                     update_trip.user_company_name = "";
                     update_trip.user_company_phone = "";
 
-                    let user_agancy_data = await AGENCY.findOne({ user_id: req.user._id});
+                    
+
+                    let user_agancy_data = await AGENCY.findOne({ user_id: req.body.company_id});
 
                     // Company name a nd phone added
                     if (user_agancy_data) {
-                        req.user.user_company_name = user_agancy_data.company_name;
-                        req.user.user_company_phone = user_agancy_data.phone;
+                        user.user_company_name = user_agancy_data.company_name;
+                        user.user_company_phone = user_agancy_data.phone;
 
                         update_trip.user_company_name = user_agancy_data.company_name;
                         update_trip.user_company_phone = user_agancy_data.phone;
                     }
                     
+                    
 
                     if (check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked") {
-                    req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: req.user })
+
+                        console.log("check_driver.socketId----" , check_driver.socketId)
+                        req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: user })
                     }
                 } catch (error) {
-                    console.log("🚀 ~ exports.alocate_driver= ~ error:", error)
+                    console.log("🚀 ~ exports.access_alocate_driver= ~ error:", error)
 
                 }
 
@@ -1277,10 +1289,6 @@ exports.access_alocate_driver = async (req, res) => {
                     { _id: req.params.id },               // Filter (find the document by _id)
                     { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
                 );
-
-                console.log("Date.now()------------" , current_date_time);
-
-                console.log("driver_full_info--------------------------------", driver_full_info)
 
                 setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info , req.io) }, 20 * 1000)
 
