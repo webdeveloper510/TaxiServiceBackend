@@ -55,6 +55,7 @@ const tripIsBooked = async (tripId, driver_full_info , io) => {
                 const trip_created_by_driver = await driver_model.findById(tripById?.created_by_accessed_driver_id)
                 console.log("trip_created_by_driver---" ,trip_created_by_driver)
 
+                
                 io.to(trip_created_by_driver?.socketId).emit("tripNotAcceptedBYDriver", {
                     trip: tripById,
                     message: agency.company_name+"'s Trip not accepted by the Driver",
@@ -62,9 +63,10 @@ const tripIsBooked = async (tripId, driver_full_info , io) => {
 
                 if (trip_created_by_driver?.deviceToken) {
                     
-                    await sendNotification(user?.created_by?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,agency.company_name+`'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver);
+                    await sendNotification(trip_created_by_driver?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,agency.company_name+`'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver);
                 }
                 
+                console.log("driver side hitted by socket----------------------" , trip_created_by_driver?.socketId)
             }
 
             console.log("🚀 ~ socket.on ~ response: after 20 second");

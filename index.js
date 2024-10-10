@@ -192,6 +192,7 @@ io.on("connection", (socket) => {
       console.log("🚀 ~ socket.on ~ err:", err);
     }
   });
+  
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
     const driverBySocketId = await driver_model.findOne({
       socketId: socket.id,
@@ -215,7 +216,6 @@ io.on("connection", (socket) => {
 
       return io.to(socket.id).emit("driverNotification", {code: 200,message: "Trip id not valid",});
     }
-
 
     try {
 
@@ -291,6 +291,27 @@ io.on("connection", (socket) => {
           //   const response = await sendNotification(user?.deviceToken,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId) 
           //   console.log("🚀 ~ socket.on ~ response:", response);
           }
+
+          if (trip?.created_by_accessed_driver_id) { // If driver has company access
+
+            const trip_created_by_driver = await driver_model.findById(trip?.created_by_accessed_driver_id)
+            console.log("trip_created_by_driver---" ,trip_created_by_driver)
+
+            
+            io.to(trip_created_by_driver?.socketId).emit("tripCancelledBYDriver", {
+              trip,
+              driver:driverBySocketId,
+              message: "Trip canceled successfully",
+            });
+
+            if (trip_created_by_driver?.deviceToken) {
+                
+              await sendNotification(trip_created_by_driver?.deviceToken,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId)
+            }
+            
+            console.log("driver side hitted by socket----------------------" , trip_created_by_driver?.socketId)
+          }
+
           io.to(socket.id).emit("driverNotification", {
             code: 200,
             message: "Trip canceled successfully",
@@ -361,6 +382,26 @@ io.on("connection", (socket) => {
         //   console.log("🚀 ~ socket.on ~ response:", response);
         }
 
+        if (trip?.created_by_accessed_driver_id) { // If driver has company access
+
+          const trip_created_by_driver = await driver_model.findById(trip?.created_by_accessed_driver_id)
+          console.log("trip_created_by_driver---" ,trip_created_by_driver)
+
+          
+          io.to(trip_created_by_driver?.socketId).emit("tripCancelledBYDriver", {
+            trip,
+            driver:driverBySocketId,
+            message: "Trip canceled successfully",
+          });
+
+          if (trip_created_by_driver?.deviceToken) {
+              
+            await sendNotification(trip_created_by_driver?.deviceToken,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId)
+          }
+          
+          console.log("driver side hitted by socket----------------------" , trip_created_by_driver?.socketId)
+        }
+
         io.to(socket.id).emit("driverNotification", {
           code: 200,
           message: "Trip accepted successfully",
@@ -374,6 +415,7 @@ io.on("connection", (socket) => {
       });
     }
   });
+
   socket.on("activeDriverTrip", async ({ tripId }) => {
     if (!tripId) {
       return io.to(socket.id).emit("driverNotification", {
