@@ -32,73 +32,43 @@ const tripIsBooked = async (tripId, driver_full_info , io) => {
             tripById.driver_name = null;
             tripById.trip_status = "Pending";
             await tripById.save()
-            const user = await user_model
-                .findById(tripById.created_by)
-                .populate("created_by");
-
-            if (user.role == "HOTEL") {
-                io.to(user?.created_by?.socketId).emit("tripNotAcceptedBYDriver", {
-                    trip: tripById,
-                    message: "Trip not accepted .. working vijay",
-                });
-
-                console.log("my socijet id", driver_full_info?.socketId)
-                io.to(driver_full_info?.socketId).emit("popUpClose", {
-                    trip: tripById,
-                    message: "Close up socket connection",
-                });
-
+            const user = await user_model.findById(tripById.created_by_company_id);
+            const agency = await AGENCY.findOne({user_id: tripById.created_by_company_id})
                 
-                const response = await sendNotification(user?.created_by?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver)
-                // await axios.post(
-                //     "https://fcm.googleapis.com/fcm/send",
-                //     {
-                //         to: user?.created_by?.deviceToken,
-                //         notification: {
-                //             message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                //             title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                //             tripById,
-                //             driver: updateDriver,
-                //             sound: "default",
-                //         },
-                //     },
-                //     {
-                //         headers: {
-                //             "Content-Type": "application/json",
-                //             Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-                //         },
-                //     }
-                // );
-                console.log("🚀 ~ socket.on ~ response:", response);
-            } else {
+            io.to(user?.socketId).emit("tripNotAcceptedBYDriver", {
+                trip: tripById,
+                message: "Trip not accepted by the Driver",
+            });
 
-                console.log("socket ching on ternimal----------------" , user)
-                io.to(user.socketId).emit("tripNotAcceptedBYDriver", {
-                    tripById,
-                    message: "Trip not accepted successfully",
+            io.to(driver_full_info?.socketId).emit("popUpClose", {
+                trip: tripById,
+                message: "Close up socket connection",
+            });
+
+            if (user?.created_by?.deviceToken) { // notification for companies
+
+                await sendNotification(user?.created_by?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver);
+            }
+
+            if (tripById?.created_by_accessed_driver_id) { // If driver has company access
+
+                const trip_created_by_driver = await driver_model.findById(tripById?.created_by_accessed_driver_id)
+                console.log("trip_created_by_driver---" ,trip_created_by_driver)
+
+                io.to(trip_created_by_driver?.socketId).emit("tripNotAcceptedBYDriver", {
+                    trip: tripById,
+                    message: agency.company_name+"'s Trip not accepted by the Driver",
                 });
 
-                const response = await axios.post(
-                    "https://fcm.googleapis.com/fcm/send",
-                    {
-                        to: user?.deviceToken,
-                        notification: {
-                            message: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                            title: `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                            tripById,
-                            driver: driverBySocketId,
-                            sound: "default",
-                        },
-                    },
-                    {
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-                        },
-                    }
-                );
-                console.log("🚀 ~ socket.on ~ response:", response);
+                if (trip_created_by_driver?.deviceToken) {
+                    
+                    await sendNotification(user?.created_by?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,agency.company_name+`'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver);
+                }
+                
             }
+
+            console.log("🚀 ~ socket.on ~ response: after 20 second");
+            
         }
     } catch (err) {
         console.log("🚀 ~ tripIsBooked ~ err:", err)
@@ -1248,10 +1218,7 @@ exports.access_alocate_driver = async (req, res) => {
                     console.log("req.user------->>>>>>>>>>>>>" , req.user)
 
                     let user = await user_model.findOne({_id:req.body.company_id, is_deleted: false}).populate("created_by").populate("driverId");
-                    res.send({
-                        code: constant.success_code,
-                        user:user,
-                    })
+                    
                     user = user.toObject();
                     user.user_company_name = "";
                     user.user_company_phone = "";
@@ -1290,6 +1257,7 @@ exports.access_alocate_driver = async (req, res) => {
                     { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
                 );
 
+                console.log("tripIsBooked----------------")
                 setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info , req.io) }, 20 * 1000)
 
                 
