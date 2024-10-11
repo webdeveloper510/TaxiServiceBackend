@@ -169,17 +169,17 @@ io.on("connection", (socket) => {
     
     try {
       
-      const trip = await trip_model.findById(trip.result?._id);
+      const trip_details = await trip_model.findById(trip.result?._id);
       
       // const user = await user_model.findOne({
       //   socketId: socket.id,
       // });
 
       const company_data = await agency_model.findOne({
-        user_id: trip?.created_by_company_id,
+        user_id: trip_details?.created_by_company_id,
       });
 
-      console.log("🚀 ~ companyCancelledTrip~ user:", user)
+      console.log("🚀 ~ companyCancelledTrip~ user:", trip_details)
       
 
       console.log("company_data--------------------------------", company_data)
