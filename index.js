@@ -392,7 +392,7 @@ io.on("connection", (socket) => {
           console.log("trip_created_by_driver---" ,trip_created_by_driver)
 
           
-          io.to(trip_created_by_driver?.socketId).emit("tripCancelledBYDriver", {
+          io.to(trip_created_by_driver?.socketId).emit("tripAcceptedBYDriver", {
             trip,
             driver:driverBySocketId,
             message: "Trip canceled successfully",
