@@ -24,7 +24,7 @@ const constants = require('../config/constant')
 
   }else{
 
-    console.log("token--------------------",token)
+    // console.log("token--------------------",token)
   jwt.verify(token, process.env.JWTSECRET, async(err, decoded) => {
      
       if (err) {
@@ -68,7 +68,7 @@ const constants = require('../config/constant')
     
       if(!user){
         user = await driver_model.findOne(query).populate("created_by");
-          console.log("🚀 ~ jwt.verify ~ userdriver:", user)
+          // console.log("🚀 ~ jwt.verify ~ userdriver:", user)
           if(user){
             if(isMobile){
               user.lastUsedTokenMobile = new Date();

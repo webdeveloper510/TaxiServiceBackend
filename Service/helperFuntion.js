@@ -10,12 +10,12 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 exports.driverDetailsByToken = async (token) => {
-    console.log("🚀 ~ file: helperFuntion.js:6 ~ exports.driverDetailsByToken= ~ token:", token)
+    // console.log("🚀 ~ file: helperFuntion.js:6 ~ exports.driverDetailsByToken= ~ token:", token)
     const {userId} = jwt.verify(token, process.env.JWTSECRET);
-  console.log("getCustomerDetailsByTokenId===>", userId)
+  // console.log("getCustomerDetailsByTokenId===>", userId)
 //   // find driver by id in database
   const driver =  await driver_model.findOne({_id : userId})
-  console.log("🚀 ~ file: helperFuntion.js:11 ~ exports.driverDetailsByToken= ~ driver:", driver)
+  // console.log("🚀 ~ file: helperFuntion.js:11 ~ exports.driverDetailsByToken= ~ driver:", driver)
   return driver
   
 }

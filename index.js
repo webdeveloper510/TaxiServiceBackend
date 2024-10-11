@@ -109,7 +109,7 @@ io.on("connection", (socket) => {
         driverByToken.isSocketConnected = true;
         driverByToken.socketId = socket.id;
         await driverByToken.save();
-        console.log("🚀 ~ socket.on ~ add driver token =====", driverByToken)
+        // console.log("🚀 ~ socket.on ~ add driver token =====", driverByToken)
         io.to(socket.id).emit("driverNotification", {
           code: 200,
           message:
@@ -169,28 +169,31 @@ io.on("connection", (socket) => {
     
     try {
       
-      const user = await user_model.findOne({
-        socketId: socket.id,
+      const trip = await trip_model.findById(trip.result?._id);
+      
+      // const user = await user_model.findOne({
+      //   socketId: socket.id,
+      // });
+
+      const company_data = await agency_model.findOne({
+        user_id: trip?.created_by_company_id,
       });
 
       console.log("🚀 ~ companyCancelledTrip~ user:", user)
       
-      const company_data = await agency_model.findOne({
-        user_id: user._id,
-      });
 
       console.log("company_data--------------------------------", company_data)
       const driverById = await driver_model.findOne({
         _id: driverId,
       });
 
-      console.log("🚀 ~companyCancelledTrip~ driverById:", driverById)
+      console.log("🚀 ~companyCancelledTrip~ driverById----------socket-vijay:", driverById)
 
       io.to(driverById.socketId).emit("retrivedTrip",{
         message: `Your trip has been retrived by company ${company_data?.company_name}`,
         trip: trip
       })
-      const response =  await sendNotification(driverById?.deviceToken,`Your trip has been retrived by company ${user.first_name} ${user.last_name}`,`Your trip has been retrived by company ${user.first_name} ${user.last_name}`,trip)
+      const response =  await sendNotification(driverById?.deviceToken,`Your trip has been retrived by company ${company_data?.company_name}`,`Your trip has been retrived by company ${company_data?.company_name}`,trip)
 
     } catch (err) {
       console.log("🚀 ~ socket.on ~ err:", err);

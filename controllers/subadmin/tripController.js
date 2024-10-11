@@ -419,7 +419,7 @@ exports.edit_trip = async (req, res) => {
 
                 //  device_token = "evnYTVy9QMm9Al231AlxEp:APA91bHG7ewABk-KVBrbXOG3LabwTe4NKdeuPIEa6VuWqnmUwirp8-aKgCfzI2ibPK5kxxVLS-qqE-hfQf-iVhqrhis5fKjurRdkzqLS4S6KEwZRkZ_ZnirAfEbLp-gGi8mSPHW7jvOY";
 
-                console.log("device_token--------------------------------" , device_token)
+                // console.log("device_token--------------------------------" , device_token)
                 try{
                     const response = await sendNotification(device_token,`Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,`Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,trip_data)
                 } catch(e){
