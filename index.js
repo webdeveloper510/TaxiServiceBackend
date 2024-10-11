@@ -168,9 +168,11 @@ io.on("connection", (socket) => {
   socket.on("companyCancelledTrip", async ({ driverId,trip }) => {
     
     try {
+      
       const user = await user_model.findOne({
         socketId: socket.id,
       });
+
       console.log("🚀 ~ companyCancelledTrip~ user:", user)
       
       const company_data = await agency_model.findOne({
@@ -181,7 +183,9 @@ io.on("connection", (socket) => {
       const driverById = await driver_model.findOne({
         _id: driverId,
       });
+
       console.log("🚀 ~companyCancelledTrip~ driverById:", driverById)
+
       io.to(driverById.socketId).emit("retrivedTrip",{
         message: `Your trip has been retrived by company ${company_data?.company_name}`,
         trip: trip
@@ -192,7 +196,7 @@ io.on("connection", (socket) => {
       console.log("🚀 ~ socket.on ~ err:", err);
     }
   });
-  
+
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
     const driverBySocketId = await driver_model.findOne({
       socketId: socket.id,
@@ -396,7 +400,7 @@ io.on("connection", (socket) => {
 
           if (trip_created_by_driver?.deviceToken) {
               
-            await sendNotification(trip_created_by_driver?.deviceToken,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId)
+            await sendNotification(trip_created_by_driver?.deviceToken,`Trip accepted by driver and trip ID is ${trip.trip_id}`,`Trip accepted by driver and trip ID is ${trip.trip_id}`,driverBySocketId)
           }
           
           console.log("driver side hitted by socket----------------------" , trip_created_by_driver?.socketId)
