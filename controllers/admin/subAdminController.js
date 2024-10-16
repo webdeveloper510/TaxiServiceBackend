@@ -15,6 +15,7 @@ require('dotenv').config();
 const multer = require('multer')
 const path = require('path')
 const { sendNotification } = require("../../Service/helperFuntion");
+const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require('../../models/user/driver_model');
@@ -670,6 +671,22 @@ exports.search_company = async (req, res) => {
 
 exports.access_search_company = async (req, res) => {
     try {
+        
+        if (req.user.role == "DRIVER") {
+
+            let is_driver_has_company_access = await isDriverHasCompanyAccess(req.user , req.body.company_id);
+
+            if (!is_driver_has_company_access) {
+
+                res.send({
+                    code: constant.ACCESS_ERROR_CODE,
+                    message: "The company's access has been revoked",
+                })
+
+                return
+            }
+        }
+
         let data = req.body
         let query = req.query.role ? req.query.role : 'COMPANY'
         let searchUser = await USER.aggregate([

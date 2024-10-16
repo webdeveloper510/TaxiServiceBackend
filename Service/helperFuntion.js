@@ -28,6 +28,12 @@ return user
 
 }
 
+exports.isDriverHasCompanyAccess = async (driver_data , company_id) => { // Check If driver has companies account access
+  
+  
+  return driver_data.company_account_access.some(account => account.company_id.toString() === company_id.toString()); // return true if driver has access otherwise it will return false
+}
+
 exports.sendNotification = async (to,message,title,data)=>{
 
   console.log("get token--------------->" , to)

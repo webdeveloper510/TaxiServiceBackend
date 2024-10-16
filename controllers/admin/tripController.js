@@ -15,6 +15,8 @@ const mongoose = require('mongoose')
 const randToken = require('rand-token').generator()
 const moment = require('moment')
 const { sendNotification } = require('../../Service/helperFuntion')
+const { isDriverHasCompanyAccess } = require('../../Service/helperFuntion')
+
 const trip_model = require('../../models/user/trip_model')
 const user_model = require('../../models/user/user_model')
 const { default: axios } = require('axios');
@@ -79,6 +81,83 @@ const tripIsBooked = async (tripId, driver_full_info , io) => {
 
 exports.add_trip = async (req, res) => {
     try {
+        let data = req.body
+        data.created_by = data.created_by ? data.created_by : req.userId
+        // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+        data.trip_id = await getNextSequenceValue();
+        let token_code = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+        let check_user = await USER.findOne({ _id: req.userId })
+        let currentDate = moment().format('YYYY-MM-DD')
+        let check_id = await TRIP.aggregate([
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(currentDate),
+                        $lt: new Date(new Date(currentDate).getTime() + 24 * 60 * 60 * 1000) // Add 1 day to include the entire day
+                    }
+                }
+            }
+        ])
+        let series = Number(check_id.length) + 1
+        data.series_id = token_code + '-' + '000' + series
+
+        data.trip_id = 'T' + '-' + data.trip_id
+        let distance = (geolib.getDistance(
+            {
+                latitude: data.trip_from.log,
+                longitude: data.trip_from.lat,
+            },
+            {
+                latitude: data.trip_to.log,
+                longitude: data.trip_to.lat,
+            }
+        ) * 0.00062137
+        ).toFixed(2)
+
+        let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type })
+        let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10
+        if (!data.price) {
+            data.price = (fare_per_km * Number(distance)).toFixed(2);
+        }
+        let add_trip = await TRIP(data).save()
+        if (!add_trip) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to create the trip"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Saved Successfully",
+                result: add_trip
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.access_add_trip = async (req, res) => {
+
+    try {
+
+        if (req.user.role == "DRIVER") {
+
+            let is_driver_has_company_access = await isDriverHasCompanyAccess(req.user , req.body.created_by_company_id);
+
+            if (!is_driver_has_company_access) {
+
+                res.send({
+                    code: constant.ACCESS_ERROR_CODE,
+                    message: "The company's access has been revoked",
+                })
+                return
+            }
+        }
+
         let data = req.body
         data.created_by = data.created_by ? data.created_by : req.userId
         // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
@@ -341,6 +420,23 @@ exports.get_access_trip = async (req, res) => {
     try {
 
         console.log("req.body-----" ,req.body)
+
+        if (req.user.role == "DRIVER") {
+
+            let is_driver_has_company_access = await isDriverHasCompanyAccess(req.user , req.body.company_id);
+
+            if (!is_driver_has_company_access) {
+
+                res.send({
+                    code: constant.ACCESS_ERROR_CODE,
+                    message: "The company's access has been revoked",
+                })
+
+                return
+            }
+        }
+        
+        
         let data = req.body
 
         let check_company = USER.findById(req.body.company_id);
@@ -1138,6 +1234,24 @@ exports.access_alocate_driver = async (req, res) => {
 
         console.log('checing data----', data)
 
+
+
+        if (req.user.role == "DRIVER") {
+
+            let is_driver_has_company_access = await isDriverHasCompanyAccess(req.user , req.body.company_id);
+
+            if (!is_driver_has_company_access) {
+
+                return res.send({
+                    code: constant.ACCESS_ERROR_CODE,
+                    message: "The company's access has been revoked",
+                })
+
+                
+            }
+            
+        }
+
         let criteria = { _id: req.params.id }
         let check_trip = await TRIP.findOne(criteria)
         if (!check_trip) {
@@ -1302,6 +1416,144 @@ exports.access_alocate_driver = async (req, res) => {
 exports.get_trip_detail = async (req, res) => {
     try {
         let data = req.body
+        let mid = new mongoose.Types.ObjectId(req.params.id)
+
+        let getData = await TRIP.aggregate([
+            {
+                $match: {
+                    _id: mid
+                }
+            },
+            {
+                $lookup: {
+                    from: "drivers",
+                    localField: "driver_name",
+                    foreignField: "_id",
+                    as: "driver_info"
+                }
+            },
+            {
+                $lookup: {
+                    from: "vehicles",
+                    localField: "vehicle",
+                    foreignField: "_id",
+                    as: "vehicle_info"
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "created_by",
+                    foreignField: "_id",
+                    as: "hotel_info"
+                }
+            },
+            {
+                $lookup: {
+                    from: "agencies",
+                    localField: "created_by",
+                    foreignField: "user_id",
+                    as: "company_detail"
+                }
+            },
+            {
+                $project: {
+                    'phone': { $arrayElemAt: ["$hotel_info.phone", 0] },
+                    'email': { $arrayElemAt: ["$hotel_info.email", 0] },
+                    'vehicle': { $arrayElemAt: ["$vehicle_info.vehicle_model", 0] },
+                    'driverInfo': { $arrayElemAt: ["$driver_info", 0] },
+                    'hotelImage': { $arrayElemAt: ["$hotel_info.profile_image", 0] },
+                    'driver_name': {
+                        $concat: [
+                            { $arrayElemAt: ["$driver_info.first_name", 0] },
+                            ' ',
+                            { $arrayElemAt: ["$driver_info.last_name", 0] }
+                        ]
+                    },
+                    "hotel_location": { $arrayElemAt: ["$company_detail.hotel_location", 0] },
+                    vehicle_model: 1,
+                    commission: 1,
+                    price: 1,
+                    vehicle_type: 1,
+                    trip_from: 1,
+                    trip_to: 1,
+                    trip_id: 1,
+                    pickup_date_time: 1,
+                    passenger_detail: 1,
+                    created_by: 1,
+                    is_deleted: 1,
+                    status: 1,
+                    trip_status: 1,
+                    createdAt: 1,
+                    updatedAt: 1,
+                    pay_option: 1,
+                    customerDetails: 1,
+                    passengerCount: 1,
+                    is_paid: 1,
+                    comment:1
+                }
+            }
+        ])
+
+        let distance = (geolib.getDistance(
+            {
+                latitude: getData[0].trip_from.log,
+                longitude: getData[0].trip_from.lat,
+            },
+            {
+                latitude: getData[0].trip_to.log,
+                longitude: getData[0].trip_to.lat,
+            }
+        ) * 0.00062137
+        ).toFixed(2)
+
+        let getFare = await FARES.findOne({ vehicle_type: getData[0].vehicle_type })
+        let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km) : 10
+        if (getData[0].price == 0) {
+            getData[0].price = fare_per_km * Number(distance)
+        }
+
+
+        if (!getData[0]) {
+            res.send({
+                code: constant.error_code,
+                message: "Invalid ID"
+            })
+        } else {
+            let getUser = await AGENCY.findOne({ user_id: getData[0].created_by })
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: getData[0],
+                hotelName: getUser ? getUser.company_name : "N/A"
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.access_get_trip_detail = async (req, res) => {
+    try {
+        let data = req.body
+
+        if (req.user.role == "DRIVER") {
+
+            let is_driver_has_company_access = await isDriverHasCompanyAccess(req.user , req.params.company_id);
+
+            if (!is_driver_has_company_access) {
+
+                return res.send({
+                    code: constant.ACCESS_ERROR_CODE,
+                    message: "The company's access has been revoked",
+                })
+            }
+            
+        }
+
         let mid = new mongoose.Types.ObjectId(req.params.id)
 
         let getData = await TRIP.aggregate([

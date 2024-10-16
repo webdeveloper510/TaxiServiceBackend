@@ -6,4 +6,5 @@ module.exports={
     server_body_error : 500,
     ACCOUNT_SHARE_REVOKED: "REVOKED",
     ACCOUNT_SHARE_INVOKED: "INVOKED",
+    ACCESS_ERROR_CODE: 202
 }

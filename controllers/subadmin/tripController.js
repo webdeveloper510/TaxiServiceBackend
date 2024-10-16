@@ -9,6 +9,7 @@ const constant = require('../../config/constant')
 const mongoose = require('mongoose')
 const randToken = require('rand-token').generator()
 const { sendNotification } = require('../../Service/helperFuntion')
+const { isDriverHasCompanyAccess } = require('../../Service/helperFuntion')
 
 exports.add_trip = async (req, res) => {
     try {
@@ -394,6 +395,80 @@ exports.get_counts_dashboard = async (req, res) => {
 exports.edit_trip = async (req, res) => {
     try {
         let data = req.body
+        let criteria = { _id: req.params.id }
+        let trip_data = await TRIP.findOne(criteria);
+        
+        let option = { new: true }
+        data.status = true
+        let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
+        if (!update_trip) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to update the trip"
+            })
+        } else {
+
+            if (data?.trip_status == "Pending" && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "") {
+                console.log("trip_data--------------------" , trip_data);
+                let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
+                
+                let device_token = driver_data?.deviceToken;
+                if ( device_token == "" || device_token == null ) {
+                    let driver_data_created_by  = await USER.findOne({ _id: driver_data.created_by });
+                    device_token = driver_data_created_by.deviceToken;
+                }
+
+                //  device_token = "evnYTVy9QMm9Al231AlxEp:APA91bHG7ewABk-KVBrbXOG3LabwTe4NKdeuPIEa6VuWqnmUwirp8-aKgCfzI2ibPK5kxxVLS-qqE-hfQf-iVhqrhis5fKjurRdkzqLS4S6KEwZRkZ_ZnirAfEbLp-gGi8mSPHW7jvOY";
+
+                // console.log("device_token--------------------------------" , device_token)
+                try{
+                    const response = await sendNotification(device_token,`Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,`Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,trip_data)
+                } catch(e){
+                    // res.send({
+                    //     code: constant.success_code,
+                    //     message: "not found",
+                    //     result: e
+                    // })
+                }
+
+                
+            }
+            res.send({
+                code: constant.success_code,
+                message: "Updated successfully",
+                result: update_trip
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.access_edit_trip = async (req, res) => {
+    try {
+
+        let data = req.body
+
+        if (req.user.role == "DRIVER") {
+
+            let is_driver_has_company_access = await isDriverHasCompanyAccess(req.user , req.params.company_id);
+
+            if (!is_driver_has_company_access) {
+
+                return res.send({
+                    code: constant.ACCESS_ERROR_CODE,
+                    message: "The company's access has been revoked",
+                })
+            }
+            
+        }
+
+        
+
+
         let criteria = { _id: req.params.id }
         let trip_data = await TRIP.findOne(criteria);
         
