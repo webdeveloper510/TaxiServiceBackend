@@ -52,24 +52,50 @@ const tripIsBooked = async (tripId, driver_full_info , io) => {
                 await sendNotification(user?.created_by?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver);
             }
 
-            if (tripById?.created_by_accessed_driver_id) { // If driver has company access
+            // Functionality for assigned driver
 
-                const trip_created_by_driver = await driver_model.findById(tripById?.created_by_accessed_driver_id)
-                console.log("trip_created_by_driver---" ,trip_created_by_driver)
+            const company_assigned_driverIds = user.company_account_access.map(item => item.driver_id); // get the assigned driver 
 
+            if (company_assigned_driverIds.length > 0) {
+
+                // get driver device token for notification
+                const drivers_info_for_token = await driver_model.find({
+                    _id: { $in: company_assigned_driverIds , $ne: driver_full_info._id },
+                    status: true,
+                    deviceToken: { $ne: null } // device_token should not be null
+                });
+
+                // get driver device token for notification
+                const drivers_info_for_socket_ids = await driver_model.find({
+                    _id: { $in: company_assigned_driverIds , $ne: driver_full_info._id },
+                    status: true,
+                    socketId: { $ne: null } // device_token should not be null
+                });
+
+
+              // Send the notification to assigned drivers
+              if (drivers_info_for_token.length > 0) {
+
+                const company_assigned_driver_token = drivers_info_for_token.map(item => item.deviceToken);
+                await sendNotification(company_assigned_driver_token,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,agency.company_name+`'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver);
+              }
+
+
+              // Send the socket to assigned drivers
+              if (drivers_info_for_socket_ids.length > 0) {
                 
-                io.to(trip_created_by_driver?.socketId).emit("tripNotAcceptedBYDriver", {
+                const company_assigned_driver_sockets = drivers_info_for_socket_ids.map(item => item.socketId);
+                
+                company_assigned_driver_sockets.forEach(socketId => {
+                  io.to(socketId).emit("tripNotAcceptedBYDriver", {
                     trip: tripById,
                     message: agency.company_name+"'s Trip not accepted by the Driver",
                 });
-
-                if (trip_created_by_driver?.deviceToken) {
-                    
-                    await sendNotification(trip_created_by_driver?.deviceToken,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,agency.company_name+`'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver);
-                }
-                
-                console.log("driver side hitted by socket----------------------" , trip_created_by_driver?.socketId)
+                });
+              }
+              
             }
+
 
             console.log("🚀 ~ socket.on ~ response: after 20 second");
             
@@ -1135,7 +1161,10 @@ exports.alocate_driver = async (req, res) => {
                             token_value = driver_c_data.deviceToken;
                         }
                         
-                        await sendNotification(token_value, "New Trip is allocated have ID " + update_trip.trip_id, "New Trip is allocated have ID " + update_trip.trip_id, update_trip)
+                        if (token_value) {
+                            await sendNotification(token_value, "New Trip is allocated have ID " + update_trip.trip_id, "New Trip is allocated have ID " + update_trip.trip_id, update_trip)
+                        }
+                        
 
                         
                     }
@@ -1170,6 +1199,9 @@ exports.alocate_driver = async (req, res) => {
 
                     if (check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked") {
                     req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: req.user })
+                    } else {
+
+                        console.log("np socket found----------------")
                     }
                 } catch (error) {
                     console.log("🚀 ~ exports.alocate_driver= ~ error:", error)

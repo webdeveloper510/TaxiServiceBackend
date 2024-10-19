@@ -38,17 +38,7 @@ exports.sendNotification = async (to,message,title,data)=>{
 
   console.log("get token--------------->" , to)
   try {
-    // const messageData = {
-    //   notification: {
-    //     title: title,       // Notification title (shown in system notification)
-    //     body: message,      // Notification body (shown in system notification)
-    //   },
-    //   data: {
-    //     sound: "default",
-    //   },
-    //   token: to,
-    // }; 
-
+   
     const messageData = {
       token: to,  // The device token to send the message to
       notification: {
