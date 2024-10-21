@@ -126,6 +126,9 @@ const trip = new Schema({
     created_by_accessed_driver_id: { // If driver has company's account to create  , update and delete access
         type:mongoose.Schema.Types.ObjectId,ref:'drivers', 
     },
+    hotel_id: { // If hotel added in the trip User_id of agencies collection
+        type:mongoose.Schema.Types.ObjectId,ref:'agencies', 
+    },
 
     is_deleted:{
         type:Boolean,

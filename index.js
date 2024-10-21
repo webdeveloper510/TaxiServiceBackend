@@ -386,7 +386,7 @@ io.on("connection", (socket) => {
                 socketId: { $ne: null } // device_token should not be null
               });
 
-
+              console.log("drivers_info_for_socket_ids----------" , drivers_info_for_socket_ids)
               // Send the notification to assigned drivers
               if (drivers_info_for_token.length > 0) {
 
@@ -401,35 +401,15 @@ io.on("connection", (socket) => {
                 const company_assigned_driver_sockets = drivers_info_for_socket_ids.map(item => item.socketId);
                 
                 company_assigned_driver_sockets.forEach(socketId => {
-                  io.to(socketId).emit("tripCancelledBYDriver", {
+                  io.to(socketId).emit("tripAcceptedBYDriver", {
                     trip,
                     driver:driverBySocketId,
-                    message: "Trip canceled successfully",
+                    message: "Trip accepted successfully",
                   });
                 });
               }
               
             }
-        }
-
-        if (trip?.created_by_accessed_driver_id) { // If driver has company access
-
-          const trip_created_by_driver = await driver_model.findById(trip?.created_by_accessed_driver_id)
-          console.log("trip_created_by_driver---" ,trip_created_by_driver)
-
-          
-          io.to(trip_created_by_driver?.socketId).emit("tripAcceptedBYDriver", {
-            trip,
-            driver:driverBySocketId,
-            message: "Trip canceled successfully",
-          });
-
-          if (trip_created_by_driver?.deviceToken) {
-              
-            await sendNotification(trip_created_by_driver?.deviceToken,`Trip accepted by driver and trip ID is ${trip.trip_id}`,`Trip accepted by driver and trip ID is ${trip.trip_id}`,driverBySocketId)
-          }
-          
-          console.log("driver side hitted by socket----------------------" , trip_created_by_driver?.socketId)
         }
 
         io.to(socket.id).emit("driverNotification", {
@@ -472,32 +452,28 @@ io.on("connection", (socket) => {
           const user = await user_model
             .findById(trip.created_by)
             .populate("created_by");
-          if (user.role == "HOTEL") {
-            io.to(user?.created_by?.socketId).emit("tripActiveBYDriver", {
-              trip,
-              message: "Trip active successfully",
-            });
-            const response = await sendNotification( user?.created_by?.deviceToken,`Trip start by driver and trip ID is ${trip.trip_id}`,`Trip start by driver and trip ID is ${trip.trip_id}`,driverBySocketId) 
+          
+          // code commented for some time only untill admin panel will be started
+
+            // if (user.role == "HOTEL") {
+          //   io.to(user?.created_by?.socketId).emit("tripActiveBYDriver", {
+          //     trip,
+          //     message: "Trip active successfully",
+          //   });
+          //   const response = await sendNotification( user?.created_by?.deviceToken,`Trip start by driver and trip ID is ${trip.trip_id}`,`Trip start by driver and trip ID is ${trip.trip_id}`,driverBySocketId) 
            
-          } else {
-            io.to(user.socketId).emit("tripActiveBYDriver", {
-              trip,
-              message: "Trip active successfully",
-            });
-            // await fcm.send({
-            //   to: user?.deviceToken,
-            //   data: {
-            //     message: "Trip canceled by driver",
-            //     title: "Trip canceled by driver",
-            //     trip,
-            //     driver: driverBySocketId,
-            //   },
-            // });
-            const response = await sendNotification( user?.deviceToken,`Trip start by driver and trip ID is ${trip.trip_id}`,`Trip start by driver and trip ID is ${trip.trip_id}`,driverBySocketId) 
+          // } else {
+          //   io.to(user.socketId).emit("tripActiveBYDriver", {
+          //     trip,
+          //     message: "Trip active successfully",
+          //   });
+            
+          //   const response = await sendNotification( user?.deviceToken,`Trip start by driver and trip ID is ${trip.trip_id}`,`Trip start by driver and trip ID is ${trip.trip_id}`,driverBySocketId) 
            
            
-            console.log("🚀 ~ socket.on ~ response:", response);
-          }
+          //   console.log("🚀 ~ socket.on ~ response:", response);
+          // }
+
           io.to(socket.id).emit("driverNotification", {
             code: 200,
             message: "Trip active successfully",

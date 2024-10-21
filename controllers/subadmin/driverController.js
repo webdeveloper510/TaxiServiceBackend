@@ -550,6 +550,16 @@ exports.get_trips_for_drivers = async (req, res) => {
       {
         $lookup: {
           from: "agencies",
+          localField: "hotel_id",
+          foreignField: "user_id",
+          as: "hotelData",
+          
+        },
+      },
+      
+      {
+        $lookup: {
+          from: "agencies",
           localField: "created_by_company_id",
           foreignField: "user_id",
           as: "userData",
@@ -584,6 +594,7 @@ exports.get_trips_for_drivers = async (req, res) => {
           company_name: "$userData.company_name",
           user_company_name: "$userData.company_name",
           user_company_phone: "$userData.phone",
+          hotel_name:  { $arrayElemAt: ["$hotelData.company_name", 0] },
           driver_name: {
             $concat: [
               { $arrayElemAt: ["$driver.first_name", 0] },

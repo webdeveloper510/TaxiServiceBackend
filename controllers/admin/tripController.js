@@ -371,6 +371,14 @@ exports.get_trip = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'agencies',
+                    localField: 'hotel_id',
+                    foreignField: 'user_id',
+                    as: 'hotelData',
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     trip_from: 1,
@@ -388,6 +396,7 @@ exports.get_trip = async (req, res) => {
                     customerDetails: 1,
                     price: 1,
                     passengerCount: 1,
+                    hotel_name:{ $arrayElemAt: ["$hotelData.company_name", 0] },
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
@@ -531,6 +540,14 @@ exports.get_access_trip = async (req, res) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'agencies',
+                    localField: 'hotel_id',
+                    foreignField: 'user_id',
+                    as: 'hotelData',
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     trip_from: 1,
@@ -548,6 +565,7 @@ exports.get_access_trip = async (req, res) => {
                     customerDetails: 1,
                     price: 1,
                     passengerCount: 1,
+                    hotel_name:{ $arrayElemAt: ["$hotelData.company_name", 0] },
                     'company_name': { $arrayElemAt: ["$userData.company_name", 0] },
                     driver_name: {
                         $concat: [
