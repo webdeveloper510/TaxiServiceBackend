@@ -1103,7 +1103,7 @@ exports.get_driver_list = async (req, res) => {
 
     try{
 
-        const condition = { status: true , is_deleted : false };
+        const condition = { status: true , is_deleted : false , _id: { $ne: req.user?.driverId?._id }};
         let driver_list = await DRIVER.find(condition);
 
         if (driver_list.length == 0) {
