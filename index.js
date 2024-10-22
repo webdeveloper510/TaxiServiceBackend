@@ -258,7 +258,7 @@ io.on("connection", (socket) => {
             });
             
             const response = await sendNotification(user?.deviceToken,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId)
-            console.log("🚀 ~ socket.on ~ response:", response);
+            // console.log("🚀 ~ socket.on ~ response:", response);
             
 
             // functionality For assigned driver by company
@@ -279,15 +279,22 @@ io.on("connection", (socket) => {
               });
 
 
-              // Send the notification to assigned drivers
+              // Send the device notification to assigned drivers
               if (drivers_info_for_token.length > 0) {
 
                 const company_assigned_driver_token = drivers_info_for_token.map(item => item.deviceToken);
-                await sendNotification(company_assigned_driver_token,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId)
+                
+                company_assigned_driver_token.forEach( async (driver_device_token) => {
+
+                  if (driver_device_token) {
+
+                    let send_notification = await sendNotification(driver_device_token,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId)
+                  }
+                });
+                
               }
 
-
-              // Send the socket to assigned drivers
+              // Send the socket model popo to assigned drivers
               if (drivers_info_for_socket_ids.length > 0) {
                 
                 const company_assigned_driver_sockets = drivers_info_for_socket_ids.map(item => item.socketId);
@@ -303,11 +310,6 @@ io.on("connection", (socket) => {
               
             }
           }
-
-          
-          
-
-
 
           io.to(socket.id).emit("driverNotification", {
             code: 200,
@@ -391,9 +393,15 @@ io.on("connection", (socket) => {
               if (drivers_info_for_token.length > 0) {
 
                 const company_assigned_driver_token = drivers_info_for_token.map(item => item.deviceToken);
-                await sendNotification(company_assigned_driver_token,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId)
-              }
+                
+                company_assigned_driver_token.forEach( async (driver_device_token) => {
 
+                  if (driver_device_token) {
+
+                    let send_notification = await sendNotification(driver_device_token,`Trip accepted by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,`Trip canceled by driver ${driverBySocketId.first_name+" "+ driverBySocketId.last_name} and trip ID is ${trip.trip_id}`,driverBySocketId)
+                  }
+                });
+              }
 
               // Send the socket to assigned drivers
               if (drivers_info_for_socket_ids.length > 0) {
@@ -408,7 +416,6 @@ io.on("connection", (socket) => {
                   });
                 });
               }
-              
             }
         }
 

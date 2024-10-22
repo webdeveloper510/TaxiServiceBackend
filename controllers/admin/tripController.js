@@ -77,7 +77,15 @@ const tripIsBooked = async (tripId, driver_full_info , io) => {
               if (drivers_info_for_token.length > 0) {
 
                 const company_assigned_driver_token = drivers_info_for_token.map(item => item.deviceToken);
-                await sendNotification(company_assigned_driver_token,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,agency.company_name+`'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver);
+
+                company_assigned_driver_token.forEach( async (driver_device_token) => {
+
+                    if (driver_device_token) {
+  
+                      let send_notification = await sendNotification(driver_device_token,`Trip not accepted by driver and trip ID is ${tripById.trip_id}`,agency.company_name+`'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,updateDriver);
+                    }
+                  });
+                
               }
 
 
@@ -1235,11 +1243,70 @@ exports.alocate_driver = async (req, res) => {
 
                 console.log("Date.now()------------" , current_date_time);
 
-                console.log("driver_full_info--------------------------------", driver_full_info)
+                console.log("update_trip_info--------------------------------", req.user.socketId)
 
                 setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info , req.io) }, 20 * 1000)
 
-                
+
+
+
+
+
+
+
+                // Functionality for update the trips who has access of company along with company
+                let created_by_company = await user_model.findById(update_trip?.created_by_company_id);
+
+                if (created_by_company.role == "COMPANY") {
+
+                    // Socket will not hit the function for the Driver / company who allocated the trip in this time
+
+                    if (created_by_company?.socketId && req.user.socketId != created_by_company?.socketId) { //  If Socket id  is exist 
+
+                        req.io.to(created_by_company?.socketId).emit("refreshTrip", {
+                            update_trip,
+                            message: "A trip has been sent for allocation to the driver",
+                          });
+                    }
+
+                    // functionality For assigned driver by company
+                    const company_assigned_driverIds = created_by_company.company_account_access.map(item => item.driver_id);
+
+                    if (company_assigned_driverIds.length > 0) {
+
+
+                        const drivers_info_for_socket_ids = await DRIVER.find({
+                          _id: { $in: company_assigned_driverIds  },
+                          status: true,
+                          socketId: { $ne: null } // device_token should not be null
+                        });
+          
+          
+          
+                        // Send the socket model popo to assigned drivers
+                        if (drivers_info_for_socket_ids.length > 0) {
+                          
+                          const company_assigned_driver_sockets = drivers_info_for_socket_ids.map(item => item.socketId);
+                          
+                          
+
+                            company_assigned_driver_sockets.forEach(socketId => {
+
+                                if (socketId != req.user.socketId) {
+                                    req.io.to(socketId).emit("refreshTrip", {
+                                        update_trip,
+                                        message: "A trip has been sent for allocation to the driver",
+                                    });
+                                }
+                              });
+                          
+                          
+                        }
+                        
+                    }
+                    
+                }
+
                 res.send({
                     code: constant.success_code,
                     message: "Driver allocated successfully",
@@ -1426,6 +1493,58 @@ exports.access_alocate_driver = async (req, res) => {
                 console.log("tripIsBooked----------------")
                 setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info , req.io) }, 20 * 1000)
 
+
+                let created_by_company = await user_model.findById(update_trip?.created_by_company_id);
+
+                if (created_by_company.role == "COMPANY") {
+
+                    // Socket will not hit the function for the Driver / company who allocated the trip in this time
+
+                    if (created_by_company?.socketId && req.user.socketId != created_by_company?.socketId) { //  If Socket id  is exist 
+
+                        req.io.to(created_by_company?.socketId).emit("refreshTrip", {
+                            update_trip,
+                            message: "A trip has been sent for allocation to the driver",
+                          });
+                    }
+
+                    // functionality For assigned driver by company
+                    const company_assigned_driverIds = created_by_company.company_account_access.map(item => item.driver_id);
+
+                    if (company_assigned_driverIds.length > 0) {
+
+
+                        const drivers_info_for_socket_ids = await DRIVER.find({
+                          _id: { $in: company_assigned_driverIds  },
+                          status: true,
+                          socketId: { $ne: null } // device_token should not be null
+                        });
+          
+          
+          
+                        // Send the socket model popo to assigned drivers
+                        if (drivers_info_for_socket_ids.length > 0) {
+                          
+                          const company_assigned_driver_sockets = drivers_info_for_socket_ids.map(item => item.socketId);
+                          
+                          
+
+                            company_assigned_driver_sockets.forEach(socketId => {
+
+                                if (socketId != req.user.socketId) {
+                                    req.io.to(socketId).emit("refreshTrip", {
+                                        update_trip,
+                                        message: "A trip has been sent for allocation to the driver",
+                                    });
+                                }
+                              });
+                          
+                          
+                        }
+                        
+                    }
+                    
+                }
                 
                 res.send({
                     code: constant.success_code,

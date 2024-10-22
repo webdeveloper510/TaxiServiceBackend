@@ -36,9 +36,11 @@ exports.isDriverHasCompanyAccess = async (driver_data , company_id) => { // Chec
 
 exports.sendNotification = async (to,message,title,data)=>{
 
-  console.log("get token--------------->" , to)
+  // console.log("get token--------------->" , to)
+  let device_token = to;
   try {
-   
+    
+    
     const messageData = {
       token: to,  // The device token to send the message to
       notification: {
@@ -59,9 +61,23 @@ exports.sendNotification = async (to,message,title,data)=>{
       },
     };
 const response = await admin.messaging().send(messageData);
-console.log ('Notification sent:', response);
+// console.log ('Notification sent:', response);
     return response
   } catch (error) {
+
+    if (error.code == 'messaging/registration-token-not-registered') {
+
+      await driver_model.updateOne(
+        { deviceToken: device_token }, // Find the user device token 
+        { $set: { deviceToken: "" } } // Replace 'fcmToken' with your actual token field name
+      );
+      await user_model.updateOne(
+        { deviceToken: device_token }, // Find the user device token 
+        { $set: { deviceToken: "" } } // Replace 'fcmToken' with your actual token field name
+      );
+      return "This token is invalid";
+    }
+    
     return error
   }
 }
