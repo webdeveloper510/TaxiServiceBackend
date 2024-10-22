@@ -128,6 +128,7 @@ const trip = new Schema({
     },
     hotel_id: { // If hotel added in the trip User_id of agencies collection
         type:mongoose.Schema.Types.ObjectId,ref:'agencies', 
+        default: null,
     },
 
     is_deleted:{
