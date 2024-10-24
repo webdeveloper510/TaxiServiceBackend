@@ -517,7 +517,7 @@ exports.admin_list = async (req, res) => {
    
     try {
 
-        let admin_list = await USER.find({ role: constant.ROLES.ADMIN, is_deleted: false , status: true } , {_id : 1 , first_name: 1, last_name: 1 , email: 1 , phone: 1  , role: 1 , is_deleted: 1 , status: 1});
+        let admin_list = await USER.find({ role: constant.ROLES.ADMIN, is_deleted: false } , {_id : 1 , first_name: 1, last_name: 1 , email: 1 , phone: 1  , role: 1 , is_deleted: 1 , status: 1});
         res.send({
             code: constant.success_code,
             data: admin_list
