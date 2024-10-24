@@ -6,5 +6,12 @@ module.exports={
     server_body_error : 500,
     ACCOUNT_SHARE_REVOKED: "REVOKED",
     ACCOUNT_SHARE_INVOKED: "INVOKED",
-    ACCESS_ERROR_CODE: 202
+    ACCESS_ERROR_CODE: 202,
+    ROLES: {
+        COMPANY: "COMPANY",
+        SUPER_ADMIN: "SUPER_ADMIN",
+        HOTEL: "HOTEL",
+        DRIVER: "DRIVER",
+        ADMIN: "ADMIN"
+    }
 }

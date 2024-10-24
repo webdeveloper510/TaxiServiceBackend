@@ -41,7 +41,7 @@ const user = new Schema(
     },
     role: {
       type: String,
-      enum: ["SUPER_ADMIN", "COMPANY", "HOTEL"],
+      enum: ["SUPER_ADMIN", "COMPANY", "HOTEL" , "ADMIN"],
       default: "HOTEL",
     },
     is_deleted: {

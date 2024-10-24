@@ -30,7 +30,13 @@ router.post('/save_feedback', [verifyToken], loginController.save_feedback)
 router.get('/get_feedback', [verifyToken], loginController.get_feedback)
 
 
+// Admin APIS
 
+router.post('/add_admin', [verifyToken], subAdminController.add_admin)
+router.get('/admin_list', [verifyToken], subAdminController.admin_list)
+router.get('/get_admin_details/:id', [verifyToken], subAdminController.get_admin_details)
+router.put('/update_admin_details/:id', [verifyToken], subAdminController.update_admin_details)
+router.delete('/delete_admin/:id', [verifyToken], subAdminController.delete_admin)
 
 // sub admin api's
 router.post('/add_sub_admin', [verifyToken], subAdminController.add_sub_admin)
@@ -62,6 +68,7 @@ router.post('/add_agency', [verifyToken], agencyController.add_agency)
 // driver api's
 router.post('/add_driver', driverController.add_driver)
 router.get('/get_drivers', [verifyToken], driverController.get_drivers)
+router.get('/get_drivers_list', [verifyToken], driverController.get_drivers_list)
 router.get('/get_drivers_super', [verifyToken], driverController.get_drivers_super)
 router.get('/get_driver_detail/:id', [verifyToken], driverController.get_driver_detail)
 router.put('/update_driver/:id', [verifyToken], driverController.update_driver)

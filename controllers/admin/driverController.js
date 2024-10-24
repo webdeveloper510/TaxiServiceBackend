@@ -623,6 +623,75 @@ exports.get_drivers = async (req, res) => {
   }
 };
 
+exports.get_drivers_list = async (req, res) => {
+
+  
+
+  try {
+    const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
+    let getDetail = await USER.findOne({ _id: req.userId });
+    
+    const search = req.query.search || "";
+    const query = {
+      is_deleted: false,
+    };
+    if (search.length > 0) {
+      query.$or = [
+        { email: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
+        { first_name: { $regex: search, $options: "i" } },
+        { last_name: { $regex: search, $options: "i" } },
+        { address_1: { $regex: search, $options: "i" } },
+      ];
+    }
+    const driver = await DRIVER.find(
+      query, 
+      {
+        _id: 1,
+        profile_image: 1,
+        first_name: 1,
+        last_name: 1,
+        phone: 1,
+        status: 1,
+        is_login: 1,
+        isVerified: 1,
+      })
+    
+    if (driver) {
+      
+      const favorite_driver = getDetail.favoriteDrivers.map((id) => id.toString());
+      const result = driver.map((d) => {
+
+        const driverObj = d.toObject();
+        let isFavorite = false;
+        
+        if (favorite_driver.includes(driverObj._id.toString())) {
+          isFavorite = true;
+        }
+        driverObj.isFavorite = isFavorite;
+        return driverObj;
+      });
+
+      res.send({
+        code: constant.success_code,
+        message: "Driver list retrieved successfully",
+        result: result,
+      });
+    } else {
+      res.send({
+        code: constant.error_code,
+        message: "No drivers found for the agency user",
+      });
+    }
+  } catch (err) {
+    console.log("🚀 ~ exports.get_drivers= ~ err:", err);
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
 exports.get_drivers_super = async (req, res) => {
   try {
     const search = req.query.search || "";
