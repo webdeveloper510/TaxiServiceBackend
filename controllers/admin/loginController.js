@@ -481,7 +481,8 @@ exports.resend_login_otp = async (req , res) => {
           return res.send({
             code: constants.OTP_CODE,
             "message": `We have sent the OTP to this phone number that ends with ${check_data.phone.slice(-4)}`,
-            OTP: OTP
+            OTP: OTP,
+            uniqueId: uniqueId
           });
         } else {
 
