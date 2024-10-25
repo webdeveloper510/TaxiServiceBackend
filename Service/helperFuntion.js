@@ -6,6 +6,10 @@ const user_model = require("../models/user/user_model");
 const { default: axios } = require("axios");
 const admin = require('firebase-admin');
 const serviceAccount = require('../taxi24-5044e-firebase-adminsdk-khmt0-c7c4ce0029.json');
+const twilio = require('twilio');
+// Initialize Twilio client
+const client = twilio(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
@@ -18,6 +22,23 @@ exports.driverDetailsByToken = async (token) => {
   // console.log("🚀 ~ file: helperFuntion.js:11 ~ exports.driverDetailsByToken= ~ driver:", driver)
   return driver
   
+}
+
+exports.sendSms = async (data) => {
+
+  try {
+
+    let payload = {
+      body: data.message, 
+      to: data.to,               
+      from: '+3197010204679'     
+    }
+    const message = await client.messages.create(payload);
+    
+  } catch (error) {
+
+    
+  }
 }
 exports.userDetailsByToken = async (token) => {
   const {userId} = jwt.verify(token, process.env.JWTSECRET);
