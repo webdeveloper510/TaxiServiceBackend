@@ -2,6 +2,7 @@ require("dotenv").config();
 const constant = require("../../config/constant");
 const DRIVER = require("../../models/user/driver_model"); // Import the Driver model
 const USER = require("../../models/user/user_model"); // Import the Driver model
+const LOGS = require("../../models/user/logs_model"); // Import the Driver model
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const path = require("path");
@@ -625,7 +626,7 @@ exports.get_drivers = async (req, res) => {
 
 exports.get_drivers_list = async (req, res) => {
 
-  
+  let api_start_time = new Date();
 
   try {
     const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
@@ -671,7 +672,22 @@ exports.get_drivers_list = async (req, res) => {
         driverObj.isFavorite = isFavorite;
         return driverObj;
       });
+      
+      let api_end_time = new Date();
 
+      const differenceInMs = api_end_time - api_start_time;
+      const differenceInSeconds = differenceInMs / 1000; // Convert to seconds
+      
+      let logs_data = {
+        api_start_time: api_start_time,
+        api_end_time: api_end_time,
+        response_time: differenceInSeconds,
+        user_id: req.userId,
+        role: req.user.role,
+        api_name: req.route ? req.route.path : req.originalUrl
+      }
+      const logEntry = new LOGS(logs_data);
+      logEntry.save();
       res.send({
         code: constant.success_code,
         message: "Driver list retrieved successfully",
@@ -685,6 +701,23 @@ exports.get_drivers_list = async (req, res) => {
     }
   } catch (err) {
     console.log("🚀 ~ exports.get_drivers= ~ err:", err);
+
+    let api_end_time = new Date();
+
+      const differenceInMs = api_end_time - api_start_time;
+      const differenceInSeconds = differenceInMs / 1000; // Convert to seconds
+      
+      let logs_data = {
+        api_start_time: api_start_time,
+        api_end_time: api_end_time,
+        response_time: differenceInSeconds,
+        user_id: req.userId,
+        role: req.user.role,
+        api_name: req.route ? req.route.path : req.originalUrl,
+        error_response : err.message
+      }
+      const logEntry = new LOGS(logs_data);
+      logEntry.save();
     res.send({
       code: constant.error_code,
       message: err.message,
