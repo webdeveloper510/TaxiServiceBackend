@@ -21,6 +21,24 @@ const mongoose = require("mongoose");
 const trip_model = require("../../models/user/trip_model");
 const driver_model = require("../../models/user/driver_model");
 const user_model = require("../../models/user/user_model");
+const { sendSms} = require("../../Service/helperFuntion");
+const { v4: uuidv4 } = require('uuid');
+
+ const removeOTPAfter5Minutes  = async (login_sms_otp_uid) => {
+
+  try {
+    const updatedUser =  await USER.findOneAndUpdate(
+      { login_sms_otp_uid: login_sms_otp_uid },               // Query to find the document
+      { $set: {login_sms_otp: "" ,} },           // Update operations
+      { new: true, useFindAndModify: false }  // Options
+    );
+
+    console.log("Updated User:", updatedUser);
+    return updatedUser;
+  } catch (error) {
+    console.error("Error updating user:", error);
+  }
+}
 
 exports.create_super_admin = async (req, res) => {
   try {
@@ -97,17 +115,18 @@ exports.login = async (req, res) => {
         },
       ],
     }).populate("created_by driverId");
-    if (
-      userData &&
-      userData.role != "SUPER_ADMIN" &&
-      (!userData.status || !userData?.created_by?.status)
-    ) {
+
+
+    // If user is blocked by admin or super admin
+
+    if ( userData && userData.role != "SUPER_ADMIN" && (!userData.status || !userData?.created_by?.status) ) {
       return res.send({
         code: constant.error_code,
-        message:
-          "You are blocked by administration. Please contact administration",
+        message: "You are blocked by administration. Please contact administration",
       });
     }
+
+    // If user is not a company , admin , super admin
     if (!userData) {
       let check_again = await DRIVER.findOne({
         $and: [
@@ -224,6 +243,8 @@ exports.login = async (req, res) => {
     } else {
 
       check_data = userData;
+
+      // If user blocked by Super admin or admin
       if (!check_data.status) {
         return res.send({
           code: constant.error_code,
@@ -231,10 +252,13 @@ exports.login = async (req, res) => {
             "You are blocked by administration. Please contact adminstation",
         });
       }
+
+      // compare the password
       let checkPassword = await bcrypt.compare(
         data.password,
         check_data.password
       );
+
       if (!checkPassword) {
         res.send({
           code: constants.error_code,
@@ -242,25 +266,55 @@ exports.login = async (req, res) => {
         });
         return;
       }
+
+      
+      //  OTP will send during the login for ADMIN AND SUPER_ADMIN
+      if (check_data.role == constant.ROLES.ADMIN || check_data.role == constant.ROLES.SUPER_ADMIN) {
+
+        if (check_data.phone != "") {
+
+          const uniqueId = `${uuidv4()}${Date.now()}${check_data._id}`;
+      
+          const OTP = Math.floor(100000 + Math.random() * 900000);
+          check_data.login_sms_otp_uid = uniqueId;
+          check_data.login_sms_otp = OTP;
+          await check_data.save();
+          // await sendSms({to: check_data.phone , message: `Hello ${check_data.first_name} ${check_data.first_name } , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`})
+        
+          setTimeout(() => { removeOTPAfter5Minutes(uniqueId)}, 120 * 1000) // 120 seconds ( 2 minutes)
+
+          return res.send({
+            code: constants.OTP_CODE,
+            "message": `We have sent the OTP to this phone number that ends with ${check_data.phone.slice(-4)}`,
+            uniqueId:uniqueId,
+            OTP: OTP
+          });
+        } else {
+
+          return  res.send({
+                    code: constants.error_code,
+                    message: "We can't send OTP because you didn't have phone number in our system",
+                  });
+        }
+        
+      }
+
+      
+
+      // Update token
       if(deviceToken) {
-        await Promise.all([driver_model.updateMany({
-          deviceToken
-        },{
-          deviceToken:null
-        }),
-        user_model.updateMany({
-          deviceToken
-        },{
-          deviceToken:null
-        })
-     
-      ])
+        await Promise.all([
+                            driver_model.updateMany({ deviceToken },{ deviceToken:null }),
+                            user_model.updateMany({ deviceToken },{ deviceToken:null })
+                        ])
       };
+
       let jwtToken = jwt.sign(
-        { userId: check_data._id },
-        process.env.JWTSECRET,
-        { expiresIn: "365d" }
-      );
+                                { userId: check_data._id },
+                                process.env.JWTSECRET,
+                                { expiresIn: "365d" }
+                              );
+
       if(mobile){
         check_data.jwtTokenMobile = jwtToken;
       check_data.lastUsedTokenMobile = new Date();
@@ -273,20 +327,22 @@ exports.login = async (req, res) => {
       }
       await check_data.save();
 
-      let getData = await USER.aggregate([
-        {
-          $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
-        },
-        {
-          $lookup: {
-            from: "agencies",
-            localField: "_id",
-            foreignField: "user_id",
-            as: "company_detail",
-          },
-        },
-        { $unwind: "$company_detail" },
-      ]);
+      let getData = await USER.aggregate(
+                                          [
+                                            {
+                                              $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
+                                            },
+                                            {
+                                              $lookup: {
+                                                from: "agencies",
+                                                localField: "_id",
+                                                foreignField: "user_id",
+                                                as: "company_detail",
+                                              },
+                                            },
+                                            { $unwind: "$company_detail" },
+                                          ]
+                                        );
 
       res.send({
         code: constants.success_code,
@@ -303,6 +359,159 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+exports.login_otp_verify = async (req, res) => {
+
+  try {
+
+    let data = req.body;
+    const deviceToken = data.deviceToken;
+    const check_data = await USER.findOne({ login_sms_otp_uid: data.login_sms_otp_uid });
+    
+    if (check_data) {
+
+      if (check_data.login_sms_otp == data.otp) {
+
+        // Update token
+        if(deviceToken) {
+
+          await Promise.all([
+                              driver_model.updateMany({ deviceToken },{ deviceToken:null }),
+                              user_model.updateMany({ deviceToken },{ deviceToken:null })
+                          ])
+        };
+
+        let jwtToken = jwt.sign(
+                                  { userId: check_data._id },
+                                  process.env.JWTSECRET,
+                                  { expiresIn: "365d" }
+                                );
+
+        
+        check_data.jwtToken       = jwtToken;
+        check_data.lastUsedToken  = new Date();
+        check_data.login_sms_otp  = "";
+        check_data.login_sms_otp_uid = "";
+        
+        
+        if(deviceToken) check_data.deviceToken = deviceToken;
+        
+
+        await check_data.save();
+
+        let getData = await USER.aggregate(
+                                            [
+                                              {
+                                                $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
+                                              },
+                                              {
+                                                $lookup: {
+                                                  from: "agencies",
+                                                  localField: "_id",
+                                                  foreignField: "user_id",
+                                                  as: "company_detail",
+                                                },
+                                              },
+                                              { $unwind: "$company_detail" },
+                                            ]
+                                          );
+
+        return  res.send({
+                  code: constants.success_code,
+                  message: "Login Successful",
+                  result: getData[0] ? getData[0] : check_data,
+                  jwtToken: jwtToken,
+                });
+
+      } else {
+
+        return  res.send({
+                  code: constants.error_code,
+                  message: "Invalid OTP",
+                });
+      }
+      res.send({
+        code: constants.success_code,
+        message: user,
+      });
+    } else {
+
+      return  res.send({
+                code: constants.error_code,
+                message: "This request has been expired. Please validate the credential again",
+              });
+    }
+    
+
+
+  } catch (error) {
+    console.log("🚀 ~ exports.login= ~ err:", error);
+    res.send({
+      code: constants.error_code,
+      message: error.message,
+    });
+  }
+  
+}
+
+exports.resend_login_otp = async (req , res) => {
+
+  try{
+
+    let data = req.body;
+
+    const check_data = await USER.findOne({ login_sms_otp_uid: data.login_sms_otp_uid });
+    
+    if (check_data) {
+
+      if (check_data.role == constant.ROLES.ADMIN || check_data.role == constant.ROLES.SUPER_ADMIN) {
+
+        if (check_data.phone != "") {
+
+          const uniqueId = `${uuidv4()}${Date.now()}${check_data._id}`;
+      
+          const OTP = Math.floor(100000 + Math.random() * 900000);
+          check_data.login_sms_otp_uid = uniqueId;
+          check_data.login_sms_otp = OTP;
+          await check_data.save();
+          // await sendSms({to: check_data.phone , message: `Hello ${check_data.first_name} ${check_data.first_name } , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`})
+        
+          setTimeout(() => { removeOTPAfter5Minutes(uniqueId)}, 120 * 1000) // 120 seconds ( 2 minutes)
+
+          return res.send({
+            code: constants.OTP_CODE,
+            "message": `We have sent the OTP to this phone number that ends with ${check_data.phone.slice(-4)}`,
+            OTP: OTP
+          });
+        } else {
+
+          return  res.send({
+                    code: constants.error_code,
+                    message: "We can't send OTP because you didn't have phone number in our system",
+                  });
+        }
+      } else {
+
+        return  res.send({
+                  code: constants.error_code,
+                  message: "Invalid role",
+                });
+      }
+    } else {
+
+      return  res.send({
+        code: constants.error_code,
+        message: "This request has been expired. Please validate the credential again",
+      });
+    }
+  } catch (error) {
+    console.log("🚀 ~ exports.login= ~ err:", error);
+    res.send({
+      code: constants.error_code,
+      message: error.message,
+    });
+  }
+}
 
 exports.get_token_detail = async (req, res) => {
   try {

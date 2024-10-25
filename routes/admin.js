@@ -19,6 +19,9 @@ router.post('/createPaymentSession', loginController.createPaymentSession)
 
 router.post('/create_super_admin', loginController.create_super_admin)
 router.post('/login', loginController.login)
+router.post('/login_otp_verify', loginController.login_otp_verify)
+router.post('/resend_login_otp', loginController.resend_login_otp)
+
 router.post('/send_otp', loginController.send_otp)
 router.post('/verify_otp', loginController.verify_otp)
 router.post('/forgot_password', loginController.forgot_password)

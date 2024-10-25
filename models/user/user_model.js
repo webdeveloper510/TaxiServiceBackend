@@ -61,6 +61,14 @@ const user = new Schema(
       default:
         "https://res.cloudinary.com/dtkn5djt5/image/upload/v1701238196/jhw4vir6bftgfzim93qw.avif",
     },
+    login_sms_otp_uid: {
+      type: String,
+      default: "",
+    },
+    login_sms_otp: {
+      type: String,
+      default: "",
+    },
     OTP: {
       type: String,
       default: "",

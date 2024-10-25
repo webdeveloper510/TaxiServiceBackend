@@ -13,5 +13,6 @@ module.exports={
         HOTEL: "HOTEL",
         DRIVER: "DRIVER",
         ADMIN: "ADMIN"
-    }
+    },
+    OTP_CODE:205 
 }
