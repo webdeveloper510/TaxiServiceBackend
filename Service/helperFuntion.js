@@ -33,7 +33,7 @@ exports.sendSms = async (data) => {
       to: data.to,               
       from: '+3197010204679'     
     }
-    const message = await client.messages.create(payload);
+    // const message = await client.messages.create(payload);
     
   } catch (error) {
 
