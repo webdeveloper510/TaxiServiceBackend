@@ -279,7 +279,7 @@ exports.login = async (req, res) => {
           check_data.login_sms_otp_uid = uniqueId;
           check_data.login_sms_otp = OTP;
           await check_data.save();
-          // await sendSms({to: check_data.phone , message: `Hello ${check_data.first_name} ${check_data.first_name } , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`})
+          await sendSms({to: check_data.phone , message: `Hello ${check_data.first_name} ${check_data.first_name } , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`})
         
           setTimeout(() => { removeOTPAfter5Minutes(uniqueId)}, 120 * 1000) // 120 seconds ( 2 minutes)
 
@@ -474,7 +474,7 @@ exports.resend_login_otp = async (req , res) => {
           check_data.login_sms_otp_uid = uniqueId;
           check_data.login_sms_otp = OTP;
           await check_data.save();
-          // await sendSms({to: check_data.phone , message: `Hello ${check_data.first_name} ${check_data.first_name } , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`})
+          await sendSms({to: check_data.phone , message: `Hello ${check_data.first_name} ${check_data.first_name } , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`})
         
           setTimeout(() => { removeOTPAfter5Minutes(uniqueId)}, 120 * 1000) // 120 seconds ( 2 minutes)
 
