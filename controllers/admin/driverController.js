@@ -765,6 +765,45 @@ exports.get_drivers_super = async (req, res) => {
   }
 };
 
+exports.get_deleted_drivers_super = async (req, res) => {
+  try {
+    const search = req.query.search || "";
+    const query = {
+      is_deleted: true,
+    };
+    if (search.length > 0) {
+      query.$or = [
+        { email: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
+        { first_name: { $regex: search, $options: "i" } },
+        { last_name: { $regex: search, $options: "i" } },
+        { address_1: { $regex: search, $options: "i" } },
+      ];
+    }
+    const drivers = await DRIVER.find(query)
+      .populate("defaultVehicle")
+      .sort({ createdAt: -1 });
+
+    if (drivers) {
+      res.send({
+        code: constant.success_code,
+        message: "Driver list retrieved successfully",
+        result: drivers,
+      });
+    } else {
+      res.send({
+        code: constant.error_code,
+        message: "No drivers found for the agency user",
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
 exports.update_driver = async (req, res) => {
   driverUpload(req, res, async (err) => {
     console.log("file++++44444++++++++", req.files);
