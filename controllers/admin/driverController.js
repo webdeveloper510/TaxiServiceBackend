@@ -835,6 +835,9 @@ exports.update_driver = async (req, res) => {
       // Check if the driver exists
       const existingDriver = await DRIVER.findById(driverId);
 
+      // if (!existingDriver || existingDriver.is_deleted) {
+
+      
       if (!existingDriver || existingDriver.is_deleted) {
         return res.send({
           code: constant.error_code,
