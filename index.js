@@ -207,20 +207,36 @@ io.on("connection", (socket) => {
   });
 
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
-    const driverBySocketId = await driver_model.findOne({
-      socketId: socket.id,
-    });
-    if (driverBySocketId) {
-      driverBySocketId.location = {
-        type: "Point",
-        coordinates: [longitude, latitude],
-      };
-      driverBySocketId.locationUpdatedAt = new Date();
-      await driverBySocketId.save();
-      io.to(socket.id).emit("UpdateLocationDriver", {
-        code: 200,
-        message: "location Updated successfully",
+    try {
+      const driverBySocketId = await driver_model.findOne({
+        socketId: socket.id,
       });
+      console.log(
+        "🚀 ~ socket.on ~ updateDriverLocation:--------------------------------------",
+        longitude,
+        latitude,
+        driverBySocketId
+      );
+
+      if (driverBySocketId) {
+        driverBySocketId.location = {
+          type: "Point",
+          coordinates: [longitude, latitude],
+        };
+        driverBySocketId.locationUpdatedAt = new Date();
+
+        console.log(
+          "updateDriverLocation data ------🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀----",
+          driverBySocketId
+        );
+        await driverBySocketId.save();
+        io.to(socket.id).emit("UpdateLocationDriver", {
+          code: 200,
+          message: "location Updated successfully",
+        });
+      }
+    } catch (error) {
+      console.log("🚀 ~ socket.on ~ error:", error);
     }
   });
 
