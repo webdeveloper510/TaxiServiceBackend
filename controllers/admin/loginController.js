@@ -21,16 +21,15 @@ const mongoose = require("mongoose");
 const trip_model = require("../../models/user/trip_model");
 const driver_model = require("../../models/user/driver_model");
 const user_model = require("../../models/user/user_model");
-const { sendSms} = require("../../Service/helperFuntion");
-const { v4: uuidv4 } = require('uuid');
+const { sendSms } = require("../../Service/helperFuntion");
+const { v4: uuidv4 } = require("uuid");
 
- const removeOTPAfter5Minutes  = async (login_sms_otp_uid) => {
-
+const removeOTPAfter5Minutes = async (login_sms_otp_uid) => {
   try {
-    const updatedUser =  await USER.findOneAndUpdate(
-      { login_sms_otp_uid: login_sms_otp_uid },               // Query to find the document
-      { $set: {login_sms_otp: "" ,} },           // Update operations
-      { new: true, useFindAndModify: false }  // Options
+    const updatedUser = await USER.findOneAndUpdate(
+      { login_sms_otp_uid: login_sms_otp_uid }, // Query to find the document
+      { $set: { login_sms_otp: "" } }, // Update operations
+      { new: true, useFindAndModify: false } // Options
     );
 
     console.log("Updated User:", updatedUser);
@@ -38,7 +37,7 @@ const { v4: uuidv4 } = require('uuid');
   } catch (error) {
     console.error("Error updating user:", error);
   }
-}
+};
 
 exports.create_super_admin = async (req, res) => {
   try {
@@ -90,7 +89,6 @@ exports.create_super_admin = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-   
     let currentDate = new Date();
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
@@ -100,7 +98,7 @@ exports.login = async (req, res) => {
     let data = req.body;
     const deviceToken = data.deviceToken;
     const mobile = data?.platform == "mobile";
-    
+
     let check_data;
     let userData = await USER.findOne({
       $and: [
@@ -116,13 +114,17 @@ exports.login = async (req, res) => {
       ],
     }).populate("created_by driverId");
 
-
     // If user is blocked by admin or super admin
 
-    if ( userData && userData.role != "SUPER_ADMIN" && (!userData.status || !userData?.created_by?.status) ) {
+    if (
+      userData &&
+      userData.role != "SUPER_ADMIN" &&
+      (!userData.status || !userData?.created_by?.status)
+    ) {
       return res.send({
         code: constant.error_code,
-        message: "You are blocked by administration. Please contact administration",
+        message:
+          "You are blocked by administration. Please contact administration",
       });
     }
 
@@ -141,7 +143,7 @@ exports.login = async (req, res) => {
           },
         ],
       });
-      console.log("🚀 ~ exports.login= ~ check_again:", check_again)
+      // console.log("🚀 ~ exports.login= ~ check_again:", check_again)
 
       if (!check_again) {
         res.send({
@@ -167,7 +169,7 @@ exports.login = async (req, res) => {
           },
         })
         .countDocuments();
-        const totalActiveTrips = await trip_model
+      const totalActiveTrips = await trip_model
         .find({
           driver_name: check_again._id,
           trip_status: "Active",
@@ -193,47 +195,53 @@ exports.login = async (req, res) => {
       //     })
       //     return;
       // }
-      if(deviceToken) {
-        await Promise.all([driver_model.updateMany({
-          deviceToken
-        },{
-          deviceToken:null
-        }),
-        user_model.updateMany({
-          deviceToken
-        },{
-          deviceToken:null
-        })
-     
-      ])
-      };
+      if (deviceToken) {
+        await Promise.all([
+          driver_model.updateMany(
+            {
+              deviceToken,
+            },
+            {
+              deviceToken: null,
+            }
+          ),
+          user_model.updateMany(
+            {
+              deviceToken,
+            },
+            {
+              deviceToken: null,
+            }
+          ),
+        ]);
+      }
       let jwtToken = jwt.sign(
         { userId: check_data._id },
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
-      const updateDriver = { is_login: true};
-      if(mobile){
+      const updateDriver = { is_login: true };
+      if (mobile) {
         updateDriver.jwtTokenMobile = jwtToken;
         updateDriver.lastUsedTokenMobile = new Date();
-      }else{
+      } else {
         updateDriver.jwtToken = jwtToken;
         updateDriver.lastUsedToken = new Date();
       }
-      
-      if(deviceToken) {
-        updateDriver.deviceToken = deviceToken
-      };
+
+      if (deviceToken) {
+        updateDriver.deviceToken = deviceToken;
+      }
       let updateLogin = await DRIVER.findOneAndUpdate(
         { _id: check_data._id },
-        {$set:updateDriver},
+        { $set: updateDriver },
         { new: true }
       );
       let check_data2 = updateLogin.toObject();
       check_data2.role = "DRIVER";
       check_data2.totalTrips = completedTrips;
       check_data2.totalUnpaidTrips = totalUnpaidTrips;
-      check_data2.totalActiveTrips = totalActiveTrips
+      check_data2.totalActiveTrips = totalActiveTrips;
       res.send({
         code: constants.success_code,
         message: "Login Successful",
@@ -241,7 +249,6 @@ exports.login = async (req, res) => {
         jwtToken: jwtToken,
       });
     } else {
-
       check_data = userData;
 
       // If user blocked by Super admin or admin
@@ -267,82 +274,84 @@ exports.login = async (req, res) => {
         return;
       }
 
-      
       //  OTP will send during the login for ADMIN AND SUPER_ADMIN
-      if (check_data.role == constant.ROLES.ADMIN || check_data.role == constant.ROLES.SUPER_ADMIN) {
-
+      if (
+        check_data.role == constant.ROLES.ADMIN ||
+        check_data.role == constant.ROLES.SUPER_ADMIN
+      ) {
         if (check_data.phone != "") {
-
           const uniqueId = `${uuidv4()}${Date.now()}${check_data._id}`;
-      
+
           const OTP = Math.floor(100000 + Math.random() * 900000);
           check_data.login_sms_otp_uid = uniqueId;
           check_data.login_sms_otp = OTP;
           await check_data.save();
-          await sendSms({to: check_data.phone , message: `Hello ${check_data.first_name} ${check_data.first_name } , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`})
-        
-          setTimeout(() => { removeOTPAfter5Minutes(uniqueId)}, 120 * 1000) // 120 seconds ( 2 minutes)
+          await sendSms({
+            to: check_data.phone,
+            message: `Hello ${check_data.first_name} ${check_data.first_name} , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`,
+          });
+
+          setTimeout(() => {
+            removeOTPAfter5Minutes(uniqueId);
+          }, 120 * 1000); // 120 seconds ( 2 minutes)
 
           return res.send({
             code: constants.OTP_CODE,
-            "message": `We have sent the OTP to this phone number that ends with ${check_data.phone.slice(-4)}`,
-            uniqueId:uniqueId,
-            OTP: OTP
+            message: `We have sent the OTP to this phone number that ends with ${check_data.phone.slice(
+              -4
+            )}`,
+            uniqueId: uniqueId,
+            OTP: OTP,
           });
         } else {
-
-          return  res.send({
-                    code: constants.error_code,
-                    message: "We can't send OTP because you didn't have phone number in our system",
-                  });
+          return res.send({
+            code: constants.error_code,
+            message:
+              "We can't send OTP because you didn't have phone number in our system",
+          });
         }
-        
       }
-
-      
 
       // Update token
-      if(deviceToken) {
+      if (deviceToken) {
         await Promise.all([
-                            driver_model.updateMany({ deviceToken },{ deviceToken:null }),
-                            user_model.updateMany({ deviceToken },{ deviceToken:null })
-                        ])
-      };
+          driver_model.updateMany({ deviceToken }, { deviceToken: null }),
+          user_model.updateMany({ deviceToken }, { deviceToken: null }),
+        ]);
+      }
 
       let jwtToken = jwt.sign(
-                                { userId: check_data._id },
-                                process.env.JWTSECRET,
-                                { expiresIn: "365d" }
-                              );
+        { userId: check_data._id },
+        process.env.JWTSECRET,
+        { expiresIn: "365d" }
+      );
 
-      if(mobile){
+      if (mobile) {
         check_data.jwtTokenMobile = jwtToken;
-      check_data.lastUsedTokenMobile = new Date();
-      }else{
+        check_data.lastUsedTokenMobile = new Date();
+      } else {
         check_data.jwtToken = jwtToken;
-      check_data.lastUsedToken = new Date();
+        check_data.lastUsedToken = new Date();
       }
-      if(deviceToken) {
+      if (deviceToken) {
         check_data.deviceToken = deviceToken;
       }
       await check_data.save();
 
-      let getData = await USER.aggregate(
-                                          [
-                                            {
-                                              $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
-                                            },
-                                            {
-                                              $lookup: {
-                                                from: "agencies",
-                                                localField: "_id",
-                                                foreignField: "user_id",
-                                                as: "company_detail",
-                                              },
-                                            },
-                                            { $unwind: "$company_detail" },
-                                          ]
-                                        );
+      let getData = await USER.aggregate([
+        {
+          $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
+        },
+        {
+          $lookup: {
+            from: "agencies",
+            localField: "_id",
+            foreignField: "user_id",
+            as: "company_detail",
+          },
+        },
+        { $unwind: "$company_detail" },
+      ]);
 
       res.send({
         code: constants.success_code,
@@ -361,148 +370,74 @@ exports.login = async (req, res) => {
 };
 
 exports.login_otp_verify = async (req, res) => {
-
   try {
-
     let data = req.body;
     const deviceToken = data.deviceToken;
-    const check_data = await USER.findOne({ login_sms_otp_uid: data.login_sms_otp_uid });
-    
+    const check_data = await USER.findOne({
+      login_sms_otp_uid: data.login_sms_otp_uid,
+    });
+
     if (check_data) {
-
       if (check_data.login_sms_otp == data.otp) {
-
         // Update token
-        if(deviceToken) {
-
+        if (deviceToken) {
           await Promise.all([
-                              driver_model.updateMany({ deviceToken },{ deviceToken:null }),
-                              user_model.updateMany({ deviceToken },{ deviceToken:null })
-                          ])
-        };
+            driver_model.updateMany({ deviceToken }, { deviceToken: null }),
+            user_model.updateMany({ deviceToken }, { deviceToken: null }),
+          ]);
+        }
 
         let jwtToken = jwt.sign(
-                                  { userId: check_data._id },
-                                  process.env.JWTSECRET,
-                                  { expiresIn: "365d" }
-                                );
+          { userId: check_data._id },
+          process.env.JWTSECRET,
+          { expiresIn: "365d" }
+        );
 
-        
-        check_data.jwtToken       = jwtToken;
-        check_data.lastUsedToken  = new Date();
-        check_data.login_sms_otp  = "";
+        check_data.jwtToken = jwtToken;
+        check_data.lastUsedToken = new Date();
+        check_data.login_sms_otp = "";
         check_data.login_sms_otp_uid = "";
-        
-        
-        if(deviceToken) check_data.deviceToken = deviceToken;
-        
+
+        if (deviceToken) check_data.deviceToken = deviceToken;
 
         await check_data.save();
 
-        let getData = await USER.aggregate(
-                                            [
-                                              {
-                                                $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
-                                              },
-                                              {
-                                                $lookup: {
-                                                  from: "agencies",
-                                                  localField: "_id",
-                                                  foreignField: "user_id",
-                                                  as: "company_detail",
-                                                },
-                                              },
-                                              { $unwind: "$company_detail" },
-                                            ]
-                                          );
+        let getData = await USER.aggregate([
+          {
+            $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
+          },
+          {
+            $lookup: {
+              from: "agencies",
+              localField: "_id",
+              foreignField: "user_id",
+              as: "company_detail",
+            },
+          },
+          { $unwind: "$company_detail" },
+        ]);
 
-        return  res.send({
-                  code: constants.success_code,
-                  message: "Login Successful",
-                  result: getData[0] ? getData[0] : check_data,
-                  jwtToken: jwtToken,
-                });
-
+        return res.send({
+          code: constants.success_code,
+          message: "Login Successful",
+          result: getData[0] ? getData[0] : check_data,
+          jwtToken: jwtToken,
+        });
       } else {
-
-        return  res.send({
-                  code: constants.error_code,
-                  message: "Invalid OTP",
-                });
+        return res.send({
+          code: constants.error_code,
+          message: "Invalid OTP",
+        });
       }
       res.send({
         code: constants.success_code,
         message: user,
       });
     } else {
-
-      return  res.send({
-                code: constants.error_code,
-                message: "This request has been expired. Please validate the credential again",
-              });
-    }
-    
-
-
-  } catch (error) {
-    console.log("🚀 ~ exports.login= ~ err:", error);
-    res.send({
-      code: constants.error_code,
-      message: error.message,
-    });
-  }
-  
-}
-
-exports.resend_login_otp = async (req , res) => {
-
-  try{
-
-    let data = req.body;
-
-    const check_data = await USER.findOne({ login_sms_otp_uid: data.login_sms_otp_uid });
-    
-    if (check_data) {
-
-      if (check_data.role == constant.ROLES.ADMIN || check_data.role == constant.ROLES.SUPER_ADMIN) {
-
-        if (check_data.phone != "") {
-
-          const uniqueId = `${uuidv4()}${Date.now()}${check_data._id}`;
-      
-          const OTP = Math.floor(100000 + Math.random() * 900000);
-          check_data.login_sms_otp_uid = uniqueId;
-          check_data.login_sms_otp = OTP;
-          await check_data.save();
-          await sendSms({to: check_data.phone , message: `Hello ${check_data.first_name} ${check_data.first_name } , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`})
-        
-          setTimeout(() => { removeOTPAfter5Minutes(uniqueId)}, 120 * 1000) // 120 seconds ( 2 minutes)
-
-          return res.send({
-            code: constants.OTP_CODE,
-            "message": `We have sent the OTP to this phone number that ends with ${check_data.phone.slice(-4)}`,
-            OTP: OTP,
-            uniqueId: uniqueId
-          });
-        } else {
-
-          return  res.send({
-                    code: constants.error_code,
-                    message: "We can't send OTP because you didn't have phone number in our system",
-                  });
-        }
-      } else {
-
-        return  res.send({
-                  code: constants.error_code,
-                  message: "Invalid role",
-                });
-      }
-    } else {
-
-      return  res.send({
+      return res.send({
         code: constants.error_code,
-        message: "This request has been expired. Please validate the credential again",
+        message:
+          "This request has been expired. Please validate the credential again",
       });
     }
   } catch (error) {
@@ -512,7 +447,73 @@ exports.resend_login_otp = async (req , res) => {
       message: error.message,
     });
   }
-}
+};
+
+exports.resend_login_otp = async (req, res) => {
+  try {
+    let data = req.body;
+
+    const check_data = await USER.findOne({
+      login_sms_otp_uid: data.login_sms_otp_uid,
+    });
+
+    if (check_data) {
+      if (
+        check_data.role == constant.ROLES.ADMIN ||
+        check_data.role == constant.ROLES.SUPER_ADMIN
+      ) {
+        if (check_data.phone != "") {
+          const uniqueId = `${uuidv4()}${Date.now()}${check_data._id}`;
+
+          const OTP = Math.floor(100000 + Math.random() * 900000);
+          check_data.login_sms_otp_uid = uniqueId;
+          check_data.login_sms_otp = OTP;
+          await check_data.save();
+          await sendSms({
+            to: check_data.phone,
+            message: `Hello ${check_data.first_name} ${check_data.first_name} , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`,
+          });
+
+          setTimeout(() => {
+            removeOTPAfter5Minutes(uniqueId);
+          }, 120 * 1000); // 120 seconds ( 2 minutes)
+
+          return res.send({
+            code: constants.OTP_CODE,
+            message: `We have sent the OTP to this phone number that ends with ${check_data.phone.slice(
+              -4
+            )}`,
+            OTP: OTP,
+            uniqueId: uniqueId,
+          });
+        } else {
+          return res.send({
+            code: constants.error_code,
+            message:
+              "We can't send OTP because you didn't have phone number in our system",
+          });
+        }
+      } else {
+        return res.send({
+          code: constants.error_code,
+          message: "Invalid role",
+        });
+      }
+    } else {
+      return res.send({
+        code: constants.error_code,
+        message:
+          "This request has been expired. Please validate the credential again",
+      });
+    }
+  } catch (error) {
+    console.log("🚀 ~ exports.login= ~ err:", error);
+    res.send({
+      code: constants.error_code,
+      message: error.message,
+    });
+  }
+};
 
 exports.get_token_detail = async (req, res) => {
   try {
@@ -523,9 +524,11 @@ exports.get_token_detail = async (req, res) => {
       startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
     ); // Set to Monday of current week
     let data = req.body;
-    
+
     let result1;
-    const userByID = await USER.findOne({ _id: req.userId }).populate("driverId");
+    const userByID = await USER.findOne({ _id: req.userId }).populate(
+      "driverId"
+    );
     let getData = await USER.aggregate([
       {
         $match: { _id: new mongoose.Types.ObjectId(req.userId) },
@@ -552,7 +555,7 @@ exports.get_token_detail = async (req, res) => {
       //   preserveNullAndEmptyArrays: true
       // }
     ]);
-    
+
     if (!userByID) {
       let get_data = await DRIVER.findOne({ _id: req.userId });
       if (!get_data) {
@@ -581,14 +584,13 @@ exports.get_token_detail = async (req, res) => {
         result: get_data2,
       });
     } else {
-      let dataResult =  getData[0];
-    // const dataModified = dataResult.toObject();
-    const drivers = dataResult?.driver || []
-    const driverData = drivers[0];
-    if(driverData){
-      dataResult.driver = driverData 
-
-    }
+      let dataResult = getData[0];
+      // const dataModified = dataResult.toObject();
+      const drivers = dataResult?.driver || [];
+      const driverData = drivers[0];
+      if (driverData) {
+        dataResult.driver = driverData;
+      }
       res.send({
         code: constant.success_code,
         message: "Success",
@@ -609,7 +611,10 @@ exports.send_otp = async (req, res) => {
     let check_email = await USER.findOne({
       $and: [
         {
-          $or: [{ email: { $regex: data.email, $options: "i" }  }, { phone: { $regex: data.email, $options: "i" }  }],
+          $or: [
+            { email: { $regex: data.email, $options: "i" } },
+            { phone: { $regex: data.email, $options: "i" } },
+          ],
         },
         {
           status: true,
@@ -623,7 +628,10 @@ exports.send_otp = async (req, res) => {
       let check_driver = await DRIVER.findOne({
         $and: [
           {
-            $or: [{ email: { $regex: data.email, $options: "i" }  }, { phone: { $regex: data.email, $options: "i" }  }],
+            $or: [
+              { email: { $regex: data.email, $options: "i" } },
+              { phone: { $regex: data.email, $options: "i" } },
+            ],
           },
           {
             status: true,
@@ -633,7 +641,7 @@ exports.send_otp = async (req, res) => {
           },
         ],
       });
-      console.log("🚀 ~ exports.send_otp= ~ check_driver:", check_driver)
+      console.log("🚀 ~ exports.send_otp= ~ check_driver:", check_driver);
       if (!check_driver) {
         res.send({
           code: constant.error_code,
@@ -808,7 +816,6 @@ There was a request to change your password!
       res.send({
         code: constant.success_code,
         message: "OTP sent successfully",
-       
       });
     } else {
       data.OTP = randToken.generate(4, "123456789");
@@ -984,7 +991,6 @@ There was a request to change your password!
         res.send({
           code: constant.success_code,
           message: "OTP sent successfully",
-         
         });
       }
     }
@@ -1001,9 +1007,13 @@ exports.verify_otp = async (req, res) => {
     let data = req.body;
 
     let checkEmail;
-    let checkEmail1 = await USER.findOne({ email: { $regex: data.email, $options: "i" }  });
+    let checkEmail1 = await USER.findOne({
+      email: { $regex: data.email, $options: "i" },
+    });
     if (!checkEmail1) {
-      let checkEmail2 = await DRIVER.findOne({ email: { $regex: data.email, $options: "i" }  });
+      let checkEmail2 = await DRIVER.findOne({
+        email: { $regex: data.email, $options: "i" },
+      });
       if (!checkEmail2) {
         res.send({
           code: constant.error_code,
@@ -1059,12 +1069,15 @@ exports.verify_otp = async (req, res) => {
 exports.forgot_password = async (req, res) => {
   try {
     let data = req.body;
-    
-    let criteria = { email: { $regex:data.email, $options: "i" }  };
+
+    let criteria = { email: { $regex: data.email, $options: "i" } };
     let check_email = await USER.findOne(criteria);
     if (!check_email) {
       let check_driver = await DRIVER.findOne(criteria);
-      console.log("🚀 ~ exports.forgot_password= ~ check_driver:", check_driver)
+      console.log(
+        "🚀 ~ exports.forgot_password= ~ check_driver:",
+        check_driver
+      );
       if (!check_driver) {
         res.send({
           code: constant.error_code,
@@ -1086,7 +1099,10 @@ exports.forgot_password = async (req, res) => {
         newValue,
         option
       );
-      console.log("🚀 ~ exports.forgot_password= ~ updatePassword:", updatePassword)
+      console.log(
+        "🚀 ~ exports.forgot_password= ~ updatePassword:",
+        updatePassword
+      );
       if (!updatePassword) {
         res.send({
           code: constant.error_code,
