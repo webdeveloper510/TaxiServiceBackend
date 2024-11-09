@@ -610,15 +610,39 @@ io.on("connection", (socket) => {
 
           driverBySocketId.isSocketConnected = false;
           driverBySocketId.socketId = null;
-          driverBySocketId.status = false; // when driver will kill the app then it will not be available to take the trips. driver have to manually change the online / Offline
+
           await driverBySocketId.save();
+
+          setTimeout(() => {
+            OfflineDriver(driverBySocketId);
+          }, 60 * 1000);
         }
-      }, 1000);
+      }, 3000);
     } catch (error) {
       console.log("🚀 ~ socket.disconnect ~ error:", error);
     }
   });
 });
+
+const OfflineDriver = async (driverInfo) => {
+  console.log("🚀 ~ OfflineDriver ~ :--------------", driverInfo._id);
+  try {
+    const driverData = await driver_model.findOne({
+      _id: driverInfo._id,
+    });
+
+    if (driverData?.socketId === null) {
+      driverData.status = false; // when driver will kill the app then it will not be available to take the trips. driver have to manually change the online / Offline
+      await driverData.save();
+
+      console.log("data saved");
+    } else {
+      console.log("he joined again in 60 second");
+    }
+  } catch (err) {
+    console.log("🚀 ~ tripIsBooked ~ err:", err);
+  }
+};
 
 async function checkTripsAndSendNotifications() {
   try {

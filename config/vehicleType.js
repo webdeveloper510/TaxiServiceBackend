@@ -40,13 +40,31 @@ module.exports = [
   //   "seats": 60
   // }
   {
+    name: "EQE",
+    fullName: "normal car",
+    otherName: "van",
+    seats: 0,
+    start_price: 4.02,
+    per_km: 2.65,
+    per_min: 0.44,
+  },
+  {
+    name: "EQS",
+    fullName: "normal car",
+    otherName: "van",
+    seats: 0,
+    start_price: 4.02,
+    per_km: 2.65,
+    per_min: 2.96,
+  },
+  {
     name: "B7",
     fullName: "minivan 7",
     otherName: "van",
     seats: 0,
-    start_price: 3.60,
+    start_price: 3.6,
     per_km: 2.65,
-    per_min: 0.44
+    per_min: 29.6,
   },
   {
     name: "B6 ",
@@ -55,7 +73,7 @@ module.exports = [
     seats: 0,
     start_price: 7.33,
     per_km: 3.34,
-    per_min: 0.49
+    per_min: 0.49,
   },
   {
     name: "S",
@@ -64,7 +82,7 @@ module.exports = [
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
-    per_min: 4.29
+    per_min: 4.29,
   },
   {
     name: "A",
@@ -73,15 +91,16 @@ module.exports = [
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
-    per_min: 4.29
-  },{
+    per_min: 4.29,
+  },
+  {
     name: "L",
     fullName: "limousine",
     otherName: "lux",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
-    per_min: 4.29
+    per_min: 4.29,
   },
   {
     name: "B8",
@@ -90,7 +109,7 @@ module.exports = [
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
-    per_min: 4.29
+    per_min: 4.29,
   },
   {
     name: "EV",
@@ -99,7 +118,7 @@ module.exports = [
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
-    per_min: 4.29
+    per_min: 4.29,
   },
   {
     name: "EQV",
@@ -108,7 +127,7 @@ module.exports = [
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
-    per_min: 4.29
+    per_min: 4.29,
   },
   {
     name: "ELV",
@@ -117,10 +136,6 @@ module.exports = [
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
-    per_min: 4.29
+    per_min: 4.29,
   },
-
 ];
-
-
-
