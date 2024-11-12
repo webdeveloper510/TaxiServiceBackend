@@ -90,6 +90,36 @@ io.on("connection", (socket) => {
   const connectedSocketIds = Array.from(io.sockets.sockets.keys());
   console.log("All connected socket IDs:", connectedSocketIds);
 
+  socket.on("addWebNewDriver", async ({ token }) => {
+    try {
+      await driver_model.updateMany(
+        { webSocketId: socket.id },
+        {
+          $set: {
+            isWebSocketConnected: false,
+            webSocketId: null,
+          },
+        }
+      );
+      const driverByToken = await driverDetailsByToken(token);
+
+      if (driverByToken) {
+        driverByToken.locationUpdatedAt = new Date();
+        driverByToken.isWebSocketConnected = true;
+        driverByToken.webSocketId = socket.id;
+        await driverByToken.save();
+        // console.log("🚀 ~ socket.on ~ add driver token =====", driverByToken)
+        io.to(socket.id).emit("driverNotification", {
+          code: 200,
+          message:
+            "connected successfully with driver id: " + driverByToken._id,
+        });
+      }
+    } catch (err) {
+      console.log("🚀 ~ socket.on ~ err:", err);
+    }
+  });
+
   socket.on("addNewDriver", async ({ token, longitude, latitude }) => {
     try {
       await driver_model.updateMany(
@@ -123,6 +153,52 @@ io.on("connection", (socket) => {
       console.log("🚀 ~ socket.on ~ err:", err);
     }
   });
+
+  socket.on("addWebUser", async ({ token }) => {
+    if (!token || token == "") {
+      io.to(socket.id).emit("userConnection", {
+        code: 200,
+        message: "token is required",
+      });
+
+      return;
+    }
+    try {
+      await user_model.updateMany(
+        { webSocketId: socket.id },
+        {
+          $set: {
+            isWebSocketConnected: false,
+            webSocketId: null,
+          },
+        }
+      );
+      console.log("🚀 ~ socket.on ~ token:", token);
+      const userByToken = await userDetailsByToken(token);
+
+      if (userByToken) {
+        await user_model.updateMany(
+          { webSocketId: socket.id },
+          {
+            $set: {
+              isWebSocketConnected: false,
+              webSocketId: null,
+            },
+          }
+        );
+        userByToken.isWebSocketConnected = true;
+        userByToken.webSocketId = socket.id;
+        await userByToken.save();
+        io.to(socket.id).emit("userConnection", {
+          code: 200,
+          message: "connected successfully with user id: " + userByToken._id,
+        });
+      }
+    } catch (err) {
+      console.log("🚀 ~ socket.on ~ err:", err);
+    }
+  });
+
   socket.on("addUser", async ({ token }) => {
     if (!token || token == "") {
       io.to(socket.id).emit("userConnection", {

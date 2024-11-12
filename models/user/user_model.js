@@ -12,16 +12,19 @@ const user = new Schema(
       default: "",
     },
     favoriteDrivers: {
-      type: [{ type: Schema.Types.ObjectId, ref: 'driver' }],
-      default:[],
+      type: [{ type: Schema.Types.ObjectId, ref: "driver" }],
+      default: [],
     },
     company_account_access: {
-      type: [{ 
-        driver_id:{
-          type: Schema.Types.ObjectId, ref: 'driver'
-        }
-       }],
-      default:[],
+      type: [
+        {
+          driver_id: {
+            type: Schema.Types.ObjectId,
+            ref: "driver",
+          },
+        },
+      ],
+      default: [],
     },
     email: {
       type: String,
@@ -41,7 +44,7 @@ const user = new Schema(
     },
     role: {
       type: String,
-      enum: ["SUPER_ADMIN", "COMPANY", "HOTEL" , "ADMIN"],
+      enum: ["SUPER_ADMIN", "COMPANY", "HOTEL", "ADMIN"],
       default: "HOTEL",
     },
     is_deleted: {
@@ -106,38 +109,46 @@ const user = new Schema(
       default: false,
     },
     socketId: {
-        type: String,
-        default: null,
+      type: String,
+      default: null,
+    },
+    isWebSocketConnected: {
+      type: Boolean,
+      default: false,
+    },
+    webSocketId: {
+      type: String,
+      default: null,
     },
     deviceToken: {
       type: String,
-      default: ''
-  },
+      default: "",
+    },
     isDriver: {
       type: Boolean,
-      default: false
-  },
-  driverId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "driver",
-    default: null,
-  },
-  jwtToken: {
-    type: String,
-    default: null,
-},
-  lastUsedToken: {
-    type:Date,
-    default:Date.now()
-},
-jwtTokenMobile: {
-  type: String,
-  default: null,
-},
-lastUsedTokenMobile: {
-  type:Date,
-  default:Date.now()
-},
+      default: false,
+    },
+    driverId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "driver",
+      default: null,
+    },
+    jwtToken: {
+      type: String,
+      default: null,
+    },
+    lastUsedToken: {
+      type: Date,
+      default: Date.now(),
+    },
+    jwtTokenMobile: {
+      type: String,
+      default: null,
+    },
+    lastUsedTokenMobile: {
+      type: Date,
+      default: Date.now(),
+    },
   },
   { timestamps: true }
 );
