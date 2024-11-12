@@ -27,18 +27,23 @@ const nodemailer = require("nodemailer");
 const emailConstant = require("../../config/emailConstant");
 const twilio = require("twilio");
 
-const tripIsBooked = async (tripId, driver_full_info, io) => {
-  console.log(
-    "🚀 ~ tripIsBooked ~ tripId:",
-    tripId,
-    "after driver_full_info-------",
-    driver_full_info
-  );
+const tripIsBooked = async (tripId, driver_info, io) => {
+  const driver_full_info = await driver_model.findOne({
+    _id: driver_info._id,
+  });
+
+  // console.log(
+  //   "🚀 ~ tripIsBooked ~ tripId:",
+  //   tripId,
+  //   "after driver_full_info-------",
+  //   driver_full_info
+  // );
   try {
     const tripById = await trip_model.findOne({
       _id: tripId,
       trip_status: "Accepted",
     });
+
     if (tripById) {
       const updateDriver = await driver_model.findByIdAndUpdate(
         tripById.driver_name,
@@ -47,20 +52,43 @@ const tripIsBooked = async (tripId, driver_full_info, io) => {
       tripById.driver_name = null;
       tripById.trip_status = "Pending";
       await tripById.save();
+
       const user = await user_model.findById(tripById.created_by_company_id);
       const agency = await AGENCY.findOne({
         user_id: tripById.created_by_company_id,
       });
 
-      io.to(user?.socketId).emit("tripNotAcceptedBYDriver", {
-        trip: tripById,
-        message: "Trip not accepted by the Driver",
-      });
+      // for company app side
+      if (user?.socketId) {
+        io.to(user?.socketId).emit("tripNotAcceptedBYDriver", {
+          trip: tripById,
+          message: "Trip not accepted by the Driver",
+        });
+      }
 
-      io.to(driver_full_info?.socketId).emit("popUpClose", {
-        trip: tripById,
-        message: "Close up socket connection",
-      });
+      // for company web side
+      if (user?.webSocketId) {
+        io.to(user?.webSocketId).emit("tripNotAcceptedBYDriver", {
+          trip: tripById,
+          message: "Trip not accepted by the Driver",
+        });
+      }
+
+      // for driver app side
+      if (driver_full_info?.socketId) {
+        io.to(driver_full_info?.socketId).emit("popUpClose", {
+          trip: tripById,
+          message: "Close up socket connection",
+        });
+      }
+
+      if (driver_full_info?.webSocketId) {
+        // for web app side
+        io.to(driver_full_info?.webSocketId).emit("popUpClose", {
+          trip: tripById,
+          message: "Close up socket connection",
+        });
+      }
 
       if (user?.created_by?.deviceToken) {
         // notification for companies
@@ -87,13 +115,6 @@ const tripIsBooked = async (tripId, driver_full_info, io) => {
           deviceToken: { $ne: null }, // device_token should not be null
         });
 
-        // get driver device token for notification
-        const drivers_info_for_socket_ids = await driver_model.find({
-          _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
-          status: true,
-          socketId: { $ne: null }, // device_token should not be null
-        });
-
         // Send the notification to assigned drivers
         if (drivers_info_for_token.length > 0) {
           const company_assigned_driver_token = drivers_info_for_token.map(
@@ -113,10 +134,33 @@ const tripIsBooked = async (tripId, driver_full_info, io) => {
           });
         }
 
+        // get driver device token for notification
+        const drivers_info_for_socket_ids_app = await driver_model.find({
+          _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
+          status: true,
+          socketId: { $ne: null }, // device_token should not be null
+        });
+
+        const drivers_info_for_socket_ids_web = await driver_model.find({
+          _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
+          status: true,
+          webSocketId: { $ne: null }, // device_token should not be null
+        });
+
+        const company_assigned_driver_sockets_web =
+          drivers_info_for_socket_ids_web.map((item) => item.socketId);
+        const company_assigned_driver_sockets_app =
+          drivers_info_for_socket_ids_app.map((item) => item.socketId);
+
+        const driverSocketIds = company_assigned_driver_sockets_web.concat(
+          company_assigned_driver_sockets_app
+        );
+
         // Send the socket to assigned drivers
-        if (drivers_info_for_socket_ids.length > 0) {
-          const company_assigned_driver_sockets =
-            drivers_info_for_socket_ids.map((item) => item.socketId);
+        if (driverSocketIds.length > 0) {
+          const company_assigned_driver_sockets = driverSocketIds.map(
+            (item) => item.socketId
+          );
 
           company_assigned_driver_sockets.forEach((socketId) => {
             io.to(socketId).emit("tripNotAcceptedBYDriver", {
@@ -1144,8 +1188,6 @@ exports.alocate_driver = async (req, res) => {
   try {
     let data = req.body;
 
-    console.log("checing data----", data);
-
     let criteria = { _id: req.params.id };
     let check_trip = await TRIP.findOne(criteria);
     if (!check_trip) {
@@ -1292,8 +1334,6 @@ exports.alocate_driver = async (req, res) => {
         let created_by_company = await user_model.findById(
           update_trip?.created_by_company_id
         );
-
-        console.log("created_by_company----------------------", update_trip);
 
         if (created_by_company?.role == "COMPANY") {
           // Socket will not hit the function for the Driver / company who allocated the trip in this time
