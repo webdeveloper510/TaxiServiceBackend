@@ -265,16 +265,28 @@ io.on("connection", (socket) => {
         driverById
       );
 
-      io.to(driverById.socketId).emit("retrivedTrip", {
-        message: `Your trip has been retrived by company ${company_data?.company_name}`,
-        trip: trip,
-      });
-      const response = await sendNotification(
-        driverById?.deviceToken,
-        `Your trip has been retrived by company ${company_data?.company_name}`,
-        `Your trip has been retrived by company ${company_data?.company_name}`,
-        trip
-      );
+      if (driverById?.socketId) {
+        io.to(driverById.socketId).emit("retrivedTrip", {
+          message: `Your trip has been retrived by company ${company_data?.company_name}`,
+          trip: trip,
+        });
+      }
+
+      if (driverById?.webSocketId) {
+        io.to(driverById.webSocketId).emit("retrivedTrip", {
+          message: `Your trip has been retrived by company ${company_data?.company_name}`,
+          trip: trip,
+        });
+      }
+
+      if (driverById?.deviceToken) {
+        const response = await sendNotification(
+          driverById?.deviceToken,
+          `Your trip has been retrived by company ${company_data?.company_name}`,
+          `Your trip has been retrived by company ${company_data?.company_name}`,
+          trip
+        );
+      }
     } catch (err) {
       console.log("🚀 ~ socket.on ~ err:", err);
     }
@@ -322,137 +334,207 @@ io.on("connection", (socket) => {
       });
     }
 
-    try {
-      const driverBySocketId = await driver_model.findOne({
-        socketId: socket.id,
-      });
+    setTimeout(async () => {
+      try {
+        const driverBySocketId = await driver_model.findOne({
+          socketId: socket.id,
+        });
 
-      console.log("🚀 ~ socket.on ~ driverBySocketId:", driverBySocketId);
+        console.log(
+          "🚀 ~ socket.on ~ driverBySocketId event setimepit:",
+          socket.id,
+          driverBySocketId
+        );
 
-      if (driverBySocketId) {
-        const trip = await trip_model.findById(tripId);
-        console.log("🚀 ~ socket.on ~ trip:", trip);
+        if (driverBySocketId) {
+          const trip = await trip_model.findById(tripId);
+          console.log("🚀 ~ socket.on ~ trip:", trip);
 
-        if (!trip) {
-          return io.to(socket.id).emit("driverNotification", {
-            code: 200,
-            message: "Trip id not valid",
-          });
-        }
-
-        if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
-          driverBySocketId.is_available = true;
-          await driverBySocketId.save();
-
-          let updated_data = { trip_status: "Pending", driver_name: null };
-          let option = { new: true };
-          let update_trip = await trip_model.findOneAndUpdate(
-            { _id: tripId },
-            updated_data,
-            option
-          );
-
-          let user = await user_model.findById(trip?.created_by_company_id);
-          if (user.role == "COMPANY") {
-            io.to(user?.socketId).emit("tripCancelledBYDriver", {
-              trip,
-              driver: driverBySocketId,
-              message: "Trip canceled successfully",
+          if (!trip) {
+            return io.to(socket.id).emit("driverNotification", {
+              code: 200,
+              message: "Trip id not valid",
             });
+          }
 
-            const response = await sendNotification(
-              user?.deviceToken,
-              `Trip canceled by driver ${
-                driverBySocketId.first_name + " " + driverBySocketId.last_name
-              } and trip ID is ${trip.trip_id}`,
-              `Trip canceled by driver ${
-                driverBySocketId.first_name + " " + driverBySocketId.last_name
-              } and trip ID is ${trip.trip_id}`,
-              driverBySocketId
-            );
-            // console.log("🚀 ~ socket.on ~ response:", response);
+          if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
+            driverBySocketId.is_available = true;
+            await driverBySocketId.save();
 
-            // functionality For assigned driver by company
-            const company_assigned_driverIds = user.company_account_access.map(
-              (item) => item.driver_id
+            let updated_data = { trip_status: "Pending", driver_name: null };
+            let option = { new: true };
+            let update_trip = await trip_model.findOneAndUpdate(
+              { _id: tripId },
+              updated_data,
+              option
             );
 
-            if (company_assigned_driverIds.length > 0) {
-              const drivers_info_for_token = await driver_model.find({
-                _id: {
-                  $in: company_assigned_driverIds,
-                  $ne: driverBySocketId._id,
-                },
-                status: true,
-                deviceToken: { $ne: null }, // device_token should not be null
-              });
+            let user = await user_model.findById(trip?.created_by_company_id);
+            if (user.role == "COMPANY") {
+              if (user?.socketId) {
+                // socket for app
+                io.to(user?.socketId).emit("tripCancelledBYDriver", {
+                  trip,
+                  driver: driverBySocketId,
+                  message: "Trip canceled successfully",
+                });
+              }
 
-              const drivers_info_for_socket_ids = await driver_model.find({
-                _id: {
-                  $in: company_assigned_driverIds,
-                  $ne: driverBySocketId._id,
-                },
-                status: true,
-                socketId: { $ne: null }, // device_token should not be null
-              });
+              if (user?.webSocketId) {
+                // socket for web
+                io.to(user?.webSocketId).emit("tripCancelledBYDriver", {
+                  trip,
+                  driver: driverBySocketId,
+                  message: "Trip canceled successfully",
+                });
+              }
 
-              // Send the device notification to assigned drivers
-              if (drivers_info_for_token.length > 0) {
-                const company_assigned_driver_token =
-                  drivers_info_for_token.map((item) => item.deviceToken);
-
-                company_assigned_driver_token.forEach(
-                  async (driver_device_token) => {
-                    if (driver_device_token) {
-                      let send_notification = await sendNotification(
-                        driver_device_token,
-                        `Trip canceled by driver ${
-                          driverBySocketId.first_name +
-                          " " +
-                          driverBySocketId.last_name
-                        } and trip ID is ${trip.trip_id}`,
-                        `Trip canceled by driver ${
-                          driverBySocketId.first_name +
-                          " " +
-                          driverBySocketId.last_name
-                        } and trip ID is ${trip.trip_id}`,
-                        driverBySocketId
-                      );
-                    }
-                  }
+              if (user?.deviceToken) {
+                const response = await sendNotification(
+                  user?.deviceToken,
+                  `Trip canceled by driver ${
+                    driverBySocketId.first_name +
+                    " " +
+                    driverBySocketId.last_name
+                  } and trip ID is ${trip.trip_id}`,
+                  `Trip canceled by driver ${
+                    driverBySocketId.first_name +
+                    " " +
+                    driverBySocketId.last_name
+                  } and trip ID is ${trip.trip_id}`,
+                  driverBySocketId
                 );
               }
 
-              // Send the socket model popo to assigned drivers
-              if (drivers_info_for_socket_ids.length > 0) {
-                const company_assigned_driver_sockets =
-                  drivers_info_for_socket_ids.map((item) => item.socketId);
+              // console.log("🚀 ~ socket.on ~ response:", response);
 
-                company_assigned_driver_sockets.forEach((socketId) => {
-                  io.to(socketId).emit("tripCancelledBYDriver", {
-                    trip,
-                    driver: driverBySocketId,
-                    message: "Trip canceled successfully",
-                  });
+              // functionality For assigned driver by company
+              const company_assigned_driverIds =
+                user.company_account_access.map((item) => item.driver_id);
+
+              if (company_assigned_driverIds.length > 0) {
+                const drivers_info_for_token = await driver_model.find({
+                  _id: {
+                    $in: company_assigned_driverIds,
+                    $ne: driverBySocketId._id,
+                  },
+                  status: true,
+                  deviceToken: { $ne: null }, // device_token should not be null
                 });
+
+                // Send the device notification to assigned drivers
+                if (drivers_info_for_token.length > 0) {
+                  const company_assigned_driver_token =
+                    drivers_info_for_token.map((item) => item.deviceToken);
+
+                  company_assigned_driver_token.forEach(
+                    async (driver_device_token) => {
+                      if (driver_device_token) {
+                        let send_notification = await sendNotification(
+                          driver_device_token,
+                          `Trip canceled by driver ${
+                            driverBySocketId.first_name +
+                            " " +
+                            driverBySocketId.last_name
+                          } and trip ID is ${trip.trip_id}`,
+                          `Trip canceled by driver ${
+                            driverBySocketId.first_name +
+                            " " +
+                            driverBySocketId.last_name
+                          } and trip ID is ${trip.trip_id}`,
+                          driverBySocketId
+                        );
+                      }
+                    }
+                  );
+                }
+
+                // get sockets for app
+                const drivers_info_for_socket_ids_app = await driver_model.find(
+                  {
+                    _id: {
+                      $in: company_assigned_driverIds,
+                      $ne: driverBySocketId._id,
+                    },
+                    status: true,
+                    socketId: { $ne: null }, // device_token should not be null
+                  }
+                );
+
+                // get sockets for web
+                const drivers_info_for_socket_ids_web = await driver_model.find(
+                  {
+                    _id: {
+                      $in: company_assigned_driverIds,
+                      $ne: driverBySocketId._id,
+                    },
+                    status: true,
+                    webSocketId: { $ne: null }, // device_token should not be null
+                  }
+                );
+
+                // getting only socet id from array
+                const company_assigned_driver_sockets_web =
+                  drivers_info_for_socket_ids_web.map(
+                    (item) => item.webSocketId
+                  );
+
+                // getting only socet id from array
+                const company_assigned_driver_sockets_app =
+                  drivers_info_for_socket_ids_app.map((item) => item.socketId);
+
+                // merge the array in single array
+                const driverSocketIds =
+                  company_assigned_driver_sockets_web.concat(
+                    company_assigned_driver_sockets_app
+                  );
+
+                // Send the socket model popo to assigned drivers
+                if (driverSocketIds.length > 0) {
+                  driverSocketIds.forEach((socketId) => {
+                    io.to(socketId).emit(
+                      "tripCancelledBYDriver",
+                      {
+                        trip,
+                        driver: driverBySocketId,
+                        message: "Trip canceled successfully",
+                      },
+                      (err, ack) => {
+                        // console.log("err----", err);
+                        // console.log("ack---------", ack);
+                        if (ack) {
+                          console.log(
+                            "Message successfully delivered to the client.---" +
+                              socketId
+                          );
+                        } else {
+                          console.log(
+                            "Message delivery failed or was not acknowledged by the client.---" +
+                              socketId
+                          );
+                        }
+                      }
+                    );
+                  });
+                }
               }
             }
-          }
 
-          io.to(socket.id).emit("driverNotification", {
-            code: 200,
-            message: "Trip canceled successfully",
-          });
+            io.to(socket.id).emit("driverNotification", {
+              code: 200,
+              message: "Trip canceled successfully",
+            });
+          }
         }
+      } catch (error) {
+        console.log("🚀 ~ socket.on ~ error:", error);
+        return io.to(socket.id).emit("driverNotification", {
+          code: 200,
+          message: "There is some",
+          error,
+        });
       }
-    } catch (error) {
-      console.log("🚀 ~ socket.on ~ error:", error);
-      return io.to(socket.id).emit("driverNotification", {
-        code: 200,
-        message: "There is some",
-        error,
-      });
-    }
+    }, 300);
   });
 
   socket.on("acceptDriverTrip", async ({ tripId }) => {
@@ -525,19 +607,6 @@ io.on("connection", (socket) => {
               deviceToken: { $ne: null }, // device_token should not be null
             });
 
-            const drivers_info_for_socket_ids = await driver_model.find({
-              _id: {
-                $in: company_assigned_driverIds,
-                $ne: driverBySocketId._id,
-              },
-              status: true,
-              socketId: { $ne: null }, // device_token should not be null
-            });
-
-            console.log(
-              "drivers_info_for_socket_ids----------",
-              drivers_info_for_socket_ids
-            );
             // Send the notification to assigned drivers
             if (drivers_info_for_token.length > 0) {
               const company_assigned_driver_token = drivers_info_for_token.map(
@@ -566,17 +635,65 @@ io.on("connection", (socket) => {
               );
             }
 
+            // get sockets for app
+            const drivers_info_for_socket_ids_app = await driver_model.find({
+              _id: {
+                $in: company_assigned_driverIds,
+                $ne: driverBySocketId._id,
+              },
+              status: true,
+              socketId: { $ne: null }, // device_token should not be null
+            });
+
+            // get sockets for web
+            const drivers_info_for_socket_ids_web = await driver_model.find({
+              _id: {
+                $in: company_assigned_driverIds,
+                $ne: driverBySocketId._id,
+              },
+              status: true,
+              webSocketId: { $ne: null }, // device_token should not be null
+            });
+
+            // getting only socet id from array
+            const company_assigned_driver_sockets_web =
+              drivers_info_for_socket_ids_web.map((item) => item.webSocketId);
+
+            // getting only socet id from array
+            const company_assigned_driver_sockets_app =
+              drivers_info_for_socket_ids_app.map((item) => item.socketId);
+
+            // merge the array in single array
+            const driverSocketIds = company_assigned_driver_sockets_web.concat(
+              company_assigned_driver_sockets_app
+            );
+
             // Send the socket to assigned drivers
             if (drivers_info_for_socket_ids.length > 0) {
-              const company_assigned_driver_sockets =
-                drivers_info_for_socket_ids.map((item) => item.socketId);
-
-              company_assigned_driver_sockets.forEach((socketId) => {
-                io.to(socketId).emit("tripAcceptedBYDriver", {
-                  trip,
-                  driver: driverBySocketId,
-                  message: "Trip accepted successfully",
-                });
+              driverSocketIds.forEach((socketId) => {
+                io.to(socketId).emit(
+                  "tripAcceptedBYDriver",
+                  {
+                    trip,
+                    driver: driverBySocketId,
+                    message: "Trip accepted successfully",
+                  },
+                  (err, ack) => {
+                    // console.log("err----", err);
+                    // console.log("ack---------", ack);
+                    if (ack) {
+                      console.log(
+                        "Message successfully delivered to the client.---" +
+                          socketId
+                      );
+                    } else {
+                      console.log(
+                        "Message delivery failed or was not acknowledged by the client.---" +
+                          socketId
+                      );
+                    }
+                  }
+                );
               });
             }
           }

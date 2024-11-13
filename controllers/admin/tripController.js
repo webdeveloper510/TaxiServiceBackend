@@ -32,12 +32,6 @@ const tripIsBooked = async (tripId, driver_info, io) => {
     _id: driver_info._id,
   });
 
-  // console.log(
-  //   "🚀 ~ tripIsBooked ~ tripId:",
-  //   tripId,
-  //   "after driver_full_info-------",
-  //   driver_full_info
-  // );
   try {
     const tripById = await trip_model.findOne({
       _id: tripId,
@@ -144,7 +138,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
         const drivers_info_for_socket_ids_web = await driver_model.find({
           _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
           status: true,
-          webSocketId: { $ne: null }, // device_token should not be null
+          webSocketId: { $ne: null }, // webSocketId should not be null
         });
 
         const company_assigned_driver_sockets_web =
@@ -1377,24 +1371,58 @@ exports.alocate_driver = async (req, res) => {
             );
 
           if (company_assigned_driverIds.length > 0) {
-            const drivers_info_for_socket_ids = await DRIVER.find({
+            const drivers_info_for_socket_ids_app = await DRIVER.find({
               _id: { $in: company_assigned_driverIds },
               status: true,
               socketId: { $ne: null }, // device_token should not be null
             });
 
-            // Send the socket model popo to assigned drivers
-            if (drivers_info_for_socket_ids.length > 0) {
-              const company_assigned_driver_sockets =
-                drivers_info_for_socket_ids.map((item) => item.socketId);
+            const drivers_info_for_socket_ids_web = await DRIVER.find({
+              _id: { $in: company_assigned_driverIds },
+              status: true,
+              webSocketId: { $ne: null }, // device_token should not be null
+            });
 
-              company_assigned_driver_sockets.forEach((socketId) => {
+            // getting only socet id from array
+            const company_assigned_driver_sockets_web =
+              drivers_info_for_socket_ids_web.map((item) => item.webSocketId);
+
+            // getting only socet id from array
+            const company_assigned_driver_sockets_app =
+              drivers_info_for_socket_ids_app.map((item) => item.socketId);
+
+            // merge the array in single array
+            const driverSocketIds = company_assigned_driver_sockets_web.concat(
+              company_assigned_driver_sockets_app
+            );
+
+            // Send the socket model popo to assigned drivers
+            if (driverSocketIds.length > 0) {
+              driverSocketIds.forEach((socketId) => {
                 if (socketId != req.user.socketId) {
-                  req.io.to(socketId).emit("refreshTrip", {
-                    update_trip,
-                    message:
-                      "A trip has been sent for allocation to the driver",
-                  });
+                  req.io.to(socketId).emit(
+                    "refreshTrip",
+                    {
+                      update_trip,
+                      message:
+                        "A trip has been sent for allocation to the driver",
+                    },
+                    (err, ack) => {
+                      // console.log("err----", err);
+                      // console.log("ack---------", ack);
+                      if (ack) {
+                        console.log(
+                          "Message successfully delivered to the client.---" +
+                            socketId
+                        );
+                      } else {
+                        console.log(
+                          "Message delivery failed or was not acknowledged by the client.---" +
+                            socketId
+                        );
+                      }
+                    }
+                  );
                 }
               });
             }
@@ -1627,24 +1655,58 @@ exports.access_alocate_driver = async (req, res) => {
             );
 
           if (company_assigned_driverIds.length > 0) {
-            const drivers_info_for_socket_ids = await DRIVER.find({
+            const drivers_info_for_socket_ids_app = await DRIVER.find({
               _id: { $in: company_assigned_driverIds },
               status: true,
               socketId: { $ne: null }, // device_token should not be null
             });
 
-            // Send the socket model popo to assigned drivers
-            if (drivers_info_for_socket_ids.length > 0) {
-              const company_assigned_driver_sockets =
-                drivers_info_for_socket_ids.map((item) => item.socketId);
+            const drivers_info_for_socket_ids_web = await DRIVER.find({
+              _id: { $in: company_assigned_driverIds },
+              status: true,
+              webSocketId: { $ne: null }, // device_token should not be null
+            });
 
-              company_assigned_driver_sockets.forEach((socketId) => {
+            // getting only socet id from array
+            const company_assigned_driver_sockets_web =
+              drivers_info_for_socket_ids_web.map((item) => item.webSocketId);
+
+            // getting only socet id from array
+            const company_assigned_driver_sockets_app =
+              drivers_info_for_socket_ids_app.map((item) => item.socketId);
+
+            // merge the array in single array
+            const driverSocketIds = company_assigned_driver_sockets_web.concat(
+              company_assigned_driver_sockets_app
+            );
+
+            // Send the socket model popup to assigned drivers
+            if (driverSocketIds.length > 0) {
+              driverSocketIds.forEach((socketId) => {
                 if (socketId != req.user.socketId) {
-                  req.io.to(socketId).emit("refreshTrip", {
-                    update_trip,
-                    message:
-                      "A trip has been sent for allocation to the driver",
-                  });
+                  req.io.to(socketId).emit(
+                    "refreshTrip",
+                    {
+                      update_trip,
+                      message:
+                        "A trip has been sent for allocation to the driver",
+                    },
+                    (err, ack) => {
+                      // console.log("err----", err);
+                      // console.log("ack---------", ack);
+                      if (ack) {
+                        console.log(
+                          "Message successfully delivered to the client.---" +
+                            socketId
+                        );
+                      } else {
+                        console.log(
+                          "Message delivery failed or was not acknowledged by the client.---" +
+                            socketId
+                        );
+                      }
+                    }
+                  );
                 }
               });
             }
