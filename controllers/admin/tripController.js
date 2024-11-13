@@ -148,7 +148,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
         });
 
         const company_assigned_driver_sockets_web =
-          drivers_info_for_socket_ids_web.map((item) => item.socketId);
+          drivers_info_for_socket_ids_web.map((item) => item.webSocketId);
         const company_assigned_driver_sockets_app =
           drivers_info_for_socket_ids_app.map((item) => item.socketId);
 
@@ -156,20 +156,18 @@ const tripIsBooked = async (tripId, driver_info, io) => {
           company_assigned_driver_sockets_app
         );
 
-        console.log("driverSocketIds-----------", driverSocketIds);
+        console.log("driverSocketIds-------all---->", driverSocketIds);
         // Send the socket to assigned drivers
         if (driverSocketIds.length > 0) {
           driverSocketIds.forEach((socketId) => {
-            console.log(
-              "socketId---------220 seconds----->>>>>>>>>>",
-              socketId
-            );
-
-            io.to(socketId).emit("tripNotAcceptedBYDriver", {
-              trip: tripById,
-              message:
-                agency.company_name + "'s Trip not accepted by the Driver",
-            });
+            console.log("driver-------socketId------20 seconds---->", socketId);
+            if (socketId) {
+              io.to(socketId).emit("tripNotAcceptedBYDriver", {
+                trip: tripById,
+                message:
+                  agency.company_name + "'s Trip not accepted by the Driver",
+              });
+            }
           });
         }
       }
