@@ -156,13 +156,15 @@ const tripIsBooked = async (tripId, driver_info, io) => {
           company_assigned_driver_sockets_app
         );
 
+        console.log("driverSocketIds-----------", driverSocketIds);
         // Send the socket to assigned drivers
         if (driverSocketIds.length > 0) {
-          const company_assigned_driver_sockets = driverSocketIds.map(
-            (item) => item.socketId
-          );
+          driverSocketIds.forEach((socketId) => {
+            console.log(
+              "socketId---------220 seconds----->>>>>>>>>>",
+              socketId
+            );
 
-          company_assigned_driver_sockets.forEach((socketId) => {
             io.to(socketId).emit("tripNotAcceptedBYDriver", {
               trip: tripById,
               message:
