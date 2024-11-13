@@ -66,6 +66,10 @@ const tripIsBooked = async (tripId, driver_info, io) => {
           trip: tripById,
           message: "Trip not accepted by the Driver",
         });
+
+        io.to(user?.webSocketId).emit("refreshTrip", {
+          message: "Driver didn't accpet the trip. Please refresh the data",
+        });
       }
 
       // for driver app side
@@ -178,6 +182,11 @@ const tripIsBooked = async (tripId, driver_info, io) => {
                   }
                 }
               );
+
+              io.to(socketId).emit("refreshTrip", {
+                message:
+                  "Driver didn't accpet the trip. Please refresh the data",
+              });
             }
           });
         }
