@@ -159,14 +159,31 @@ const tripIsBooked = async (tripId, driver_info, io) => {
         console.log("driverSocketIds-------all---->", driverSocketIds);
         // Send the socket to assigned drivers
         if (driverSocketIds.length > 0) {
-          driverSocketIds.forEach((socketId) => {
-            console.log("driver-------socketId------20 seconds---->", socketId);
+          driverSocketIds.forEach(async (socketId) => {
             if (socketId) {
-              io.to(socketId).emit("tripNotAcceptedBYDriver", {
-                trip: tripById,
-                message:
-                  agency.company_name + "'s Trip not accepted by the Driver",
-              });
+              await io.to(socketId).emit(
+                "tripNotAcceptedBYDriver",
+                {
+                  trip: tripById,
+                  message:
+                    agency.company_name + "'s Trip not accepted by the Driver",
+                },
+                (err, ack) => {
+                  console.log("err----", err);
+                  console.log("ack---------", ack);
+                  if (ack) {
+                    console.log(
+                      "Message successfully delivered to the client.---" +
+                        socketId
+                    );
+                  } else {
+                    console.log(
+                      "Message delivery failed or was not acknowledged by the client.---" +
+                        socketId
+                    );
+                  }
+                }
+              );
             }
           });
         }
@@ -1273,11 +1290,6 @@ exports.alocate_driver = async (req, res) => {
           // })
         }
         try {
-          console.log(
-            "🚀 ~ exports.alocate_driver= ~ check_driver.socketId:",
-            check_driver.socketId,
-            check_driver
-          );
           update_trip = update_trip.toObject();
           req.user = req.user.toObject();
           req.user.user_company_name = "";

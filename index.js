@@ -108,11 +108,13 @@ io.on("connection", (socket) => {
         driverByToken.isWebSocketConnected = true;
         driverByToken.webSocketId = socket.id;
         await driverByToken.save();
-        // console.log("🚀 ~ socket.on ~ add driver token =====", driverByToken)
-        io.to(socket.id).emit("driverNotification", {
+
+        io.to(socket.id).emit("userConnection", {
           code: 200,
           message:
-            "connected successfully with driver id: " + driverByToken._id,
+            "connected successfully with addWebNewDriver from website user id: " +
+            driverByToken._id,
+          socket_id: socket.id,
         });
       }
     } catch (err) {
@@ -146,7 +148,8 @@ io.on("connection", (socket) => {
         io.to(socket.id).emit("driverNotification", {
           code: 200,
           message:
-            "connected successfully with driver id: " + driverByToken._id,
+            "connected successfully with addNewDriver driver id: " +
+            driverByToken._id,
         });
       }
     } catch (err) {
@@ -173,25 +176,20 @@ io.on("connection", (socket) => {
           },
         }
       );
-      console.log("🚀 ~ socket.on ~ token:", token);
+
+      console.log("🚀 ~ socket.on ~ addWebUser token:", token);
       const userByToken = await userDetailsByToken(token);
 
       if (userByToken) {
-        await user_model.updateMany(
-          { webSocketId: socket.id },
-          {
-            $set: {
-              isWebSocketConnected: false,
-              webSocketId: null,
-            },
-          }
-        );
         userByToken.isWebSocketConnected = true;
         userByToken.webSocketId = socket.id;
         await userByToken.save();
         io.to(socket.id).emit("userConnection", {
           code: 200,
-          message: "connected successfully with user id: " + userByToken._id,
+          message:
+            "connected successfully with addWebUser from web user id: " +
+            userByToken._id,
+          socket_id: socket.id,
         });
       }
     } catch (err) {
