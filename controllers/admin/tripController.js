@@ -169,8 +169,8 @@ const tripIsBooked = async (tripId, driver_info, io) => {
                     agency.company_name + "'s Trip not accepted by the Driver",
                 },
                 (err, ack) => {
-                  console.log("err----", err);
-                  console.log("ack---------", ack);
+                  // console.log("err----", err);
+                  // console.log("ack---------", ack);
                   if (ack) {
                     console.log(
                       "Message successfully delivered to the client.---" +
@@ -1290,8 +1290,16 @@ exports.alocate_driver = async (req, res) => {
           // })
         }
         try {
-          update_trip = update_trip.toObject();
-          req.user = req.user.toObject();
+          // to resolve the object error
+          if (update_trip && typeof update_trip.toObject === "function") {
+            update_trip = update_trip.toObject();
+          }
+
+          // to resolve the object error
+          if (req.user && typeof req.user.toObject === "function") {
+            req.user = req.user.toObject();
+          }
+          // req.user = req.user.toObject();
           req.user.user_company_name = "";
           req.user.user_company_phone = "";
           update_trip.user_company_name = "";
@@ -1396,7 +1404,7 @@ exports.alocate_driver = async (req, res) => {
         res.send({
           code: constant.success_code,
           message: "Driver allocated successfully",
-          // data: { trip: update_trip, company: req.user }
+          // data: { trip: update_trip, company: req.user },
         });
       }
     } else {
