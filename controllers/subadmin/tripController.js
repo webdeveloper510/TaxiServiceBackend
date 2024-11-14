@@ -419,12 +419,12 @@ exports.edit_trip = async (req, res) => {
 
         // console.log("device_token--------------------------------" , device_token)
         try {
-          const response = await sendNotification(
-            device_token,
-            `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
-            `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
-            trip_data
-          );
+          // const response = await sendNotification(
+          //   device_token,
+          //   `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
+          //   `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
+          //   trip_data
+          // );
         } catch (e) {
           // res.send({
           //     code: constant.success_code,
