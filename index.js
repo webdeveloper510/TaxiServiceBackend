@@ -277,6 +277,10 @@ io.on("connection", (socket) => {
           message: `Your trip has been retrived by company ${company_data?.company_name}`,
           trip: trip,
         });
+
+        io.to(driverById?.webSocketId).emit("refreshTrip", {
+          message: "Driver didn't accpet the trip. Please refresh the data",
+        });
       }
 
       if (driverById?.deviceToken) {
@@ -382,11 +386,52 @@ io.on("connection", (socket) => {
 
               if (user?.webSocketId) {
                 // socket for web
-                io.to(user?.webSocketId).emit("tripCancelledBYDriver", {
-                  trip,
-                  driver: driverBySocketId,
-                  message: "Trip canceled successfully",
-                });
+                io.to(user?.webSocketId).emit(
+                  "tripCancelledBYDriver",
+                  {
+                    trip,
+                    driver: driverBySocketId,
+                    message: "Trip canceled successfully",
+                  },
+                  (err, ack) => {
+                    // console.log("err----", err);
+                    // console.log("ack---------", ack);
+                    if (ack) {
+                      console.log(
+                        "refresh Trip canceled successfully by driver.---" +
+                          user?.webSocketId
+                      );
+                    } else {
+                      console.log(
+                        " getting error in Trip canceled successfully by driver.---" +
+                          user?.webSocketId
+                      );
+                    }
+                  }
+                );
+
+                io.to(user?.webSocketId).emit(
+                  "refreshTrip",
+                  {
+                    message:
+                      "Driver didn't accpet the trip. Please refresh the data",
+                  },
+                  (err, ack) => {
+                    // console.log("err----", err);
+                    // console.log("ack---------", ack);
+                    if (ack) {
+                      console.log(
+                        "Trip canceled successfully by driver.---" +
+                          user?.webSocketId
+                      );
+                    } else {
+                      console.log(
+                        " getting error in Trip canceled successfully by driver.---" +
+                          user?.webSocketId
+                      );
+                    }
+                  }
+                );
               }
 
               if (user?.deviceToken) {
@@ -515,6 +560,11 @@ io.on("connection", (socket) => {
                         }
                       }
                     );
+
+                    io.to(socketId).emit("refreshTrip", {
+                      message:
+                        "Driver didn't accpet the trip. Please refresh the data",
+                    });
                   });
                 }
               }
