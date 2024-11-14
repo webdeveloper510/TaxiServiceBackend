@@ -278,9 +278,27 @@ io.on("connection", (socket) => {
           trip: trip,
         });
 
-        io.to(driverById?.webSocketId).emit("refreshTrip", {
-          message: "Driver didn't accpet the trip. Please refresh the data",
-        });
+        io.to(driverById?.webSocketId).emit(
+          "refreshTrip",
+          {
+            message: "refreshTrip Your trip has been retrived by company",
+          },
+          (err, ack) => {
+            // console.log("err----", err);
+            // console.log("ack---------", ack);
+            if (ack) {
+              console.log(
+                "refreshTrip Your trip has been retrived by company.---" +
+                  driverById?.webSocketId
+              );
+            } else {
+              console.log(
+                " getting error in refreshTrip Your trip has been retrived by company.---" +
+                  driverById?.webSocketId
+              );
+            }
+          }
+        );
       }
 
       if (driverById?.deviceToken) {
