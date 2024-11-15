@@ -62,7 +62,7 @@ exports.add_trip = async (req, res) => {
 exports.get_trip = async (req, res) => {
   try {
     let data = req.body;
-    console.log("🚀 ~ exports.get_trip= ~ data:", data);
+
     let mid = new mongoose.Types.ObjectId(req.userId);
     let query;
     let search_value = data.comment ? data.comment : "";
@@ -93,7 +93,6 @@ exports.get_trip = async (req, res) => {
       }
       dateQuery = { createdAt: { $gte: startDate, $lte: endDate } };
     }
-    console.log("🚀 ~ exports.get_trip= ~ dateQuery:", dateQuery);
 
     if (req.params.status == "Pending") {
       query = [
@@ -211,7 +210,7 @@ exports.get_recent_trip = async (req, res) => {
   try {
     let data = req.body;
     let mid = new mongoose.Types.ObjectId(req.userId);
-    console.log("check++++++++++++++", mid);
+
     let search_value = data.comment ? data.comment : "";
 
     let get_trip = await TRIP.aggregate([
@@ -404,7 +403,6 @@ exports.edit_trip = async (req, res) => {
         trip_data.driver_name != "null" &&
         trip_data.driver_name != ""
       ) {
-        // console.log("trip_data--------------------" , trip_data);
         let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
 
         let device_token = driver_data?.deviceToken;
@@ -417,7 +415,6 @@ exports.edit_trip = async (req, res) => {
 
         //  device_token = "evnYTVy9QMm9Al231AlxEp:APA91bHG7ewABk-KVBrbXOG3LabwTe4NKdeuPIEa6VuWqnmUwirp8-aKgCfzI2ibPK5kxxVLS-qqE-hfQf-iVhqrhis5fKjurRdkzqLS4S6KEwZRkZ_ZnirAfEbLp-gGi8mSPHW7jvOY";
 
-        // console.log("device_token--------------------------------" , device_token)
         try {
           // const response = await sendNotification(
           //   device_token,
@@ -483,7 +480,6 @@ exports.access_edit_trip = async (req, res) => {
         trip_data.driver_name != "null" &&
         trip_data.driver_name != ""
       ) {
-        // console.log("trip_data--------------------" , trip_data);
         let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
 
         let device_token = driver_data?.deviceToken;
@@ -496,7 +492,6 @@ exports.access_edit_trip = async (req, res) => {
 
         //  device_token = "evnYTVy9QMm9Al231AlxEp:APA91bHG7ewABk-KVBrbXOG3LabwTe4NKdeuPIEa6VuWqnmUwirp8-aKgCfzI2ibPK5kxxVLS-qqE-hfQf-iVhqrhis5fKjurRdkzqLS4S6KEwZRkZ_ZnirAfEbLp-gGi8mSPHW7jvOY";
 
-        // console.log("device_token--------------------------------" , device_token)
         try {
           const response = await sendNotification(
             device_token,

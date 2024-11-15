@@ -873,10 +873,6 @@ exports.edit_sub_admin = async (req, res) => {
           email: data.email,
         });
         if (check_email) {
-          console.log(
-            "🚀 ~ file: subAdminController.js:452 ~ logoUpload ~ check_email:",
-            check_email
-          );
           return res.send({
             code: constant.error_code,
             message: "Email is already exist",
@@ -958,10 +954,6 @@ exports.delete_sub_admin = async (req, res) => {
             is_deleted: true,
           },
         }
-      );
-      console.log(
-        "🚀 ~ exports.delete_sub_admin= ~ deleteDriver:",
-        deleteDriver
       );
 
       res.send({
@@ -1218,7 +1210,6 @@ exports.send_request_trip = async (req, res) => {
           message: "Unable to create the request",
         });
       } else {
-        console.log("check++++++++++++++++++++=", save_data);
         var transporter = nodemailer.createTransport(emailConstant.credentials);
         var mailOptions = {
           from: emailConstant.from_email,
@@ -1387,7 +1378,7 @@ exports.send_request_trip = async (req, res) => {
                     </body></html>`,
         };
         await transporter.sendMail(mailOptions);
-        // console.log(transporter.sendMail(mailOptions))
+
         res.send({
           code: constant.success_code,
           message: "Saved",
@@ -1450,15 +1441,10 @@ exports.update_account_access = async (req, res) => {
       });
     }
 
-    console.log("driver token---", driver);
-    console.log("company_account_access---", req.user);
-
     if (req.user?.role == "COMPANY") {
       let user_detail = await USER.findById(req.user._id);
       let company_detials = await AGENCY.findOne({ user_id: req.user._id });
       let driver_company_detials = await USER.findById(driver.created_by);
-
-      console.log("company_detials----------", company_detials);
 
       let mesage_data = "";
       let driver_token = "";
@@ -1478,12 +1464,6 @@ exports.update_account_access = async (req, res) => {
         mesage_data = "Account revoked successfully from the driver";
         driver.company_account_access = driver.company_account_access.filter(
           (data) => data?.company_id?.toString() != req.user._id?.toString()
-        );
-
-        console.log(
-          "driver.company_account_access------------",
-          req.user._id,
-          driver.company_account_access
         );
 
         if (driver_token != "") {

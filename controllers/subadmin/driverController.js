@@ -12,10 +12,10 @@ const mongoose = require("mongoose");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
-//         console.log('file_-------------',file)
+//
 //     },
 //     filename: function (req, file, cb) {
-//         console.log("file+++++++++++++++++++++++=", file)
+//
 //         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
 //     }
 // })
@@ -146,24 +146,30 @@ exports.get_driver_detail = async (req, res) => {
           is_paid: true,
         })
         .countDocuments();
-        const totalActiveTrips = await trip_model.find({
+      const totalActiveTrips = await trip_model
+        .find({
           driver_name: req.userId,
           trip_status: "Active",
-        }).countDocuments();
-        const totalUnpaidTrips = await trip_model.find({
+        })
+        .countDocuments();
+      const totalUnpaidTrips = await trip_model
+        .find({
           driver_name: req.userId,
           trip_status: "Completed",
           is_paid: false,
           drop_time: {
             $lte: startOfCurrentWeek,
           },
-        }).countDocuments();
-  
-        const totalReachedTrip = await trip_model.find({
+        })
+        .countDocuments();
+
+      const totalReachedTrip = await trip_model
+        .find({
           driver_name: req.userId,
           trip_status: "Reached",
           is_paid: false,
-        }).countDocuments();
+        })
+        .countDocuments();
       const result = driver.toObject();
       result.totalTrips = completedTrips;
       res.send({
@@ -172,7 +178,7 @@ exports.get_driver_detail = async (req, res) => {
         result,
         totalActiveTrips,
         totalUnpaidTrips,
-        totalReachedTrip
+        totalReachedTrip,
       });
     }
     // if (driver && driver.is_deleted === false) {
@@ -228,7 +234,7 @@ exports.update_driver = async (req, res) => {
     try {
       const driverId = req.userId; // Assuming you pass the driver ID as a URL parameter
       const updates = req.body; // Assuming you send the updated driver data in the request body
-      console.log(updates);
+
       // Check if the driver exists
       const existingDriver = await DRIVER.findOne({ _id: driverId });
 
@@ -431,7 +437,7 @@ exports.get_trips_for_driver = async (req, res) => {
           created_by: 1,
           status: 1,
           passenger_detail: 1,
-          customerDetails:1,
+          customerDetails: 1,
           vehicle_type: 1,
           comment: 1,
           commission: 1,
@@ -494,7 +500,7 @@ exports.get_trips_for_driver = async (req, res) => {
         result: get_trip,
         totalActiveTrips,
         totalUnpaidTrips,
-        totalReachedTrip
+        totalReachedTrip,
       });
     }
   } catch (err) {
@@ -553,17 +559,15 @@ exports.get_trips_for_drivers = async (req, res) => {
           localField: "hotel_id",
           foreignField: "user_id",
           as: "hotelData",
-          
         },
       },
-      
+
       {
         $lookup: {
           from: "agencies",
           localField: "created_by_company_id",
           foreignField: "user_id",
           as: "userData",
-          
         },
       },
       {
@@ -586,7 +590,7 @@ exports.get_trips_for_drivers = async (req, res) => {
           created_by: 1,
           status: 1,
           passenger_detail: 1,
-          customerDetails:1,
+          customerDetails: 1,
           vehicle_type: 1,
           comment: 1,
           commission: 1,
@@ -594,7 +598,7 @@ exports.get_trips_for_drivers = async (req, res) => {
           company_name: "$userData.company_name",
           user_company_name: "$userData.company_name",
           user_company_phone: "$userData.phone",
-          hotel_name:  { $arrayElemAt: ["$hotelData.company_name", 0] },
+          hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
           driver_name: {
             $concat: [
               { $arrayElemAt: ["$driver.first_name", 0] },
@@ -650,7 +654,7 @@ exports.get_trips_for_drivers = async (req, res) => {
         result: get_trip,
         totalActiveTrips,
         totalUnpaidTrips,
-        totalReachedTrip
+        totalReachedTrip,
       });
     }
   } catch (err) {
@@ -665,7 +669,7 @@ exports.login = async (req, res) => {
   try {
     let data = req.body;
     let check_phone = await DRIVER.findOne({ email: data.email });
-    console.log("check+++++++++++++", check_phone);
+
     if (!check_phone) {
       res.send({
         code: constant.error_code,
@@ -781,9 +785,9 @@ exports.get_reports = async (req, res) => {
     const totalPrice = get_data.reduce((sum, obj) => {
       let commission = obj?.commission?.commission_value || 0;
       if (obj?.commission?.commission_type === "Percentage") {
-        commission = obj.price / 100 * obj.commission.commission_value
+        commission = (obj.price / 100) * obj.commission.commission_value;
       }
-      return sum + obj.price - commission
+      return sum + obj.price - commission;
     }, 0);
     if (!get_data) {
       res.send({
@@ -797,7 +801,7 @@ exports.get_reports = async (req, res) => {
         result: {
           trips: get_data.length,
           earning: totalPrice,
-          get_data
+          get_data,
         },
       });
     }
@@ -809,19 +813,17 @@ exports.get_reports = async (req, res) => {
   }
 };
 
-exports.company_access_list = async (req , res) => {
-
+exports.company_access_list = async (req, res) => {
   try {
-
-    const companyIds = req.user.company_account_access.map(access => access.company_id);
+    const companyIds = req.user.company_account_access.map(
+      (access) => access.company_id
+    );
     // const company_access_list = await USER.find({ _id: { $in: companyIds } });
 
     const company_access_list = await USER.aggregate([
       {
         $match: {
-          $and: [
-            { _id: { $in: companyIds } }
-          ],
+          $and: [{ _id: { $in: companyIds } }],
         },
       },
       {
@@ -842,34 +844,30 @@ exports.company_access_list = async (req , res) => {
         $project: {
           _id: 1,
           first_name: 1,
-          last_name:1,
-          email:1,
-          phone:"$company_data.p_number",
+          last_name: 1,
+          email: 1,
+          phone: "$company_data.p_number",
           company_name: "$company_data.company_name",
           address_1: "$company_data.land",
-        }
-      }
+        },
+      },
     ]);
 
-
     if (company_access_list.length > 0) {
-
       res.send({
         code: constant.success_code,
         data: company_access_list,
       });
     } else {
-
       res.send({
         code: constant.error_code,
         message: "You didn't have any access",
       });
     }
-    
   } catch (err) {
     res.send({
       code: constant.error_code,
       message: err.message,
     });
   }
-}
+};

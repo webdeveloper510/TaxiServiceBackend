@@ -200,8 +200,6 @@ router.get(
 router.delete("/delete_fare/:id", [verifyToken], fareController.delete_fare);
 router.put("/edit_fare/:id", [verifyToken], fareController.edit_fare);
 
-console.log("++++++++++++++++++++++++++++++++++++++++++++++++");
-
 // trip api's
 router.post("/add_trip", [verifyToken], tripController.add_trip);
 router.post("/access_add_trip", [verifyToken], tripController.access_add_trip);

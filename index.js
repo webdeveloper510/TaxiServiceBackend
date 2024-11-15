@@ -8,12 +8,7 @@ var cron = require("node-cron");
 const db = require("./config/db");
 const http = require("http");
 const cors = require("cors");
-const User = require("./models/user/user_model");
 const agency_model = require("./models/user/agency_model.js");
-var adminRouter = require("./routes/admin");
-var usersRouter = require("./routes/users");
-var subAdminRouter = require("./routes/subadmin");
-var driverRouter = require("./routes/driver");
 var apiRouter = require("./routes/index.js");
 const { Server } = require("socket.io");
 const {
@@ -24,8 +19,6 @@ const {
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
-const fcm = require("./config/fcm.js");
-const { default: axios } = require("axios");
 var app = express();
 app.use(cors());
 const httpServer = http.createServer(app);
@@ -84,12 +77,6 @@ app.use(function (req, res, next) {
 });
 
 io.on("connection", (socket) => {
-  console.log(`A user connected with socket ID: ${socket.id}`);
-
-  // Log all connected socket IDs
-  const connectedSocketIds = Array.from(io.sockets.sockets.keys());
-  console.log("All connected socket IDs:", connectedSocketIds);
-
   socket.on("addWebNewDriver", async ({ token }) => {
     try {
       await driver_model.updateMany(
@@ -144,7 +131,7 @@ io.on("connection", (socket) => {
         driverByToken.isSocketConnected = true;
         driverByToken.socketId = socket.id;
         await driverByToken.save();
-        // console.log("🚀 ~ socket.on ~ add driver token =====", driverByToken)
+
         io.to(socket.id).emit("driverNotification", {
           code: 200,
           message:
@@ -177,7 +164,6 @@ io.on("connection", (socket) => {
         }
       );
 
-      console.log("🚀 ~ socket.on ~ addWebUser token:", token);
       const userByToken = await userDetailsByToken(token);
 
       if (userByToken) {
@@ -216,7 +202,7 @@ io.on("connection", (socket) => {
           },
         }
       );
-      console.log("🚀 ~ socket.on ~ token:", token);
+
       const userByToken = await userDetailsByToken(token);
 
       if (userByToken) {
@@ -268,26 +254,10 @@ io.on("connection", (socket) => {
             trip: trip,
           },
           (err, ack) => {
-            // console.log("err----", err);
-            // console.log("ack---------", ack);
             if (ack) {
-              console.log(
-                "refreshTrip Your trip has been retrived by company.--- driver sockket web-----" +
-                  driverById?.webSocketId
-              );
             } else {
-              console.log(
-                " getting error in refreshTrip Your trip has been retrived by company. driver sockket web---" +
-                  driverById?.webSocketId
-              );
             }
           }
-        );
-
-        console.log(
-          "🚀 ~companyCancelledTrip~ driverById----------driver details:",
-          driverById,
-          driverById?.webSocketId
         );
 
         await io.to(driverById?.webSocketId).emit(
@@ -299,15 +269,15 @@ io.on("connection", (socket) => {
             // console.log("err----", err);
             // console.log("ack---------", ack);
             if (ack) {
-              console.log(
-                "refreshTrip Your trip has been retrived by company.--- driver sockket web-----" +
-                  driverById?.webSocketId
-              );
+              // console.log(
+              //   "refreshTrip Your trip has been retrived by company.--- driver sockket web-----" +
+              //     driverById?.webSocketId
+              // );
             } else {
-              console.log(
-                " getting error in refreshTrip Your trip has been retrived by company. driver sockket web---" +
-                  driverById?.webSocketId
-              );
+              // console.log(
+              //   " getting error in refreshTrip Your trip has been retrived by company. driver sockket web---" +
+              //     driverById?.webSocketId
+              // );
             }
           }
         );
@@ -331,12 +301,6 @@ io.on("connection", (socket) => {
       const driverBySocketId = await driver_model.findOne({
         socketId: socket.id,
       });
-      console.log(
-        "🚀 ~ socket.on ~ updateDriverLocation:--------------------------------------",
-        longitude,
-        latitude,
-        driverBySocketId
-      );
 
       if (driverBySocketId) {
         driverBySocketId.location = {
@@ -345,10 +309,6 @@ io.on("connection", (socket) => {
         };
         driverBySocketId.locationUpdatedAt = new Date();
 
-        console.log(
-          "updateDriverLocation data ------🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀----",
-          driverBySocketId
-        );
         await driverBySocketId.save();
         io.to(socket.id).emit("UpdateLocationDriver", {
           code: 200,
@@ -409,7 +369,7 @@ io.on("connection", (socket) => {
 
               if (user?.webSocketId) {
                 // socket for web
-                io.to(user?.webSocketId).emit(
+                await io.to(user?.webSocketId).emit(
                   "tripCancelledBYDriver",
                   {
                     trip,
@@ -420,38 +380,39 @@ io.on("connection", (socket) => {
                     // console.log("err----", err);
                     // console.log("ack---------", ack);
                     if (ack) {
-                      console.log(
-                        "refresh Trip canceled successfully by driver.---" +
-                          user?.webSocketId
-                      );
+                      // console.log(
+                      //   "Trip canceled successfully by driver. sending to main company---" +
+                      //     user?.webSocketId
+                      // );
                     } else {
-                      console.log(
-                        " getting error in Trip canceled successfully by driver.---" +
-                          user?.webSocketId
-                      );
+                      // console.log(
+                      //   " getting error in Trip canceled successfully by driver. sending to main company---" +
+                      //     user?.webSocketId
+                      // );
                     }
                   }
                 );
 
-                io.to(user?.webSocketId).emit(
+                // for refresh trip
+                await io.to(user?.webSocketId).emit(
                   "refreshTrip",
                   {
                     message:
-                      "Driver didn't accpet the trip. Please refresh the data",
+                      "Trip Driver didn't accpet the trip. Please refresh the data",
                   },
                   (err, ack) => {
                     // console.log("err----", err);
                     // console.log("ack---------", ack);
                     if (ack) {
-                      console.log(
-                        "Trip canceled successfully by driver.---" +
-                          user?.webSocketId
-                      );
+                      // console.log(
+                      //   "refreshTrip Trip canceled successfully by driver.---" +
+                      //     user?.webSocketId
+                      // );
                     } else {
-                      console.log(
-                        " getting error in Trip canceled successfully by driver.---" +
-                          user?.webSocketId
-                      );
+                      // console.log(
+                      //   "refreshTrip getting error in Trip canceled successfully by driver.---" +
+                      //     user?.webSocketId
+                      // );
                     }
                   }
                 );
@@ -559,8 +520,8 @@ io.on("connection", (socket) => {
 
                 // Send the socket model popo to assigned drivers
                 if (driverSocketIds.length > 0) {
-                  driverSocketIds.forEach((socketId) => {
-                    io.to(socketId).emit(
+                  driverSocketIds.forEach(async (socketId) => {
+                    await io.to(socketId).emit(
                       "tripCancelledBYDriver",
                       {
                         trip,
@@ -571,20 +532,20 @@ io.on("connection", (socket) => {
                         // console.log("err----", err);
                         // console.log("ack---------", ack);
                         if (ack) {
-                          console.log(
-                            "Message successfully delivered to the client.---" +
-                              socketId
-                          );
+                          // console.log(
+                          //   "Message successfully delivered to the client. to assigned drivers---" +
+                          //     socketId
+                          // );
                         } else {
-                          console.log(
-                            "Message delivery failed or was not acknowledged by the client.---" +
-                              socketId
-                          );
+                          // console.log(
+                          //   "Message delivery failed or was not acknowledged by the client. to assigned drivers---" +
+                          //     socketId
+                          // );
                         }
                       }
                     );
 
-                    io.to(socketId).emit("refreshTrip", {
+                    await io.to(socketId).emit("refreshTrip", {
                       message:
                         "Driver didn't accpet the trip. Please refresh the data",
                     });
@@ -593,7 +554,7 @@ io.on("connection", (socket) => {
               }
             }
 
-            io.to(socket.id).emit("driverNotification", {
+            await io.to(socket.id).emit("driverNotification", {
               code: 200,
               message: "Trip canceled successfully",
             });
@@ -647,10 +608,28 @@ io.on("connection", (socket) => {
         // if (user.role == "HOTEL") {
 
         if (user.role == "COMPANY") {
-          io.to(user?.socketId).emit("tripAcceptedBYDriver", {
-            trip,
-            message: "Trip accepted successfully",
-          });
+          io.to(user?.socketId).emit(
+            "tripAcceptedBYDriver",
+            {
+              trip,
+              message: "Trip accepted successfully",
+            },
+            (err, ack) => {
+              // console.log("err----", err);
+              // console.log("ack---------", ack);
+              if (ack) {
+                // console.log(
+                //   "Trip accepted successfully to the main company.---" +
+                //     socketId
+                // );
+              } else {
+                // console.log(
+                //   "getting error in Trip accepted successfully to the main company.---" +
+                //     socketId
+                // );
+              }
+            }
+          );
           const response = await sendNotification(
             user?.deviceToken,
             `Trip accepted by driver and trip ID is ${trip.trip_id}`,
@@ -658,7 +637,7 @@ io.on("connection", (socket) => {
             driverBySocketId
           );
 
-          console.log("🚀 ~ socket.on ~ response:", response);
+          // console.log("🚀 ~ socket.on ~ response:", response);
 
           //  Functionality for the assigned driver by company
 
@@ -751,15 +730,15 @@ io.on("connection", (socket) => {
                     // console.log("err----", err);
                     // console.log("ack---------", ack);
                     if (ack) {
-                      console.log(
-                        "Message successfully delivered to the client.---" +
-                          socketId
-                      );
+                      // console.log(
+                      //   "Trip accepted successfully to the assigned driver.---" +
+                      //     socketId
+                      // );
                     } else {
-                      console.log(
-                        "Message delivery failed or was not acknowledged by the client.---" +
-                          socketId
-                      );
+                      // console.log(
+                      //   "getting error in Trip accepted successfully to the assigned driver.---" +
+                      //     socketId
+                      // );
                     }
                   }
                 );
@@ -849,24 +828,24 @@ io.on("connection", (socket) => {
         const driverBySocketId = await driver_model.findOne({
           socketId: socket.id,
         });
-        console.log("--------------------------");
-        console.log("--------------------------");
-        console.log("--------------------------");
-        console.log("--------------------------");
-        console.log(
-          "--------------------------",
-          reason,
-          "socket id",
-          socket.id,
-          "driver data------------",
-          driverBySocketId
-        );
+        // console.log("--------------------------");
+        // console.log("--------------------------");
+        // console.log("--------------------------");
+        // console.log("--------------------------");
+        // console.log(
+        //   "--------------------------",
+        //   reason,
+        //   "socket id",
+        //   socket.id,
+        //   "driver data------------",
+        //   driverBySocketId
+        // );
 
         if (driverBySocketId) {
-          console.log(
-            "🚀 ~ socket driver disconnected ~ driverBySocketId:",
-            driverBySocketId
-          );
+          // console.log(
+          //   "🚀 ~ socket driver disconnected ~ driverBySocketId:",
+          //   driverBySocketId
+          // );
 
           driverBySocketId.isSocketConnected = false;
           driverBySocketId.socketId = null;
@@ -885,7 +864,7 @@ io.on("connection", (socket) => {
 });
 
 const OfflineDriver = async (driverInfo) => {
-  console.log("🚀 ~ OfflineDriver ~ :--------------", driverInfo._id);
+  // console.log("🚀 ~ OfflineDriver ~ :--------------", driverInfo._id);
   try {
     const driverData = await driver_model.findOne({
       _id: driverInfo._id,
@@ -895,9 +874,9 @@ const OfflineDriver = async (driverInfo) => {
       driverData.status = false; // when driver will kill the app then it will not be available to take the trips. driver have to manually change the online / Offline
       await driverData.save();
 
-      console.log("data saved");
+      // console.log("data saved");
     } else {
-      console.log("he joined again in 60 second");
+      // console.log("he joined again in 60 second");
     }
   } catch (err) {
     console.log("🚀 ~ tripIsBooked ~ err:", err);

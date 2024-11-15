@@ -154,7 +154,6 @@ const tripIsBooked = async (tripId, driver_info, io) => {
           company_assigned_driver_sockets_app
         );
 
-        console.log("driverSocketIds-------all---->", driverSocketIds);
         // Send the socket to assigned drivers
         if (driverSocketIds.length > 0) {
           driverSocketIds.forEach(async (socketId) => {
@@ -167,18 +166,8 @@ const tripIsBooked = async (tripId, driver_info, io) => {
                     agency.company_name + "'s Trip not accepted by the Driver",
                 },
                 (err, ack) => {
-                  // console.log("err----", err);
-                  // console.log("ack---------", ack);
                   if (ack) {
-                    console.log(
-                      "Message successfully delivered to the client.---" +
-                        socketId
-                    );
                   } else {
-                    console.log(
-                      "Message delivery failed or was not acknowledged by the client.---" +
-                        socketId
-                    );
                   }
                 }
               );
@@ -191,8 +180,6 @@ const tripIsBooked = async (tripId, driver_info, io) => {
           });
         }
       }
-
-      console.log("🚀 ~ socket.on ~ response: after 20 second");
     }
   } catch (err) {
     console.log("🚀 ~ tripIsBooked ~ err:", err);
@@ -570,8 +557,6 @@ exports.get_trip = async (req, res) => {
 
 exports.get_access_trip = async (req, res) => {
   try {
-    console.log("req.body-----", req.body);
-
     if (req.user.role == "DRIVER") {
       let is_driver_has_company_access = await isDriverHasCompanyAccess(
         req.user,
@@ -608,8 +593,6 @@ exports.get_access_trip = async (req, res) => {
     // }
 
     // const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
-
-    // console.log("objectIds-------" ,req.userId ,"cchhhhhh" , req.user);
 
     let get_trip = await TRIP.aggregate([
       {
@@ -1177,8 +1160,6 @@ exports.check_trip_request = async (req, res) => {
         // Convert milliseconds to seconds
         let differenceInSeconds = differenceInMilliseconds / 1000;
 
-        console.log("differenceInSeconds--------------", differenceInSeconds);
-
         find_trip[index].left_minutes = Math.round(20 - differenceInSeconds);
         // find_trip[index].user_company_name = find_trip[index].company.company_agency.company_name;
         find_trip[index].user_company_name =
@@ -1329,7 +1310,6 @@ exports.alocate_driver = async (req, res) => {
               ?.to(check_driver.socketId)
               ?.emit("newTrip", { trip: update_trip, company: req.user });
           } else {
-            console.log("np socket found----------------");
           }
         } catch (error) {
           console.log("🚀 ~ exports.alocate_driver= ~ error:", error);
@@ -1341,13 +1321,6 @@ exports.alocate_driver = async (req, res) => {
           { _id: req.params.id }, // Filter (find the document by _id)
           { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
         );
-
-        // console.log("Date.now()------------", current_date_time);
-
-        // console.log(
-        //   "update_trip_info--------------------------------",
-        //   req.user.socketId
-        // );
 
         setTimeout(() => {
           tripIsBooked(update_trip._id, driver_full_info, req.io);
@@ -1417,18 +1390,8 @@ exports.alocate_driver = async (req, res) => {
                         "A trip has been sent for allocation to the driver",
                     },
                     (err, ack) => {
-                      // console.log("err----", err);
-                      // console.log("ack---------", ack);
                       if (ack) {
-                        console.log(
-                          "Message successfully delivered to the client.---" +
-                            socketId
-                        );
                       } else {
-                        console.log(
-                          "Message delivery failed or was not acknowledged by the client.---" +
-                            socketId
-                        );
                       }
                     }
                   );
@@ -1480,8 +1443,6 @@ exports.alocate_driver = async (req, res) => {
 exports.access_alocate_driver = async (req, res) => {
   try {
     let data = req.body;
-
-    console.log("checing data----", data);
 
     if (req.user.role == "DRIVER") {
       let is_driver_has_company_access = await isDriverHasCompanyAccess(
@@ -1581,13 +1542,7 @@ exports.access_alocate_driver = async (req, res) => {
           // })
         }
         try {
-          console.log(
-            "🚀 ~ exports.alocate_driver= ~ check_driver.socketId:",
-            check_driver.socketId,
-            check_driver
-          );
           update_trip = update_trip.toObject();
-          console.log("req.user------->>>>>>>>>>>>>", req.user);
 
           let user = await user_model
             .findOne({ _id: req.body.company_id, is_deleted: false })
@@ -1617,7 +1572,6 @@ exports.access_alocate_driver = async (req, res) => {
             check_driver._id.toString() != req?.user?.driverId?.toString() &&
             data.status !== "Booked"
           ) {
-            console.log("check_driver.socketId----", check_driver.socketId);
             req?.io
               ?.to(check_driver.socketId)
               ?.emit("newTrip", { trip: update_trip, company: user });
@@ -1633,7 +1587,6 @@ exports.access_alocate_driver = async (req, res) => {
           { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
         );
 
-        console.log("tripIsBooked----------------");
         setTimeout(() => {
           tripIsBooked(update_trip._id, driver_full_info, req.io);
         }, 20 * 1000);
@@ -1701,18 +1654,8 @@ exports.access_alocate_driver = async (req, res) => {
                         "A trip has been sent for allocation to the driver",
                     },
                     (err, ack) => {
-                      // console.log("err----", err);
-                      // console.log("ack---------", ack);
                       if (ack) {
-                        console.log(
-                          "Message successfully delivered to the client.---" +
-                            socketId
-                        );
                       } else {
-                        console.log(
-                          "Message delivery failed or was not acknowledged by the client.---" +
-                            socketId
-                        );
                       }
                     }
                   );
@@ -2156,7 +2099,7 @@ exports.add_trip1 = async (req, res) => {
         }
       ) * 0.00062137
     ).toFixed(2);
-    console.log("-----------------------------------------------------ssss-12");
+
     data.created_by = checkCompanyId._id;
     let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
     let fare_per_km = getFare
@@ -2165,9 +2108,6 @@ exports.add_trip1 = async (req, res) => {
     if (!data.price) {
       data.price = (fare_per_km * Number(distance)).toFixed(2);
     }
-    console.log(
-      "-----------------------------------3333333-------------------12"
-    );
 
     let add_trip = await TRIP(data).save();
 
@@ -2438,8 +2378,6 @@ exports.add_trip1 = async (req, res) => {
         from: "+3197010204679",
         body: "Your booking has been created",
       });
-
-      console.log("chek------------------- twillio code");
     }
 
     if (!add_trip) {

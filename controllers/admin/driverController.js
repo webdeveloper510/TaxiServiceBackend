@@ -107,7 +107,6 @@ exports.add_driver = async (req, res) => {
       return;
     }
     if (check_other2) {
-      console.log("🚀 ~ //driverUpload ~ check_other2:", check_other2);
       res.send({
         code: constant.error_code,
         message: "Phone Already exist",
@@ -384,7 +383,7 @@ exports.get_driver_detail = async (req, res) => {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
     const driver = await DRIVER.findOne({ _id: driverId, is_deleted: false });
-    
+
     if (!driver) {
       res.send({
         code: constant.error_code,
@@ -465,7 +464,7 @@ exports.get_drivers = async (req, res) => {
   try {
     const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
     let getDetail = await USER.findOne({ _id: req.userId });
-    console.log(getDetail);
+
     const search = req.query.search || "";
     const query = {
       is_deleted: false,
@@ -625,13 +624,12 @@ exports.get_drivers = async (req, res) => {
 };
 
 exports.get_drivers_list = async (req, res) => {
-
   let api_start_time = new Date();
 
   try {
     const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
     let getDetail = await USER.findOne({ _id: req.userId });
-    
+
     const search = req.query.search || "";
     const query = {
       is_deleted: false,
@@ -645,53 +643,51 @@ exports.get_drivers_list = async (req, res) => {
         { address_1: { $regex: search, $options: "i" } },
       ];
     }
-    const driver = await DRIVER.find(
-      query, 
-      {
-        _id: 1,
-        profile_image: 1,
-        first_name: 1,
-        last_name: 1,
-        phone: 1,
-        status: 1,
-        is_login: 1,
-        isVerified: 1,
-      })
-    
-    if (driver) {
-      
-      const favorite_driver = getDetail.favoriteDrivers.map((id) => id.toString());
-      const result = driver.map((d) => {
+    const driver = await DRIVER.find(query, {
+      _id: 1,
+      profile_image: 1,
+      first_name: 1,
+      last_name: 1,
+      phone: 1,
+      status: 1,
+      is_login: 1,
+      isVerified: 1,
+    });
 
+    if (driver) {
+      const favorite_driver = getDetail.favoriteDrivers.map((id) =>
+        id.toString()
+      );
+      const result = driver.map((d) => {
         const driverObj = d.toObject();
         let isFavorite = false;
-        
+
         if (favorite_driver.includes(driverObj._id.toString())) {
           isFavorite = true;
         }
         driverObj.isFavorite = isFavorite;
         return driverObj;
       });
-      
+
       let api_end_time = new Date();
 
       const differenceInMs = api_end_time - api_start_time;
       const differenceInSeconds = differenceInMs / 1000; // Convert to seconds
-      
+
       let logs_data = {
         api_start_time: api_start_time,
         api_end_time: api_end_time,
         response_time: differenceInSeconds,
         user_id: req.userId,
         role: req.user.role,
-        api_name: req.route ? req.route.path : req.originalUrl
-      }
+        api_name: req.route ? req.route.path : req.originalUrl,
+      };
       const logEntry = new LOGS(logs_data);
       logEntry.save();
       res.send({
         code: constant.success_code,
         message: "Driver list retrieved successfully",
-        response_time:differenceInSeconds,
+        response_time: differenceInSeconds,
         result: result,
       });
     } else {
@@ -705,20 +701,20 @@ exports.get_drivers_list = async (req, res) => {
 
     let api_end_time = new Date();
 
-      const differenceInMs = api_end_time - api_start_time;
-      const differenceInSeconds = differenceInMs / 1000; // Convert to seconds
-      
-      let logs_data = {
-        api_start_time: api_start_time,
-        api_end_time: api_end_time,
-        response_time: differenceInSeconds,
-        user_id: req.userId,
-        role: req.user.role,
-        api_name: req.route ? req.route.path : req.originalUrl,
-        error_response : err.message
-      }
-      const logEntry = new LOGS(logs_data);
-      logEntry.save();
+    const differenceInMs = api_end_time - api_start_time;
+    const differenceInSeconds = differenceInMs / 1000; // Convert to seconds
+
+    let logs_data = {
+      api_start_time: api_start_time,
+      api_end_time: api_end_time,
+      response_time: differenceInSeconds,
+      user_id: req.userId,
+      role: req.user.role,
+      api_name: req.route ? req.route.path : req.originalUrl,
+      error_response: err.message,
+    };
+    const logEntry = new LOGS(logs_data);
+    logEntry.save();
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -806,10 +802,7 @@ exports.get_deleted_drivers_super = async (req, res) => {
 
 exports.update_driver = async (req, res) => {
   driverUpload(req, res, async (err) => {
-    console.log("file++++44444++++++++", req.files);
-
     if (err) {
-      console.log("🚀 ~ driverUpload ~ err:", err.stack);
       res.send({
         code: constant.error_code,
         message: err.message,
@@ -836,7 +829,6 @@ exports.update_driver = async (req, res) => {
       const existingDriver = await DRIVER.findById(driverId);
 
       // if (!existingDriver || existingDriver.is_deleted) {
-
 
       if (!existingDriver) {
         return res.send({
@@ -884,13 +876,7 @@ exports.update_driver = async (req, res) => {
         { new: true }
       );
       if (updatedDriver) {
-        console.log(
-          "🚀 ~ driverUpload ~ updatedDriver:",
-          updatedDriver,
-          req.body.isDocUploaded
-        );
         if (req.body.isDocUploaded) {
-          console.log("in the right zone============>>>>>>>>");
           var transporter = nodemailer.createTransport(
             emailConstant.credentials
           );
@@ -1076,7 +1062,6 @@ exports.updateLocation = async (req, res) => {
     let criteria = { _id: data.driverId };
     let option = { new: true };
 
-    console.log("location  ____________ >>>>>", data);
     let updateLocation = await DRIVER.findOneAndUpdate(
       criteria,
       {
@@ -1628,28 +1613,26 @@ exports.logout = async (req, res) => {
     let driver = await DRIVER.findOne({ _id: data.driverId });
     let user_info = await USER.findOne({ _id: data.driverId });
 
-    if (driver) { // if driver is logging out
+    if (driver) {
+      // if driver is logging out
       let updateLogin1 = await DRIVER.findOneAndUpdate(
         { _id: data.driverId },
         {
-          $set:{ is_login: false,
-            deviceToken:null
-           }
+          $set: { is_login: false, deviceToken: null },
         },
         { new: true }
       );
-    } else { // If company logging out
+    } else {
+      // If company logging out
       let updateLogin1 = await DRIVER.findOneAndUpdate(
         { _id: user_info?.driverId },
         {
-          $set:{ is_login: false,
-            deviceToken:null
-           }
+          $set: { is_login: false, deviceToken: null },
         },
         { new: true }
       );
     }
-    
+
     res.send({
       code: constant.success_code,
       message: "Logout successfully",
@@ -1689,11 +1672,11 @@ exports.convertIntoDriver = async (req, res) => {
           ? driver_documents[0]
           : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg";
       let user = req.user;
-      if( req.user.isDriver){
+      if (req.user.isDriver) {
         res.json({
           code: constant.error_code,
           message: "Already have a driver",
-        })
+        });
       }
       let save_driver = await DRIVER({
         ...data,
@@ -1716,7 +1699,7 @@ exports.convertIntoDriver = async (req, res) => {
       const result = save_driver.toObject();
       result.role = "DRIVER";
       req.user.isDriver = true;
-      console.log("🚀 ~ driverUpload ~ save_driver:", save_driver._id);
+
       req.user.driverId = save_driver._id;
       let saveUserData = await req.user.save();
 
@@ -1754,7 +1737,6 @@ exports.convertIntoDriver = async (req, res) => {
 exports.switchToDriver = async (req, res) => {
   try {
     let currentDate = new Date();
-    console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile);
 
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
@@ -1789,11 +1771,10 @@ exports.switchToDriver = async (req, res) => {
         })
         .countDocuments();
 
-        console.log("🚀 ~ exports.switchToDriver= ~ req.isMobile:", req.isMobile);
-        if(req.isMobile){
+      if (req.isMobile) {
         driverData.jwtTokenMobile = jwtToken;
         driverData.lastUsedTokenMobile = new Date();
-      }else{
+      } else {
         driverData.jwtToken = jwtToken;
         driverData.lastUsedToken = new Date();
       }
@@ -1823,7 +1804,7 @@ exports.switchToDriver = async (req, res) => {
 exports.switchToCompany = async (req, res) => {
   try {
     let isMobile = req.isMobile;
-    console.log("🚀 ~ exports.switchToCompany= ~ isMobile:", isMobile);
+
     let user = req.user;
 
     let companyData = await user_model.findOne({
@@ -1842,15 +1823,13 @@ exports.switchToCompany = async (req, res) => {
         { expiresIn: "365d" }
       );
       const result = companyData.toObject();
-      if(req.isMobile){
+      if (req.isMobile) {
         companyData.jwtTokenMobile = jwtToken;
         companyData.lastUsedTokenMobile = new Date();
-      }
-      else{
+      } else {
         companyData.jwtToken = jwtToken;
         companyData.lastUsedToken = new Date();
       }
-      
 
       await companyData.save();
       result.role = "COMPANY";

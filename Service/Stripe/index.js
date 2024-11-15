@@ -23,8 +23,6 @@ exports.initiateStripePayment = async (trip, amount) => {
       cancel_url: `${process.env.FRONTEND_URL}/payment/cancel/${trip._id}`,
     });
 
-    console.log("first step+++++++++++++++++++++", paymentIntent);
-
     // Update the Trip model with the Payment Intent ID
     // const tripUpdateData = await trip_model.findOne(
     //     { trip_id: tripId },
@@ -57,8 +55,10 @@ exports.initiateStripePayment = async (trip, amount) => {
 exports.checkPaymentStatus = async (paymentIntentId) => {
   try {
     // Retrieve the payment intent from Stripe using the paymentIntentId
-    const paymentIntent = await stripe.checkout.sessions.retrieve(paymentIntentId);
-    return paymentIntent
+    const paymentIntent = await stripe.checkout.sessions.retrieve(
+      paymentIntentId
+    );
+    return paymentIntent;
 
     // // Check the status of the payment intent
     // const paymentStatus = paymentIntent.status;

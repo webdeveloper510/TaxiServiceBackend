@@ -14,12 +14,11 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 exports.driverDetailsByToken = async (token) => {
-  // console.log("🚀 ~ file: helperFuntion.js:6 ~ exports.driverDetailsByToken= ~ token:", token)
   const { userId } = jwt.verify(token, process.env.JWTSECRET);
-  // console.log("getCustomerDetailsByTokenId===>", userId)
+
   //   // find driver by id in database
   const driver = await driver_model.findOne({ _id: userId });
-  // console.log("🚀 ~ file: helperFuntion.js:11 ~ exports.driverDetailsByToken= ~ driver:", driver)
+
   return driver;
 };
 
@@ -35,7 +34,7 @@ exports.sendSms = async (data) => {
 };
 exports.userDetailsByToken = async (token) => {
   const { userId } = jwt.verify(token, process.env.JWTSECRET);
-  // console.log("🚀 ~ exports.userDetailsByToken= ~ userId:", userId)
+
   //   // find driver by id in database
   const user = await user_model.findOne({ _id: userId });
   return user;
@@ -50,7 +49,6 @@ exports.isDriverHasCompanyAccess = async (driver_data, company_id) => {
 };
 
 exports.sendNotification = async (to, message, title, data) => {
-  // console.log("get token--------------->" , to)
   let device_token = to;
   try {
     const messageData = {
@@ -73,7 +71,7 @@ exports.sendNotification = async (to, message, title, data) => {
       },
     };
     const response = await admin.messaging().send(messageData);
-    // console.log ('Notification sent:', response);
+
     return response;
   } catch (error) {
     if (error.code == "messaging/registration-token-not-registered") {

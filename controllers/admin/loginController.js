@@ -32,7 +32,6 @@ const removeOTPAfter5Minutes = async (login_sms_otp_uid) => {
       { new: true, useFindAndModify: false } // Options
     );
 
-    console.log("Updated User:", updatedUser);
     return updatedUser;
   } catch (error) {
     console.error("Error updating user:", error);
@@ -143,7 +142,6 @@ exports.login = async (req, res) => {
           },
         ],
       });
-      // console.log("🚀 ~ exports.login= ~ check_again:", check_again)
 
       if (!check_again) {
         res.send({
@@ -361,7 +359,6 @@ exports.login = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("🚀 ~ exports.login= ~ err:", err);
     res.send({
       code: constants.error_code,
       message: err.message,
@@ -641,7 +638,7 @@ exports.send_otp = async (req, res) => {
           },
         ],
       });
-      console.log("🚀 ~ exports.send_otp= ~ check_driver:", check_driver);
+
       if (!check_driver) {
         res.send({
           code: constant.error_code,
@@ -1074,10 +1071,7 @@ exports.forgot_password = async (req, res) => {
     let check_email = await USER.findOne(criteria);
     if (!check_email) {
       let check_driver = await DRIVER.findOne(criteria);
-      console.log(
-        "🚀 ~ exports.forgot_password= ~ check_driver:",
-        check_driver
-      );
+
       if (!check_driver) {
         res.send({
           code: constant.error_code,
@@ -1099,10 +1093,7 @@ exports.forgot_password = async (req, res) => {
         newValue,
         option
       );
-      console.log(
-        "🚀 ~ exports.forgot_password= ~ updatePassword:",
-        updatePassword
-      );
+
       if (!updatePassword) {
         res.send({
           code: constant.error_code,
