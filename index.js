@@ -419,7 +419,7 @@ io.on("connection", (socket) => {
               }
 
               if (user?.deviceToken) {
-                const response = await sendNotification(
+                await sendNotification(
                   user?.deviceToken,
                   `Trip canceled by driver ${
                     driverBySocketId.first_name +
