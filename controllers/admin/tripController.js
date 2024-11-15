@@ -88,11 +88,11 @@ const tripIsBooked = async (tripId, driver_info, io) => {
         });
       }
 
-      if (user?.created_by?.deviceToken) {
-        // notification for companies
+      if (user?.deviceToken) {
+        // notification for company
 
         await sendNotification(
-          user?.created_by?.deviceToken,
+          user?.deviceToken,
           `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
           `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
           updateDriver
