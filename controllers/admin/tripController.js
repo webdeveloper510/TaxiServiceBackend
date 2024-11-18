@@ -709,21 +709,21 @@ exports.get_access_trip = async (req, res) => {
 
 exports.get_all_access_trip = async (req, res) => {
   try {
-    if (req.user.role == "DRIVER") {
-      let is_driver_has_company_access = await isDriverHasCompanyAccess(
-        req.user,
-        req.body.company_id
-      );
+    // if (req.user.role == "DRIVER") {
+    //   let is_driver_has_company_access = await isDriverHasCompanyAccess(
+    //     req.user,
+    //     req.body.company_id
+    //   );
 
-      if (!is_driver_has_company_access) {
-        res.send({
-          code: constant.ACCESS_ERROR_CODE,
-          message: "The company's access has been revoked",
-        });
+    //   if (!is_driver_has_company_access) {
+    //     res.send({
+    //       code: constant.ACCESS_ERROR_CODE,
+    //       message: "The company's access has been revoked",
+    //     });
 
-        return;
-      }
-    }
+    //     return;
+    //   }
+    // }
 
     const companyIds = await req.user.company_account_access.map(item => item.company_id);
 
@@ -821,6 +821,7 @@ exports.get_all_access_trip = async (req, res) => {
           customerDetails: 1,
           price: 1,
           passengerCount: 1,
+          created_by_company_id:1,
           hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
           driver_name: {
