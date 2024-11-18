@@ -707,6 +707,161 @@ exports.get_access_trip = async (req, res) => {
   }
 };
 
+exports.get_all_access_trip = async (req, res) => {
+  try {
+    if (req.user.role == "DRIVER") {
+      let is_driver_has_company_access = await isDriverHasCompanyAccess(
+        req.user,
+        req.body.company_id
+      );
+
+      if (!is_driver_has_company_access) {
+        res.send({
+          code: constant.ACCESS_ERROR_CODE,
+          message: "The company's access has been revoked",
+        });
+
+        return;
+      }
+    }
+
+    const companyIds = await req.user.company_account_access.map(item => item.company_id);
+
+    if (companyIds.length == 0) {
+      return res.send({
+        code: constant.error_code,
+        message: "No data found",
+        result : []
+      });
+    }
+    
+
+    let data = req.body;
+
+    // let mid = new mongoose.Types.ObjectId(req.userId)
+    // let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
+
+    // let search_value = data.comment ? data.comment : ''
+    // let ids = []
+    // for (let i of getIds) {
+    //     ids.push(i._id)
+    // }
+
+    // const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+
+    let get_trip = await TRIP.aggregate([
+      {
+        $match: {
+          $and: [
+            // {
+            //     $or: [
+            //         { created_by: { $in: objectIds } },
+            //         { created_by: mid },
+            //     ]
+            // },
+            {
+              created_by_company_id: {
+                $in: companyIds.map(id => new mongoose.Types.ObjectId(id))
+              },
+            },
+            { status: true },
+            { trip_status: req.params.status },
+            { is_deleted: false },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "drivers",
+          localField: "driver_name",
+          foreignField: "_id",
+          as: "driver",
+        },
+      },
+      {
+        $lookup: {
+          from: "vehicles",
+          localField: "vehicle",
+          foreignField: "_id",
+          as: "vehicle",
+        },
+      },
+
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "created_by_company_id",
+          foreignField: "user_id",
+          as: "userData",
+        },
+      },
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "hotel_id",
+          foreignField: "user_id",
+          as: "hotelData",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          trip_from: 1,
+          trip_to: 1,
+          pickup_date_time: 1,
+          trip_status: 1,
+          createdAt: 1,
+          created_by: 1,
+          status: 1,
+          passenger_detail: 1,
+          vehicle_type: 1,
+          comment: 1,
+          commission: 1,
+          pay_option: 1,
+          customerDetails: 1,
+          price: 1,
+          passengerCount: 1,
+          hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
+          company_name: { $arrayElemAt: ["$userData.company_name", 0] },
+          driver_name: {
+            $concat: [
+              { $arrayElemAt: ["$driver.first_name", 0] },
+              " ",
+              { $arrayElemAt: ["$driver.last_name", 0] },
+            ],
+          },
+          driver_id: { $arrayElemAt: ["$driver._id", 0] },
+          vehicle: {
+            $concat: [
+              { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+              " ",
+              { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
+            ],
+          },
+          trip_id: 1,
+        },
+      },
+    ]).sort({ createdAt: -1 });
+    if (!get_trip) {
+      res.send({
+        code: constant.error_code,
+        message: "Unable to get the trips",
+      });
+    } else {
+      res.send({
+        code: constant.success_code,
+        message: "Success",
+        result: get_trip,
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
 exports.get_trip_for_hotel = async (req, res) => {
   try {
     let data = req.body;
