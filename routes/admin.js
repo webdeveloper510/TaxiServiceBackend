@@ -208,6 +208,7 @@ router.get("/check_company_id/:company_id", tripController.check_company_id);
 router.post("/add_trip_link", tripController.add_trip_link);
 router.post("/get_trip/:status", [verifyToken], tripController.get_trip);
 router.post("/company_get_trip/:status", [verifyToken], tripController.companyGetTrip);
+router.post("/company_hotel_list/:company_id", [verifyToken], subAdminController.companyHotelList);
 router.post("/get_access_trip/:status",[verifyToken],tripController.get_access_trip);
 router.post("/get_all_access_trip/:status",[verifyToken],tripController.get_all_access_trip);
 

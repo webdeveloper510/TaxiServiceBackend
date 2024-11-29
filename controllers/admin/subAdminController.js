@@ -1091,6 +1091,128 @@ exports.search_company = async (req, res) => {
   }
 };
 
+
+exports.companyHotelList = async (req, res) => {
+  try {
+    let data = req.body;
+    let companyId = req.params.company_id;
+    let companydata = await USER.findOne({ role: "COMPANY", _id: companyId });
+
+    if (!companyId || !companydata) {
+
+      return res.send({
+        code: constant.error_code,
+        message: "Invalid company",
+      });
+    } 
+   
+    let searchUser = await USER.aggregate([
+      // {
+      //     $match: {
+      //         $and: [
+      //             { role: query }, { is_deleted: false }, { created_by: new mongoose.Types.ObjectId(req.userId) },
+      //             {
+      //                 $or: [
+      //                     { 'first_name': { '$regex': req.body.name, '$options': 'i' } },
+      //                     { 'last_name': { '$regex': req.body.name, '$options': 'i' } },
+      //                     { 'email': { '$regex': req.body.name, '$options': 'i' } },
+      //                     // { 'email': { '$regex': req.body.name, '$options': 'i' } },
+      //                     { 'phone': { '$regex': req.body.name, '$options': 'i' } },
+
+      //                 ]
+      //             }
+      //         ]
+
+      //     }
+
+      // },
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "_id",
+          foreignField: "user_id",
+          as: "meta",
+        },
+      },
+      {
+        $match: {
+          $and: [
+            { role: 'HOTEL' },
+            { is_deleted: false },
+            { created_by: new mongoose.Types.ObjectId(companyId) },
+            {
+              $or: [
+                { "meta.company_id": { $regex: req.body.name, $options: "i" } },
+                {
+                  "meta.company_name": { $regex: req.body.name, $options: "i" },
+                },
+                { first_name: { $regex: req.body.name, $options: "i" } },
+                { last_name: { $regex: req.body.name, $options: "i" } },
+                { email: { $regex: req.body.name, $options: "i" } },
+                // { 'email': { '$regex': req.body.name, '$options': 'i' } },
+                { phone: { $regex: req.body.name, $options: "i" } },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          first_name: 1,
+          last_name: 1,
+          email: 1,
+          // company_id:1,
+          // company_name:1,
+          phone: 1,
+          createdAt: -1,
+          profile_image: 1,
+          role: 1,
+          totalBalance: 1,
+          status: 1,
+          land: { $arrayElemAt: ["$meta.land", 0] },
+          post_code: { $arrayElemAt: ["$meta.post_code", 0] },
+          house_number: { $arrayElemAt: ["$meta.house_number", 0] },
+          description: { $arrayElemAt: ["$meta.description", 0] },
+          affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
+          p_number: { $arrayElemAt: ["$meta.p_number", 0] },
+          number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
+          chamber_of_commerce_number: {
+            $arrayElemAt: ["$meta.chamber_of_commerce_number", 0],
+          },
+          vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
+          website: { $arrayElemAt: ["$meta.website", 0] },
+          tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+          saluation: { $arrayElemAt: ["$meta.saluation", 0] },
+          company_name: { $arrayElemAt: ["$meta.company_name", 0] },
+          company_id: { $arrayElemAt: ["$meta.company_id", 0] },
+          commision: { $arrayElemAt: ["$meta.commision", 0] },
+          hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
+
+          location: { $arrayElemAt: ["$meta.location", 0] },
+        },
+      },
+    ]).sort({ createdAt: -1 });
+    if (!searchUser) {
+      res.send({
+        code: constant.error_code,
+        message: "Unable to search the user",
+      });
+    } else {
+      res.send({
+        code: constant.success_code,
+        message: "Success",
+        result: searchUser,
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
 exports.access_search_company = async (req, res) => {
   try {
     if (req.user.role == "DRIVER") {
