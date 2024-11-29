@@ -191,6 +191,7 @@ router.post(
   fareController.access_get_fares
 );
 router.get("/get_fares", [verifyToken], fareController.get_fares);
+router.get("/company_get_fares/:company_id", [verifyToken], fareController.companyGetFares);
 router.get("/get_fares/:id", fareController.get_fares);
 router.get(
   "/get_fare_detail/:id",

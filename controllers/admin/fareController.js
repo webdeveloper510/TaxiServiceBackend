@@ -86,6 +86,51 @@ exports.get_fares = async (req, res) => {
   }
 };
 
+exports.companyGetFares = async (req, res) => {
+  try {
+    let data = req.body;
+    let companyId = req.params.company_id;
+    let companydata = await USER.findOne({ role: "COMPANY", _id: companyId });
+
+    if (!companyId || !companydata) {
+
+      return res.send({
+        code: constant.error_code,
+        message: "Invalid company",
+      });
+    } 
+
+    let getData = await FARE.find({
+      $and: [
+        {
+          $or: [
+            { created_by: companyId },
+            { created_by: companydata.created_by },
+          ],
+        },
+        { is_deleted: false },
+      ],
+    }).sort({ createdAt: -1 });
+    if (!getData) {
+      res.send({
+        code: constant.error_code,
+        message: "No Data Found",
+      });
+    } else {
+      res.send({
+        code: constant.success_code,
+        message: "Successfully fetched",
+        result: getData,
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
 exports.access_get_fares = async (req, res) => {
   try {
     let data = req.body;
