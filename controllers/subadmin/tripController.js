@@ -10,6 +10,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
+const AGENCY = require("../../models/user/agency_model");
 
 exports.add_trip = async (req, res) => {
   try {
@@ -390,6 +391,26 @@ exports.edit_trip = async (req, res) => {
 
     let option = { new: true };
     data.status = true;
+
+    if (data?.commission && data?.commission?.commission_value != 0) {
+      
+      let commission = data.commission.commission_value;
+      if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
+        commission = (data.price * data.commission.commission_value) / 100;
+      }
+
+      const companyData = await USER.findOne({ _id: data.created_by_company_id, });
+      const company = await AGENCY.findOne({ user_id: companyData._id, });
+      data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
+      data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
+      data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
+
+    } else {
+      data.superAdminPaymentAmount = 0;
+      data.companyPaymentAmount = 0;
+      data.driverPaymentAmount = data.price
+    }
+   
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
     if (!update_trip) {
       res.send({

@@ -24,6 +24,18 @@ const trip = new Schema({
             commission_value:0
         }
     },
+    superAdminPaymentAmount: {
+        type: Number,
+        require: true,
+    },
+    companyPaymentAmount: {
+        type: Number,
+        require: true,
+    },
+    driverPaymentAmount: {
+        type: Number,
+        require: true,
+    },
     series_id:{
         type:String,
         default:''
