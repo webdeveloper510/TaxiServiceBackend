@@ -666,7 +666,7 @@ exports.companyGetTrip = async (req, res) => {
       startDate = startDate.toISOString();
       endDate = endDate.toISOString();
 
-      dateQuery = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+      dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
     }
 
     const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
