@@ -1458,7 +1458,7 @@ exports.get_recent_trip_super = async (req, res) => {
       {
         $lookup: {
           from: "users",
-          localField: "created_by",
+          localField: "created_by_company_id",
           foreignField: "_id",
           as: "userData",
           pipeline: [
