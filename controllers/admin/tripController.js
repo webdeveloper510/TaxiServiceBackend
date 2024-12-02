@@ -1409,6 +1409,10 @@ exports.get_recent_trip_super = async (req, res) => {
     let mid = new mongoose.Types.ObjectId(req.userId);
     let search_value = data.comment ? data.comment : "";
 
+    let page = parseInt(data.page) || 1; // Current page number, default to 1
+    let limit = parseInt(data.limit) || 10; // Number of results per page, default to 10
+    let skip = (page - 1) * limit;
+
     let get_trip = await TRIP.aggregate([
       {
         $match: {
@@ -1501,8 +1505,21 @@ exports.get_recent_trip_super = async (req, res) => {
           ],
         },
       },
-    ]).sort({ createdAt: -1 });
-    if (!get_trip) {
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+        },
+      },
+    ]);
+
+    let results = get_trip[0]?.data;
+
+    if (!results) {
       res.send({
         code: constant.error_code,
         message: "Unable to get the trips",
@@ -1511,7 +1528,9 @@ exports.get_recent_trip_super = async (req, res) => {
       res.send({
         code: constant.success_code,
         message: "Success",
-        result: get_trip,
+        totalCount :  get_trip[0]?.metadata[0]?.total | 0,
+        result: results,
+        
       });
     }
   } catch (err) {
