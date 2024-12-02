@@ -242,8 +242,8 @@ exports.add_trip = async (req, res) => {
         commission = (data.price * data.commission.commission_value) / 100;
       }
 
-      const companyData = await user_model.findOne({ _id: data.created_by_company_id, });
-      const company = await AGENCY.findOne({ user_id: companyData._id, });
+      
+      const company = await AGENCY.findOne({ user_id: data.created_by_company_id, });
       data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
       data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
       data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
@@ -338,6 +338,26 @@ exports.access_add_trip = async (req, res) => {
     if (!data.price) {
       data.price = (fare_per_km * Number(distance)).toFixed(2);
     }
+
+
+    if (data?.commission && data?.commission?.commission_value != 0) {
+      
+      let commission = data.commission.commission_value;
+      if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
+        commission = (data.price * data.commission.commission_value) / 100;
+      }
+
+      const company = await AGENCY.findOne({ user_id: data.created_by_company_id, });
+      data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
+      data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
+      data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
+    } else {
+      data.superAdminPaymentAmount = 0;
+      data.companyPaymentAmount = 0;
+      data.driverPaymentAmount = data.price
+    }
+
+
     let add_trip = await TRIP(data).save();
     if (!add_trip) {
       res.send({
