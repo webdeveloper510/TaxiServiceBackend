@@ -1095,26 +1095,30 @@ exports.companyList = async (req, res) => {
   try {
     let data = req.body;
     let query = req.query.role ? req.query.role : "COMPANY";
-    let searchUser = await USER.aggregate([
-      // {
-      //     $match: {
-      //         $and: [
-      //             { role: query }, { is_deleted: false }, { created_by: new mongoose.Types.ObjectId(req.userId) },
-      //             {
-      //                 $or: [
-      //                     { 'first_name': { '$regex': req.body.name, '$options': 'i' } },
-      //                     { 'last_name': { '$regex': req.body.name, '$options': 'i' } },
-      //                     { 'email': { '$regex': req.body.name, '$options': 'i' } },
-      //                     // { 'email': { '$regex': req.body.name, '$options': 'i' } },
-      //                     { 'phone': { '$regex': req.body.name, '$options': 'i' } },
+    const page = parseInt(data.page) || 1; // Get the page number from the request (default to 1 if not provided)
+    const limit =  parseInt(data.limit); // Number of items per page
+    const skip = (page - 1) * limit;
 
-      //                 ]
-      //             }
-      //         ]
+    // Match criteria for filtering users
+    const matchCriteria = {
+      $and: [
+        { role: "COMPANY" },
+        { is_deleted: false },
+        {
+          $or: [
+            { "meta.company_id": { $regex: req.body.name, $options: "i" } },
+            { "meta.company_name": { $regex: req.body.name, $options: "i" } },
+            { first_name: { $regex: req.body.name, $options: "i" } },
+            { last_name: { $regex: req.body.name, $options: "i" } },
+            { email: { $regex: req.body.name, $options: "i" } },
+            { phone: { $regex: req.body.name, $options: "i" } },
+          ],
+        },
+      ],
+    };
 
-      //     }
-
-      // },
+    // Get the total count of matching documents
+    const totalCount = await USER.aggregate([
       {
         $lookup: {
           from: "agencies",
@@ -1124,26 +1128,28 @@ exports.companyList = async (req, res) => {
         },
       },
       {
-        $match: {
-          $and: [
-            { role: 'COMPANY' },
-            { is_deleted: false },
-              // { created_by: new mongoose.Types.ObjectId(req.userId) },
-            {
-              $or: [
-                { "meta.company_id": { $regex: req.body.name, $options: "i" } },
-                {
-                  "meta.company_name": { $regex: req.body.name, $options: "i" },
-                },
-                { first_name: { $regex: req.body.name, $options: "i" } },
-                { last_name: { $regex: req.body.name, $options: "i" } },
-                { email: { $regex: req.body.name, $options: "i" } },
-                // { 'email': { '$regex': req.body.name, '$options': 'i' } },
-                { phone: { $regex: req.body.name, $options: "i" } },
-              ],
-            },
-          ],
+        $match: matchCriteria,
+      },
+      {
+        $count: "total",
+      },
+    ]);
+
+    // Calculate total pages
+    const totalDocuments = totalCount[0]?.total || 0;
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    let searchUser = await USER.aggregate([
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "_id",
+          foreignField: "user_id",
+          as: "meta",
         },
+      },
+      {
+        $match: matchCriteria,
       },
       {
         $project: {
@@ -1181,7 +1187,16 @@ exports.companyList = async (req, res) => {
           location: { $arrayElemAt: ["$meta.location", 0] },
         },
       },
-    ]).sort({ createdAt: -1 });
+      {
+        $sort: { createdAt: -1 }, // Sort by creation date in descending order
+      },
+      {
+        $skip: skip, // Skip items for previous pages
+      },
+      {
+        $limit: limit, // Limit the result to items per page
+      },
+    ]);
     if (!searchUser) {
       res.send({
         code: constant.error_code,
@@ -1191,7 +1206,11 @@ exports.companyList = async (req, res) => {
       res.send({
         code: constant.success_code,
         message: "Success",
-        result: searchUser,
+        totalCount: totalCount,
+        totalDocuments:totalDocuments,
+        totalPages:totalPages,
+        result: searchUser
+        
       });
     }
   } catch (err) {
