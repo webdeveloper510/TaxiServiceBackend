@@ -8,11 +8,19 @@ module.exports={
     ACCOUNT_SHARE_INVOKED: "INVOKED",
     ACCESS_ERROR_CODE: 202,
     ROLES: {
-        COMPANY: "COMPANY",
-        SUPER_ADMIN: "SUPER_ADMIN",
-        HOTEL: "HOTEL",
-        DRIVER: "DRIVER",
-        ADMIN: "ADMIN"
+        COMPANY: 'COMPANY',
+        SUPER_ADMIN: 'SUPER_ADMIN',
+        HOTEL: 'HOTEL',
+        DRIVER: 'DRIVER',
+        ADMIN: 'ADMIN'
     },
-    OTP_CODE:205 
+    OTP_CODE:205 ,
+    TRIP_STATUS: {
+        APPROVED: 'Approved',
+        BOOKED: 'Booked',
+        REACHED: 'Reached',
+        ACTIVE: 'Active',
+        COMPLETED: 'Completed',
+        CANCELED: 'Canceled'
+    }
 }

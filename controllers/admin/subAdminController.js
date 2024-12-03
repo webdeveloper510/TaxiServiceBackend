@@ -1091,6 +1091,105 @@ exports.search_company = async (req, res) => {
   }
 };
 
+exports.companyRevenueDetails = async (req, res) => {
+  let data = req.body;
+  let companyId = new mongoose.Types.ObjectId(req.params.company_id);
+  let companyData = await USER.findOne({ role: "COMPANY", _id: companyId });
+
+  if (!companyId || !companyData) {
+
+    return res.send({
+      code: constant.error_code,
+      message: "Invalid company",
+    });
+  }
+  
+  let dateFilter = data.dateFilter; // Corrected variable name
+  if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
+    dateFilter = "all";
+  }
+
+  // Update the query based on the date filter
+  let dateQuery = {};
+  if (dateFilter !== "all") {
+    let startDate, endDate;
+    const today = new Date();
+    switch (dateFilter) {
+      case "this_week":
+        const todayDay = today.getDay();
+        startDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() - todayDay
+        );
+        endDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() + (6 - todayDay)
+        );
+        break;
+      case "this_month":
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        break;
+      case "this_year":
+        startDate = new Date(today.getFullYear(), 0, 1);
+        endDate = new Date(today.getFullYear(), 11, 31);
+        break;
+      case "dateRange":
+        startDate = new Date(req.body.startDate);
+        endDate = new Date(req.body.endDate);
+
+        // Modify the Date object with setHours
+        
+      default:
+        break;
+    }
+
+    startDate.setUTCHours(0, 0, 1, 0);
+    endDate.setUTCHours(23, 59, 59, 999);
+    
+    // Convert the Date objects to ISO 8601 strings
+    startDate = startDate.toISOString();
+    endDate = endDate.toISOString();
+
+    dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+  }
+
+  let matchCompletedPaidCriteria = {
+    $and: [
+      { created_by_company_id : companyId},
+      { status: true },
+      { trip_status: constant.TRIP_STATUS.COMPLETED },
+      { is_deleted: false },
+      {is_paid: true},
+      dateQuery,
+    ],
+  };
+
+  const completedPaidResult = await TRIP.aggregate([
+    {
+        $match: matchCompletedPaidCriteria
+    },
+    {
+        $group: {
+            _id: null,
+            companyPaymentAmount: { $sum: "$companyPaymentAmount" }
+        }
+    }
+  ]);
+
+  const total = completedPaidResult.length > 0 ? completedPaidResult[0].companyPaymentAmount : 0;
+  return res.send({
+                code:constant.error_code,
+                data:data,
+                company_id: companyId,
+                total: total,
+                dateQuery:dateQuery,
+                matchCompletedPaidCriteria:matchCompletedPaidCriteria
+            })
+}
+
 exports.companyList = async (req, res) => {
   try {
     let data = req.body;

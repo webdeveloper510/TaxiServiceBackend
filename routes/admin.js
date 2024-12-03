@@ -60,6 +60,7 @@ router.delete(
 router.post("/add_sub_admin", [verifyToken], subAdminController.add_sub_admin);
 router.post( "/search_company", [verifyToken], subAdminController.search_company);
 router.post( "/all_company_list", [verifyToken], subAdminController.companyList);
+router.post( "/company_revenue_details/:company_id", [verifyToken], subAdminController.companyRevenueDetails);
 router.post(
   "/access_search_company",
   [verifyToken],
