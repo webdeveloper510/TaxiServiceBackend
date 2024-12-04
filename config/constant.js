@@ -16,11 +16,12 @@ module.exports={
     },
     OTP_CODE:205 ,
     TRIP_STATUS: {
-        APPROVED: 'Approved',
-        BOOKED: 'Booked',
-        REACHED: 'Reached',
-        ACTIVE: 'Active',
-        COMPLETED: 'Completed',
-        CANCELED: 'Canceled'
+        APPROVED: 'Approved', // When trip goes to the driver for 20 seconds for accepting the ride
+        BOOKED: 'Booked', // When Driver has been accepted the trip
+        REACHED: 'Reached', // When Driver went to the point from from where driver will pick the customer
+        ACTIVE: 'Active', // When driver is going on customer destination
+        COMPLETED: 'Completed', // When driver reached to the destination
+        CANCELED: 'Canceled', //  When compnay cancelled the trip from driver
+        PENDING: 'Pending' // When trip is created
     }
 }

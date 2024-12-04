@@ -1156,18 +1156,47 @@ exports.companyRevenueDetails = async (req, res) => {
     dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
   }
 
+  const companyTripPendingRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.PENDING , false , dateQuery); // pending trip
+  const companyTripCompletedWithPaymentRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , dateQuery); // completed with payment
+  const companyTripCompletedWithoutPaymentRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , false , dateQuery); // completed without payment
+  const companyTripBookedPaymentRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.BOOKED , false , dateQuery); // When driver accepted the trip but not started yet
+  const companyTripActivePaymentRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.ACTIVE , false , dateQuery); // when driver going to take customer
+
+  
+  return res.send({
+                code:constant.error_code,
+                data:data,
+                company_id: companyId,
+                chartRevenue: [
+                  { value: companyTripPendingRevenue, label: 'Pending Trips' },
+                  { value: companyTripBookedPaymentRevenue, label: 'Booked Trips' },
+                  { value: companyTripActivePaymentRevenue, label: 'Active Trips' },
+                  { value: companyTripCompletedWithPaymentRevenue, label: 'Completed Trips with Payment' },
+                  { value: companyTripCompletedWithoutPaymentRevenue, label: 'Completed Trips without Payment' },
+                  
+                ],
+                dateQuery:dateQuery,
+            })
+}
+
+const getComapnyRevenueByStatus = async (companyId ,tripStatus  = constant.TRIP_STATUS.PENDING, paidStatus = false , dateQuery = {}) => {
+
   let matchCompletedPaidCriteria = {
     $and: [
       { created_by_company_id : companyId},
       { status: true },
-      { trip_status: constant.TRIP_STATUS.COMPLETED },
+      { trip_status: tripStatus },
       { is_deleted: false },
-      {is_paid: true},
-      dateQuery,
+      {is_paid: paidStatus},
+      
     ],
   };
 
-  const completedPaidResult = await TRIP.aggregate([
+  if (dateQuery) {
+    matchCompletedPaidCriteria.$and.push(dateQuery);
+  }
+
+  const result = await TRIP.aggregate([
     {
         $match: matchCompletedPaidCriteria
     },
@@ -1179,15 +1208,8 @@ exports.companyRevenueDetails = async (req, res) => {
     }
   ]);
 
-  const total = completedPaidResult.length > 0 ? completedPaidResult[0].companyPaymentAmount : 0;
-  return res.send({
-                code:constant.error_code,
-                data:data,
-                company_id: companyId,
-                total: total,
-                dateQuery:dateQuery,
-                matchCompletedPaidCriteria:matchCompletedPaidCriteria
-            })
+  console.log('matchCompletedPaidCriteria------' , matchCompletedPaidCriteria , result)
+  return result.length > 0 ? result[0].companyPaymentAmount : 0;
 }
 
 exports.companyList = async (req, res) => {
