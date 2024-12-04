@@ -1164,12 +1164,25 @@ exports.companyRevenueDetails = async (req, res) => {
   const companyTripActivePaymentData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.ACTIVE , false , dateQuery); // when driver going to take customer
   // Revenue calculations End
   
+  const dateList = await createBarChartDateData(req);
+  const tripBarChartResult = await getCompanyTripCountWithLable(companyId , dateList   , constant.TRIP_STATUS.COMPLETED , true);
+  // let barCharData = [];
 
+  // if (dateList.length > 0) {
+
+  //   for(let value of dateList){
+  //     let newDateQuery = { pickup_time: { $gte: value.startDate, $lte: value.endDate } };
+  //     const tripData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , newDateQuery); // completed with payment
+  //     barCharData.push({ label : value.label , tripCount: tripData.tripCount})
+  //   }
+  // }
+  console.log('dateList---' , dateList)
 
   return res.send({
-                code:constant.error_code,
-                data:data,
-                company_id: companyId,
+                code:constant.success_code,
+                // data:data,
+                // company_id: companyId,
+                // list: dateList,
                 chartRevenue: [
                   { value: companyTripPendingData.revenue, label: 'Pending Trips' },
                   { value: companyTripBookedPaymentData.revenue, label: 'Booked Trips' },
@@ -1186,8 +1199,220 @@ exports.companyRevenueDetails = async (req, res) => {
                   { value: companyTripCompletedWithoutPaymentData.tripCount, label: 'Completed Trips without Payment' },
                   
                 ],
-                dateQuery:dateQuery,
+                tripBarChartResult:tripBarChartResult,
+                // dateQuery:dateQuery,
+                
             })
+}
+
+const getCompanyTripCountWithLable  = async (companyId ,dateList , tripStatus , isPaid) => {
+
+  const facets = dateList.reduce((acc, month) => {
+    acc[month.label] = [
+        { 
+            $match: { 
+                pickup_date_time: { $gte: new Date(month.startDate), $lte: new Date(month.endDate) },
+                created_by_company_id: companyId,
+                status: true,
+                trip_status: tripStatus,
+                is_deleted: false,
+                is_paid: isPaid
+            } 
+        },
+        { $count: "tripCount" }
+    ];
+    return acc;
+  }, {});
+
+  const result = await TRIP.aggregate([
+      { $facet: facets }
+  ]);
+
+  const monthlyTripCounts = Object.entries(result[0]).map(([label, data]) => ({
+      label,
+      tripCount: data.length > 0 ? data[0].tripCount : 0
+  }));
+
+  return monthlyTripCounts;
+}
+
+const createBarChartDateData = async (req) => {
+
+  let list = [];
+  const monthNames = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  if (req.body.dateFilter == 'this_year') {
+
+    const currentYear = new Date().getFullYear();
+    
+
+    for (let month = 0; month < 12; month++) {
+      // Create start and end Date objects
+      let startDate = new Date(Date.UTC(currentYear, month, 1)); // Start of the month
+      let endDate = new Date(Date.UTC(currentYear, month + 1, 0)); // End of the month
+
+      // Adjust time for start and end dates
+      startDate.setUTCHours(0, 0, 1, 0); // 00:00:01.000 UTC
+      endDate.setUTCHours(23, 59, 59, 999); // 23:59:59.999 UTC
+
+      // Convert the Date objects to ISO strings
+      startDate = startDate.toISOString();
+      endDate = endDate.toISOString();
+
+      // Get the month label
+      const label = new Date(currentYear, month).toLocaleString('default', { month: 'long' });
+
+      // Add to the months array
+      list.push({ label, startDate: new Date(startDate), endDate: new Date(endDate) });
+    }
+  }
+
+  if (req.body.dateFilter == 'this_month') {
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth(); // 0-indexed (0 = January)
+    
+    // Get the first and last day of the current month
+    const startOfMonth = new Date(year, month, 1);
+    const endOfMonth = new Date(year, month + 1, 0); // Last day of the month
+    console.log()
+    for (let date = startOfMonth; date <= endOfMonth; date.setDate(date.getDate() + 1)) {
+        // Create start and end times
+        let new_date =  new Date(date)
+        new_date.setUTCHours(0, 0, 1, 0);
+
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() + 1);
+        const startDate = new Date(nextDate);
+        startDate.setUTCHours(0, 0, 1, 0); // Set to 18:30:00
+
+        const endDate = new Date(nextDate);
+        endDate.setUTCHours(23, 59, 59, 999); // Set to 18:29:59.999
+
+        let endPoint = '';
+        let day = date.getDate();
+
+        if (day > 3 && day < 21) {
+          endPoint = 'th';
+        } else {
+          switch (day % 10) {
+            case 1: 
+              endPoint =  'st';
+              break;
+            case 2: 
+              endPoint =  'nd';
+              break;
+            case 3: 
+            endPoint = 'rd';
+            break;
+            default: 
+            endPoint = 'th';
+            break;
+          }
+        }
+        // Format the label (e.g., "2nd Dec")
+        const label = `${date.getDate()}${endPoint} ${monthNames[month]}`;
+
+        list.push({
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+            label: label
+        });
+    }
+  }
+
+  if (req.body.dateFilter == 'this_week') {
+    const currentDate = new Date();
+    // Adjusting to get the first day of the week (Sunday)
+    const firstDayOfWeek = currentDate.getDate() - currentDate.getDay();
+    
+
+    for (let i = 0; i < 7; i++) {
+        const current = new Date(currentDate);
+        current.setDate(firstDayOfWeek + i);
+        
+        // Set the start and end times
+        const startDate = new Date(Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate(), 0, 0, 1));
+        const endDate = new Date(Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate(), 23, 59, 59, 999));
+        let endPoint = '';
+        let day = startDate.getDate();
+
+        if (day > 3 && day < 21) {
+          endPoint = 'th';
+        } else {
+          switch (day % 10) {
+            case 1: 
+              endPoint =  'st';
+              break;
+            case 2: 
+              endPoint =  'nd';
+              break;
+            case 3: 
+            endPoint = 'rd';
+            break;
+            default: 
+            endPoint = 'th';
+            break;
+          }
+        }
+        list.push({
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
+            label: `${current.getDate()}${endPoint} ${current.toLocaleString('default', { month: 'short' })}`
+        });
+    }
+
+  }
+
+  if (req.body.dateFilter == 'dateRange') {
+
+    const startDate = new Date(req.body.startDate);
+    const endDate = new Date(req.body.endDate);
+
+    // Ensure endDate is after startDate
+    if (endDate < startDate) {
+        throw new Error("End date must be after start date.");
+    }
+
+    // Loop through each day between the start and end dates
+    for (let d = startDate; d <= endDate; d.setDate(d.getDate() + 1)) {
+        const startOfDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 1));
+        const endOfDay = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 23, 59, 59, 999));
+
+        let day = startOfDay.getDate();
+
+        if (day > 3 && day < 21) {
+          endPoint = 'th';
+        } else {
+          switch (day % 10) {
+            case 1: 
+              endPoint =  'st';
+              break;
+            case 2: 
+              endPoint =  'nd';
+              break;
+            case 3: 
+            endPoint = 'rd';
+            break;
+            default: 
+            endPoint = 'th';
+            break;
+          }
+        }
+        list.push({
+            startDate: startOfDay.toISOString(),
+            endDate: endOfDay.toISOString(),
+            label: `${d.getUTCDate()}${endPoint} ${d.toLocaleString('default', { month: 'short' })}`
+        });
+    }
+
+  }
+  
+  return list;
 }
 
 const getComapnyRevenueByStatus = async (companyId ,tripStatus  = constant.TRIP_STATUS.PENDING, paidStatus = false , dateQuery = {}) => {
