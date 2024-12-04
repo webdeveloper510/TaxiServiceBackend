@@ -392,7 +392,8 @@ exports.edit_trip = async (req, res) => {
     let option = { new: true };
     data.status = true;
 
-    if (data?.vehicle_type != '') { // when commission will be changed 
+    if (data?.vehicle_type) { // when commission will be changed 
+
       if (data?.commission && data?.commission?.commission_value != 0) {
       
         let commission = data.commission.commission_value;
