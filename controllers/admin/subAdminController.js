@@ -1156,23 +1156,34 @@ exports.companyRevenueDetails = async (req, res) => {
     dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
   }
 
-  const companyTripPendingRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.PENDING , false , dateQuery); // pending trip
-  const companyTripCompletedWithPaymentRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , dateQuery); // completed with payment
-  const companyTripCompletedWithoutPaymentRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , false , dateQuery); // completed without payment
-  const companyTripBookedPaymentRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.BOOKED , false , dateQuery); // When driver accepted the trip but not started yet
-  const companyTripActivePaymentRevenue =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.ACTIVE , false , dateQuery); // when driver going to take customer
-
+  // Revenue and tripCount calculations Start
+  const companyTripPendingData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.PENDING , false , dateQuery); // pending trip
+  const companyTripCompletedWithPaymentData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , dateQuery); // completed with payment
+  const companyTripCompletedWithoutPaymentData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , false , dateQuery); // completed without payment
+  const companyTripBookedPaymentData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.BOOKED , false , dateQuery); // When driver accepted the trip but not started yet
+  const companyTripActivePaymentData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.ACTIVE , false , dateQuery); // when driver going to take customer
+  // Revenue calculations End
   
+
+
   return res.send({
                 code:constant.error_code,
                 data:data,
                 company_id: companyId,
                 chartRevenue: [
-                  { value: companyTripPendingRevenue, label: 'Pending Trips' },
-                  { value: companyTripBookedPaymentRevenue, label: 'Booked Trips' },
-                  { value: companyTripActivePaymentRevenue, label: 'Active Trips' },
-                  { value: companyTripCompletedWithPaymentRevenue, label: 'Completed Trips with Payment' },
-                  { value: companyTripCompletedWithoutPaymentRevenue, label: 'Completed Trips without Payment' },
+                  { value: companyTripPendingData.revenue, label: 'Pending Trips' },
+                  { value: companyTripBookedPaymentData.revenue, label: 'Booked Trips' },
+                  { value: companyTripActivePaymentData.revenue, label: 'Active Trips' },
+                  { value: companyTripCompletedWithPaymentData.revenue, label: 'Completed Trips with Payment' },
+                  { value: companyTripCompletedWithoutPaymentData.revenue, label: 'Completed Trips without Payment' },
+                  
+                ],
+                chartTripCount: [
+                  { value: companyTripPendingData.tripCount, label: 'Pending Trips' },
+                  { value: companyTripBookedPaymentData.tripCount, label: 'Booked Trips' },
+                  { value: companyTripActivePaymentData.tripCount, label: 'Active Trips' },
+                  { value: companyTripCompletedWithPaymentData.tripCount, label: 'Completed Trips with Payment' },
+                  { value: companyTripCompletedWithoutPaymentData.tripCount, label: 'Completed Trips without Payment' },
                   
                 ],
                 dateQuery:dateQuery,
@@ -1203,13 +1214,14 @@ const getComapnyRevenueByStatus = async (companyId ,tripStatus  = constant.TRIP_
     {
         $group: {
             _id: null,
-            companyPaymentAmount: { $sum: "$companyPaymentAmount" }
+            companyPaymentAmount: { $sum: "$companyPaymentAmount" },
+            tripCount: { $sum: 1 }
         }
     }
   ]);
 
-  console.log('matchCompletedPaidCriteria------' , matchCompletedPaidCriteria , result)
-  return result.length > 0 ? result[0].companyPaymentAmount : 0;
+  // console.log('matchCompletedPaidCriteria------' , matchCompletedPaidCriteria , result)
+  return { revenue: result.length > 0 ? result[0].companyPaymentAmount : 0 , tripCount: result.length > 0 ? result[0].tripCount : 0 };
 }
 
 exports.companyList = async (req, res) => {
