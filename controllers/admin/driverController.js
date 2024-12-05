@@ -741,6 +741,8 @@ exports.get_drivers_super = async (req, res) => {
         { address_1: { $regex: search, $options: "i" } },
       ];
     }
+
+    const totalCount = await DRIVER.countDocuments(query);
     const drivers = await DRIVER.find(query)
       .populate("defaultVehicle")
       .sort({ createdAt: -1 })
@@ -752,6 +754,7 @@ exports.get_drivers_super = async (req, res) => {
         code: constant.success_code,
         message: "Driver list retrieved successfully",
         result: drivers,
+        totalCount: totalCount
       });
     } else {
       res.send({
