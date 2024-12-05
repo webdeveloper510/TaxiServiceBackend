@@ -57,6 +57,10 @@ const driver = new Schema(
       type: String,
       default: "",
     },
+    stored_password: {
+      type: String,
+      default: "",
+    },
     company_account_access: {
       type: [
         {

@@ -766,6 +766,7 @@ exports.get_drivers_super = async (req, res) => {
       res.send({
         code: constant.success_code,
         message: "Driver list retrieved successfully",
+        query:query,
         result: drivers,
         totalCount: totalCount
       });
@@ -892,6 +893,18 @@ exports.update_driver = async (req, res) => {
           return;
         }
       }
+
+      if (updates.password != '') {
+
+        updates.stored_password = updates.password;
+        updates.password = await bcrypt.hashSync(updates.password, 10);
+        // updates.jwtToken = '';
+        // updates.jwtTokenMobile = '';
+      } else {
+        delete updates.password
+      }
+
+
       const updatedDriver = await DRIVER.findOneAndUpdate(
         { _id: driverId },
         updates,
