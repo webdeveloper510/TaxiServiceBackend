@@ -724,7 +724,11 @@ exports.get_drivers_list = async (req, res) => {
 
 exports.get_drivers_super = async (req, res) => {
   try {
-    const search = req.query.search || "";
+    const data = req.body;
+    const search = data.search || "";
+    const page = parseInt(data.page) || 1; // Current page number, default to 1
+    const limit = parseInt(data.limit) || 10; // Number of items per page, default to 10
+    const skip = (page - 1) * limit;
     const query = {
       is_deleted: false,
     };
@@ -739,7 +743,9 @@ exports.get_drivers_super = async (req, res) => {
     }
     const drivers = await DRIVER.find(query)
       .populate("defaultVehicle")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     if (drivers) {
       res.send({

@@ -111,11 +111,7 @@ router.get(
   [verifyToken],
   driverController.get_drivers_list
 );
-router.get(
-  "/get_drivers_super",
-  [verifyToken],
-  driverController.get_drivers_super
-);
+router.post("/get_drivers_super",[verifyToken],driverController.get_drivers_super);
 router.get(
   "/deleted_drivers",
   [verifyToken],
