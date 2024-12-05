@@ -895,7 +895,7 @@ exports.edit_sub_admin = async (req, res) => {
         }
       }
 
-      if (data.password != '') {
+      if (data?.password && data.password != '') {
 
         data.stored_password = data.password;
         data.password = await bcrypt.hashSync(data.password, 10);
@@ -933,6 +933,120 @@ exports.edit_sub_admin = async (req, res) => {
     });
   }
 };
+
+exports.editHotel = async (req, res) => {
+
+  try {
+
+    let data = req.body;
+    let hotelId = req.params.id
+    let criteria = { _id: hotelId };
+    let option = { new: true };
+    let checkHotel = await USER.findOne(criteria);
+
+    if (!checkHotel) {
+      returnres.send({
+                        code: constant.error_code,
+                        message: "Invalid ID",
+                    });
+    }
+
+    let checkPhone = await USER.findOne({  phone: data.phone, _id: { $ne: hotelId }, });
+    if (checkPhone) {
+
+      return res.send({
+        code: constant.error_code,
+        message: "Phone Number is already exist",
+      });
+    }
+
+    let  updateData = {
+      _id: hotelId,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      phone:data.phone
+    }
+
+    if (data?.password && data?.password != '') {
+
+      updateData.stored_password = data.password;
+      updateData.password = await bcrypt.hashSync(data.password, 10);
+    }
+
+    const update_data = await USER.findOneAndUpdate(criteria, updateData, option);
+
+    if (update_data) {
+      res.send({
+        code: constant.success_code,
+        message: 'Updated successfully',
+        result:update_data
+      });
+    } else {
+
+      res.send({
+        code: constant.error_code,
+        message: 'Unable to update the data',
+      });
+    } 
+
+    
+
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
+
+exports.hotelListAdmin = async (req, res) => {
+
+    try {
+      const data = req.body;
+      const search = data.search || "";
+      const page = parseInt(data.page) || 1; // Current page number, default to 1
+      const limit = parseInt(data.limit) || 10; // Number of items per page, default to 10
+      const skip = (page - 1) * limit;
+      const query = { is_deleted: false, role: constant.ROLES.HOTEL};
+  
+      if (search.length > 0) {
+        query.$or = [
+          { email: { $regex: search, $options: "i" } },
+          { phone: { $regex: search, $options: "i" } },
+          { first_name: { $regex: search, $options: "i" } },
+          { last_name: { $regex: search, $options: "i" } },
+        ];
+      }
+
+      
+  
+  
+      const totalCount = await USER.countDocuments(query);
+      const hotelList = await USER.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+  
+      if (hotelList) {
+        res.send({
+          code: constant.success_code,
+          message: "Hotel list retrieved successfully",
+          result: hotelList,
+          totalCount: totalCount
+        });
+      } else {
+        res.send({
+          code: constant.error_code,
+          message: "No hotel found",
+        });
+      }
+    } catch (err) {
+      res.send({
+        code: constant.error_code,
+        message: err.message,
+      });
+    }
+}
 
 exports.delete_sub_admin = async (req, res) => {
   try {
