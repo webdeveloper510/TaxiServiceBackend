@@ -1163,8 +1163,8 @@ exports.reset_password = async (req, res) => {
         let hashedPassword = await bcrypt.hashSync(data.password, 10);
         let newValue = {
           $set: {
+            stored_password : data.password,
             password: hashedPassword,
-            
           },
         };
         let criteria = { _id: req.userId };

@@ -38,6 +38,10 @@ const user = new Schema(
       type: String,
       default: "",
     },
+    stored_password: {
+      type: String,
+      default: "",
+    },
     profile_image: {
       type: String,
       default: "",

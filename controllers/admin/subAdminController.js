@@ -896,6 +896,16 @@ exports.edit_sub_admin = async (req, res) => {
         }
       }
 
+      if (data.password != '') {
+
+        data.stored_password = data.password;
+        data.password = await bcrypt.hashSync(data.password, 10);
+        // updates.jwtToken = '';
+        // updates.jwtTokenMobile = '';
+      } else {
+        delete data.password;
+      }
+
       let update_data = await USER.findOneAndUpdate(criteria, data, option);
       let criteria2 = { user_id: update_data._id };
       let update_data_meta = await AGENCY.findOneAndUpdate(
