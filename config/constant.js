@@ -23,5 +23,11 @@ module.exports={
         COMPLETED: 'Completed', // When driver reached to the destination
         CANCELED: 'Canceled', //  When compnay cancelled the trip from driver
         PENDING: 'Pending' // When trip is created
+    },
+    DRIVER_STATUS: {
+        VERIFIED: 'Verified',
+        UNVERIFIED: 'Unverified', 
+        REGISTERED : 'Registered',
+        DELETED : 'Deleted',
     }
 }

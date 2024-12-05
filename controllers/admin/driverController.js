@@ -726,12 +726,12 @@ exports.get_drivers_super = async (req, res) => {
   try {
     const data = req.body;
     const search = data.search || "";
+    const selectedType = data.selectedType || constant.DRIVER_STATUS.VERIFIED;
     const page = parseInt(data.page) || 1; // Current page number, default to 1
     const limit = parseInt(data.limit) || 10; // Number of items per page, default to 10
     const skip = (page - 1) * limit;
-    const query = {
-      is_deleted: false,
-    };
+    const query = { is_deleted: false, };
+
     if (search.length > 0) {
       query.$or = [
         { email: { $regex: search, $options: "i" } },
@@ -740,6 +740,19 @@ exports.get_drivers_super = async (req, res) => {
         { last_name: { $regex: search, $options: "i" } },
         { address_1: { $regex: search, $options: "i" } },
       ];
+    }
+
+    if (selectedType === constant.DRIVER_STATUS.VERIFIED) {
+      query.isVerified = true;
+      query.isDocUploaded = true;
+    } else if (selectedType === constant.DRIVER_STATUS.UNVERIFIED) {
+      query.isVerified = false;
+      query.isDocUploaded = true;
+    } else if (selectedType === constant.DRIVER_STATUS.REGISTERED) {
+      query.isVerified = false;
+      query.isDocUploaded = false;
+    } else if (selectedType === constant.DRIVER_STATUS.DELETED) {
+      query.is_deleted = true;
     }
 
     const totalCount = await DRIVER.countDocuments(query);
