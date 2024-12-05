@@ -1219,7 +1219,15 @@ const getCompanyTripCountWithLable  = async (companyId ,dateList , tripStatus , 
                 is_paid: isPaid
             } 
         },
-        { $count: "tripCount" }
+        // { $count: "tripCount" }
+
+        {
+          $group: {
+            _id: null,
+            totalTrips: { $sum: 1 },
+            totalPayments: { $sum: "$companyPaymentAmount" }, // Replace "price" with the field representing payment amount
+          },
+        },
     ];
     return acc;
   }, {});
@@ -1230,7 +1238,8 @@ const getCompanyTripCountWithLable  = async (companyId ,dateList , tripStatus , 
 
   const monthlyTripCounts = Object.entries(result[0]).map(([label, data]) => ({
       label,
-      tripCount: data.length > 0 ? data[0].tripCount : 0
+      tripCount: data.length > 0 ? data[0].totalTrips : 0,
+      totalRevenue: data.length > 0 ? data[0].totalPayments: 0
   }));
 
   return monthlyTripCounts;

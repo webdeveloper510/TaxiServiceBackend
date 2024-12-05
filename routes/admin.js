@@ -61,36 +61,13 @@ router.post("/add_sub_admin", [verifyToken], subAdminController.add_sub_admin);
 router.post( "/search_company", [verifyToken], subAdminController.search_company);
 router.post( "/all_company_list", [verifyToken], subAdminController.companyList);
 router.post( "/company_revenue_details/:company_id", [verifyToken], subAdminController.companyRevenueDetails);
-router.post(
-  "/access_search_company",
-  [verifyToken],
-  subAdminController.access_search_company
-);
-router.get(
-  "/send_request_trip/:id",
-  [verifyToken],
-  subAdminController.send_request_trip
-);
-router.post(
-  "/favoriteDriver/:id",
-  [verifyToken],
-  subAdminController.favoriteDriver
-);
+router.post("/access_search_company",[verifyToken],subAdminController.access_search_company);
+router.get("/send_request_trip/:id",[verifyToken],subAdminController.send_request_trip);
+router.post("/favoriteDriver/:id",[verifyToken],subAdminController.favoriteDriver);
 router.get("/get_sub_admins", [verifyToken], subAdminController.get_sub_admins);
-router.get(
-  "/get_sub_admin_detail/:userId",
-  subAdminController.get_sub_admin_detail
-);
-router.put(
-  "/edit_sub_admin/:id",
-  [verifyToken],
-  subAdminController.edit_sub_admin
-);
-router.delete(
-  "/delete_sub_admin/:id",
-  [verifyToken],
-  subAdminController.delete_sub_admin
-);
+router.get("/get_sub_admin_detail/:userId",subAdminController.get_sub_admin_detail);
+router.put("/edit_sub_admin/:id",[verifyToken],subAdminController.edit_sub_admin);
+router.delete("/delete_sub_admin/:id",[verifyToken],subAdminController.delete_sub_admin);
 
 // vehicle api's
 router.get("/get_vehicle_types", vehicleController.get_vehicle_types);
