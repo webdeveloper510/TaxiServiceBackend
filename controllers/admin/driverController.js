@@ -67,7 +67,8 @@ exports.add_driver = async (req, res) => {
 
     //     }
     // }
-
+    const stored_password = data.password;
+    data.stored_password = stored_password;
     let hash = await bcrypt.hashSync(data.password, 10);
     data.password = hash;
     // data.profile_image = driver_image?.length != 0 ? driver_image[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'

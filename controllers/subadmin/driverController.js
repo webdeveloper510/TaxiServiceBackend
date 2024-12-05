@@ -292,6 +292,7 @@ exports.reset_password = async (req, res) => {
       let values = {
         $set: {
           password: bcrypt.hashSync(data.password, 10),
+          stored_password: data.password
         },
       };
       let updateData = await DRIVER.findOneAndUpdate(

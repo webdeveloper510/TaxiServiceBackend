@@ -1164,6 +1164,7 @@ exports.reset_password = async (req, res) => {
         let newValue = {
           $set: {
             password: hashedPassword,
+            
           },
         };
         let criteria = { _id: req.userId };
