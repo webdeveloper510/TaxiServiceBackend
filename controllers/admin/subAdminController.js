@@ -795,6 +795,7 @@ exports.get_sub_admin_detail = async (req, res) => {
           status: 1,
           logo: 1,
           background_color: 1,
+          stored_password:1,
           totalBalance: 1,
           land: { $arrayElemAt: ["$meta.land", 0] },
           post_code: { $arrayElemAt: ["$meta.post_code", 0] },
@@ -826,9 +827,7 @@ exports.get_sub_admin_detail = async (req, res) => {
       });
     } else {
       let get_name = await AGENCY.findOne({ user_id: check_detail[0]._id });
-      check_detail[0].hotel_name = get_name.company_name
-        ? get_name.company_name
-        : "N/A";
+      check_detail[0].hotel_name = get_name.company_name ? get_name.company_name : "N/A";
       check_detail[0].meta = get_color?.toObject();
       const result = check_detail[0];
 
