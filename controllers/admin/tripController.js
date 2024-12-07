@@ -913,24 +913,21 @@ exports.HotelGetTrip = async (req, res) => {
   try {
     let data = req.body;
     let hotelId = req.body.hotel_id;
-    let hotelData = await USER.findOne({ role: "COMPANY", _id: hotelId });
+    let hotelData = await USER.findOne({ role: constant.ROLES.HOTEL, _id: hotelId });
 
     if (!hotelId || !hotelData) {
 
       return res.send({
         code: constant.error_code,
-        message: "Invalid company",
+        message: "Invalid hotel",
       });
     } 
       
-    let mid = new mongoose.Types.ObjectId(hotelId);
-    let getIds = await USER.find({ role: "HOTEL", _id: hotelId });
+    hotelId = new mongoose.Types.ObjectId(hotelId);
+    
 
     let search_value = data.comment ? data.comment : "";
-    let ids = [];
-    for (let i of getIds) {
-      ids.push(i._id);
-    }
+   
     let dateFilter = data.dateFilter; // Corrected variable name
     if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
       dateFilter = "all";
@@ -983,7 +980,6 @@ exports.HotelGetTrip = async (req, res) => {
       dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
     }
 
-    const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
     // Pagination variables
     const page = parseInt(data.page) || 1; // Current page, default is 1

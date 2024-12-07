@@ -543,21 +543,33 @@ exports.get_token_detail = async (req, res) => {
     ); // Set to Monday of current week
     let data = req.body;
 
+    console.log('req------------' , req.user)
     let result1;
     const userByID = await USER.findOne({ _id: req.userId }).populate(
       "driverId"
     );
+
+    let lookupData = {
+                      from: "agencies",
+                      localField: "_id",
+                      foreignField: "user_id",
+                      as: "company_detail",
+                    }
+
+    if (req.user.role == constant.ROLES.HOTEL) {
+      
+      lookupData.from = 'users';
+      lookupData.localField = 'created_by';
+      lookupData.foreignField = '_id';
+    } else {
+
+    }
     let getData = await USER.aggregate([
       {
         $match: { _id: new mongoose.Types.ObjectId(req.userId) },
       },
       {
-        $lookup: {
-          from: "agencies",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "company_detail",
-        },
+        $lookup: lookupData,
       },
       {
         $lookup: {
