@@ -1400,6 +1400,161 @@ exports.companyRevenueDetails = async (req, res) => {
             })
 }
 
+exports.hotelRevenueDetails = async (req, res) => {
+  let data = req.body;
+  let hotelId = new mongoose.Types.ObjectId(req.params.hotel_id);
+  let hotelData = await USER.findOne({ role: constant.ROLES.HOTEL, _id: hotelId });
+
+  console.log('hotel_revenue_details-----')
+  if (!hotelId || !hotelData) {
+
+    return res.send({
+      code: constant.error_code,
+      message: "Invalid hotel",
+    });
+  }
+  
+  let dateFilter = data.dateFilter; // Corrected variable name
+  if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
+    dateFilter = "all";
+  }
+
+  // Update the query based on the date filter
+  let dateQuery = {};
+  if (dateFilter !== "all") {
+    let startDate, endDate;
+    const today = new Date();
+    switch (dateFilter) {
+      case "this_week":
+        const todayDay = today.getDay();
+        startDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() - todayDay
+        );
+        endDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() + (6 - todayDay)
+        );
+        break;
+      case "this_month":
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        break;
+      case "this_year":
+        startDate = new Date(today.getFullYear(), 0, 1);
+        endDate = new Date(today.getFullYear(), 11, 31);
+        break;
+      case "dateRange":
+        startDate = new Date(req.body.startDate);
+        endDate = new Date(req.body.endDate);
+
+        // Modify the Date object with setHours
+        
+      default:
+        break;
+    }
+
+    startDate.setUTCHours(0, 0, 1, 0);
+    endDate.setUTCHours(23, 59, 59, 999);
+    
+    // Convert the Date objects to ISO 8601 strings
+    startDate = startDate.toISOString();
+    endDate = endDate.toISOString();
+
+    dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+  }
+
+  // Revenue and tripCount calculations Start
+  const companyTripPendingData =  await getHotelRevenueByStatus(hotelId , constant.TRIP_STATUS.PENDING , false , dateQuery); // pending trip
+  const companyTripCompletedWithPaymentData =  await getHotelRevenueByStatus(hotelId , constant.TRIP_STATUS.COMPLETED , true , dateQuery); // completed with payment
+  const companyTripCompletedWithoutPaymentData =  await getHotelRevenueByStatus(hotelId , constant.TRIP_STATUS.COMPLETED , false , dateQuery); // completed without payment
+  const companyTripBookedPaymentData =  await getHotelRevenueByStatus(hotelId , constant.TRIP_STATUS.BOOKED , false , dateQuery); // When driver accepted the trip but not started yet
+  const companyTripActivePaymentData =  await getHotelRevenueByStatus(hotelId , constant.TRIP_STATUS.ACTIVE , false , dateQuery); // when driver going to take customer
+  // Revenue calculations End
+  
+  const dateList = await createBarChartDateData(req);
+  const tripBarChartResult = await getHotelTripCountWithLable(hotelId , dateList   , constant.TRIP_STATUS.COMPLETED , true);
+  // let barCharData = [];
+
+  // if (dateList.length > 0) {
+
+  //   for(let value of dateList){
+  //     let newDateQuery = { pickup_time: { $gte: value.startDate, $lte: value.endDate } };
+  //     const tripData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , newDateQuery); // completed with payment
+  //     barCharData.push({ label : value.label , tripCount: tripData.tripCount})
+  //   }
+  // }
+  
+
+  return res.send({
+                code:constant.success_code,
+                // data:data,
+                // company_id: companyId,
+                // list: dateList,
+                chartRevenue: [
+                  { value: companyTripPendingData.revenue, label: 'Pending Trips' },
+                  { value: companyTripBookedPaymentData.revenue, label: 'Booked Trips' },
+                  { value: companyTripActivePaymentData.revenue, label: 'Active Trips' },
+                  { value: companyTripCompletedWithPaymentData.revenue, label: 'Completed Trips with Payment' },
+                  { value: companyTripCompletedWithoutPaymentData.revenue, label: 'Completed Trips without Payment' },
+                  
+                ],
+                chartTripCount: [
+                  { value: companyTripPendingData.tripCount, label: 'Pending Trips' },
+                  { value: companyTripBookedPaymentData.tripCount, label: 'Booked Trips' },
+                  { value: companyTripActivePaymentData.tripCount, label: 'Active Trips' },
+                  { value: companyTripCompletedWithPaymentData.tripCount, label: 'Completed Trips with Payment' },
+                  { value: companyTripCompletedWithoutPaymentData.tripCount, label: 'Completed Trips without Payment' },
+                  
+                ],
+                tripBarChartResult:tripBarChartResult,
+                // dateQuery:dateQuery,
+                
+            })
+}
+
+const getHotelTripCountWithLable  = async (hotelId ,dateList , tripStatus , isPaid) => {
+
+  const facets = dateList.reduce((acc, month) => {
+    acc[month.label] = [
+        { 
+            $match: { 
+                pickup_date_time: { $gte: new Date(month.startDate), $lte: new Date(month.endDate) },
+                hotel_id: hotelId,
+                status: true,
+                trip_status: tripStatus,
+                is_deleted: false,
+                is_paid: isPaid
+            } 
+        },
+        // { $count: "tripCount" }
+
+        {
+          $group: {
+            _id: null,
+            totalTrips: { $sum: 1 },
+            totalPayments: { $sum: "$companyPaymentAmount" }, // Replace "price" with the field representing payment amount
+          },
+        },
+    ];
+    return acc;
+  }, {});
+
+  const result = await TRIP.aggregate([
+      { $facet: facets }
+  ]);
+
+  const monthlyTripCounts = Object.entries(result[0]).map(([label, data]) => ({
+      label,
+      tripCount: data.length > 0 ? data[0].totalTrips : 0,
+      totalRevenue: data.length > 0 ? data[0].totalPayments: 0
+  }));
+
+  return monthlyTripCounts;
+}
+
 const getCompanyTripCountWithLable  = async (companyId ,dateList , tripStatus , isPaid) => {
 
   const facets = dateList.reduce((acc, month) => {
@@ -1617,6 +1772,40 @@ const createBarChartDateData = async (req) => {
   }
   
   return list;
+}
+
+const getHotelRevenueByStatus = async (hotelId ,tripStatus  = constant.TRIP_STATUS.PENDING, paidStatus = false , dateQuery = {}) => {
+
+  let matchCompletedPaidCriteria = {
+    $and: [
+      { hotel_id : hotelId},
+      { status: true },
+      { trip_status: tripStatus },
+      { is_deleted: false },
+      {is_paid: paidStatus},
+      
+    ],
+  };
+
+  if (dateQuery) {
+    matchCompletedPaidCriteria.$and.push(dateQuery);
+  }
+
+  const result = await TRIP.aggregate([
+    {
+        $match: matchCompletedPaidCriteria
+    },
+    {
+        $group: {
+            _id: null,
+            companyPaymentAmount: { $sum: "$companyPaymentAmount" },
+            tripCount: { $sum: 1 }
+        }
+    }
+  ]);
+
+  // console.log('matchCompletedPaidCriteria------' , matchCompletedPaidCriteria , result)
+  return { revenue: result.length > 0 ? result[0].companyPaymentAmount : 0 , tripCount: result.length > 0 ? result[0].tripCount : 0 };
 }
 
 const getComapnyRevenueByStatus = async (companyId ,tripStatus  = constant.TRIP_STATUS.PENDING, paidStatus = false , dateQuery = {}) => {

@@ -57,6 +57,7 @@ router.post("/add_sub_admin", [verifyToken], subAdminController.add_sub_admin);
 router.post( "/search_company", [verifyToken], subAdminController.search_company);
 router.post( "/all_company_list", [verifyToken], subAdminController.companyList);
 router.post( "/company_revenue_details/:company_id", [verifyToken], subAdminController.companyRevenueDetails);
+router.post( "/hotel_revenue_details/:hotel_id", [verifyToken], subAdminController.hotelRevenueDetails);
 router.post("/access_search_company",[verifyToken],subAdminController.access_search_company);
 router.get("/send_request_trip/:id",[verifyToken],subAdminController.send_request_trip);
 router.post("/favoriteDriver/:id",[verifyToken],subAdminController.favoriteDriver);
