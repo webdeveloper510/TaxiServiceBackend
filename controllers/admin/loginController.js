@@ -335,21 +335,42 @@ exports.login = async (req, res) => {
         check_data.deviceToken = deviceToken;
       }
       await check_data.save();
+      
+      let getData;
+      if (check_data.role == constant.ROLES.HOTEL) {
 
-      let getData = await USER.aggregate([
-        {
-          $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
-        },
-        {
-          $lookup: {
-            from: "agencies",
-            localField: "_id",
-            foreignField: "user_id",
-            as: "company_detail",
+        getData = await USER.aggregate([
+          {
+            $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
           },
-        },
-        { $unwind: "$company_detail" },
-      ]);
+          {
+            $lookup: {
+              from: "users",
+              localField: "created_by",
+              foreignField: "_id",
+              as: "company_detail",
+            },
+          },
+          { $unwind: "$company_detail" },
+        ]);
+      } else {
+        getData = await USER.aggregate([
+          {
+            $match: { _id: new mongoose.Types.ObjectId(check_data._id) },
+          },
+          {
+            $lookup: {
+              from: "agencies",
+              localField: "_id",
+              foreignField: "user_id",
+              as: "company_detail",
+            },
+          },
+          { $unwind: "$company_detail" },
+        ]);
+      }
+      console.log('check_data------' , check_data)
+      
 
       res.send({
         code: constants.success_code,
