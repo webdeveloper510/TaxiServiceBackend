@@ -1009,30 +1009,102 @@ exports.hotelListAdmin = async (req, res) => {
       const skip = (page - 1) * limit;
       const query = { is_deleted: false, role: constant.ROLES.HOTEL};
   
-      if (search.length > 0) {
-        query.$or = [
-          { email: { $regex: search, $options: "i" } },
-          { phone: { $regex: search, $options: "i" } },
-          { first_name: { $regex: search, $options: "i" } },
-          { last_name: { $regex: search, $options: "i" } },
-        ];
-      }
-
       
+
+      let searchUser = await USER.aggregate([
+    
+        {
+          $lookup: {
+            from: "agencies",
+            localField: "_id",
+            foreignField: "user_id",
+            as: "meta",
+          },
+        },
+        {
+          $match: {
+            $and: [
+              { role: 'HOTEL' },
+              { is_deleted: false },
+              {
+                $or: [
+                  { "meta.company_id": { $regex: search, $options: "i" } },
+                  {
+                    "meta.company_name": { $regex: search, $options: "i" },
+                  },
+                  { first_name: { $regex: search, $options: "i" } },
+                  { last_name: { $regex: search, $options: "i" } },
+                  { email: { $regex: search, $options: "i" } },
+                  { phone: { $regex: search, $options: "i" } },
+                ],
+              },
+            ],
+          },
+        },
   
+        {
+          $facet: {
+            data: [
+              { $sort: { createdAt: -1 } }, // Sort by creation date
+              { $skip: skip }, // Skip to the correct page
+              { $limit: limit },
+              {
+                $project: {
+                  _id: 1,
+                  first_name: 1,
+                  last_name: 1,
+                  email: 1,
+                  // company_id:1,
+                  // company_name:1,
+                  phone: 1,
+                  createdAt: -1,
+                  profile_image: 1,
+                  role: 1,
+                  totalBalance: 1,
+                  status: 1,
+                  land: { $arrayElemAt: ["$meta.land", 0] },
+                  post_code: { $arrayElemAt: ["$meta.post_code", 0] },
+                  house_number: { $arrayElemAt: ["$meta.house_number", 0] },
+                  description: { $arrayElemAt: ["$meta.description", 0] },
+                  affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
+                  p_number: { $arrayElemAt: ["$meta.p_number", 0] },
+                  number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
+                  chamber_of_commerce_number: {
+                    $arrayElemAt: ["$meta.chamber_of_commerce_number", 0],
+                  },
+                  vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
+                  website: { $arrayElemAt: ["$meta.website", 0] },
+                  tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+                  saluation: { $arrayElemAt: ["$meta.saluation", 0] },
+                  company_name: { $arrayElemAt: ["$meta.company_name", 0] },
+                  company_id: { $arrayElemAt: ["$meta.company_id", 0] },
+                  commision: { $arrayElemAt: ["$meta.commision", 0] },
+                  hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
   
-      const totalCount = await USER.countDocuments(query);
-      const hotelList = await USER.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
+                  location: { $arrayElemAt: ["$meta.location", 0] },
+                },
+              },
+            ],
+            totalCount: [
+              {
+                $count: "count",
+              },
+            ],
+          }
+        }
+      ]);
+
+      const results = searchUser[0]?.data || [];
+      const totalCount = searchUser[0]?.totalCount[0]?.count || 0;
+      const totalPages = Math.ceil(totalCount / limit);
   
-      if (hotelList) {
+      if (searchUser) {
         res.send({
           code: constant.success_code,
           message: "Hotel list retrieved successfully",
-          result: hotelList,
-          totalCount: totalCount
+          result: results,
+          totalCount: totalCount,
+          totalPages: totalPages
         });
       } else {
         res.send({
