@@ -369,8 +369,6 @@ exports.login = async (req, res) => {
           { $unwind: "$company_detail" },
         ]);
       }
-      console.log('check_data------' , check_data)
-      
 
       res.send({
         code: constants.success_code,

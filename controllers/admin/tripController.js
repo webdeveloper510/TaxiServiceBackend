@@ -985,7 +985,7 @@ exports.HotelGetTrip = async (req, res) => {
     const page = parseInt(data.page) || 1; // Current page, default is 1
     const limit = parseInt(data.limit) || 10; // Items per page, default is 10
     const skip = (page - 1) * limit;
-
+    
     let aggregatePipeline = [
       {
         $match: {
@@ -1103,12 +1103,13 @@ exports.HotelGetTrip = async (req, res) => {
         code: constant.success_code,
         message: "Success",
         dateQuery:dateQuery,
-        result: results[0]?.data || [],
         metadata: {
           total: metadata.total,
           currentPage: metadata.page,
           totalPages,
         },
+        result: results[0]?.data || [],
+        
       });
     }
   } catch (err) {
