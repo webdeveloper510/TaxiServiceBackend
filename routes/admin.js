@@ -104,6 +104,7 @@ router.post("/add_agency", [verifyToken], agencyController.add_agency);
 
 // driver api's
 router.post("/add_driver", driverController.add_driver);
+router.post("/admin_add_driver",[verifyToken] , driverController.adminAddDriver);
 router.get("/get_drivers", [verifyToken], driverController.get_drivers);
 router.get(
   "/get_drivers_list",
