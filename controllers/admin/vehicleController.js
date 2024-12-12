@@ -377,3 +377,32 @@ exports.blockDriver = async (req, res) => {
     }
 }
 
+exports.adminAllVehicle = async (req, res) => {
+    try {
+        let getUser = await USER.findOne({ _id: req.userId })
+        let get_vehicle = await VEHICLE.find({
+            $and: [
+                { is_deleted: false },
+                { created_by: req.userId },
+            ]
+        }).sort({ 'createdAt': -1 })
+        if (!get_vehicle) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to fetch the details"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Success",
+                result: get_vehicle
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
