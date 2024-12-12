@@ -349,3 +349,31 @@ exports.delete_vehicle = async (req, res) => {
     }
 }
 
+exports.blockDriver = async (req, res) => {
+    try {
+        let data = req.body;
+
+        const criteria = { _id: data.driver_id };
+        const updateData = { status: data.status };
+        const option = { new: true };
+        const updateDriver = await driver_model.findOneAndUpdate(criteria, updateData, option);
+
+        if (!updateDriver) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to update the driver"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Data updated successfully",
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+

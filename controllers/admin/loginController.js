@@ -150,6 +150,15 @@ exports.login = async (req, res) => {
         });
         return;
       }
+
+      if (check_again.status)
+      {
+        return res.send({
+          code: constant.error_code,
+          message:
+            "You are blocked by administration. Please contact administration",
+        });
+      }
       const completedTrips = await trip_model
         .find({
           driver_name: check_again._id,

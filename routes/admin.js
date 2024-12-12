@@ -9,6 +9,7 @@ var fareController = require("../controllers/admin/fareController");
 var tripController = require("../controllers/admin/tripController");
 let paymentController = require("../controllers/admin/paymentController.js");
 const { verifyToken } = require("../middleware/auth");
+const { adminAuth } = require("../middleware/adminAuth");
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
@@ -72,16 +73,10 @@ router.delete("/delete_sub_admin/:id",[verifyToken],subAdminController.delete_su
 router.get("/get_vehicle_types", vehicleController.get_vehicle_types);
 router.post("/add_vehicle", [verifyToken], vehicleController.add_vehicle);
 router.get("/get_vehicles", [verifyToken], vehicleController.get_vehicles);
-router.get(
-  "/get_vehicles_by_driverid/:id",
-  [verifyToken],
-  vehicleController.get_vehicles_by_driverid
-);
-router.get(
-  "/get_vehicles_with_type/:vehicle_type",
-  [verifyToken],
-  vehicleController.get_vehicles_with_type
-);
+router.get( "/get_vehicles_by_driverid/:id", [verifyToken], vehicleController.get_vehicles_by_driverid);
+router.get( "/get_vehicles_with_type/:vehicle_type", [verifyToken], vehicleController.get_vehicles_with_type );
+router.post("/block_driver", [verifyToken , adminAuth], vehicleController.blockDriver);
+
 router.get(
   "/get_vehicle_type/:vehicle_type",
   [verifyToken],
