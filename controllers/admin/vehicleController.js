@@ -377,15 +377,36 @@ exports.blockDriver = async (req, res) => {
     }
 }
 
-exports.adminAllVehicle = async (req, res) => {
+exports.adminGetAllVehicle = async (req, res) => {
     try {
-        let getUser = await USER.findOne({ _id: req.userId })
-        let get_vehicle = await VEHICLE.find({
-            $and: [
-                { is_deleted: false },
-                { created_by: req.userId },
-            ]
-        }).sort({ 'createdAt': -1 })
+        const data = req.body;
+        const search = data.search || "";
+        const page = parseInt(data.page) || 1; // Current page number, default to 1
+        const limit = parseInt(data.limit) || 10; // Number of items per page, default to 10
+        const skip = (page - 1) * limit;
+
+        const query = { is_deleted: false, };
+
+        if (search.length > 0) {
+            query.$or = [
+                { vehicle_number: { $regex: search, $options: "i" } },
+                { vehicle_type: { $regex: search, $options: "i" } },
+                { vehicle_model: { $regex: search, $options: "i" } },
+                { vehicle_make: { $regex: search, $options: "i" } },
+                
+            ];
+
+            const  isNumber = (search) =>  typeof search === "number" && !isNaN(search); 
+            console.log('isNumber(search)------' , isNumber(search))
+            if (isNumber(search)) {
+                query.$or.push({ seating_capacity: { $regex: Number(search), $options: "i" } })
+            }
+        }
+
+        
+        const totalCount = await VEHICLE.countDocuments(query);
+
+        let get_vehicle = await VEHICLE.find(query).sort({ 'createdAt': -1 }).skip(skip).limit(limit);
         if (!get_vehicle) {
             res.send({
                 code: constant.error_code,
@@ -395,6 +416,7 @@ exports.adminAllVehicle = async (req, res) => {
             res.send({
                 code: constant.success_code,
                 message: "Success",
+                totalCount: totalCount,
                 result: get_vehicle
             })
         }

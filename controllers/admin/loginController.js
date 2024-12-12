@@ -151,7 +151,7 @@ exports.login = async (req, res) => {
         return;
       }
 
-      if (!check_again.status)
+      if (check_again.status)
       {
         return res.send({
           code: constant.error_code,
