@@ -84,16 +84,9 @@ router.get(
   vehicleController.get_vehicle_type
 );
 router.put("/edit_vehicle/:id", [verifyToken], vehicleController.edit_vehicle);
-router.delete(
-  "/delete_vehicle/:id",
-  [verifyToken],
-  vehicleController.delete_vehicle
-);
-router.get(
-  "/get_vehicle_detail/:id",
-  [verifyToken],
-  vehicleController.get_vehicle_detail
-);
+router.delete("/delete_vehicle/:id",[verifyToken],vehicleController.delete_vehicle);
+router.delete("/admin_delete_vehicle/:id",[verifyToken , adminAuth],vehicleController.adminDeleteVehicle);
+router.get("/get_vehicle_detail/:id",[verifyToken],vehicleController.get_vehicle_detail);
 
 // agency api's
 router.post("/add_agency", [verifyToken], agencyController.add_agency);

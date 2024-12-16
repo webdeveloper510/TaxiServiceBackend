@@ -323,9 +323,11 @@ exports.delete_vehicle = async (req, res) => {
                 is_deleted: true
             }
         };
+
+        
         let option = { new: true }
         let deleteOption = await VEHICLE.findOneAndUpdate(criteria, newValue, option)
-        if(req.user.defaultVehicle.toString() = req.params.id)
+        if(req.user.defaultVehicle.toString() == req.params.id)
         {
             req.user.defaultVehicle = null
             await req.user.save()
@@ -349,6 +351,52 @@ exports.delete_vehicle = async (req, res) => {
     }
 }
 
+exports.adminDeleteVehicle = async (req, res) => {
+    
+    try {
+        let criteria = { _id: req.params.id };
+        let newValue = {
+            $set: {
+                is_deleted: false
+            }
+        };
+
+        
+        let option = { new: true }
+        let deleteOption = await VEHICLE.findOneAndUpdate(criteria, newValue, option)
+        let driverInfo = await driver_model.findOne({ _id: deleteOption.agency_user_id });
+        
+        if(driverInfo && driverInfo.defaultVehicle.toString() == req.params.id)
+        {
+            let newValue = {
+                $set: {
+                    defaultVehicle: null
+                }
+            };
+
+            let criteria = { _id: deleteOption.agency_user_id };
+            await driver_model.findOneAndUpdate(criteria, newValue, option)   
+        }
+        
+        if (!deleteOption) {
+            res.send({
+                code: constant.error_code,
+                message: "Unable to Delete Vehicle"
+            })
+        } else {
+            res.send({
+                code: constant.success_code,
+                message: "Deleted"
+            })
+        }
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+
+}
 exports.blockDriver = async (req, res) => {
     try {
         let data = req.body;
