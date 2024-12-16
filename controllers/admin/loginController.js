@@ -1,4 +1,5 @@
 require("dotenv").config();
+const { default: axios } = require("axios");
 const constants = require("../../config/constant");
 const USER = require("../../models/user/user_model");
 const AGENCY = require("../../models/user/agency_model");
@@ -394,6 +395,21 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.getIosAppVersion = async (req, res) => {
+  const appId = 6476204096;
+  const url = `https://itunes.apple.com/lookup?id=${appId}`;
+  try {
+
+    const response = await axios.get(url);
+    const data = response.data;
+    res.send({
+      code: constants.error_code,
+      message: data.results[0].version
+    });
+  } catch (error) {
+
+  }
+}
 exports.login_otp_verify = async (req, res) => {
   try {
     let data = req.body;
