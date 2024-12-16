@@ -99,6 +99,77 @@ exports.add_vehicle = async (req, res) => {
 
 }
 
+exports.adminAddVehicle = async (req, res) => {
+    vehicleUpload(req, res, async (err) => {
+        try {
+            var vehicle_documents = [];
+            var vehicle_photo = [];
+
+            // var imagePortfolioLogo = []
+            let file = req.files
+            for (i = 0; i < file.length; i++) {
+                if (file[i].fieldname == 'vehicle_photo') {
+                    vehicle_photo.push(file[i].location);
+                } else if (file[i].fieldname == 'vehicle_documents') {
+                    vehicle_documents.push(file[i].location);
+
+                }
+            }
+
+            let data = req.body;
+            const driverId = req.params.driverId;
+            const driverInfo = await driver_model.findOne({_id: driverId});
+
+            if (driverInfo) {
+                let checkVehicle = await VEHICLE.findOne({ vehicle_number: data.vehicle_number })
+                if (checkVehicle) {
+                    res.send({
+                        code: constant.error_code,
+                        message: "Vehicle is already exist with this vehicle number"
+                    })
+                    return;
+                }
+
+                data.agency_user_id = driverId;
+                data.created_by = req.userId;
+                data.vehicle_photo = vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+                data.vehicle_documents = vehicle_documents.length != 0 ? vehicle_documents[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+                
+                return res.send({
+                    code: constant.error_code,
+                    message: data
+                })
+
+                let save_data = await VEHICLE(data).save()
+                if (!save_data) {
+                    res.send({
+                        code: constant.error_code,
+                        message: "Unable to create the vehicle"
+                    })
+                } else {
+                    res.send({
+                        code: constant.success_code,
+                        message: "Created Successfully",
+                        result: save_data
+                    })
+                }
+            } else {
+                res.send({
+                    code: constant.error_code,
+                    message: `Driver doen't exist`
+                })
+            }
+            
+        } catch (err) {
+            res.send({
+                code: constant.error_code,
+                message: err.message
+            })
+        }
+    })
+
+}
+
 exports.get_vehicles = async (req, res) => {
     try {
         let getUser = await USER.findOne({ _id: req.userId })
@@ -402,7 +473,7 @@ exports.blockDriver = async (req, res) => {
         let data = req.body;
 
         const criteria = { _id: data.driver_id };
-        const updateData = { is_blocked: data.is_blocked };
+        const updateData = { is_blocked: data?.is_blocked };
         const option = { new: true };
         const updateDriver = await driver_model.findOneAndUpdate(criteria, updateData, option);
 
