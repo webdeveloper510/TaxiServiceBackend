@@ -377,7 +377,7 @@ exports.adminDeleteVehicle = async (req, res) => {
             let criteria = { _id: deleteOption.agency_user_id };
             await driver_model.findOneAndUpdate(criteria, newValue, option)   
         }
-        
+
         if (!deleteOption) {
             res.send({
                 code: constant.error_code,
@@ -402,7 +402,7 @@ exports.blockDriver = async (req, res) => {
         let data = req.body;
 
         const criteria = { _id: data.driver_id };
-        const updateData = { status: data.status };
+        const updateData = { is_blocked: data.is_blocked };
         const option = { new: true };
         const updateDriver = await driver_model.findOneAndUpdate(criteria, updateData, option);
 
