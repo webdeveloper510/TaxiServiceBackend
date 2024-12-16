@@ -16,6 +16,8 @@ router.get("/", function (req, res, next) {
   res.render("index", { title: "Express" });
 });
 
+// router.post("/get_ios_app_version", loginController.getIosAppVersion);
+
 router.post("/createPaymentSession", loginController.createPaymentSession);
 
 router.post("/create_super_admin", loginController.create_super_admin);
