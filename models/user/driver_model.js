@@ -101,6 +101,10 @@ const driver = new Schema(
       type: Boolean,
       default: false,
     },
+    is_blocked: {
+      type: Boolean,
+      default: false,
+    },
     agency_user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",

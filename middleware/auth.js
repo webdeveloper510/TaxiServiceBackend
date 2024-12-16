@@ -91,7 +91,7 @@ verifyToken = async (req, res, next) => {
           user &&
           user.role != "SUPER_ADMIN" &&
           user.role != "DRIVER" &&
-          (!user.status || !user?.created_by?.status)
+          (user?.is_blocked || user?.created_by?.is_blocked)
         ) {
           return res.send({
             code: constant.tokenError,
@@ -99,7 +99,7 @@ verifyToken = async (req, res, next) => {
               "You are blocked by administration. Please contact administration",
           });
         }
-        if (user.role == "DRIVER" && user.status) {
+        if (user.role == "DRIVER" && user?.is_blocked) {
           return res.send({
             code: constant.tokenError,
             message:

@@ -55,6 +55,10 @@ const user = new Schema(
       type: Boolean,
       default: false,
     },
+    is_blocked: {
+      type: Boolean,
+      default: false,
+    },
     deleted_by_id: {
       type: String,
       default: "",

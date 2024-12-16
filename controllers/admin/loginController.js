@@ -118,7 +118,7 @@ exports.login = async (req, res) => {
     if (
       userData &&
       userData.role != "SUPER_ADMIN" &&
-      (!userData.status || !userData?.created_by?.status)
+      (userData?.is_blocked || userData?.created_by?.is_blocked)
     ) {
       return res.send({
         code: constant.error_code,
@@ -151,7 +151,7 @@ exports.login = async (req, res) => {
         return;
       }
 
-      if (check_again.status)
+      if (check_again?.is_blocked)
       {
         return res.send({
           code: constant.error_code,
@@ -259,7 +259,7 @@ exports.login = async (req, res) => {
       check_data = userData;
 
       // If user blocked by Super admin or admin
-      if (!check_data.status) {
+      if (check_data?.is_blocked) {
         return res.send({
           code: constant.error_code,
           message:
