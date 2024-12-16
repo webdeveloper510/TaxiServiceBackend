@@ -426,7 +426,7 @@ exports.adminDeleteVehicle = async (req, res) => {
         let criteria = { _id: req.params.id };
         let newValue = {
             $set: {
-                is_deleted: false
+                is_deleted: true
             }
         };
 
