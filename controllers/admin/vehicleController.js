@@ -203,16 +203,18 @@ exports.get_vehicles = async (req, res) => {
 exports.get_vehicles_by_driverid = async (req, res) => {
     try {
         const driverData = await driver_model.findOne({_id:req.params.id});
+
         if(!driverData){
-            res.send({
+            return res.send({
                 code: constant.error_code,
-                message: "Wrong driver id"
+                message: "Wrong driver id",
+                id: req.params.id
             })
         }
         let get_vehicle = await VEHICLE.find({
             $and: [
                 { is_deleted: false },
-                { created_by: req.params.id },
+                { agency_user_id: req.params.id },
                 // {
                 //     $or: [
                 //         { created_by: req.userId },
