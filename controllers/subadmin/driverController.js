@@ -572,6 +572,14 @@ exports.get_trips_for_drivers = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "users",
+          localField: "created_by_company_id",
+          foreignField: "_id",
+          as: "companyData",
+        },
+      },
+      {
         $unwind: {
           path: "$userData",
         },
@@ -581,6 +589,7 @@ exports.get_trips_for_drivers = async (req, res) => {
           _id: 1,
           // userData: 1,
           customer_phone: "$userData.p_number",
+          company_phone:{ $arrayElemAt: ["$companyData.phone", 0] },
           trip_from: 1,
           trip_to: 1,
           is_paid: 1,
