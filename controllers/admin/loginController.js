@@ -403,7 +403,7 @@ exports.getIosAppVersion = async (req, res) => {
     const response = await axios.get(url);
     const data = response.data;
     res.send({
-      code: constants.error_code,
+      code: constants.success_code,
       message: data.results[0].version
     });
   } catch (error) {
