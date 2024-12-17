@@ -407,7 +407,10 @@ exports.getIosAppVersion = async (req, res) => {
       message: data.results[0].version
     });
   } catch (error) {
-
+    res.send({
+      code: constants.error_code,
+      message: "No version found"
+    });
   }
 }
 exports.login_otp_verify = async (req, res) => {
