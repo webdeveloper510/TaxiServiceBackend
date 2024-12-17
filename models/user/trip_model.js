@@ -78,6 +78,10 @@ const trip = new Schema({
     trip_id:{
         type:String,
     },
+    cancellation_reason: {
+        type:String,
+        default:''
+    },
     send_request_date_time:{
         type:Date,
         default: null

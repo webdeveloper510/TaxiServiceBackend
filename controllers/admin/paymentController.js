@@ -396,3 +396,44 @@ exports.getCommissionTrans = async (req, res) => {
     });
   }
 };
+
+
+exports.adminTransaction = async (req, res) => {
+  try {
+
+    const totalPayment = await TRIP.aggregate([
+      {
+          $match: {
+              status: true,
+              trip_status: constant.TRIP_STATUS.COMPLETED,
+              is_deleted: false,
+              is_paid: true,
+          }
+      },
+      {
+          $group: {
+              _id: null, // No grouping key; calculate total sum for all matching documents
+              totalAmount: { $sum: "$superAdminPaymentAmount" } // Sum the column
+          }
+      }
+    ]);
+  
+    const result = totalPayment.length > 0 ? totalPayment[0].totalAmount : 0;
+
+    res.send({
+      code: constant.success_code,
+      totalEarning: result,
+    });
+
+  } catch (err) {
+    console.log(
+      "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",
+      err
+    );
+
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}

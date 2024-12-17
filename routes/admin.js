@@ -183,11 +183,7 @@ router.post(
   tripController.get_trip_for_hotel
 );
 router.post("/get_recent_trip", [verifyToken], tripController.get_recent_trip);
-router.post(
-  "/get_recent_trip_super",
-  [verifyToken],
-  tripController.get_recent_trip_super
-);
+router.post("/get_recent_trip_super",[verifyToken],tripController.get_recent_trip_super);
 router.post(
   "/get_trip_by_company/:status",
   [verifyToken],
@@ -206,11 +202,7 @@ router.put(
   tripController.access_alocate_driver
 );
 router.get("/check_trip_request/:id", tripController.check_trip_request);
-router.get(
-  "/get_counts_dashboard",
-  [verifyToken],
-  tripController.get_counts_dashboard
-);
+router.get("/get_counts_dashboard",[verifyToken],tripController.get_counts_dashboard);
 
 // trip payment
 router.post(
@@ -228,11 +220,8 @@ router.post(
   [verifyToken],
   paymentController.successTripPay
 );
-router.get(
-  "/transactions",
-  [verifyToken],
-  paymentController.getCommissionTrans
-);
+router.get("/transactions",[verifyToken],paymentController.getCommissionTrans);
+router.get("/admin_transaction",[verifyToken , adminAuth],paymentController.adminTransaction);
 router.post("/payCompany", [verifyToken], paymentController.payCompany);
 
 // Account access API

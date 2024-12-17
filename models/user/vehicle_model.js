@@ -60,7 +60,7 @@ const vehicle = new Schema({
     },
     agency_user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "drivers",
+        ref: "driver",
     },
     status:{
         type:Boolean,
