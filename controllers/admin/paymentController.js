@@ -401,28 +401,28 @@ exports.getCommissionTrans = async (req, res) => {
 exports.adminTransaction = async (req, res) => {
   try {
 
-    const totalPayment = await TRIP.aggregate([
-      {
-          $match: {
-              status: true,
-              trip_status: constant.TRIP_STATUS.COMPLETED,
-              is_deleted: false,
-              is_paid: true,
-          }
-      },
-      {
-          $group: {
-              _id: null, // No grouping key; calculate total sum for all matching documents
-              totalAmount: { $sum: "$superAdminPaymentAmount" } // Sum the column
-          }
-      }
-    ]);
-  
-    const result = totalPayment.length > 0 ? totalPayment[0].totalAmount : 0;
+    const allPayment = await getTotalPayment();
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7); 
+    sevenDaysAgo.setUTCHours(0, 0, 1, 0)// Subtract 7 days from today
+    const sevenDaysAgoPayment = await getTotalPayment(sevenDaysAgo);
+
+    const now = new Date();
+
+    // Get the start of the current month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonthPayment = await getTotalPayment(startOfMonth);
+
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const startOfYearPayment = await getTotalPayment(startOfYear);
 
     res.send({
       code: constant.success_code,
-      totalEarning: result,
+      totalEarning: allPayment,
+      totalEarningLastSevenDays: sevenDaysAgoPayment,
+      totalEarningFromMonth: startOfMonthPayment,
+      totalEarningFromYear: startOfYearPayment
     });
 
   } catch (err) {
@@ -436,4 +436,35 @@ exports.adminTransaction = async (req, res) => {
       message: err.message,
     });
   }
+
 }
+
+const getTotalPayment = async (startDate = null) => {
+
+  let matchCriteria = {
+      status: true,
+      trip_status: constant.TRIP_STATUS.COMPLETED,
+      is_deleted: false,
+      is_paid: true,
+  }
+  
+
+  if (startDate) {
+    matchCriteria.pickup_date_time= { $gte: startDate};
+  }
+
+  console.log('matchCriteria--' , matchCriteria)
+  const totalPayment = await TRIP.aggregate([
+    {
+        $match: matchCriteria
+    },
+    {
+        $group: {
+            _id: null, // No grouping key; calculate total sum for all matching documents
+            totalAmount: { $sum: "$superAdminPaymentAmount" } // Sum the column
+        }
+    }
+  ]);
+
+  return totalPayment.length > 0 ? totalPayment[0].totalAmount : 0;
+};
