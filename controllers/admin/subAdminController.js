@@ -1022,6 +1022,14 @@ exports.hotelListAdmin = async (req, res) => {
           },
         },
         {
+          $lookup: {
+            from: "agencies",
+            localField: "created_by",
+            foreignField: "user_id",
+            as: "company",
+          },
+        },
+        {
           $match: {
             $and: [
               { role: 'HOTEL' },
@@ -1031,6 +1039,9 @@ exports.hotelListAdmin = async (req, res) => {
                   { "meta.company_id": { $regex: search, $options: "i" } },
                   {
                     "meta.company_name": { $regex: search, $options: "i" },
+                  },
+                  {
+                    "company.company_name": { $regex: search, $options: "i" },
                   },
                   { first_name: { $regex: search, $options: "i" } },
                   { last_name: { $regex: search, $options: "i" } },
@@ -1080,8 +1091,8 @@ exports.hotelListAdmin = async (req, res) => {
                   company_id: { $arrayElemAt: ["$meta.company_id", 0] },
                   commision: { $arrayElemAt: ["$meta.commision", 0] },
                   hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
-  
                   location: { $arrayElemAt: ["$meta.location", 0] },
+                  hotel_company_name: { $arrayElemAt: ["$company.company_name", 0] },
                 },
               },
             ],

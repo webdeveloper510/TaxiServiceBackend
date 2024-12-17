@@ -58,9 +58,9 @@ const vehicle = new Schema({
         type:String,
         default:''
     },
-    agency_user_id:{
-        type:String,
-        default:''
+    agency_user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "drivers",
     },
     status:{
         type:Boolean,
