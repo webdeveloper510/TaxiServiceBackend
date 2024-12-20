@@ -185,6 +185,11 @@ const driver = new Schema(
       type: Boolean,
       default: false,
     },
+    driver_company_id:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      default: null,
+    },
     lastUsedToken: {
       type: Date,
       default: Date.now(),
