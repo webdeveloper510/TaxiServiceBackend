@@ -8,6 +8,7 @@ const multer = require("multer");
 const path = require("path");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -350,7 +351,7 @@ exports.adminAddDriver = async (req, res) => {
   driverUpload(req, res, async (err) => {
   try {
     const data = req.body;
-    
+
     data.email = data?.email?.toLowerCase();
     data.isDocUploaded = false;
     data.isVerified = true;
@@ -381,58 +382,107 @@ exports.adminAddDriver = async (req, res) => {
     
     data.created_by = superAdmin; // Assuming you have user authentication
 
-    let checkEmailInUsers = await USER.findOne({ email: { $regex: data.email, $options: "i" }, })
+    let checkEmailInDrivers = await DRIVER.findOne({email: { $regex: data.email, $options: "i" },
+      // is_deleted: false,
+    });
+
+    if (checkEmailInDrivers) {
+
+      return res.send({
+                          code: constant.error_code,
+                          message: "Email Already exist"
+                      })
+    }
+
+    let checkEmailInUsers = await USER.findOne({ 
+                                                email: { $regex: data.email, $options: "i" },
+                                                ...(data?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } } : {}), 
+                                              })
+    
+    
+    let checkPhoneInDriver = await DRIVER.findOne({
+                                                    phone: data.phone,
+                                                    // is_deleted: false,
+                                                  });
+    
+    let checkPhoneInUsers = await user_model.findOne({
+                                                      phone: data.phone,
+                                                      // is_deleted: false,
+                                                      ...(data?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } } : {}),
+                                                    });
+    if (checkEmailInDrivers) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "Email Already exist",
+                      });
+      
+    }
+    if (checkPhoneInDriver) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: "Phone Already exist",
+                      });
+    }
+
     if (checkEmailInUsers) {
 
       return res.send({
-            code: constant.error_code,
-            message: "Email Already exist"
-        })
+                      code: constant.error_code,
+                      message:
+                        "This email is already registered as a Company. Sign in to register as a driver.",
+                    });
     }
 
-    let checkEmailInDrivers = await DRIVER.findOne({
-      email: { $regex: data.email, $options: "i" },
-      // is_deleted: false,
-    });
-    let checkPhoneInDriver = await DRIVER.findOne({
-      phone: data.phone,
-      // is_deleted: false,
-    });
+    if (checkPhoneInUsers) {
+
+      return res.send({
+                      code: constant.error_code,
+                      message:
+                        "This Phone Number is already registered as a Company. Sign in to register as a driver.",
+                    });
+      
+    }
+
+    const isCompanyAlreadyDriver = await USER.findOne({ _id: new mongoose.Types.ObjectId(data?.driver_company_id) , driverId: { $ne: null }});
     
-    let checkPhoneInUsers = await user_model.findOne({
-      phone: data.phone,
-      // is_deleted: false,
-    });
-    if (checkEmailInDrivers) {
-      res.send({
-        code: constant.error_code,
-        message: "Email Already exist",
-      });
-      return;
+    // If company already has his driver
+    if ( isCompanyAlreadyDriver ) { 
+
+      return res.send({
+                        code: constant.error_code,
+                        message: 'This company already has their own driver.',
+                      });
     }
-    if (checkPhoneInDriver) {
-      res.send({
-        code: constant.error_code,
-        message: "Phone Already exist",
-      });
-      return;
+
+    if (data?.isCompany == 'true') {
+
+      const companyInfo = await USER.aggregate([
+        {
+          $lookup: {
+            from: "agencies", 
+            localField: "_id", 
+            foreignField: "user_id", 
+            as: "agency_data",
+          },
+        },
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(data?.driver_company_id),
+          },
+        },
+        {
+          $project: {
+            name: 1, // Include driver name
+            user_info: "$$ROOT",
+            companyDetails: { $arrayElemAt: ["$agency_data", 0] }, // Include the first matching company
+          },
+        },
+      ]);
+      
+      data.company_agency_id = companyInfo ? companyInfo[0].companyDetails._id : null;
     }
-    if (checkPhoneInUsers) {
-      res.send({
-        code: constant.error_code,
-        message:
-          "This email is already registered as a Company. Sign in to register as a driver.",
-      });
-      return;
-    }
-    if (checkPhoneInUsers) {
-      res.send({
-        code: constant.error_code,
-        message:
-          "This Phone Number is already registered as a Company. Sign in to register as a driver.",
-      });
-      return;
-    }
+    
     let save_driver = await DRIVER(data).save();
    
 
@@ -607,7 +657,15 @@ exports.adminAddDriver = async (req, res) => {
               </tbody></table>
               </body></html>`,
       };
+
       await transporter.sendMail(mailOptions);
+
+      if (data?.isCompany == 'true') {
+        await USER.updateOne( 
+                                { _id: new mongoose.Types.ObjectId(data?.driver_company_id) },
+                                { $set: { driverId: save_driver._id , isDriver: true} }
+                              );
+      }
       res.send({
         code: constant.success_code,
         message: "Driver created successfully",

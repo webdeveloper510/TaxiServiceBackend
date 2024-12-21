@@ -89,7 +89,7 @@ exports.add_sub_admin = async (req, res) => {
                                                   phone: data.phone, 
                                                   is_deleted: false,
                                                   ...(data.role === constant.ROLES.COMPANY && data?.isDriver == true
-                                                    ? { phone: data?.phone }
+                                                    ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
                                                     : {}), 
                                                 });
                                         
@@ -101,13 +101,13 @@ exports.add_sub_admin = async (req, res) => {
                       });
     }
 
-    const isDriverAleradyCompany = await DRIVER.findOne({ _id: new mongoose.Types.ObjectId(data?.driverId) , driver_company_id: { $ne: null }});
+    const isDriverAlreadyCompany = await DRIVER.findOne({ _id: new mongoose.Types.ObjectId(data?.driverId) , driver_company_id: { $ne: null }});
 
-    if ( isDriverAleradyCompany ) {
+    if ( isDriverAlreadyCompany ) {
 
       return res.send({
                         code: constant.error_code,
-                        driverInfo: 'This driver already has their own company.',
+                        message: 'This driver already has their own company.',
                       });
     }
     
@@ -116,6 +116,7 @@ exports.add_sub_admin = async (req, res) => {
     // let passwordEmail = "Test@123"
     let hashedPassword = await bcrypt.hashSync(passwordEmail, 10);
     data.password = hashedPassword;
+    data.stored_password= passwordEmail;
 
     if (data.role == "COMPANY") {
       // data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
@@ -328,7 +329,7 @@ exports.add_sub_admin = async (req, res) => {
 
         await DRIVER.updateOne( 
                                 { _id: new mongoose.Types.ObjectId(data?.driverId) },
-                                { $set: { driver_company_id: save_data._id  , company_agency_id: save_meta_data._id} }
+                                { $set: { driver_company_id: save_data._id  , company_agency_id: save_meta_data._id , isCompany: true} }
                               );
       }
 
@@ -394,6 +395,7 @@ exports.add_admin = async (req, res) => {
     let hashedPassword = await bcrypt.hashSync(passwordEmail, 10);
     data.password = hashedPassword;
     data.role = constant.ROLES.ADMIN;
+    data.stored_password= passwordEmail;
 
     data.created_by = req.userId;
     let save_data = await USER(data).save();
@@ -1974,6 +1976,7 @@ exports.companyList = async (req, res) => {
           role: 1,
           totalBalance: 1,
           status: 1,
+          isDriver:1,
           land: { $arrayElemAt: ["$meta.land", 0] },
           post_code: { $arrayElemAt: ["$meta.post_code", 0] },
           house_number: { $arrayElemAt: ["$meta.house_number", 0] },
