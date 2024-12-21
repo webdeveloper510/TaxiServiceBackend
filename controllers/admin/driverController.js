@@ -2050,6 +2050,8 @@ exports.convertIntoDriver = async (req, res) => {
       const data = req.body;
       var driver_image = [];
       var driver_documents = [];
+
+      
       // var imagePortfolioLogo = []
       let file = req.files;
       for (i = 0; i < file.length; i++) {
@@ -2077,6 +2079,32 @@ exports.convertIntoDriver = async (req, res) => {
           message: "Already have a driver",
         });
       }
+
+      const companyInfo = await USER.aggregate([
+        {
+          $lookup: {
+            from: "agencies", 
+            localField: "_id", 
+            foreignField: "user_id", 
+            as: "agency_data",
+          },
+        },
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(data?.driver_company_id),
+          },
+        },
+        {
+          $project: {
+            name: 1, // Include driver name
+            user_info: "$$ROOT",
+            companyDetails: { $arrayElemAt: ["$agency_data", 0] }, // Include the first matching company
+          },
+        },
+      ]);
+      
+      const company_agency_id = companyInfo ? companyInfo[0].companyDetails._id : null;
+
       let save_driver = await DRIVER({
         ...data,
         first_name: user.first_name,
@@ -2087,6 +2115,8 @@ exports.convertIntoDriver = async (req, res) => {
         isCompany: true,
         created_by: user._id,
         isDocUploaded: true,
+        driver_company_id: req.userId,
+        company_agency_id:company_agency_id
       }).save();
       let jwtToken = jwt.sign(
         { userId: save_driver._id },

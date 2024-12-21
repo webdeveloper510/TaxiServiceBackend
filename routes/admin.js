@@ -131,11 +131,7 @@ router.post(
   [verifyToken],
   driverController.rejectVerification
 );
-router.post(
-  "/convertDriver",
-  [verifyToken],
-  driverController.convertIntoDriver
-);
+router.post("/convertDriver",[verifyToken],driverController.convertIntoDriver);
 router.post("/switchDriver", [verifyToken], driverController.switchToDriver);
 router.post("/switchCompany", [verifyToken], driverController.switchToCompany);
 
