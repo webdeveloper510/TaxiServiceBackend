@@ -394,6 +394,8 @@ exports.adminAddDriver = async (req, res) => {
                       })
     }
 
+    
+
     let checkEmailInUsers = await USER.findOne({ 
                                                 email: { $regex: data.email, $options: "i" },
                                                 ...(data?.isCompany == 'true' ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driver_company_id) } } : {}), 
@@ -409,6 +411,8 @@ exports.adminAddDriver = async (req, res) => {
                                                       // is_deleted: false,
                                                       ...(data?.isCompany == 'true' ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driver_company_id) } } : {}),
                                                     });
+
+                                                    
     if (checkEmailInDrivers) {
       return res.send({
                         code: constant.error_code,
@@ -443,18 +447,21 @@ exports.adminAddDriver = async (req, res) => {
       
     }
 
-    const isCompanyAlreadyDriver = await USER.findOne({ _id: new mongoose.Types.ObjectId(data?.driver_company_id) , driverId: { $ne: null }});
+   
     
-    // If company already has his driver
-    if ( isCompanyAlreadyDriver ) { 
-
-      return res.send({
-                        code: constant.error_code,
-                        message: 'This company already has their own driver.',
-                      });
-    }
 
     if (data?.isCompany == 'true') {
+
+      const isCompanyAlreadyDriver = await USER.findOne({ _id: new mongoose.Types.ObjectId(data?.driver_company_id) , driverId: { $ne: null }});
+    
+      // If company already has his driver
+      if ( isCompanyAlreadyDriver ) { 
+
+        return res.send({
+                          code: constant.error_code,
+                          message: 'This company already has their own driver.',
+                        });
+      }
 
       const companyInfo = await USER.aggregate([
         {
@@ -480,7 +487,13 @@ exports.adminAddDriver = async (req, res) => {
       ]);
       
       data.company_agency_id = companyInfo ? companyInfo[0].companyDetails._id : null;
+    } else {
+
+      delete data.company_agency_id;
+      delete data.driver_company_id;
     }
+
+    
     
     let save_driver = await DRIVER(data).save();
    
@@ -658,6 +671,7 @@ exports.adminAddDriver = async (req, res) => {
       };
 
       await transporter.sendMail(mailOptions);
+
 
       if (data?.isCompany == 'true') {
         await USER.updateOne( 

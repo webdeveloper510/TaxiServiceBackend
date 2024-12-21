@@ -60,7 +60,7 @@ exports.add_sub_admin = async (req, res) => {
     let checkDriverEmail = await DRIVER.findOne({
                                             email: data.email,
                                             is_deleted: false,
-                                            ...(data.role === constant.ROLES.COMPANY && data?.isDriver == true
+                                            ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
                                               ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
                                               : {}), 
                                           });
@@ -88,7 +88,7 @@ exports.add_sub_admin = async (req, res) => {
     let checkDriverPhone = await DRIVER.findOne({
                                                   phone: data.phone, 
                                                   is_deleted: false,
-                                                  ...(data.role === constant.ROLES.COMPANY && data?.isDriver == true
+                                                  ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
                                                     ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
                                                     : {}), 
                                                 });
@@ -101,15 +101,19 @@ exports.add_sub_admin = async (req, res) => {
                       });
     }
 
-    const isDriverAlreadyCompany = await DRIVER.findOne({ _id: new mongoose.Types.ObjectId(data?.driverId) , driver_company_id: { $ne: null }});
+    if (data.role === constant.ROLES.COMPANY && data?.isDriver == 'true') {
 
-    if ( isDriverAlreadyCompany ) {
+      const isDriverAlreadyCompany = await DRIVER.findOne({ _id: new mongoose.Types.ObjectId(data?.driverId) , driver_company_id: { $ne: null }});
 
-      return res.send({
-                        code: constant.error_code,
-                        message: 'This driver already has their own company.',
-                      });
+      if ( isDriverAlreadyCompany ) {
+
+        return res.send({
+                          code: constant.error_code,
+                          message: 'This driver already has their own company.',
+                        });
+      }
     }
+    
     
 
     let passwordEmail = randToken.generate( 8, "1234567890abcdefghijklmnopqrstuvxyz" );
@@ -325,7 +329,7 @@ exports.add_sub_admin = async (req, res) => {
       save_data.meta = save_meta_data;
 
       //  Update the compnay information  to the selected driver. Now driver and company attached together
-      if (data.role === constant.ROLES.COMPANY && data?.isDriver == true) {
+      if (data.role === constant.ROLES.COMPANY && data?.isDriver == 'true') {
 
         await DRIVER.updateOne( 
                                 { _id: new mongoose.Types.ObjectId(data?.driverId) },
