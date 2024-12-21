@@ -396,9 +396,8 @@ exports.adminAddDriver = async (req, res) => {
 
     let checkEmailInUsers = await USER.findOne({ 
                                                 email: { $regex: data.email, $options: "i" },
-                                                ...(data?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driver_company_id) } } : {}), 
+                                                ...(data?.isCompany == 'true' ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driver_company_id) } } : {}), 
                                               })
-    
     
     let checkPhoneInDriver = await DRIVER.findOne({
                                                     phone: data.phone,
@@ -408,7 +407,7 @@ exports.adminAddDriver = async (req, res) => {
     let checkPhoneInUsers = await user_model.findOne({
                                                       phone: data.phone,
                                                       // is_deleted: false,
-                                                      ...(data?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driver_company_id) } } : {}),
+                                                      ...(data?.isCompany == 'true' ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driver_company_id) } } : {}),
                                                     });
     if (checkEmailInDrivers) {
       return res.send({
