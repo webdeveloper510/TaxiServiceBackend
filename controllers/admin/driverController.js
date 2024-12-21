@@ -1100,6 +1100,7 @@ exports.get_drivers_super = async (req, res) => {
       query.$or = [
         { email: { $regex: search, $options: "i" } },
         { phone: { $regex: search, $options: "i" } },
+        { driver_company_name: { $regex: search, $options: "i" } },
         { first_name: { $regex: search, $options: "i" } },
         { last_name: { $regex: search, $options: "i" } },
         { address_1: { $regex: search, $options: "i" } },
@@ -1119,12 +1120,113 @@ exports.get_drivers_super = async (req, res) => {
       query.is_deleted = true;
     }
 
-    const totalCount = await DRIVER.countDocuments(query);
-    const drivers = await DRIVER.find(query)
-      .populate("defaultVehicle")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    // const totalCount = await DRIVER.countDocuments(query);
+    // Count the total documents matching the query
+    let totalCount = await DRIVER.aggregate([
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "company_agency_id",
+          foreignField: "_id",
+          as: "company",
+        },
+      },
+      {
+        $addFields: {
+          driver_company_name: { $arrayElemAt: ["$company.company_name", 0] },
+        },
+      },
+      {
+        $match:query
+      },
+      {
+        $count: "totalCount",
+      },
+    ]);
+    
+    totalCount = totalCount[0]?.totalCount || 0;
+    console.log('totalCount------' ,totalCount)
+    // const drivers = await DRIVER.find(query).populate('company_agency_id')
+    //   .populate("defaultVehicle")
+    //   .sort({ createdAt: -1 })
+    //   .skip(skip)
+    //   .limit(limit);
+
+    // Aggregate pipeline to include company name
+    const drivers = await DRIVER.aggregate([
+      {
+        $lookup: {
+          from: "agencies", // Referenced collection name
+          localField: "company_agency_id", // Local field in DRIVER
+          foreignField: "_id", // Foreign field in agency collection
+          as: "company", // Name of the resulting array
+        },
+      },
+      {
+        $addFields: {
+          driver_company_name: { $arrayElemAt: ["$company.company_name", 0] }, // Extract company_name
+        },
+      },
+      {
+        $match:query
+      },
+      {
+        $project: {
+          _id:1,
+          first_name: 1, // Include driver name
+          last_name:1,
+          bankNumber:1,
+          email: 1, // Include driver email
+          phone: 1, // Include driver phone
+          isVerified: 1,
+          kvk:1,
+          address_2:1,
+          address_1:1,
+          city:1,
+          country:1,
+          zip_code:1,
+          phone:1,
+          company_account_access:1,
+          profile_image:1,
+          gender:1,
+          is_available:1,
+          is_deleted:1,
+          is_blocked:1,
+          agency_user_id:1,
+          deleted_by:1,
+          status:1,
+          auto_accept:1,
+          driver_status:1,
+          created_by:1,
+          isVerified:1,
+          isDocUploaded:1,
+          location:1,
+          is_login:1,
+          locationUpdatedAt:1,
+          isSocketConnected:1,
+          socketId:1,
+          isWebSocketConnected:1,
+          webSocketId:1,
+          nickName:1,
+          isCompany:1,
+          driver_company_id:1,
+          company_agency_id:1,
+          currentTrip:1,
+          defaultVehicle:1,
+          driver_company_name: 1, // Include company name
+        },
+      },
+      {
+        $sort: { createdAt: -1 }, // Sort by createdAt
+      },
+      {
+        $skip: skip, // Pagination: Skip documents
+      },
+      {
+        $limit: limit, // Pagination: Limit documents
+      },
+    ]);
+
 
     if (drivers) {
       res.send({
