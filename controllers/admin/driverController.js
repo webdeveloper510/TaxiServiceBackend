@@ -9,7 +9,7 @@ const path = require("path");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-
+const randToken = require("rand-token").generator();
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -371,10 +371,17 @@ exports.adminAddDriver = async (req, res) => {
         }
     }
 
-    const randomPasword = await generate6DigitPassword()
+    // const randomPasword = await generate6DigitPassword()
+    // data.stored_password = randomPasword;
+    // let hash = await bcrypt.hashSync(randomPasword, 10);
+    // data.password = hash;
+
+    let randomPasword = randToken.generate( 8, "1234567890abcdefghijklmnopqrstuvxyz" );
     data.stored_password = randomPasword;
-    let hash = await bcrypt.hashSync(randomPasword, 10);
-    data.password = hash;
+    let hashedPassword = await bcrypt.hashSync(randomPasword, 10);
+    data.password = hashedPassword;
+
+
     // data.profile_image = driver_image?.length != 0 ? driver_image[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
     // data.driver_documents = driver_documents?.length != 0 ? driver_documents[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
     

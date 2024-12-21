@@ -114,22 +114,24 @@ exports.login = async (req, res) => {
       ],
     }).populate("created_by driverId");
 
+    
+
     // If user is blocked by admin or super admin
 
-    if (
-      userData &&
-      userData.role != "SUPER_ADMIN" &&
-      (userData?.is_blocked || userData?.created_by?.is_blocked)
-    ) {
+    if (userData && userData.role != "SUPER_ADMIN" && (userData?.is_blocked || userData?.created_by?.is_blocked) ) {
       return res.send({
-        code: constant.error_code,
-        message:
-          "You are blocked by administration. Please contact administration",
-      });
+                        code: constant.error_code,
+                        message:
+                          "You are blocked by administration. Please contact administration",
+                      });
     }
+
+    
 
     // If user is not a company , admin , super admin
     if (!userData) {
+
+      
       let check_again = await DRIVER.findOne({
         $and: [
           {
@@ -143,58 +145,60 @@ exports.login = async (req, res) => {
           },
         ],
       });
+      
 
       if (!check_again) {
-        res.send({
-          code: constant.error_code,
-          message: "Invalid Credentials",
-        });
-        return;
+        return res.send({
+                          code: constant.error_code,
+                          message: "Invalid Credentials",
+                        });
       }
 
-      if (check_again?.is_blocked)
-      {
+      if (check_again?.is_blocked){
         return res.send({
-          code: constant.error_code,
-          message:
-            "You are blocked by administration. Please contact administration",
-        });
+                          code: constant.error_code,
+                          message:
+                            "You are blocked by administration. Please contact administration",
+                        });
       }
-      const completedTrips = await trip_model
-        .find({
-          driver_name: check_again._id,
-          trip_status: "Completed",
-          is_paid: false,
-        })
-        .countDocuments();
-      const totalUnpaidTrips = await trip_model
-        .find({
-          driver_name: check_again._id,
-          trip_status: "Completed",
-          is_paid: false,
-          drop_time: {
-            $lte: startOfCurrentWeek,
-          },
-        })
-        .countDocuments();
-      const totalActiveTrips = await trip_model
-        .find({
-          driver_name: check_again._id,
-          trip_status: "Active",
-        })
-        .countDocuments();
+
+      const completedTrips = await trip_model.find({
+                                                    driver_name: check_again._id,
+                                                    trip_status: "Completed",
+                                                    is_paid: false,
+                                                  })
+                                                  .countDocuments();
+
+      const totalUnpaidTrips = await trip_model.find({
+                                                      driver_name: check_again._id,
+                                                      trip_status: "Completed",
+                                                      is_paid: false,
+                                                      drop_time: {
+                                                        $lte: startOfCurrentWeek,
+                                                      },
+                                                    })
+                                                    .countDocuments();
+
+      const totalActiveTrips = await trip_model.find({
+                                                      driver_name: check_again._id,
+                                                      trip_status: "Active",
+                                                    })
+                                                    .countDocuments();
+
       check_data = check_again;
 
       let checkPassword = await bcrypt.compare(
-        data.password,
-        check_data.password
-      );
+                                                data.password,
+                                                check_data.password
+                                              );
+
+        
       if (!checkPassword) {
-        res.send({
-          code: constants.error_code,
-          message: "Invalid Credentials",
-        });
-        return;
+        return res.send({
+                          code: constants.error_code,
+                          message: "Invalid Credentials",
+                        });
+        
       }
       // if (data.is_app && check_again.is_login) {
       //     res.send({
@@ -206,29 +210,32 @@ exports.login = async (req, res) => {
       if (deviceToken) {
         await Promise.all([
           driver_model.updateMany(
-            {
-              deviceToken,
-            },
-            {
-              deviceToken: null,
-            }
-          ),
+                                    {
+                                      deviceToken,
+                                    },
+                                    {
+                                      deviceToken: null,
+                                    }
+                                  ),
           user_model.updateMany(
-            {
-              deviceToken,
-            },
-            {
-              deviceToken: null,
-            }
-          ),
+                                  {
+                                    deviceToken,
+                                  },
+                                  {
+                                    deviceToken: null,
+                                  }
+                                ),
         ]);
       }
-      let jwtToken = jwt.sign(
-        { userId: check_data._id },
-        process.env.JWTSECRET,
-        { expiresIn: "365d" }
-      );
+
+      let jwtToken =  jwt.sign(
+                                { userId: check_data._id },
+                                process.env.JWTSECRET,
+                                { expiresIn: "365d" }
+                              );
+
       const updateDriver = { is_login: true };
+
       if (mobile) {
         updateDriver.jwtTokenMobile = jwtToken;
         updateDriver.lastUsedTokenMobile = new Date();
@@ -241,31 +248,36 @@ exports.login = async (req, res) => {
         updateDriver.deviceToken = deviceToken;
       }
       let updateLogin = await DRIVER.findOneAndUpdate(
-        { _id: check_data._id },
-        { $set: updateDriver },
-        { new: true }
-      );
+                                                        { _id: check_data._id },
+                                                        { $set: updateDriver },
+                                                        { new: true }
+                                                      );
+
       let check_data2 = updateLogin.toObject();
       check_data2.role = "DRIVER";
       check_data2.totalTrips = completedTrips;
       check_data2.totalUnpaidTrips = totalUnpaidTrips;
       check_data2.totalActiveTrips = totalActiveTrips;
+
       res.send({
-        code: constants.success_code,
-        message: "Login Successful",
-        result: check_data2,
-        jwtToken: jwtToken,
-      });
+                code: constants.success_code,
+                message: "Login Successful",
+                result: check_data2,
+                jwtToken: jwtToken,
+              });
     } else {
+
       check_data = userData;
+
+      
 
       // If user blocked by Super admin or admin
       if (check_data?.is_blocked) {
         return res.send({
-          code: constant.error_code,
-          message:
-            "You are blocked by administration. Please contact adminstation",
-        });
+                          code: constant.error_code,
+                          message:
+                            "You are blocked by administration. Please contact adminstation",
+                        });
       }
 
       // compare the password
@@ -274,13 +286,22 @@ exports.login = async (req, res) => {
         check_data.password
       );
 
+      return res.send({
+        code: constants.error_code,
+        message: "Invalid chekc Invalid Credentials",
+        userData:data.password,
+        dd: check_data.password
+      });
+
       if (!checkPassword) {
-        res.send({
-          code: constants.error_code,
-          message: "Invalid Credentials",
-        });
-        return;
+        return res.send({
+                          code: constants.error_code,
+                          message: "Invalid Credentials",
+                        });
+        
       }
+
+      
 
       //  OTP will send during the login for ADMIN AND SUPER_ADMIN
       if (
@@ -304,19 +325,21 @@ exports.login = async (req, res) => {
           }, 120 * 1000); // 120 seconds ( 2 minutes)
 
           return res.send({
-            code: constants.OTP_CODE,
-            message: `We have sent the OTP to this phone number that ends with ${check_data.phone.slice(
-              -4
-            )}`,
-            uniqueId: uniqueId,
-            OTP: OTP,
-          });
+                            code: constants.OTP_CODE,
+                            message: `We have sent the OTP to this phone number that ends with ${check_data.phone.slice(
+                              -4
+                            )}`,
+                            uniqueId: uniqueId,
+                            OTP: OTP,
+                          });
+
         } else {
+
           return res.send({
-            code: constants.error_code,
-            message:
-              "We can't send OTP because you didn't have phone number in our system",
-          });
+                            code: constants.error_code,
+                            message:
+                              "We can't send OTP because you didn't have phone number in our system",
+                          });
         }
       }
 
