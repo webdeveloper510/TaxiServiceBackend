@@ -1923,6 +1923,17 @@ exports.companyList = async (req, res) => {
           $or: [
             { "meta.company_id": { $regex: req.body.name, $options: "i" } },
             { "meta.company_name": { $regex: req.body.name, $options: "i" } },
+            {
+              $expr: {
+                $regexMatch: {
+                  input: { $concat: [{ $arrayElemAt: ["$driver_info.first_name", 0] },
+                  " ",
+                  { $arrayElemAt: ["$driver_info.last_name", 0] },] },
+                  regex: req.body.name,
+                  options: "i",
+                },
+              },
+            },
             { first_name: { $regex: req.body.name, $options: "i" } },
             { last_name: { $regex: req.body.name, $options: "i" } },
             { email: { $regex: req.body.name, $options: "i" } },
@@ -1940,6 +1951,14 @@ exports.companyList = async (req, res) => {
           localField: "_id",
           foreignField: "user_id",
           as: "meta",
+        },
+      },
+      {
+        $lookup: {
+          from: "drivers",
+          localField: "driverId",
+          foreignField: "_id",
+          as: "driver_info",
         },
       },
       {
@@ -1961,6 +1980,14 @@ exports.companyList = async (req, res) => {
           localField: "_id",
           foreignField: "user_id",
           as: "meta",
+        },
+      },
+      {
+        $lookup: {
+          from: "drivers",
+          localField: "driverId",
+          foreignField: "_id",
+          as: "driver_info",
         },
       },
       {
@@ -2001,6 +2028,13 @@ exports.companyList = async (req, res) => {
           hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
 
           location: { $arrayElemAt: ["$meta.location", 0] },
+          driver_name: {
+            $concat: [
+              { $arrayElemAt: ["$driver_info.first_name", 0] },
+              " ",
+              { $arrayElemAt: ["$driver_info.last_name", 0] },
+            ],
+          },
         },
       },
       {
