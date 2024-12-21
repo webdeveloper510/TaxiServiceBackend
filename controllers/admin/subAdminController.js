@@ -41,43 +41,78 @@ exports.add_sub_admin = async (req, res) => {
   try {
     let data = req.body;
     data.email = data.email.toLowerCase();
+
+    
+
     let checkEmail = await USER.findOne({
-      email: data.email,
-      is_deleted: false,
-    });
+                                          email: data.email,
+                                          is_deleted: false,
+                                        });
+
     if (checkEmail) {
-      res.send({
-        code: constant.error_code,
-        message: "Email is already registered",
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message: "Email is already registered",
+                      });
     }
-    let checkDEmail = await DRIVER.findOne({
-      email: data.email,
-      is_deleted: false,
-    });
-    if (checkDEmail) {
-      res.send({
-        code: constant.error_code,
-        message: "Email is already registered",
-      });
-      return;
+
+    // Cheked Email in driver table if comapany already rigestered as a driver then match email except the driver that is already created. 
+    let checkDriverEmail = await DRIVER.findOne({
+                                            email: data.email,
+                                            is_deleted: false,
+                                            ...(data.role === constant.ROLES.COMPANY && data?.isDriver == true
+                                              ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
+                                              : {}), 
+                                          });
+
+   
+    if (checkDriverEmail) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: "Email is already registered",
+                      });
     }
     let checkPhone = await USER.findOne({
-      phone: data.phone,
-      is_deleted: false,
-    });
+                                          phone: data.phone,
+                                          is_deleted: false,
+                                        });
+                                        
     if (checkPhone) {
-      res.send({
-        code: constant.error_code,
-        message: "Phone Number is already exist",
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message: "Phone Number is already exist",
+                      });
     }
-    let passwordEmail = randToken.generate(
-      8,
-      "1234567890abcdefghijklmnopqrstuvxyz"
-    );
+
+    let checkDriverPhone = await DRIVER.findOne({
+                                                  phone: data.phone, 
+                                                  is_deleted: false,
+                                                  ...(data.role === constant.ROLES.COMPANY && data?.isDriver == true
+                                                    ? { phone: data?.phone }
+                                                    : {}), 
+                                                });
+                                        
+    if (checkDriverPhone) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: "Phone Number is already exist",
+                      });
+    }
+
+    const isDriverAleradyCompany = await DRIVER.findOne({ _id: new mongoose.Types.ObjectId(data?.driverId) , driver_company_id: { $ne: null }});
+
+    if ( isDriverAleradyCompany ) {
+
+      return res.send({
+                        code: constant.error_code,
+                        driverInfo: 'This driver already has their own company.',
+                      });
+    }
+    
+
+    let passwordEmail = randToken.generate( 8, "1234567890abcdefghijklmnopqrstuvxyz" );
     // let passwordEmail = "Test@123"
     let hashedPassword = await bcrypt.hashSync(passwordEmail, 10);
     data.password = hashedPassword;
@@ -89,13 +124,14 @@ exports.add_sub_admin = async (req, res) => {
     } else {
       data.company_id = data.company_id;
     }
+
     let check_hotel = await AGENCY.findOne({ company_id: data.company_id });
+    
     if (check_hotel) {
-      res.send({
-        code: constant.error_code,
-        message: "Already exist with this Hotel ID",
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message: "Already exist with this Hotel ID",
+                      });
     }
     // data.role = 'COMPANY'
     data.created_by = req.userId;
@@ -283,14 +319,25 @@ exports.add_sub_admin = async (req, res) => {
       await transporter.sendMail(mailOptions);
       // Welcome to iDispatch, your email is ${data.email} and password is ${passwordEmail}
 
+      // Saving the extra data in Agency table
       let save_meta_data = await AGENCY(data).save();
       save_data.meta = save_meta_data;
-      res.send({
-        code: constant.success_code,
-        message: "Sub admin added successfully",
-        result: save_data,
-        jwtToken: jwtToken,
-      });
+
+      //  Update the compnay information  to the selected driver. Now driver and company attached together
+      if (data.role === constant.ROLES.COMPANY && data?.isDriver == true) {
+
+        await DRIVER.updateOne( 
+                                { _id: new mongoose.Types.ObjectId(data?.driverId) },
+                                { $set: { driver_company_id: save_data._id  , company_agency_id: save_meta_data._id} }
+                              );
+      }
+
+      return res.send({
+                code: constant.success_code,
+                message: "Sub admin added successfully",
+                result: save_data,
+                jwtToken: jwtToken,
+              });
     }
   } catch (err) {
     res.send({

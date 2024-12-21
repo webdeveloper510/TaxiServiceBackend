@@ -190,6 +190,11 @@ const driver = new Schema(
       ref: "user",
       default: null,
     },
+    company_agency_id:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "agency",
+      default: null,
+    },
     lastUsedToken: {
       type: Date,
       default: Date.now(),
