@@ -2091,7 +2091,7 @@ exports.convertIntoDriver = async (req, res) => {
         },
         {
           $match: {
-            _id: new mongoose.Types.ObjectId(data?.driver_company_id),
+            _id: new mongoose.Types.ObjectId(req.userId),
           },
         },
         {
