@@ -104,7 +104,7 @@ exports.add_sub_admin = async (req, res) => {
     let isDriverAlreadyCompany ;
     if (data.role === constant.ROLES.COMPANY && data?.isDriver == 'true') {
 
-      isDriverAlreadyCompany = await DRIVER.findOne({ _id: new mongoose.Types.ObjectId(data?.driverId) , driver_company_id: { $ne: null }});
+      isDriverAlreadyCompany = await DRIVER.findOne({ _id: new mongoose.Types.ObjectId(data?.driverId) });
 
       if ( isDriverAlreadyCompany && isDriverAlreadyCompany.driver_company_id != null) {
 
@@ -115,11 +115,10 @@ exports.add_sub_admin = async (req, res) => {
       }
     }
     
-    
-
     let passwordEmail = randToken.generate( 8, "1234567890abcdefghijklmnopqrstuvxyz" );
     passwordEmail = data?.isDriver == 'true' ? isDriverAlreadyCompany?.stored_password : passwordEmail;
     // let passwordEmail = "Test@123"
+
     let hashedPassword = await bcrypt.hashSync(passwordEmail, 10);
     data.password = hashedPassword;
     data.stored_password= passwordEmail;
