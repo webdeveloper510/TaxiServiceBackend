@@ -1349,7 +1349,7 @@ exports.update_driver = async (req, res) => {
       if (updates.email != existingDriver.email) {
         let check_other1 = await DRIVER.findOne({ email: updates.email });
         let checkEmailInUser = await USER.findOne({
-                                                      email: data.email,
+                                                      email: updates.email,
                                                       ...(existingDriver?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } } : {}),
                                                     });
         if (check_other1 || checkEmailInUser) {
@@ -1363,10 +1363,10 @@ exports.update_driver = async (req, res) => {
       if (updates.phone != existingDriver.phone) {
         let check_other2 = await DRIVER.findOne({ phone: updates.phone });
         let checkPhoneInUser = await USER.findOne({
-                                                    phone: data.phone,
+                                                    phone: updates.phone,
                                                     ...(existingDriver?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } } : {}),
                                                   });
-        if (check_other2) {
+        if (check_other2 || checkPhoneInUser) {
           res.send({
             code: constant.error_code,
             message: "Phone Already exist with different account",
@@ -1388,16 +1388,15 @@ exports.update_driver = async (req, res) => {
 
       const updatedDriver = await DRIVER.findOneAndUpdate( { _id: driverId }, updates, { new: true });
 
-      // Update his driver info as well like email , phone and password 
+      // Update his company info as well like email , phone and password 
       if (existingDriver?.isCompany == true) {
 
         const updateCompanyData = {
-          email: data.email,
-          phone: data.phone,
-          ...(data?.password && data.password != '' ? { stored_password: data.stored_password , password : data.password } : {}),
+          email: updates.email,
+          phone: updates.phone,
+          ...(req.body?.password && req.body.password != '' ? { stored_password: updates.stored_password , password : updates.password } : {}),
         }
 
-        console.log('updateDriver_data---------' , updateDriver_data)
         await USER.findOneAndUpdate({ _id: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } , updateCompanyData , option)
       }
 
