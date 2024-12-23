@@ -376,11 +376,6 @@ exports.adminAddDriver = async (req, res) => {
     // let hash = await bcrypt.hashSync(randomPasword, 10);
     // data.password = hash;
 
-    let randomPasword = randToken.generate( 8, "1234567890abcdefghijklmnopqrstuvxyz" );
-    data.stored_password = randomPasword;
-    let hashedPassword = await bcrypt.hashSync(randomPasword, 10);
-    data.password = hashedPassword;
-
 
     // data.profile_image = driver_image?.length != 0 ? driver_image[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
     // data.driver_documents = driver_documents?.length != 0 ? driver_documents[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
@@ -455,14 +450,14 @@ exports.adminAddDriver = async (req, res) => {
     }
 
    
-    
+    let isCompanyAlreadyDriver;
 
     if (data?.isCompany == 'true') {
 
-      const isCompanyAlreadyDriver = await USER.findOne({ _id: new mongoose.Types.ObjectId(data?.driver_company_id) , driverId: { $ne: null }});
+      isCompanyAlreadyDriver = await USER.findOne({ _id: new mongoose.Types.ObjectId(data?.driver_company_id)});
     
       // If company already has his driver
-      if ( isCompanyAlreadyDriver ) { 
+      if ( isCompanyAlreadyDriver && isCompanyAlreadyDriver.driverId != null) { 
 
         return res.send({
                           code: constant.error_code,
@@ -499,6 +494,14 @@ exports.adminAddDriver = async (req, res) => {
       delete data.company_agency_id;
       delete data.driver_company_id;
     }
+
+    let randomPasword = randToken.generate( 8, "1234567890abcdefghijklmnopqrstuvxyz" );
+
+    // add company's password into driver password so same login will work for both role
+    randomPasword = data?.isCompany == 'true' ? isCompanyAlreadyDriver?.stored_password : randomPasword; 
+    data.stored_password = randomPasword;
+    let hashedPassword = await bcrypt.hashSync(randomPasword, 10);
+    data.password = hashedPassword;
 
     
     
@@ -1308,6 +1311,7 @@ exports.update_driver = async (req, res) => {
       var driver_image = [];
       var driver_documents = [];
       // var imagePortfolioLogo = []
+      let option = { new: true };
       let file = req.files;
       if (file) {
         for (i = 0; i < file.length; i++) {
@@ -1328,18 +1332,14 @@ exports.update_driver = async (req, res) => {
 
       if (!existingDriver) {
         return res.send({
-          code: constant.error_code,
-          message: "Driver not found",
-        });
+                          code: constant.error_code,
+                          message: "Driver not found",
+                        });
       }
-      req.body.profile_image =
-        driver_image.length != 0
-          ? driver_image[0]
-          : existingDriver.profile_image;
-      req.body.driver_documents =
-        driver_documents.length != 0
-          ? driver_documents[0]
-          : existingDriver.driver_documents;
+
+      req.body.profile_image = driver_image.length != 0 ? driver_image[0] : existingDriver.profile_image;
+      req.body.driver_documents =  driver_documents.length != 0 ? driver_documents[0] : existingDriver.driver_documents;
+
       if (updates.isDocUploaded) {
         updates.isDocUploaded = req.body.isDocUploaded == "true";
       }
@@ -1348,7 +1348,11 @@ exports.update_driver = async (req, res) => {
       }
       if (updates.email != existingDriver.email) {
         let check_other1 = await DRIVER.findOne({ email: updates.email });
-        if (check_other1) {
+        let checkEmailInUser = await USER.findOne({
+                                                      email: data.email,
+                                                      ...(existingDriver?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } } : {}),
+                                                    });
+        if (check_other1 || checkEmailInUser) {
           res.send({
             code: constant.error_code,
             message: "Email Already exist with different account",
@@ -1358,6 +1362,10 @@ exports.update_driver = async (req, res) => {
       }
       if (updates.phone != existingDriver.phone) {
         let check_other2 = await DRIVER.findOne({ phone: updates.phone });
+        let checkPhoneInUser = await USER.findOne({
+                                                    phone: data.phone,
+                                                    ...(existingDriver?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } } : {}),
+                                                  });
         if (check_other2) {
           res.send({
             code: constant.error_code,
@@ -1378,16 +1386,24 @@ exports.update_driver = async (req, res) => {
       }
 
 
-      const updatedDriver = await DRIVER.findOneAndUpdate(
-        { _id: driverId },
-        updates,
-        { new: true }
-      );
+      const updatedDriver = await DRIVER.findOneAndUpdate( { _id: driverId }, updates, { new: true });
+
+      // Update his driver info as well like email , phone and password 
+      if (existingDriver?.isCompany == true) {
+
+        const updateCompanyData = {
+          email: data.email,
+          phone: data.phone,
+          ...(data?.password && data.password != '' ? { stored_password: data.stored_password , password : data.password } : {}),
+        }
+
+        console.log('updateDriver_data---------' , updateDriver_data)
+        await USER.findOneAndUpdate({ _id: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } , updateCompanyData , option)
+      }
+
       if (updatedDriver) {
         if (req.body.isDocUploaded) {
-          var transporter = nodemailer.createTransport(
-            emailConstant.credentials
-          );
+          var transporter = nodemailer.createTransport( emailConstant.credentials );
           var mailOptions = {
             from: emailConstant.from_email,
             to: updatedDriver.email,
@@ -1547,6 +1563,7 @@ exports.update_driver = async (req, res) => {
               </tbody></table>
               </body></html>`,
           };
+
           await transporter.sendMail(mailOptions);
         }
         res.send({

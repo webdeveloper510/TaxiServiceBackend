@@ -101,11 +101,12 @@ exports.add_sub_admin = async (req, res) => {
                       });
     }
 
+    let isDriverAlreadyCompany ;
     if (data.role === constant.ROLES.COMPANY && data?.isDriver == 'true') {
 
-      const isDriverAlreadyCompany = await DRIVER.findOne({ _id: new mongoose.Types.ObjectId(data?.driverId) , driver_company_id: { $ne: null }});
+      isDriverAlreadyCompany = await DRIVER.findOne({ _id: new mongoose.Types.ObjectId(data?.driverId) , driver_company_id: { $ne: null }});
 
-      if ( isDriverAlreadyCompany ) {
+      if ( isDriverAlreadyCompany && isDriverAlreadyCompany.driver_company_id != null) {
 
         return res.send({
                           code: constant.error_code,
@@ -117,6 +118,7 @@ exports.add_sub_admin = async (req, res) => {
     
 
     let passwordEmail = randToken.generate( 8, "1234567890abcdefghijklmnopqrstuvxyz" );
+    passwordEmail = data?.isDriver == 'true' ? isDriverAlreadyCompany?.stored_password : passwordEmail;
     // let passwordEmail = "Test@123"
     let hashedPassword = await bcrypt.hashSync(passwordEmail, 10);
     data.password = hashedPassword;
@@ -917,34 +919,32 @@ exports.edit_sub_admin = async (req, res) => {
       // let update_data = await USER.findOneAndUpdate(criteria, data, option)
       // let criteria2 = { user_id: update_data._id }
       if (checkSubAdmin.email != data.email) {
-        let check_email = await USER.findOne({
-          // $or: [
-          //     { email: data.email },
-          //     // {phone:data.phone},
-          // ]
-          email: data.email,
-        });
-        if (check_email) {
+        let check_email = await USER.findOne({email: data.email,});
+        let checkEmailInDrivers = await DRIVER.findOne({
+                                                        email: data.email,
+                                                        ...(checkSubAdmin?.isDriver == true ? { _id: { $ne: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } } : {}),
+                                                      });
+        if (check_email || checkEmailInDrivers) {
           return res.send({
-            code: constant.error_code,
-            message: "Email is already exist",
-          });
+                            code: constant.error_code,
+                            message: "Email is already exist",
+                          });
         }
+
+
       }
+
       if (checkSubAdmin.phone != data.phone) {
-        let check_phone = await USER.findOne({
-          // $or: [
-          //     { phone: data.phone },
-          //     // {phone:data.phone},
-          // ]
-          phone: data.phone,
-        });
-        if (check_phone) {
-          res.send({
-            code: constant.error_code,
-            message: "Phone Number is already exist",
-          });
-          return;
+        let check_phone = await USER.findOne({ phone: data.phone, });
+        let checkPhoneInDrivers = await DRIVER.findOne({
+                                                        phone: data.phone,
+                                                        ...(checkSubAdmin?.isDriver == true ? { _id: { $ne: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } } : {}),
+                                                      });
+        if (check_phone || checkPhoneInDrivers) {
+          return res.send({
+                            code: constant.error_code,
+                            message: "Phone Number is already exist",
+                          });
         }
       }
 
@@ -957,6 +957,7 @@ exports.edit_sub_admin = async (req, res) => {
       } else {
         delete data.password;
       }
+      
 
       let update_data = await USER.findOneAndUpdate(criteria, data, option);
       let criteria2 = { user_id: update_data._id };
@@ -965,6 +966,20 @@ exports.edit_sub_admin = async (req, res) => {
         data,
         option
       );
+
+      // Update his driver info as well like email , phone and password 
+      if (checkSubAdmin?.isDriver == true) {
+
+        const updateDriver_data = {
+          email: data.email,
+          phone: data.phone,
+          ...(data?.password && data.password != '' ? { stored_password: data.stored_password , password : data.password } : {}),
+        }
+
+        console.log('updateDriver_data---------' , updateDriver_data)
+        await DRIVER.findOneAndUpdate({ _id: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } , updateDriver_data , option)
+      }
+      
 
       if (!update_data) {
         res.send({
