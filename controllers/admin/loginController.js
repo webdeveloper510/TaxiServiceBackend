@@ -1280,7 +1280,7 @@ exports.reset_password = async (req, res) => {
         let criteria = { _id: req.userId };
         let updateUser = await USER.findOneAndUpdate(criteria,newValue,option);
 
-        if (check_email.isDriver && check_driver.driverId) {
+        if (check_email.isDriver && check_email.driverId) {
           
           await DRIVER.findOneAndUpdate({_id: check_email.driverId}, newValue ,option);
         }
