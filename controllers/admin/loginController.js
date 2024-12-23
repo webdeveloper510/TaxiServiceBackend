@@ -286,13 +286,6 @@ exports.login = async (req, res) => {
         check_data.password
       );
 
-      return res.send({
-        code: constants.error_code,
-        message: "Invalid chekc Invalid Credentials",
-        userData:data.password,
-        dd: check_data.password
-      });
-
       if (!checkPassword) {
         return res.send({
                           code: constants.error_code,
