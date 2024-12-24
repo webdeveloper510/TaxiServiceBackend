@@ -2167,6 +2167,7 @@ exports.companyHotelList = async (req, res) => {
                 profile_image: 1,
                 role: 1,
                 totalBalance: 1,
+                stored_password:1,
                 status: 1,
                 land: { $arrayElemAt: ["$meta.land", 0] },
                 post_code: { $arrayElemAt: ["$meta.post_code", 0] },
