@@ -1383,9 +1383,10 @@ exports.companyRevenueDetails = async (req, res) => {
   }
 
   // Update the query based on the date filter
+  let startDate, endDate;
   let dateQuery = {};
   if (dateFilter !== "all") {
-    let startDate, endDate;
+    
     const today = new Date();
     switch (dateFilter) {
       case "this_week":
@@ -1402,12 +1403,14 @@ exports.companyRevenueDetails = async (req, res) => {
         );
         break;
       case "this_month":
-        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        startDate = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 1));
+        endDate = new Date(Date.UTC(today.getFullYear(), today.getMonth() + 1, 0));
         break;
       case "this_year":
-        startDate = new Date(today.getFullYear(), 0, 1);
-        endDate = new Date(today.getFullYear(), 11, 31);
+        
+
+        startDate = new Date(Date.UTC(today.getFullYear(), 0, 1));
+        endDate = new Date(Date.UTC(today.getFullYear(), 11, 31));
         break;
       case "dateRange":
         startDate = new Date(req.body.startDate);
@@ -1419,16 +1422,21 @@ exports.companyRevenueDetails = async (req, res) => {
         break;
     }
 
-    startDate.setUTCHours(0, 0, 1, 0);
-    endDate.setUTCHours(23, 59, 59, 999);
-    
-    // Convert the Date objects to ISO 8601 strings
-    startDate = startDate.toISOString();
-    endDate = endDate.toISOString();
+    if (startDate && endDate) { 
 
-    dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+      startDate.setUTCHours(0, 0, 1, 0);
+      endDate.setUTCHours(23, 59, 59, 999);
+      
+      // Convert the Date objects to ISO 8601 strings
+      // startDate = startDate.toISOString();
+      // endDate = endDate.toISOString();
+
+      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+    }
+    
   }
 
+  console.log(dateQuery)
   // Revenue and tripCount calculations Start
   const companyTripPendingData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.PENDING , false , dateQuery); // pending trip
   const companyTripCompletedWithPaymentData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , dateQuery); // completed with payment
@@ -1449,19 +1457,19 @@ exports.companyRevenueDetails = async (req, res) => {
   //     barCharData.push({ label : value.label , tripCount: tripData.tripCount})
   //   }
   // }
-  console.log('dateList---' , dateList)
+  // console.log('dateList---' , dateList)
 
   return res.send({
                 code:constant.success_code,
                 // data:data,
                 // company_id: companyId,
-                // list: dateList,
+                dateQuery: dateQuery,
                 chartRevenue: [
-                  { value: companyTripPendingData.revenue, label: 'Pending Trips' },
-                  { value: companyTripBookedPaymentData.revenue, label: 'Booked Trips' },
-                  { value: companyTripActivePaymentData.revenue, label: 'Active Trips' },
-                  { value: companyTripCompletedWithPaymentData.revenue, label: 'Completed Trips with Payment' },
-                  { value: companyTripCompletedWithoutPaymentData.revenue, label: 'Completed Trips without Payment' },
+                  { value: companyTripPendingData.revenue.toFixed(2), label: 'Pending Trips' },
+                  { value: companyTripBookedPaymentData.revenue.toFixed(2), label: 'Booked Trips' },
+                  { value: companyTripActivePaymentData.revenue.toFixed(2), label: 'Active Trips' },
+                  { value: companyTripCompletedWithPaymentData.revenue.toFixed(2), label: 'Completed Trips with Payment' },
+                  { value: companyTripCompletedWithoutPaymentData.revenue.toFixed(2), label: 'Completed Trips without Payment' },
                   
                 ],
                 chartTripCount: [
@@ -1541,7 +1549,7 @@ exports.hotelRevenueDetails = async (req, res) => {
     startDate = startDate.toISOString();
     endDate = endDate.toISOString();
 
-    dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+    dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
   }
 
   // Revenue and tripCount calculations Start
@@ -1901,7 +1909,10 @@ const getComapnyRevenueByStatus = async (companyId ,tripStatus  = constant.TRIP_
 
   if (dateQuery) {
     matchCompletedPaidCriteria.$and.push(dateQuery);
+    console.log('dateQuery-------' , Object.keys(dateQuery).length)
   }
+  
+  console.log('matchCompletedPaidCriteria------' , JSON.stringify(matchCompletedPaidCriteria))
 
   const result = await TRIP.aggregate([
     {
