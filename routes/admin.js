@@ -136,11 +136,7 @@ router.post("/switchDriver", [verifyToken], driverController.switchToDriver);
 router.post("/switchCompany", [verifyToken], driverController.switchToCompany);
 
 router.put("/logout", [verifyToken], driverController.logout);
-router.get(
-  "/get_active_drivers",
-  [verifyToken],
-  driverController.get_active_drivers
-);
+router.get("/get_active_drivers",[verifyToken],driverController.get_active_drivers);
 
 // fare api's
 router.post("/add_fare", [verifyToken], fareController.add_fare);
