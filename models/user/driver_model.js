@@ -72,6 +72,18 @@ const driver = new Schema(
       ],
       default: [],
     },
+
+    parnter_account_access: {
+      type: [
+        {
+          company_id: {
+            type: Schema.Types.ObjectId,
+            ref: "user",
+          },
+        },
+      ],
+      default: [],
+    },
     deviceToken: {
       type: String,
       default: null,

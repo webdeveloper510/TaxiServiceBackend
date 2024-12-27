@@ -26,6 +26,18 @@ const user = new Schema(
       ],
       default: [],
     },
+
+    parnter_account_access: {
+      type: [
+        {
+          driver_id: {
+            type: Schema.Types.ObjectId,
+            ref: "driver",
+          },
+        },
+      ],
+      default: [],
+    },
     email: {
       type: String,
       default: "",

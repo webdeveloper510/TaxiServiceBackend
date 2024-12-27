@@ -217,14 +217,7 @@ router.get("/admin_transaction",[verifyToken , adminAuth],paymentController.admi
 router.post("/payCompany", [verifyToken], paymentController.payCompany);
 
 // Account access API
-router.post(
-  "/update_account_access",
-  [verifyToken],
-  subAdminController.update_account_access
-);
-router.get(
-  "/get_driver_list",
-  [verifyToken],
-  subAdminController.get_driver_list
-);
+router.post("/update_account_access",[verifyToken],subAdminController.update_account_access);
+router.post("/update_partner_account_access",[verifyToken],subAdminController.updatePartnerAccountAccess);
+router.get("/get_driver_list",[verifyToken],subAdminController.get_driver_list);
 module.exports = router;

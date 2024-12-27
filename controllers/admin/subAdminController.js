@@ -2577,10 +2577,10 @@ exports.update_account_access = async (req, res) => {
       });
     }
 
-    if (req.user?.role == "COMPANY") {
+    if (req.user?.role == constant.ROLES.COMPANY) {
       let user_detail = await USER.findById(req.user._id);
       let company_detials = await AGENCY.findOne({ user_id: req.user._id });
-      let driver_company_detials = await USER.findById(driver.created_by);
+      let driver_company_detials = await USER.findById(driver.driver_company_id);
 
       let mesage_data = "";
       let driver_token = "";
@@ -2673,6 +2673,120 @@ exports.update_account_access = async (req, res) => {
       code: constant.error_code,
       message: error.message,
     });
+  }
+};
+
+exports.updatePartnerAccountAccess = async (req, res) => {
+  try {
+    // get the dribver info with its compnay info if it has own company
+    const driver  = await driver_model.findById(req?.body?.driver_id)
+                                      .populate("driver_company_id");
+
+    // If driver doesn't exist
+    if (!driver) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "Driver not found",
+                      });
+    }
+
+    if (req.user?.role == constant.ROLES.COMPANY) { // if current user role is company
+
+      // Get user , company and driver company details
+      let user_detail = await USER.findById(req.user._id);
+      let company_detials = await AGENCY.findOne({ user_id: req.user._id });
+      let mesage_data = "";
+
+      //  gettting the device token from either driver table or user table when user have both roles (driver as well as company)
+      let driverDeviceToken = driver.deviceToken == null ? driver?.driver_company_id?.deviceToken : driver.deviceToken;
+
+
+      // If company wants to remove driver partner access
+      if (req?.body?.status == constant.ACCOUNT_SHARE_REVOKED) {
+
+        // Remove partner driver id from company account
+        user_detail.parnter_account_access = user_detail.parnter_account_access.filter((data) =>data?.driver_id?.toString() != req.body?.driver_id?.toString());
+        mesage_data = "Account revoked successfully from the driver";
+
+        // Remove partner company id from driver account
+        driver.parnter_account_access = driver.parnter_account_access.filter((data) => data?.company_id?.toString() != req.user._id?.toString());
+
+
+        // Send mobile notification if device
+        if (driverDeviceToken != "" && driverDeviceToken != null) {
+
+            const response = await sendNotification(
+                                                      driverDeviceToken,
+                                                      `Shared Account revoked By ${company_detials.company_name}`,
+                                                      `Account Revoked`,
+                                                      company_detials
+                                                    );
+        }
+
+      } else {
+
+        // Check if driver partner already a partner in company account
+        let is_already_exist = user_detail.parnter_account_access.filter((data) => data?.driver_id?.toString() == req.body?.driver_id?.toString());
+
+        // If driver partner not already exist then add it into company account
+        if (is_already_exist.length == 0) user_detail?.parnter_account_access.push({ driver_id: req.body.driver_id, }); 
+
+        // Check if company partner already a partner in driver account
+        let is_company_already_exist = driver.parnter_account_access.filter( (data) => data?.company_id?.toString() == req.user._id?.toString());
+
+        // If company partner not already exist then add it into driver account
+        if (is_company_already_exist.length == 0) driver?.parnter_account_access.push({ company_id: req.user._id }); // Updated if Id is not already exist
+
+        mesage_data = "Account shared successfully with the driver";
+
+        if (driverDeviceToken != "" && driverDeviceToken != null) {
+          const response = await sendNotification(
+                                                    driverDeviceToken,
+                                                    `${company_detials.company_name} shared the account with you`,
+                                                    `Account Shared`,
+                                                    company_detials
+                                                  );
+        }
+      }
+
+      // update company account
+      const updatedUser = await USER.findByIdAndUpdate(
+                                                        req.user._id,
+                                                        user_detail,
+                                                        { new: true, runValidators: true }
+                                                      );
+
+      // update driver account
+      const updatedDriver = await DRIVER.findByIdAndUpdate(
+                                                            driver._id, 
+                                                            driver, 
+                                                            { new: true, runValidators: true, }
+                                                          );
+
+      if (!updatedUser) {
+        return res.send({
+                          code: constant.error_code,
+                          message: "User not found",
+                        });
+      } else {
+        return res.send({
+                          code: constant.success_code,
+                          message: mesage_data,
+                          driver_details: driver,
+                          user_details: updatedUser,
+                        });
+      }
+    } else {
+      return res.send({
+                        code: constant.error_code,
+                        message: "You didn't have access for this.",
+                      });
+    }
+  } catch (error) {
+    return res.send({
+                      code: constant.error_code,
+                      message: error.message,
+                    });
   }
 };
 

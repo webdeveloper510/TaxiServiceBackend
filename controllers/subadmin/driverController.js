@@ -1,5 +1,6 @@
 const constant = require("../../config/constant");
 const DRIVER = require("../../models/user/driver_model"); // Import the Driver model
+const AGENCY = require("../../models/user/agency_model");
 const USER = require("../../models/user/user_model"); // Import the Driver model
 const TRIP = require("../../models/user/trip_model"); // Import the Driver model
 const bcrypt = require("bcrypt");
@@ -139,42 +140,49 @@ exports.get_driver_detail = async (req, res) => {
       startOfCurrentWeek.setDate(
         startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
       );
-      const completedTrips = await trip_model
-        .find({
-          driver_name: req.userId,
-          trip_status: "Completed",
-          is_paid: true,
-        })
-        .countDocuments();
-      const totalActiveTrips = await trip_model
-        .find({
-          driver_name: req.userId,
-          trip_status: "Active",
-        })
-        .countDocuments();
-      const totalUnpaidTrips = await trip_model
-        .find({
-          driver_name: req.userId,
-          trip_status: "Completed",
-          is_paid: false,
-          drop_time: {
-            $lte: startOfCurrentWeek,
-          },
-        })
-        .countDocuments();
+      const completedTrips = await trip_model.find({
+                                                    driver_name: req.userId,
+                                                    trip_status: "Completed",
+                                                    is_paid: true,
+                                                  })
+                                                  .countDocuments();
 
-      const totalReachedTrip = await trip_model
-        .find({
-          driver_name: req.userId,
-          trip_status: "Reached",
-          is_paid: false,
-        })
-        .countDocuments();
+      const totalActiveTrips = await trip_model.find({
+                                                      driver_name: req.userId,
+                                                      trip_status: "Active",
+                                                    })
+                                                    .countDocuments();
+
+      const totalUnpaidTrips = await trip_model.find({
+                                                      driver_name: req.userId,
+                                                      trip_status: "Completed",
+                                                      is_paid: false,
+                                                      drop_time: {
+                                                        $lte: startOfCurrentWeek,
+                                                      },
+                                                    })
+                                                    .countDocuments();
+
+      const totalReachedTrip = await trip_model.find({
+                                                      driver_name: req.userId,
+                                                      trip_status: "Reached",
+                                                      is_paid: false,
+                                                    })
+                                                    .countDocuments();
+
+      
+
       const result = driver.toObject();
       result.totalTrips = completedTrips;
+      const partnerCompanyAccess = await result.parnter_account_access.map((data) =>  new mongoose.Types.ObjectId(data?.company_id?.toString()));
+      
+      result.partnerCompanyAccess =  partnerCompanyAccess ? await AGENCY.find({user_id: { $in: partnerCompanyAccess }}) : []
+      
+
       res.send({
         code: constant.success_code,
         message: "Success",
+        partner_access: partnerCompanyAccess,
         result,
         totalActiveTrips,
         totalUnpaidTrips,
