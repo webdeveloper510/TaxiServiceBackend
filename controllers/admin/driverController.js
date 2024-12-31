@@ -2297,10 +2297,23 @@ exports.switchToDriver = async (req, res) => {
     startOfCurrentWeek.setDate(
       startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
     ); // Set to Monday of current week
+
+
+    // let driverData = await DRIVER.findOne({ _id: driverId, is_deleted: false});
+
     let user = req.user;
+    let driverId;
+
+    // If current user have company partner access in token
+    if (req?.companyPartnerAccess) {
+      driverId = new mongoose.Types.ObjectId(req.CompanyPartnerDriverId);
+    } else {
+      driverId = new mongoose.Types.ObjectId(req.user.driverId);
+    }
+
 
     let driverData = await DRIVER.findOne({
-      email: user.email,
+      _id: driverId,
       is_deleted: false,
     });
 
@@ -2311,20 +2324,23 @@ exports.switchToDriver = async (req, res) => {
       });
     } else {
       let jwtToken = jwt.sign(
-        { userId: driverData._id },
-        process.env.JWTSECRET,
-        { expiresIn: "365d" }
-      );
-      const totalUnpaidTrips = await trip_model
-        .find({
-          driver_name: driverData._id,
-          trip_status: "Completed",
-          is_paid: false,
-          drop_time: {
-            $lte: startOfCurrentWeek,
-          },
-        })
-        .countDocuments();
+                              { 
+                                userId: driverData._id,
+                                companyPartnerAccess: false,
+                              },
+                              process.env.JWTSECRET,
+                              { expiresIn: "365d" }
+                            );
+
+      const totalUnpaidTrips = await trip_model.find({
+                                                      driver_name: driverData._id,
+                                                      trip_status: "Completed",
+                                                      is_paid: false,
+                                                      drop_time: {
+                                                        $lte: startOfCurrentWeek,
+                                                      },
+                                                    })
+                                                    .countDocuments();
 
       if (req.isMobile) {
         driverData.jwtTokenMobile = jwtToken;
@@ -2380,7 +2396,10 @@ exports.switchToCompany = async (req, res) => {
       });
     } else {
       let jwtToken = jwt.sign(
-        { userId: companyData._id }, 
+        { 
+          userId: companyData._id,
+          companyPartnerAccess: false,
+        }, 
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
@@ -2395,6 +2414,7 @@ exports.switchToCompany = async (req, res) => {
 
       await companyData.save();
 
+      // When driver switch account from partner account to his compnay account
       driverData.currently_active_company = null;
       await driverData.save();
       

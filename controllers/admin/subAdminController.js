@@ -2853,12 +2853,14 @@ exports.getPartnerDriverList = async (req, res) => {
       });
     }
 
+    // Who have access
     const driverHasCompanyPartnerAccess = await DRIVER.find({
                                                                 parnter_account_access : {
                                                                   $elemMatch: { company_id: new mongoose.Types.ObjectId(req.userId) },
                                                                 },
                                                               });
 
+    // who doesn't have access
     const driverNotHasCompanyPartnerAccess = await DRIVER.find({
                                                                 parnter_account_access: {
                                                                   $not: {

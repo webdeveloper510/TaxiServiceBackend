@@ -68,7 +68,10 @@ exports.create_super_admin = async (req, res) => {
       });
     } else {
       let jwtToken = jwt.sign(
-        { userId: save_data._id },
+        { 
+          userId: save_data._id,
+          companyPartnerAccess: false
+        },
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
@@ -229,7 +232,10 @@ exports.login = async (req, res) => {
       }
 
       let jwtToken =  jwt.sign(
-                                { userId: check_data._id },
+                                { 
+                                  userId: check_data._id,
+                                  companyPartnerAccess: false
+                                },
                                 process.env.JWTSECRET,
                                 { expiresIn: "365d" }
                               );
@@ -345,7 +351,10 @@ exports.login = async (req, res) => {
       }
 
       let jwtToken = jwt.sign(
-        { userId: check_data._id },
+        { 
+          userId: check_data._id,
+          companyPartnerAccess: false
+        },
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
@@ -448,7 +457,10 @@ exports.login_otp_verify = async (req, res) => {
         }
 
         let jwtToken = jwt.sign(
-          { userId: check_data._id },
+          { 
+            userId: check_data._id,
+            companyPartnerAccess: false
+          },
           process.env.JWTSECRET,
           { expiresIn: "365d" }
         );
