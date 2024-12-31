@@ -29,6 +29,9 @@ verifyToken = async (req, res, next) => {
           });
           return;
         }
+
+
+        
         // let checkUser =  USER.findOne({_id:decoded.userId,isDeleted:false})
 
         // if(!checkUser.email){
@@ -41,17 +44,21 @@ verifyToken = async (req, res, next) => {
         const now = new Date();
         const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 60 * 1000);
         let query = { _id: decoded?.userId, is_deleted: false };
-        if (isMobile) {
-          query.jwtTokenMobile = token;
-          query.lastUsedTokenMobile = { $gte: threeHoursBefore };
-        } else {
-          query.jwtToken = token;
-          query.lastUsedToken = { $gte: threeHoursBefore };
+
+
+        if (!decoded?.companyPartnerAccess) { // when driver is not access the company account using the partner account
+
+          if (isMobile) {
+            query.jwtTokenMobile = token;
+            query.lastUsedTokenMobile = { $gte: threeHoursBefore };
+          } else {
+            query.jwtToken = token;
+            query.lastUsedToken = { $gte: threeHoursBefore };
+          }
         }
-        let user = await user_model
-          .findOne(query)
-          .populate("created_by")
-          .populate("driverId");
+
+        
+        let user = await user_model.findOne(query).populate("created_by").populate("driverId");
 
         if (user) {
           let updateLastUse = {};
@@ -63,6 +70,7 @@ verifyToken = async (req, res, next) => {
           await user_model.updateOne({ _id: user._id }, updateLastUse);
         }
 
+       
         if (!user) {
           user = await driver_model.findOne(query).populate("created_by");
 
@@ -80,11 +88,11 @@ verifyToken = async (req, res, next) => {
           }
         }
         if (!user) {
-          res.send({
-            code: constant.tokenError,
-            message: "Token is expired",
-          });
-          return;
+          return res.send({
+                            code: constant.tokenError,
+                            message: "Token is expired",
+                          });
+          ;
         }
 
         if (
@@ -93,18 +101,20 @@ verifyToken = async (req, res, next) => {
           user.role != "DRIVER" &&
           (user?.is_blocked || user?.created_by?.is_blocked)
         ) {
+
           return res.send({
-            code: constant.tokenError,
-            message:
-              "You are blocked by administration. Please contact administration",
-          });
+                            code: constant.tokenError,
+                            message:
+                              "You are blocked by administration. Please contact administration",
+                          });
         }
         if (user.role == "DRIVER" && user?.is_blocked) {
+
           return res.send({
-            code: constant.tokenError,
-            message:
-              "You are blocked by administration. Please contact administration",
-          });
+                            code: constant.tokenError,
+                            message:
+                              "You are blocked by administration. Please contact administration",
+                          });
         }
         // user=  user.toObject();
 
@@ -118,16 +128,26 @@ verifyToken = async (req, res, next) => {
         req.userId = decoded.userId;
         req.email = decoded.email;
         req.role = decoded.role;
+
+        // When driver accessing the account as Company partner
+        if (decoded?.companyPartnerAccess) {
+
+          req.companyPartnerAccess = true;
+          req.CompanyPartnerDriverId = decoded.CompanyPartnerDriverId;
+        } else {
+          req.companyPartnerAccess = false;
+        }
+        
         next();
       });
     }
   } catch (err) {
     console.log("🚀 ~ verifyToken= ~ err:", err);
-    res.send({
-      status: 409,
-      Message: "Token is expired",
-    });
-    return;
+    return res.send({
+                    status: 409,
+                    Message: "Token is expired",
+                  });
+    
   }
 };
 const authJwt = {

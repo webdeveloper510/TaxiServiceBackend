@@ -134,6 +134,7 @@ router.post(
 router.post("/convertDriver",[verifyToken],driverController.convertIntoDriver);
 router.post("/switchDriver", [verifyToken], driverController.switchToDriver);
 router.post("/switchCompany", [verifyToken], driverController.switchToCompany);
+router.get("/switchDriverToPartnerCompany/:companyId", [verifyToken], driverController.switchDriverToPartnerCompany);
 
 router.put("/logout", [verifyToken], driverController.logout);
 router.get("/get_active_drivers",[verifyToken],driverController.get_active_drivers);
@@ -220,4 +221,5 @@ router.post("/payCompany", [verifyToken], paymentController.payCompany);
 router.post("/update_account_access",[verifyToken],subAdminController.update_account_access);
 router.post("/update_partner_account_access",[verifyToken],subAdminController.updatePartnerAccountAccess);
 router.get("/get_driver_list",[verifyToken],subAdminController.get_driver_list);
+router.get("/getPartnerDriverList",[verifyToken],subAdminController.getPartnerDriverList);
 module.exports = router;

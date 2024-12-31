@@ -2835,3 +2835,52 @@ exports.get_driver_list = async (req, res) => {
     });
   }
 };
+
+exports.getPartnerDriverList = async (req, res) => {
+  try {
+    const condition = {
+      is_deleted: false,
+      _id: { $ne: req.user?.driverId?._id },
+    };
+
+    
+    let driver_list = await DRIVER.find(condition);
+
+    if (driver_list.length == 0) {
+      return res.send({
+        code: constant.error_code,
+        message: "No driver found",
+      });
+    }
+
+    const driverHasCompanyPartnerAccess = await DRIVER.findOne({
+                                                                   
+      parnter_account_access : {
+        $elemMatch: { company_id: new mongoose.Types.ObjectId(req.userId) },
+      },
+    });
+
+
+    if (driverHasCompanyPartnerAccess) {
+
+      return res.send({
+                        code: constant.success_code,
+                        access_granted: driverHasCompanyPartnerAccess,
+                      });
+    } else {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: 'No data found',
+                      });
+    }
+    
+
+    
+  } catch (err) {
+    return res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};

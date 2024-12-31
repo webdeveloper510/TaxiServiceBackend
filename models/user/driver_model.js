@@ -61,7 +61,7 @@ const driver = new Schema(
       type: String,
       default: "",
     },
-    company_account_access: {
+    company_account_access: { // driver can access the company acounts trip only
       type: [
         {
           company_id: {
@@ -73,7 +73,7 @@ const driver = new Schema(
       default: [],
     },
 
-    parnter_account_access: {
+    parnter_account_access: { // driver will login the company account with all access
       type: [
         {
           company_id: {
@@ -116,6 +116,11 @@ const driver = new Schema(
     is_blocked: {
       type: Boolean,
       default: false,
+    },
+    currently_active_company: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
+      default: null,
     },
     agency_user_id: {
       type: mongoose.Schema.Types.ObjectId,

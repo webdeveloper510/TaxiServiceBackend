@@ -2303,10 +2303,11 @@ exports.switchToDriver = async (req, res) => {
       email: user.email,
       is_deleted: false,
     });
+
     if (!driverData) {
       res.send({
         code: constant.error_code,
-        message: "YOu don not have driver profile",
+        message: "You do'nt have driver profile",
       });
     } else {
       let jwtToken = jwt.sign(
@@ -2334,6 +2335,7 @@ exports.switchToDriver = async (req, res) => {
       }
 
       driverData.is_login = true;
+      driverData.currently_active_company = null;
       let result = driverData.toObject();
       await driverData.save();
       result.totalUnpaidTrips = totalUnpaidTrips;
@@ -2358,6 +2360,14 @@ exports.switchToDriver = async (req, res) => {
 exports.switchToCompany = async (req, res) => {
   try {
     let isMobile = req.isMobile;
+
+    // return res.send({
+    //   code: constant.error_code,
+    //   message: req.CompanyPartnerDriverId ,
+    //   companyPartnerAccess:req.companyPartnerAccess
+    // });
+
+    
 
     let user = req.user;
 
@@ -2388,6 +2398,98 @@ exports.switchToCompany = async (req, res) => {
       await companyData.save();
       result.role = "COMPANY";
       result.driver = user;
+      res.send({
+        code: constant.success_code,
+        message: "data fetch successfully",
+        result,
+        jwtToken,
+      });
+    }
+  } catch (err) {
+    console.log("🚀 ~ driverUpload ~ err:", err);
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
+
+exports.switchDriverToPartnerCompany = async (req, res) => {
+  try {
+
+    let currentDate = new Date();
+    const companyId = new mongoose.Types.ObjectId(req.params.companyId);
+    const driverId = new mongoose.Types.ObjectId(req.companyPartnerAccess ? req.CompanyPartnerDriverId : req.userId);
+
+    const driverHasCompanyPartnerAccess = await DRIVER.findOne({
+                                                                _id: driverId,
+                                                                parnter_account_access : {
+                                                                  $elemMatch: { company_id: companyId },
+                                                                },
+                                                              });
+
+    const companygaveDriverPartnerAccess = await USER.findOne({
+                                                                  _id: companyId,
+                                                                  role: constant.ROLES.COMPANY,
+                                                                  parnter_account_access : {
+                                                                    $elemMatch: { driver_id: driverId },
+                                                                  },
+                                                                });
+
+    // If driver doesn't have company access or company  didn't gave the access to the driver
+    if (!driverHasCompanyPartnerAccess || !companygaveDriverPartnerAccess) {
+
+      return res.send({
+        code: constant.error_code,
+        message: "You didn't have this company partner access"
+      });
+    } 
+      
+    
+    
+
+    let startOfCurrentWeek = new Date(currentDate);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    startOfCurrentWeek.setDate(
+      startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+    ); // Set to Monday of current week
+    let user = req.user;
+
+    let driverData = await DRIVER.findOne({ _id: driverId, is_deleted: false});
+
+    if (!driverData) {
+      res.send({
+        code: constant.error_code,
+        message: "You do'nt have driver profile",
+      });
+    } else {
+
+      let jwtToken = jwt.sign(
+                                { 
+                                  userId: companyId,
+                                  companyPartnerAccess: true,
+                                  CompanyPartnerDriverId: driverData._id
+                                },
+                                process.env.JWTSECRET,
+                                { expiresIn: "365d" }
+                              );
+      
+
+      if (req.isMobile) {
+        driverData.jwtTokenMobile = jwtToken;
+        driverData.lastUsedTokenMobile = new Date();
+      } else {
+        driverData.jwtToken = jwtToken;
+        driverData.lastUsedToken = new Date();
+      }
+
+      driverData.currently_active_company = companyId;
+      let result = driverData.toObject();
+      await driverData.save();
+      
+      result.role = "COMPANY_PARTNER";
+
       res.send({
         code: constant.success_code,
         message: "data fetch successfully",
