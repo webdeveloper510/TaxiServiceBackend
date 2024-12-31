@@ -2361,20 +2361,18 @@ exports.switchToCompany = async (req, res) => {
   try {
     let isMobile = req.isMobile;
 
-    return res.send({
-      code: constant.error_code,
-      message: req.CompanyPartnerDriverId ,
-      companyPartnerAccess:req.companyPartnerAccess
-    });
 
-    
+    const driverId = new mongoose.Types.ObjectId(req.companyPartnerAccess ? req.CompanyPartnerDriverId : req.userId);
+
+    let driverData = await DRIVER.findOne({ _id: driverId, is_deleted: false});
 
     let user = req.user;
 
     let companyData = await user_model.findOne({
-      email: user.email,
+      email: driverData.email,
       is_deleted: false,
     });
+
     if (!companyData) {
       res.send({
         code: constant.error_code,
@@ -2382,7 +2380,7 @@ exports.switchToCompany = async (req, res) => {
       });
     } else {
       let jwtToken = jwt.sign(
-        { userId: companyData._id },
+        { userId: companyData._id }, 
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
@@ -2396,8 +2394,13 @@ exports.switchToCompany = async (req, res) => {
       }
 
       await companyData.save();
+
+      driverData.currently_active_company = null;
+      await driverData.save();
+      
       result.role = "COMPANY";
-      result.driver = user;
+      // result.driver = user;
+      result.driver = driverData;
       res.send({
         code: constant.success_code,
         message: "data fetch successfully",
