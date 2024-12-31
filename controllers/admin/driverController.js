@@ -2361,11 +2361,11 @@ exports.switchToCompany = async (req, res) => {
   try {
     let isMobile = req.isMobile;
 
-    // return res.send({
-    //   code: constant.error_code,
-    //   message: req.CompanyPartnerDriverId ,
-    //   companyPartnerAccess:req.companyPartnerAccess
-    // });
+    return res.send({
+      code: constant.error_code,
+      message: req.CompanyPartnerDriverId ,
+      companyPartnerAccess:req.companyPartnerAccess
+    });
 
     
 

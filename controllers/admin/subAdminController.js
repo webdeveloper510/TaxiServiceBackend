@@ -2854,11 +2854,18 @@ exports.getPartnerDriverList = async (req, res) => {
     }
 
     const driverHasCompanyPartnerAccess = await DRIVER.findOne({
-                                                                   
-      parnter_account_access : {
-        $elemMatch: { company_id: new mongoose.Types.ObjectId(req.userId) },
-      },
-    });
+                                                                parnter_account_access : {
+                                                                  $elemMatch: { company_id: new mongoose.Types.ObjectId(req.userId) },
+                                                                },
+                                                              });
+
+    const driverNotHasCompanyPartnerAccess = await DRIVER.find({
+                                                                parnter_account_access: {
+                                                                  $not: {
+                                                                    $elemMatch: { company_id: new mongoose.Types.ObjectId(req.userId) },
+                                                                  },
+                                                                },
+                                                              });
 
 
     if (driverHasCompanyPartnerAccess) {
@@ -2866,6 +2873,7 @@ exports.getPartnerDriverList = async (req, res) => {
       return res.send({
                         code: constant.success_code,
                         access_granted: driverHasCompanyPartnerAccess,
+                        access_pending: driverNotHasCompanyPartnerAccess
                       });
     } else {
 
