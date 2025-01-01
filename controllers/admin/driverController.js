@@ -1223,6 +1223,7 @@ exports.get_drivers_super = async (req, res) => {
           company_agency_id:1,
           currentTrip:1,
           defaultVehicle:1,
+          driver_documents:1,
           driver_company_name: 1, // Include company name
         },
       },

@@ -597,7 +597,7 @@ exports.get_token_detail = async (req, res) => {
     ); // Set to Monday of current week
     let data = req.body;
 
-    console.log('req------------' , req.user)
+   
     let result1;
     const userByID = await USER.findOne({ _id: req.userId }).populate(
       "driverId"

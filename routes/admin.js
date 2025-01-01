@@ -104,32 +104,13 @@ router.get(
   driverController.get_drivers_list
 );
 router.post("/get_drivers_super",[verifyToken],driverController.get_drivers_super);
-router.get(
-  "/deleted_drivers",
-  [verifyToken],
-  driverController.get_deleted_drivers_super
-);
-router.get(
-  "/get_driver_detail/:id",
-  [verifyToken],
-  driverController.get_driver_detail
-);
+router.get("/deleted_drivers",[verifyToken],driverController.get_deleted_drivers_super);
+router.get("/get_driver_detail/:id",[verifyToken],driverController.get_driver_detail);
 router.put("/update_driver/:id", [verifyToken], driverController.update_driver);
-router.delete(
-  "/remove_driver/:id",
-  [verifyToken],
-  driverController.remove_driver
-);
+router.delete("/remove_driver/:id",[verifyToken], driverController.remove_driver);
 router.put("/updateLocation", [verifyToken], driverController.updateLocation);
-router.post(
-  "/updateVerification/:id",
-  [verifyToken],
-  driverController.updateVerification
-);
-router.post(
-  "/rejectVerification/:id",
-  [verifyToken],
-  driverController.rejectVerification
+router.post("/updateVerification/:id",[verifyToken],driverController.updateVerification);
+router.post("/rejectVerification/:id",[verifyToken],driverController.rejectVerification
 );
 router.post("/convertDriver",[verifyToken],driverController.convertIntoDriver);
 router.post("/switchDriver", [verifyToken], driverController.switchToDriver);
@@ -189,11 +170,7 @@ router.get(
   tripController.access_get_trip_detail
 );
 router.put("/alocate_driver/:id", [verifyToken], tripController.alocate_driver);
-router.put(
-  "/access_alocate_driver/:id",
-  [verifyToken],
-  tripController.access_alocate_driver
-);
+router.put("/access_alocate_driver/:id", [verifyToken], tripController.access_alocate_driver);
 router.get("/check_trip_request/:id", tripController.check_trip_request);
 router.get("/get_counts_dashboard",[verifyToken],tripController.get_counts_dashboard);
 

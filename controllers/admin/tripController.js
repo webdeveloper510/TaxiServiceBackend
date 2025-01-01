@@ -3,9 +3,7 @@ const AGENCY = require("../../models/user/agency_model");
 const DRIVER = require("../../models/user/driver_model");
 const USER = require("../../models/user/user_model");
 const VEHICLETYPE = require("../../models/admin/vehicle_type");
-const {
-  getNextSequenceValue,
-} = require("../../models/user/trip_counter_model");
+const { getNextSequenceValue } = require("../../models/user/trip_counter_model");
 var FARES = require("../../models/user/fare_model");
 // const FARES = require('../../models/admin/fare_model')
 const TRIP = require("../../models/user/trip_model");
@@ -28,127 +26,120 @@ const emailConstant = require("../../config/emailConstant");
 const twilio = require("twilio");
 
 const tripIsBooked = async (tripId, driver_info, io) => {
-  const driver_full_info = await driver_model.findOne({
-    _id: driver_info._id,
-  });
+
+  const driver_full_info = await driver_model.findOne({ _id: driver_info._id, });
 
   try {
     const tripById = await trip_model.findOne({
-      _id: tripId,
-      trip_status: "Accepted",
-    });
+                                                _id: tripId,
+                                                trip_status: "Accepted",
+                                              });
 
     if (tripById) {
       const updateDriver = await driver_model.findByIdAndUpdate(
-        tripById.driver_name,
-        { is_available: true }
-      );
+                                                                  tripById.driver_name,
+                                                                  { is_available: true }
+                                                                );
       tripById.driver_name = null;
       tripById.trip_status = "Pending";
       await tripById.save();
 
       const user = await user_model.findById(tripById.created_by_company_id);
-      const agency = await AGENCY.findOne({
-        user_id: tripById.created_by_company_id,
-      });
+      const agency = await AGENCY.findOne({ user_id: tripById.created_by_company_id, });
 
       // for company app side
       if (user?.socketId) {
         io.to(user?.socketId).emit("tripNotAcceptedBYDriver", {
-          trip: tripById,
-          message: "Trip not accepted by the Driver",
-        });
+                                                                trip: tripById,
+                                                                message: "Trip not accepted by the Driver",
+                                                              });
       }
 
       // for company web side
       if (user?.webSocketId) {
         io.to(user?.webSocketId).emit("tripNotAcceptedBYDriver", {
-          trip: tripById,
-          message: "Trip not accepted by the Driver",
-        });
+                                                                    trip: tripById,
+                                                                    message: "Trip not accepted by the Driver",
+                                                                  });
 
         io.to(user?.webSocketId).emit("refreshTrip", {
-          message: "Driver didn't accpet the trip. Please refresh the data",
-        });
+                                                      message: "Driver didn't accpet the trip. Please refresh the data",
+                                                    });
       }
 
       // for driver app side
       if (driver_full_info?.socketId) {
         io.to(driver_full_info?.socketId).emit("popUpClose", {
-          trip: tripById,
-          message: "Close up socket connection",
-        });
+                                                                trip: tripById,
+                                                                message: "Close up socket connection",
+                                                              });
       }
 
+      // for driver Web side
       if (driver_full_info?.webSocketId) {
         // for web app side
         io.to(driver_full_info?.webSocketId).emit("popUpClose", {
-          trip: tripById,
-          message: "Close up socket connection",
-        });
+                                                                  trip: tripById,
+                                                                  message: "Close up socket connection",
+                                                                });
       }
 
       if (user?.deviceToken) {
         // notification for company
 
         await sendNotification(
-          user?.deviceToken,
-          `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-          `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-          updateDriver
-        );
+                                user?.deviceToken,
+                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                updateDriver
+                              );
       }
 
       // Functionality for assigned driver
 
-      const company_assigned_driverIds = user.company_account_access.map(
-        (item) => item.driver_id
-      ); // get the assigned driver
+      const company_assigned_driverIds = user.company_account_access.map((item) => item.driver_id); // get the assigned driver
 
       if (company_assigned_driverIds.length > 0) {
+
         // get driver device token for notification
         const drivers_info_for_token = await driver_model.find({
-          _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
-          status: true,
-          deviceToken: { $ne: null }, // device_token should not be null
-        });
+                                                                _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
+                                                                status: true,
+                                                                deviceToken: { $ne: null }, // device_token should not be null
+                                                              });
 
         // Send the notification to assigned drivers
         if (drivers_info_for_token.length > 0) {
-          const company_assigned_driver_token = drivers_info_for_token.map(
-            (item) => item.deviceToken
-          );
+          const company_assigned_driver_token = drivers_info_for_token.map( (item) => item.deviceToken );
 
           company_assigned_driver_token.forEach(async (driver_device_token) => {
             if (driver_device_token) {
               let send_notification = await sendNotification(
-                driver_device_token,
-                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                agency.company_name +
-                  `'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                updateDriver
-              );
+                                                              driver_device_token,
+                                                              `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                                              agency.company_name +
+                                                                `'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                                              updateDriver
+                                                            );
             }
           });
         }
 
         // get driver device token for notification
         const drivers_info_for_socket_ids_app = await driver_model.find({
-          _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
-          status: true,
-          socketId: { $ne: null }, // device_token should not be null
-        });
+                                                                          _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
+                                                                          status: true,
+                                                                          socketId: { $ne: null }, // device_token should not be null
+                                                                        });
 
         const drivers_info_for_socket_ids_web = await driver_model.find({
-          _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
-          status: true,
-          webSocketId: { $ne: null }, // webSocketId should not be null
-        });
+                                                                          _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
+                                                                          status: true,
+                                                                          webSocketId: { $ne: null }, // webSocketId should not be null
+                                                                        });
 
-        const company_assigned_driver_sockets_web =
-          drivers_info_for_socket_ids_web.map((item) => item.webSocketId);
-        const company_assigned_driver_sockets_app =
-          drivers_info_for_socket_ids_app.map((item) => item.socketId);
+        const company_assigned_driver_sockets_web = drivers_info_for_socket_ids_web.map((item) => item.webSocketId);
+        const company_assigned_driver_sockets_app = drivers_info_for_socket_ids_app.map((item) => item.socketId);
 
         const driverSocketIds = company_assigned_driver_sockets_web.concat(
           company_assigned_driver_sockets_app
@@ -178,6 +169,66 @@ const tripIsBooked = async (tripId, driver_info, io) => {
               });
             }
           });
+        }
+
+        // functionality for the drivers who have account access as partner
+
+        const driverHasCompanyPartnerAccess = await DRIVER.find({
+                                                                  parnter_account_access : {
+                                                                    $elemMatch: { company_id: new mongoose.Types.ObjectId(user._id) },
+                                                                  },
+                                                                });
+
+        if (driverHasCompanyPartnerAccess){
+          
+          for (let partnerAccount of driverHasCompanyPartnerAccess) {
+
+            // for partner app side
+            if (partnerAccount?.socketId) {
+              await io.to(partnerAccount?.socketId).emit("tripNotAcceptedBYDriver", {
+                                                                                      trip: tripById,
+                                                                                      message: "Trip not accepted by the Driver",
+                                                                                    });
+            }
+
+            // for partner Web side
+            if (partnerAccount?.webSocketId) {
+
+              await io.to(partnerAccount?.socketId).emit("tripNotAcceptedBYDriver", {
+                                                                                      trip: tripById,
+                                                                                      message: "Trip not accepted by the Driver",
+                                                                                    });
+
+              await io.to(partnerAccount?.webSocketId).emit("refreshTrip",  {
+                                                                              message: "Driver didn't accpet the trip. Please refresh the data",
+                                                                            });
+            }
+
+            // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
+            if (partnerAccount?.deviceToken) {
+              // notification for driver
+      
+              await sendNotification(
+                                      partnerAccount?.deviceToken,
+                                      `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                      `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                      updateDriver
+                                    );
+            } else if (partnerAccount.isCompany){
+              
+              const companyData = await user_model.findById(partnerAccount.driver_company_id);
+              if (companyData?.deviceToken) {
+                // notification for company
+        
+                await sendNotification(
+                                        companyData?.deviceToken,
+                                        `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                        `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                        updateDriver
+                                      );
+              }
+            }
+          }
         }
       }
     }
@@ -1932,39 +1983,42 @@ exports.alocate_driver = async (req, res) => {
 
     let criteria = { _id: req.params.id };
     let check_trip = await TRIP.findOne(criteria);
+    
     if (!check_trip) {
-      res.send({
-        code: constant.error_code,
-        message: "Invalid trip ID",
-      });
-      return;
+
+      return res.send({
+                        code: constant.error_code,
+                        message: "Invalid trip ID",
+                      });
     }
 
     let driver_full_info = await DRIVER.findOne({ _id: data.driver_name });
     if (data.status != "Canceled") {
+
       let check_driver = await DRIVER.findOne({ _id: data.driver_name });
       if (!check_driver) {
-        res.send({
-          code: constant.error_code,
-          message: "Driver not available",
-        });
-        return;
+        return res.send({
+                          code: constant.error_code,
+                          message: "Driver not available",
+                        });
+        
       }
       let newValues = {
-        $set: {
-          driver_name: check_driver._id,
-          vehicle: check_driver.defaultVehicle,
-          trip_status: data.status,
-        },
-      };
+                        $set: {
+                          driver_name: check_driver._id,
+                          vehicle: check_driver.defaultVehicle,
+                          trip_status: data.status,
+                        },
+                      };
+
       if (check_driver._id.toString() == req?.user?.driverId?.toString()) {
         newValues = {
-          $set: {
-            driver_name: check_driver._id,
-            vehicle: check_driver.defaultVehicle,
-            trip_status: "Booked",
-          },
-        };
+                      $set: {
+                        driver_name: check_driver._id,
+                        vehicle: check_driver.defaultVehicle,
+                        trip_status: "Booked",
+                      },
+                    };
       }
       let option = { new: true };
 
@@ -1974,40 +2028,33 @@ exports.alocate_driver = async (req, res) => {
         option
       );
       if (!update_trip) {
-        res.send({
-          code: constant.error_code,
-          message: "Unable to allocate the driver",
-        });
+        return res.send({
+                          code: constant.error_code,
+                          message: "Unable to allocate the driver",
+                        });
+
       } else {
         try {
-          if (
-            check_driver._id.toString() != req?.user?.driverId?.toString() &&
-            data.status !== "Booked"
-          ) {
-            let driver_c_data = await USER.findOne({
-              _id: check_driver.created_by,
-            });
+          if ( check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
 
-            let token_value = check_driver.deviceToken;
+            let driver_c_data = await USER.findOne({ _id: check_driver.created_by });
 
-            if (token_value == null) {
-              token_value = driver_c_data.deviceToken;
-            }
+            let token_value = check_driver.deviceToken == null ? driver_c_data.deviceToken :check_driver.deviceToken;
+
 
             if (token_value) {
               await sendNotification(
-                token_value,
-                "New Trip is allocated have ID " + update_trip.trip_id,
-                "New Trip is allocated have ID " + update_trip.trip_id,
-                update_trip
-              );
+                                      token_value,
+                                      "New Trip is allocated have ID " + update_trip.trip_id,
+                                      "New Trip is allocated have ID " + update_trip.trip_id,
+                                      update_trip
+                                    );
+
             }
           }
         } catch (error) {
-          console.log(
-            "🚀 ~ exports.alocate_driver= ~ error: Unable to send notification",
-            error
-          );
+
+          console.log( "🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error );
 
           //    return res.send({
           //     code: constant.success_code,
@@ -2030,9 +2077,7 @@ exports.alocate_driver = async (req, res) => {
           update_trip.user_company_name = "";
           update_trip.user_company_phone = "";
 
-          let user_agancy_data = await AGENCY.findOne({
-            user_id: req.user._id,
-          });
+          let user_agancy_data = await AGENCY.findOne({ user_id: req.user._id, });
 
           // Company name a nd phone added
           if (user_agancy_data) {
@@ -2043,13 +2088,8 @@ exports.alocate_driver = async (req, res) => {
             update_trip.user_company_phone = user_agancy_data.phone;
           }
 
-          if (
-            check_driver._id.toString() != req?.user?.driverId?.toString() &&
-            data.status !== "Booked"
-          ) {
-            req?.io
-              ?.to(check_driver.socketId)
-              ?.emit("newTrip", { trip: update_trip, company: req.user });
+          if ( check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
+            req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: req.user });
           } else {
           }
         } catch (error) {
@@ -2059,13 +2099,11 @@ exports.alocate_driver = async (req, res) => {
         let current_date_time = new Date();
         // Update request send time in Trip
         await TRIP.updateOne(
-          { _id: req.params.id }, // Filter (find the document by _id)
-          { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
-        );
+                              { _id: req.params.id }, // Filter (find the document by _id)
+                              { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
+                            );
 
-        setTimeout(() => {
-          tripIsBooked(update_trip._id, driver_full_info, req.io);
-        }, 20 * 1000);
+        setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, 20 * 1000);
 
         // Functionality for update the trips who has access of company along with company
         let created_by_company = await user_model.findById(
