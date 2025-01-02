@@ -353,6 +353,30 @@ io.on("connection", (socket) => {
                                                                       message: "Trip canceled successfully",
                                                                     }
                                           );
+
+                // for refresh trip
+                await io.to(user?.socketId).emit(
+                                                  "refreshTrip",
+                                                  {
+                                                    message:
+                                                      "Trip Driver didn't accpet the trip. Please refresh the data",
+                                                  },
+                                                  (err, ack) => {
+                                                    // console.log("err----", err);
+                                                    // console.log("ack---------", ack);
+                                                    if (ack) {
+                                                      // console.log(
+                                                      //   "refreshTrip Trip canceled successfully by driver.---" +
+                                                      //     user?.webSocketId
+                                                      // );
+                                                    } else {
+                                                      // console.log(
+                                                      //   "refreshTrip getting error in Trip canceled successfully by driver.---" +
+                                                      //     user?.webSocketId
+                                                      // );
+                                                    }
+                                                  }
+                                                );
               }
 
               if (user?.webSocketId) {
@@ -410,16 +434,8 @@ io.on("connection", (socket) => {
               if (user?.deviceToken) {
                 await sendNotification(
                                         user?.deviceToken,
-                                        `Trip canceled by driver ${
-                                          driverBySocketId.first_name +
-                                          " " +
-                                          driverBySocketId.last_name
-                                        } and trip ID is ${trip.trip_id}`,
-                                        `Trip canceled by driver ${
-                                          driverBySocketId.first_name +
-                                          " " +
-                                          driverBySocketId.last_name
-                                        } and trip ID is ${trip.trip_id}`,
+                                        `Trip canceled by driver ${ driverBySocketId.first_name + " " + driverBySocketId.last_name } and trip ID is ${trip.trip_id}`,
+                                        `Trip canceled by driver ${ driverBySocketId.first_name + " " + driverBySocketId.last_name } and trip ID is ${trip.trip_id}`,
                                         driverBySocketId
                                       );
               }
@@ -554,12 +570,21 @@ io.on("connection", (socket) => {
                                                                                           message: "Trip canceled successfully",
                                                                                         }
                                                               );
+                      
+                    // for refresh trip
+                    await io.to(partnerAccount?.socketId).emit(
+                                                                "refreshTrip",
+                                                                {
+                                                                  message:
+                                                                    "Trip Driver didn't accpet the trip. Please refresh the data",
+                                                                }
+                                                              );
                   }
         
                   // for partner Web side
                   if (partnerAccount?.webSocketId) {
         
-                  await io.to(partnerAccount?.socketId).emit("tripCancelledBYDriver", {
+                  await io.to(partnerAccount?.webSocketId).emit("tripCancelledBYDriver", {
                                                                                         trip,
                                                                                         driver: driverBySocketId,
                                                                                         message: "Trip canceled successfully",
@@ -575,14 +600,14 @@ io.on("connection", (socket) => {
         
                   // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
                   if (partnerAccount?.deviceToken) {
-                  // notification for driver
+                    // notification for driver
         
-                  await sendNotification(
-                                          partnerAccount?.deviceToken,
-                                          `Trip canceled by driver ${ driverBySocketId.first_name + " " + driverBySocketId.last_name } and trip ID is ${trip.trip_id}`,
-                                          `Trip canceled by driver ${ driverBySocketId.first_name + " " + driverBySocketId.last_name } and trip ID is ${trip.trip_id}`,
-                                          driverBySocketId
-                                        );
+                    await sendNotification(
+                                            partnerAccount?.deviceToken,
+                                            `Trip canceled by driver ${ driverBySocketId.first_name + " " + driverBySocketId.last_name } and trip ID is ${trip.trip_id}`,
+                                            `Trip canceled by driver ${ driverBySocketId.first_name + " " + driverBySocketId.last_name } and trip ID is ${trip.trip_id}`,
+                                            driverBySocketId
+                                          );
                   } else if (partnerAccount.isCompany){
         
                     const companyData = await user_model.findById(partnerAccount.driver_company_id);
@@ -816,11 +841,11 @@ io.on("connection", (socket) => {
               // for partner Web side
               if (partnerAccount?.webSocketId) {
     
-                await io.to(partnerAccount?.socketId).emit("tripAcceptedBYDriver", {
-                                                                                      trip,
-                                                                                      message: "Trip accepted successfully",
-                                                                                    }
-                                                          );
+                await io.to(partnerAccount?.webSocketId).emit("tripAcceptedBYDriver", {
+                                                                                        trip,
+                                                                                        message: "Trip accepted successfully",
+                                                                                      }
+                                                              );
     
               }
     
