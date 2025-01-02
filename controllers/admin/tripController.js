@@ -170,63 +170,65 @@ const tripIsBooked = async (tripId, driver_info, io) => {
             }
           });
         }
+      }
 
-        // functionality for the drivers who have account access as partner
+      // functionality for the drivers who have account access as partner
 
-        const driverHasCompanyPartnerAccess = await DRIVER.find({
-                                                                  parnter_account_access : {
-                                                                    $elemMatch: { company_id: new mongoose.Types.ObjectId(user._id) },
-                                                                  },
-                                                                });
+      const driverHasCompanyPartnerAccess = await DRIVER.find({
+                                                                parnter_account_access : {
+                                                                  $elemMatch: { company_id: new mongoose.Types.ObjectId(user._id) },
+                                                                },
+                                                              });
 
-        if (driverHasCompanyPartnerAccess){
-          
-          for (let partnerAccount of driverHasCompanyPartnerAccess) {
+      if (driverHasCompanyPartnerAccess){
 
-            // for partner app side
-            if (partnerAccount?.socketId) {
-              await io.to(partnerAccount?.socketId).emit("tripNotAcceptedBYDriver", {
-                                                                                      trip: tripById,
-                                                                                      message: "Trip not accepted by the Driver",
-                                                                                    });
-            }
+        for (let partnerAccount of driverHasCompanyPartnerAccess) {
 
-            // for partner Web side
-            if (partnerAccount?.webSocketId) {
+          // for partner app side
+          if (partnerAccount?.socketId) {
+            console.log('app side send------' ,partnerAccount?.socketId)
+            await io.to(partnerAccount?.socketId).emit("tripNotAcceptedBYDriver", {
+                                                                                    trip: tripById,
+                                                                                    message: "Trip not accepted by the Driver",
+                                                                                  }
+                                                      );
+          }
 
-              await io.to(partnerAccount?.socketId).emit("tripNotAcceptedBYDriver", {
-                                                                                      trip: tripById,
-                                                                                      message: "Trip not accepted by the Driver",
-                                                                                    });
+          // for partner Web side
+          if (partnerAccount?.webSocketId) {
 
-              await io.to(partnerAccount?.webSocketId).emit("refreshTrip",  {
-                                                                              message: "Driver didn't accpet the trip. Please refresh the data",
-                                                                            });
-            }
+          await io.to(partnerAccount?.socketId).emit("tripNotAcceptedBYDriver", {
+                                      trip: tripById,
+                                      message: "Trip not accepted by the Driver",
+                                    });
 
-            // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
-            if (partnerAccount?.deviceToken) {
-              // notification for driver
-      
+          await io.to(partnerAccount?.webSocketId).emit("refreshTrip",  {
+                              message: "Driver didn't accpet the trip. Please refresh the data",
+                            });
+          }
+
+          // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
+          if (partnerAccount?.deviceToken) {
+            // notification for driver
+
+            await sendNotification(
+                                  partnerAccount?.deviceToken,
+                                  `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                  `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                  updateDriver
+                                  );
+          } else if (partnerAccount.isCompany){
+
+            const companyData = await user_model.findById(partnerAccount.driver_company_id);
+            if (companyData?.deviceToken) {
+              // notification for company
+
               await sendNotification(
-                                      partnerAccount?.deviceToken,
+                                      companyData?.deviceToken,
                                       `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
                                       `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
                                       updateDriver
                                     );
-            } else if (partnerAccount.isCompany){
-              
-              const companyData = await user_model.findById(partnerAccount.driver_company_id);
-              if (companyData?.deviceToken) {
-                // notification for company
-        
-                await sendNotification(
-                                        companyData?.deviceToken,
-                                        `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                                        `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                                        updateDriver
-                                      );
-              }
             }
           }
         }

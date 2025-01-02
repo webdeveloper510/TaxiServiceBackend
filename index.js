@@ -770,8 +770,8 @@ io.on("connection", (socket) => {
     }
     try {
       const driverBySocketId = await driver_model.findOne({
-        socketId: socket.id,
-      });
+                                                            socketId: socket.id,
+                                                          });
 
       if (driverBySocketId) {
         const trip = await trip_model.findById(tripId);
@@ -822,31 +822,17 @@ io.on("connection", (socket) => {
       });
     }
   });
+
+
   socket.on("disconnect", async (reason) => {
     try {
       setTimeout(async () => {
         const driverBySocketId = await driver_model.findOne({
           socketId: socket.id,
         });
-        // console.log("--------------------------");
-        // console.log("--------------------------");
-        // console.log("--------------------------");
-        // console.log("--------------------------");
-        // console.log(
-        //   "--------------------------",
-        //   reason,
-        //   "socket id",
-        //   socket.id,
-        //   "driver data------------",
-        //   driverBySocketId
-        // );
 
         if (driverBySocketId) {
-          // console.log(
-          //   "🚀 ~ socket driver disconnected ~ driverBySocketId:",
-          //   driverBySocketId
-          // );
-
+          
           driverBySocketId.isSocketConnected = false;
           driverBySocketId.socketId = null;
 
