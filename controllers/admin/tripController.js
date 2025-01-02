@@ -186,7 +186,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
 
           // for partner app side
           if (partnerAccount?.socketId) {
-            console.log('app side send------' ,partnerAccount?.socketId)
+           
             await io.to(partnerAccount?.socketId).emit("tripNotAcceptedBYDriver", {
                                                                                     trip: tripById,
                                                                                     message: "Trip not accepted by the Driver",
