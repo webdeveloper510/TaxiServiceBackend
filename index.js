@@ -679,27 +679,26 @@ io.on("connection", (socket) => {
 
         if (user.role == "COMPANY") {
 
-          io.to(user?.socketId).emit("tripAcceptedBYDriver",
-                                                            {
-                                                              trip,
-                                                              message: "Trip accepted successfully",
-                                                            },
-                                                            (err, ack) => {
-                                                              // console.log("err----", err);
-                                                              // console.log("ack---------", ack);
-                                                              if (ack) {
-                                                                // console.log(
-                                                                //   "Trip accepted successfully to the main company.---" +
-                                                                //     socketId
-                                                                // );
-                                                              } else {
-                                                                // console.log(
-                                                                //   "getting error in Trip accepted successfully to the main company.---" +
-                                                                //     socketId
-                                                                // );
-                                                              }
+          await io.to(user?.socketId).emit("tripAcceptedBYDriver",
+                                                                    {
+                                                                      trip,
+                                                                      message: "Trip accepted successfully",
+                                                                    },
+                                                                    (err, ack) => {
+                                                                      if (ack) {
+                                                                        
+                                                                      } else {
+                                                                        
+                                                                      }
+                                                                    }
+                                          );
+
+            // for refresh trip
+            await io.to(user?.socketId).emit("refreshTrip", {
+                                                              message:
+                                                                "Trip Driver didn't accpet the trip. Please refresh the data",
                                                             }
-                                      );
+                                            )
 
           const response = await sendNotification(user?.deviceToken,
                                                     `Trip accepted by driver and trip ID is ${trip.trip_id}`,
@@ -812,8 +811,6 @@ io.on("connection", (socket) => {
             }
           }
 
-
-
           // functionality for the drivers who have account access as partner
 
           const driverHasCompanyPartnerAccess = await driver_model.find({
@@ -836,6 +833,9 @@ io.on("connection", (socket) => {
                                                                                       message: "Trip accepted successfully",
                                                                                     },
                                                           );
+
+                // for refresh trip
+                await io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "Trip Driver didn't accpet the trip. Please refresh the data", } )
               }
     
               // for partner Web side
