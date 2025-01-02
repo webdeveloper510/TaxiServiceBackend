@@ -2690,6 +2690,15 @@ exports.updatePartnerAccountAccess = async (req, res) => {
                       });
     }
 
+    if (driver._id == req?.body?.driver_id) {
+      // return res.send({
+      //                   code: constant.error_code,
+      //                   message: "Assigning the partner role to oneself is not permitted.",
+      //                 });
+    }
+
+    
+
     if (req.user?.role == constant.ROLES.COMPANY) { // if current user role is company
 
       // Get user , company and driver company details
