@@ -95,19 +95,20 @@ io.on("connection", (socket) => {
         await driverByToken.save();
 
         io.to(socket.id).emit("userConnection", {
-          code: 200,
-          message:
-            "connected successfully with addWebNewDriver from website user id: " +
-            driverByToken._id,
-          socket_id: socket.id,
-        });
+                                                  code: 200,
+                                                  message:
+                                                    "connected successfully with addWebNewDriver from website user id: " +
+                                                    driverByToken._id,
+                                                  socket_id: socket.id,
+                                                }
+                              );
       }
     } catch (err) {
       console.log("🚀 ~ socket.on ~ err:", err);
     }
   });
 
-  socket.on("addNewDriver", async ({ token, longitude, latitude }) => {
+  socket.on("addNewDriver", async ({ token, longitude, latitude ,socketId }) => {
     try {
       await driver_model.updateMany(
         { socketId: socket.id },
@@ -125,12 +126,13 @@ io.on("connection", (socket) => {
           type: "Point",
           coordinates: [longitude, latitude],
         };
+        
         driverByToken.locationUpdatedAt = new Date();
         driverByToken.isSocketConnected = true;
-        driverByToken.socketId = socket.id;
+        driverByToken.socketId = socketId;
         await driverByToken.save();
 
-        io.to(socket.id).emit("driverNotification", {
+        io.to(socketId).emit("driverNotification", {
           code: 200,
           message:
             "connected successfully with addNewDriver driver id: " +
@@ -182,18 +184,17 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("addUser", async ({ token }) => {
+  socket.on("addUser", async ({ token , socketId }) => {
     if (!token || token == "") {
       io.to(socket.id).emit("userConnection", {
         code: 200,
         message: "token is required",
       });
-
-      return;
+ 
     }
     try {
       await user_model.updateMany(
-                                  { socketId: socket.id },
+                                  { socketId: socketId },
                                   {
                                     $set: {
                                       isSocketConnected: false,
@@ -203,12 +204,15 @@ io.on("connection", (socket) => {
                                 );
 
       const userByToken = await userDetailsByToken(token);
-
+      console.log('socket connected for company')
+      console.log('socket.id---' , socketId)
+      console.log('socket.id---' , userByToken.email)
       if (userByToken) {
         
         userByToken.isSocketConnected = true;
-        userByToken.socketId = socket.id;
+        userByToken.socketId = socketId;
         await userByToken.save();
+        // console.log('userByToken---' , userByToken)
         io.to(socket.id).emit("userConnection", {
                                                   code: 200,
                                                   message: "connected successfully with user id: " + userByToken._id,
@@ -679,32 +683,39 @@ io.on("connection", (socket) => {
 
         if (user.role == "COMPANY") {
 
-          await io.to(user?.socketId).emit("tripAcceptedBYDriver",
+          if (user?.socketId) {
+            console.log('user app side send------' ,user?.socketId)
+            await io.to(user?.socketId).emit("tripAcceptedBYDriver",
                                                                     {
                                                                       trip,
                                                                       message: "Trip accepted successfully",
                                                                     },
                                                                     (err, ack) => {
                                                                       if (ack) {
-                                                                        
+                                                                        console.log('send to main company')
                                                                       } else {
-                                                                        
+                                                                        console.log('not send to main company')
                                                                       }
                                                                     }
-                                          );
+                                            );
 
             // for refresh trip
             await io.to(user?.socketId).emit("refreshTrip", {
-                                                              message:
-                                                                "Trip Driver didn't accpet the trip. Please refresh the data",
-                                                            }
-                                            )
+                    message:
+                      "Trip Driver didn't accpet the trip. Please refresh the data",
+                  }
+            )
+          }
+          
+          if (user?.deviceToken) {
 
-          const response = await sendNotification(user?.deviceToken,
-                                                    `Trip accepted by driver and trip ID is ${trip.trip_id}`,
-                                                    `Trip accepted by driver and trip ID is ${trip.trip_id}`,
-                                                    driverBySocketId
-                                                  );
+            const response = await sendNotification(user?.deviceToken,
+                                                      `Trip accepted by driver and trip ID is ${trip.trip_id}`,
+                                                      `Trip accepted by driver and trip ID is ${trip.trip_id}`,
+                                                      driverBySocketId
+                                                    );
+          }
+          
 
           // console.log("🚀 ~ socket.on ~ response:", response);
 
@@ -827,7 +838,7 @@ io.on("connection", (socket) => {
               // for partner app side
               if (partnerAccount?.socketId) {
 
-                console.log('app side send------' ,partnerAccount?.socketId)
+                console.log('partnerAccount app side send------' ,partnerAccount?.socketId)
                 await io.to(partnerAccount?.socketId).emit("tripAcceptedBYDriver",  {
                                                                                       trip,
                                                                                       message: "Trip accepted successfully",
