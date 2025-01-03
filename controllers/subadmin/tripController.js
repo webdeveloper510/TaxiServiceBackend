@@ -10,6 +10,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
+const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 
 exports.add_trip = async (req, res) => {
@@ -421,19 +422,14 @@ exports.edit_trip = async (req, res) => {
         message: "Unable to update the trip",
       });
     } else {
-      if (
-        data?.trip_status == "Pending" &&
-        trip_data.driver_name !== null &&
-        trip_data.driver_name != "null" &&
-        trip_data.driver_name != ""
-      ) {
+      if ( data?.trip_status == "Pending" && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
+
         let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
 
         let device_token = driver_data?.deviceToken;
         if (device_token == "" || device_token == null) {
-          let driver_data_created_by = await USER.findOne({
-            _id: driver_data.created_by,
-          });
+
+          let driver_data_created_by = await USER.findOne({ _id: driver_data.created_by,  });
           device_token = driver_data_created_by.deviceToken;
         }
 
@@ -454,6 +450,10 @@ exports.edit_trip = async (req, res) => {
           // })
         }
       }
+
+      // refresh trip functionality for the drivers who have account access as partner
+      
+      partnerAccountRefreshTrip(trip_data.created_by_company_id , req.io);
       res.send({
         code: constant.success_code,
         message: "Updated successfully",

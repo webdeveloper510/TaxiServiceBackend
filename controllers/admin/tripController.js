@@ -16,7 +16,7 @@ const randToken = require("rand-token").generator();
 const moment = require("moment");
 const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
-
+const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
 const { default: axios } = require("axios");
@@ -252,46 +252,42 @@ exports.add_trip = async (req, res) => {
     let data = req.body;
     data.created_by = data.created_by ? data.created_by : req.userId;
     // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
-    data.trip_id = await getNextSequenceValue();
-    let token_code = randToken.generate(
-      4,
-      "1234567890abcdefghijklmnopqrstuvxyz"
-    );
-    let check_user = await USER.findOne({ _id: req.userId });
+    data.trip_id    = await getNextSequenceValue();
+    let token_code  = randToken.generate( 4, "1234567890abcdefghijklmnopqrstuvxyz" );
+    let check_user  = await USER.findOne({ _id: req.userId });
     let currentDate = moment().format("YYYY-MM-DD");
+
     let check_id = await TRIP.aggregate([
-      {
-        $match: {
-          createdAt: {
-            $gte: new Date(currentDate),
-            $lt: new Date(
-              new Date(currentDate).getTime() + 24 * 60 * 60 * 1000
-            ), // Add 1 day to include the entire day
-          },
-        },
-      },
-    ]);
-    let series = Number(check_id.length) + 1;
-    data.series_id = token_code + "-" + "000" + series;
+                                          {
+                                            $match: {
+                                              createdAt: {
+                                                $gte: new Date(currentDate),
+                                                $lt: new Date(
+                                                  new Date(currentDate).getTime() + 24 * 60 * 60 * 1000
+                                                ), // Add 1 day to include the entire day
+                                              },
+                                            },
+                                          },
+                                        ]);
+
+    let series      = Number(check_id.length) + 1;
+    data.series_id  = token_code + "-" + "000" + series;
 
     data.trip_id = "T" + "-" + data.trip_id;
-    let distance = (
-      geolib.getDistance(
-        {
-          latitude: data.trip_from.log,
-          longitude: data.trip_from.lat,
-        },
-        {
-          latitude: data.trip_to.log,
-          longitude: data.trip_to.lat,
-        }
-      ) * 0.00062137
-    ).toFixed(2);
+    let distance = ( geolib.getDistance( {
+                                            latitude: data.trip_from.log,
+                                            longitude: data.trip_from.lat,
+                                          },
+                                          {
+                                            latitude: data.trip_to.log,
+                                            longitude: data.trip_to.lat,
+                                          }
+                                        ) * 0.00062137
+                                      ).toFixed(2);
 
     let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
-    let fare_per_km = getFare
-      ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12)
-      : 10;
+    let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10;
+
     if (!data.price) {
       data.price = (fare_per_km * Number(distance)).toFixed(2);
     }
@@ -308,6 +304,7 @@ exports.add_trip = async (req, res) => {
       data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
       data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
       data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
+
     } else {
       data.superAdminPaymentAmount = 0;
       data.companyPaymentAmount = 0;
@@ -317,22 +314,27 @@ exports.add_trip = async (req, res) => {
     
     let add_trip = await TRIP(data).save();
     if (!add_trip) {
-      res.send({
-        code: constant.error_code,
-        message: "Unable to create the trip",
-      });
+      return res.send({
+                        code: constant.error_code,
+                        message: "Unable to create the trip",
+                      });
     } else {
-      res.send({
-        code: constant.success_code,
-        message: "Saved Successfully",
-        result: add_trip,
-      });
+
+
+      // refresh trip functionality for the drivers who have account access as partner
+
+      partnerAccountRefreshTrip(data.created_by_company_id , req.io);
+      return res.send({
+                        code: constant.success_code,
+                        message: "Saved Successfully",
+                        result: add_trip,
+                      });
     }
   } catch (err) {
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 };
 
@@ -426,6 +428,10 @@ exports.access_add_trip = async (req, res) => {
         message: "Unable to create the trip",
       });
     } else {
+
+       // refresh trip functionality for the drivers who have account access as partner
+
+       partnerAccountRefreshTrip(data.created_by_company_id , req.io);
       res.send({
         code: constant.success_code,
         message: "Saved Successfully",

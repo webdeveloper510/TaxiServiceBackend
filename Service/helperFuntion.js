@@ -7,6 +7,7 @@ const { default: axios } = require("axios");
 const admin = require("firebase-admin");
 const serviceAccount = require("../taxi24-5044e-firebase-adminsdk-khmt0-c7c4ce0029.json");
 const twilio = require("twilio");
+const mongoose = require("mongoose");
 // Initialize Twilio client
 const client = twilio(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
 
@@ -39,6 +40,31 @@ exports.userDetailsByToken = async (token) => {
   const user = await user_model.findOne({ _id: userId });
   return user;
 };
+
+exports.partnerAccountRefreshTrip = async (companyId , io) => {
+
+  // functionality for the drivers who have account access as partner
+
+  const driverHasCompanyPartnerAccess = await driver_model.find({
+                                                                  parnter_account_access  : {
+                                                                                              $elemMatch: { company_id: new mongoose.Types.ObjectId(companyId) },
+                                                                                            },
+                                                                });
+
+  if (driverHasCompanyPartnerAccess){
+
+    for (let partnerAccount of driverHasCompanyPartnerAccess) {
+
+
+      // for partner app side
+      if (partnerAccount?.socketId) {
+
+        // for refresh trip
+        await io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "Trip Driver didn't accpet the trip. Please refresh the data", } )
+      }
+    }
+  }
+}
 
 exports.isDriverHasCompanyAccess = async (driver_data, company_id) => {
   // Check If driver has companies account access
