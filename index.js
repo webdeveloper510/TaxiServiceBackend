@@ -156,30 +156,55 @@ io.on("connection", (socket) => {
     }
     try {
       await user_model.updateMany(
-        { webSocketId: socket.id },
-        {
-          $set: {
-            isWebSocketConnected: false,
-            webSocketId: null,
-          },
-        }
-      );
+                                    { webSocketId: socket.id },
+                                    {
+                                      $set: {
+                                        isWebSocketConnected: false,
+                                        webSocketId: null,
+                                      },
+                                    }
+                                  );
 
-      const userByToken = await userDetailsByToken(token);
+      const tokenData  = jwt.verify(token, process.env.JWTSECRET);
+      const id = tokenData?.companyPartnerAccess ? tokenData?.CompanyPartnerDriverId : tokenData?.userId;
+                            
+      if (tokenData?.companyPartnerAccess) { // If driver accessing the company account as Partner
+        
+        const driver = await driver_model.findOne({ _id: id });
+        if (driver) {
 
-      if (userByToken) {
-        userByToken.isWebSocketConnected = true;
-        userByToken.webSocketId = socket.id;
-        await userByToken.save();
-        io.to(socket.id).emit("userConnection", {
-                                                  code: 200,
-                                                  message:
-                                                    "connected successfully with addWebUser from web user id: " +
-                                                    userByToken._id,
-                                                  socket_id: socket.id,
-                                                }
+          driver.isWebSocketConnected = true;
+          driver.webSocketId = socketId;
+          await driver.save();
+
+          io.to(socketId).emit("userConnection",  {
+                                                    code: 200,
+                                                    message: "connected successfully with user id: " + id,
+                                                  }
                               );
+        }
+        
+        
+      } else { // when company accessing his account
+
+        const user = await user_model.findOne({ _id: id });
+
+        if (user) {
+
+          user.isWebSocketConnected = true;
+          user.webSocketId = socketId;
+          await user.save();
+
+          io.to(socketId).emit("userConnection",  {
+                                                    code: 200,
+                                                    message: "connected successfully with user id: " + id,
+                                                  }
+                              );
+        }
+        
       }
+
+      
     } catch (err) {
       console.log("🚀 ~ socket.on ~ err:", err);
     }
