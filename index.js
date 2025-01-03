@@ -18,6 +18,7 @@ const user_model = require("./models/user/user_model");
 const mongoose = require("mongoose");
 var app = express();
 app.use(cors());
+const jwt = require("jsonwebtoken");
 const httpServer = http.createServer(app);
 // view engine setup
 
@@ -194,31 +195,55 @@ io.on("connection", (socket) => {
     }
     try {
       await user_model.updateMany(
-                                  { socketId: socketId },
-                                  {
-                                    $set: {
-                                      isSocketConnected: false,
-                                      socketId: null,
-                                    },
-                                  }
-                                );
+                                    { socketId: socketId },
+                                    {
+                                      $set: {
+                                        isSocketConnected: false,
+                                        socketId: null,
+                                      },
+                                    }
+                                  );
+      
+      const tokenData  = jwt.verify(token, process.env.JWTSECRET);
+      const id = tokenData?.companyPartnerAccess ? tokenData?.CompanyPartnerDriverId : tokenData?.userId;
 
-      const userByToken = await userDetailsByToken(token);
-      console.log('socket connected for company')
-      console.log('socket.id---' , socketId)
-      console.log('socket.id---' , userByToken.email)
-      if (userByToken) {
+      if (tokenData?.companyPartnerAccess) { // If driver accessing the company account as Partner
         
-        userByToken.isSocketConnected = true;
-        userByToken.socketId = socketId;
-        await userByToken.save();
-        // console.log('userByToken---' , userByToken)
-        io.to(socket.id).emit("userConnection", {
-                                                  code: 200,
-                                                  message: "connected successfully with user id: " + userByToken._id,
-                                                }
+        const driver = await driver_model.findOne({ _id: id });
+        if (driver) {
+
+          driver.isSocketConnected = true;
+          driver.socketId = socketId;
+          await driver.save();
+
+          io.to(socketId).emit("userConnection",  {
+                                                    code: 200,
+                                                    message: "connected successfully with user id: " + id,
+                                                  }
                               );
+        }
+        
+        
+      } else { // when company accessing his account
+
+        const user = await user_model.findOne({ _id: id });
+
+        if (user) {
+
+          user.isSocketConnected = true;
+          user.socketId = socketId;
+          await user.save();
+
+          io.to(socketId).emit("userConnection",  {
+                                                    code: 200,
+                                                    message: "connected successfully with user id: " + id,
+                                                  }
+                              );
+        }
+        
       }
+      console.log('tokenData----------' , tokenData);
+
     } catch (err) {
       console.log("🚀 ~ socket.on ~ err:", err);
     }
@@ -226,7 +251,8 @@ io.on("connection", (socket) => {
   socket.on("companyCancelledTrip", async ({ driverId, trip }) => {
     try {
       const trip_details = await trip_model.findById(trip.result?._id);
-
+      
+      const userData = await user_model.findOne({ _id: trip_details?.created_by_company_id, });
       const company_data = await agency_model.findOne({ user_id: trip_details?.created_by_company_id, });
 
       const driverById = await driver_model.findOne({ _id: driverId, });
@@ -285,8 +311,35 @@ io.on("connection", (socket) => {
                                                   trip
                                                 );
       }
+
+      // for the company
+      if (userData?.socketId) {
+
+        // for refresh trip
+        await io.to(userData?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by company. Please refresh the data", } )
+      }
+
+      // functionality for the drivers who have account access as partner
+
+      const driverHasCompanyPartnerAccess = await driver_model.find({ parnter_account_access  : {
+                                                                                                  $elemMatch: { company_id: new mongoose.Types.ObjectId(trip_details?.created_by_company_id) },
+                                                                                                },
+                                                                    });
+
+      if (driverHasCompanyPartnerAccess){
+
+        for (let partnerAccount of driverHasCompanyPartnerAccess) {
+          
+          // for partner app side
+          if (partnerAccount?.socketId) {
+
+            // for refresh trip
+            await io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by company. Please refresh the data", } )
+          }
+        }
+      }
     } catch (err) {
-      console.log("🚀 ~ socket.on ~ err:", err);
+      console.log("🚀 ~ socket.on companyCancelledTrip ~ err:", err);
     }
   });
 
