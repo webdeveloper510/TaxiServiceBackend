@@ -473,16 +473,18 @@ exports.access_edit_trip = async (req, res) => {
     let data = req.body;
 
     if (req.user.role == "DRIVER") {
+
       let is_driver_has_company_access = await isDriverHasCompanyAccess(
-        req.user,
-        req.params.company_id
-      );
+                                                                          req.user,
+                                                                          req.params.company_id
+                                                                        );
 
       if (!is_driver_has_company_access) {
+
         return res.send({
-          code: constant.ACCESS_ERROR_CODE,
-          message: "The company's access has been revoked",
-        });
+                          code: constant.ACCESS_ERROR_CODE,
+                          message: "The company's access has been revoked",
+                        });
       }
     }
 
@@ -517,19 +519,13 @@ exports.access_edit_trip = async (req, res) => {
         message: "Unable to update the trip",
       });
     } else {
-      if (
-        data?.trip_status == "Pending" &&
-        trip_data.driver_name !== null &&
-        trip_data.driver_name != "null" &&
-        trip_data.driver_name != ""
-      ) {
+      if ( data?.trip_status == "Pending" && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
         let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
 
         let device_token = driver_data?.deviceToken;
         if (device_token == "" || device_token == null) {
-          let driver_data_created_by = await USER.findOne({
-            _id: driver_data.created_by,
-          });
+
+          let driver_data_created_by = await USER.findOne({ _id: driver_data.created_by, });
           device_token = driver_data_created_by.deviceToken;
         }
 
@@ -537,11 +533,11 @@ exports.access_edit_trip = async (req, res) => {
 
         try {
           const response = await sendNotification(
-            device_token,
-            `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
-            `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
-            trip_data
-          );
+                                                    device_token,
+                                                    `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
+                                                    `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
+                                                    trip_data
+                                                  );
         } catch (e) {
           // res.send({
           //     code: constant.success_code,
@@ -550,11 +546,13 @@ exports.access_edit_trip = async (req, res) => {
           // })
         }
       }
-      res.send({
-        code: constant.success_code,
-        message: "Updated successfully",
-        result: update_trip,
-      });
+
+      partnerAccountRefreshTrip(update_trip.created_by_company_id , req.io);
+      return res.send({
+                  code: constant.success_code,
+                  message: "Updated successfully",
+                  result: update_trip,
+                });
     }
   } catch (err) {
     res.send({
