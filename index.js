@@ -242,7 +242,7 @@ io.on("connection", (socket) => {
         }
         
       }
-      console.log('tokenData----------' , tokenData);
+      
 
     } catch (err) {
       console.log("🚀 ~ socket.on ~ err:", err);
@@ -730,6 +730,9 @@ io.on("connection", (socket) => {
         let updated_data = { trip_status: "Booked", status: true };
         let option = { new: true };
         let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
+
+        // for refresh trip to driver who accepted the trip
+        await io.to(socket.id).emit("refreshTrip", { message: "You accpeted the trip. Please refresh the data", } )
 
         let user = await user_model.findById(trip.created_by_company_id);
         // if (user.role == "HOTEL") {
