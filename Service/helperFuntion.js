@@ -70,6 +70,28 @@ exports.partnerAccountRefreshTrip = async (companyId , io) => {
       }
     }
   }
+
+  // For the driver who has company access
+
+  const driverHasCompanyAccess = await driver_model.find({
+                                                            company_account_access  : {
+                                                                                        $elemMatch: { company_id: new mongoose.Types.ObjectId(companyId) },
+                                                                                      },
+                                                        });
+
+  if (driverHasCompanyAccess){
+
+    for (let driverCompanyAccess of driverHasCompanyAccess) {
+
+
+      // for partner app side
+      if (driverCompanyAccess?.socketId) {
+
+        // for refresh trip
+        await io.to(driverCompanyAccess?.socketId).emit("refreshTrip", { message: "Trip Driver didn't accpet the trip. Please refresh the data", } )
+      }
+    }
+  }
 }
 
 exports.isDriverHasCompanyAccess = async (driver_data, company_id) => {
