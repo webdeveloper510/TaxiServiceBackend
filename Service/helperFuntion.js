@@ -48,7 +48,7 @@ exports.partnerAccountRefreshTrip = async (companyId , io) => {
   const companyData = await user_model.findOne({ _id: companyId });
 
   if (companyData?.socketId) {
-    await io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "Trip Driver didn't accpet the trip. Please refresh the data", } )
+    await io.to(companyData?.socketId).emit("refreshTrip", { message: "Trip Driver didn't accpet the trip. Please refresh the data", } )
   }
 
   const driverHasCompanyPartnerAccess = await driver_model.find({

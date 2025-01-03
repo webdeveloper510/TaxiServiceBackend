@@ -430,7 +430,7 @@ exports.access_add_trip = async (req, res) => {
     } else {
 
        // refresh trip functionality for the drivers who have account access as partner
-
+      console.log('data.created_by_company_id--------' , data.created_by_company_id)
        partnerAccountRefreshTrip(data.created_by_company_id , req.io);
       res.send({
         code: constant.success_code,
