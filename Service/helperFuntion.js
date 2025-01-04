@@ -105,7 +105,7 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
   // For Super Admin 
 
-  const superAdminData = await user_model.findOne({ role: { $in: [ CONSTANT.ROLES.ADMIN, CONSTANT.ROLES.SUPER_ADMIN] } });
+  const superAdminData = await user_model.find({ role: { $in: [ CONSTANT.ROLES.ADMIN, CONSTANT.ROLES.SUPER_ADMIN] } });
 
   if (superAdminData){
 
