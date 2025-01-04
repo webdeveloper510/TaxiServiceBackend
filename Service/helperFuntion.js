@@ -8,6 +8,7 @@ const admin = require("firebase-admin");
 const serviceAccount = require("../taxi24-5044e-firebase-adminsdk-khmt0-c7c4ce0029.json");
 const twilio = require("twilio");
 const mongoose = require("mongoose");
+const CONSTANT = require("../config/constant");
 // Initialize Twilio client
 const client = twilio(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
 
@@ -41,15 +42,23 @@ exports.userDetailsByToken = async (token) => {
   return user;
 };
 
-exports.partnerAccountRefreshTrip = async (companyId , io) => {
+exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
-  // functionality for the drivers who have account access as partner
+
+
+  
 
   const companyData = await user_model.findOne({ _id: companyId });
 
   if (companyData?.socketId) {
-    await io.to(companyData?.socketId).emit("refreshTrip", { message: "Trip Driver didn't accpet the trip. Please refresh the data", } )
+    await io.to(companyData?.socketId).emit("refreshTrip", { message: message } )
   }
+
+  if (companyData?.webSocketId) {
+    await io.to(companyData?.webSocketId).emit("refreshTrip", { message: message } )
+  }
+
+  // functionality for the drivers who have account access as partner
 
   const driverHasCompanyPartnerAccess = await driver_model.find({
                                                                   parnter_account_access  : {
@@ -66,7 +75,7 @@ exports.partnerAccountRefreshTrip = async (companyId , io) => {
       if (partnerAccount?.socketId) {
 
         // for refresh trip
-        await io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "Trip Driver didn't accpet the trip. Please refresh the data", } )
+        await io.to(partnerAccount?.socketId).emit("refreshTrip", { message: message } )
       }
     }
   }
@@ -88,18 +97,36 @@ exports.partnerAccountRefreshTrip = async (companyId , io) => {
       if (driverCompanyAccess?.socketId) {
 
         // for refresh trip
-        await io.to(driverCompanyAccess?.socketId).emit("refreshTrip", { message: "Trip Driver didn't accpet the trip. Please refresh the data", } )
+        await io.to(driverCompanyAccess?.socketId).emit("refreshTrip", { message: message } )
       }
     }
   }
+
+
+  // For Super Admin 
+
+  const superAdminData = await user_model.findOne({ role: { $in: [ CONSTANT.ROLES.ADMIN, CONSTANT.ROLES.SUPER_ADMIN] } });
+
+  if (superAdminData){
+
+    for (let admin of superAdminData) {
+
+
+      // for partner app side
+      if (admin?.webSocketId) {
+
+        // for refresh trip
+        await io.to(admin?.webSocketId).emit("refreshTrip", { message: message } )
+      }
+    }
+  }
+  
 }
 
 exports.isDriverHasCompanyAccess = async (driver_data, company_id) => {
   // Check If driver has companies account access
 
-  return driver_data.company_account_access.some(
-    (account) => account.company_id.toString() === company_id.toString()
-  ); // return true if driver has access otherwise it will return false
+  return driver_data.company_account_access.some( (account) => account.company_id.toString() === company_id.toString() ); // return true if driver has access otherwise it will return false
 };
 
 exports.sendNotification = async (to, message, title, data) => {

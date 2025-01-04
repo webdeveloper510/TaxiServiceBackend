@@ -323,7 +323,7 @@ exports.add_trip = async (req, res) => {
 
       // refresh trip functionality for the drivers who have account access as partner
 
-      partnerAccountRefreshTrip(data.created_by_company_id , req.io);
+      partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
       return res.send({
                         code: constant.success_code,
                         message: "Saved Successfully",
@@ -431,7 +431,7 @@ exports.access_add_trip = async (req, res) => {
 
        // refresh trip functionality for the drivers who have account access as partner
       
-       partnerAccountRefreshTrip(data.created_by_company_id , req.io);
+       partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data", req.io);
       res.send({
         code: constant.success_code,
         message: "Saved Successfully",

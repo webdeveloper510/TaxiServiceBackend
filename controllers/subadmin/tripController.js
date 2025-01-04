@@ -453,7 +453,7 @@ exports.edit_trip = async (req, res) => {
 
       // refresh trip functionality for the drivers who have account access as partner
       
-      partnerAccountRefreshTrip(trip_data.created_by_company_id , req.io);
+      partnerAccountRefreshTrip(trip_data.created_by_company_id , "A trip has been changed.Please refresh the data", req.io);
       res.send({
         code: constant.success_code,
         message: "Updated successfully",
@@ -547,7 +547,7 @@ exports.access_edit_trip = async (req, res) => {
         }
       }
 
-      partnerAccountRefreshTrip(update_trip.created_by_company_id , req.io);
+      partnerAccountRefreshTrip(update_trip.created_by_company_id , "A trip has been changed.Please refresh the data" , req.io);
       return res.send({
                   code: constant.success_code,
                   message: "Updated successfully",
