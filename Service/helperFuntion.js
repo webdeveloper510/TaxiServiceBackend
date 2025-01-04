@@ -55,7 +55,24 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
   }
 
   if (companyData?.webSocketId) {
-    await io.to(companyData?.webSocketId).emit("refreshTrip", { message: message } )
+    console.log('companyData?.webSocketId------' , companyData?.webSocketId)
+    await io.to(companyData?.webSocketId).emit("refreshTrip", { message: message },
+      (err, ack) => {
+        // console.log("err----", err);
+        console.log("ack---------", ack);
+        if (ack) {
+          console.log(
+            "refreshTrip Trip canceled successfully to company.---" +
+            companyData?.webSocketId
+          );
+        } else {
+          console.log(
+            "refreshTrip getting error in Trip canceled successfullyto company---" +
+            companyData?.webSocketId
+          );
+        }
+      }
+     )
   }
 
   // functionality for the drivers who have account access as partner

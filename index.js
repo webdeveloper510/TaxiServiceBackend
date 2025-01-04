@@ -165,6 +165,7 @@ io.on("connection", (socket) => {
                                     }
                                   );
 
+      let socketId = socket.id;
       const tokenData  = jwt.verify(token, process.env.JWTSECRET);
       const id = tokenData?.companyPartnerAccess ? tokenData?.CompanyPartnerDriverId : tokenData?.userId;
                             
