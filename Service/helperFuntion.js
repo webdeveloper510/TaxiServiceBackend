@@ -56,23 +56,7 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
   if (companyData?.webSocketId) {
     console.log('companyData?.webSocketId------' , companyData?.webSocketId)
-    await io.to(companyData?.webSocketId).emit("refreshTrip", { message: message },
-      (err, ack) => {
-        // console.log("err----", err);
-        console.log("ack---------", ack);
-        if (ack) {
-          console.log(
-            "refreshTrip Trip canceled successfully to company.---" +
-            companyData?.webSocketId
-          );
-        } else {
-          console.log(
-            "refreshTrip getting error in Trip canceled successfullyto company---" +
-            companyData?.webSocketId
-          );
-        }
-      }
-     )
+    await io.to(companyData?.webSocketId).emit("refreshTrip", { message: message })
   }
 
   // functionality for the drivers who have account access as partner
@@ -93,6 +77,13 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
         // for refresh trip
         await io.to(partnerAccount?.socketId).emit("refreshTrip", { message: message } )
+      }
+
+      // for partner web side
+      if (partnerAccount?.webSocketId) {
+
+        // for refresh trip
+        await io.to(partnerAccount?.webSocketId).emit("refreshTrip", { message: message } )
       }
     }
   }
@@ -115,6 +106,13 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
         // for refresh trip
         await io.to(driverCompanyAccess?.socketId).emit("refreshTrip", { message: message } )
+      }
+
+      // for partner web side
+      if (driverCompanyAccess?.webSocketId) {
+
+        // for refresh trip
+        await io.to(driverCompanyAccess?.webSocketId).emit("refreshTrip", { message: message } )
       }
     }
   }
