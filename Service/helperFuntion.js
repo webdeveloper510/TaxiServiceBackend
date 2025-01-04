@@ -129,7 +129,7 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
       // for partner app side
       if (admin?.webSocketId) {
-
+        
         // for refresh trip
         await io.to(admin?.webSocketId).emit("refreshTrip", { message: message } )
       }

@@ -178,11 +178,15 @@ io.on("connection", (socket) => {
           driver.webSocketId = socketId;
           await driver.save();
 
-          io.to(socketId).emit("userConnection",  {
+          await io.to(socketId).emit("userConnection",  {
                                                     code: 200,
                                                     message: "connected successfully with user id: " + id,
+                                                    user:driver,
+                                                    socketId:socketId
                                                   }
                               );
+          
+          
         }
         
         
@@ -196,9 +200,11 @@ io.on("connection", (socket) => {
           user.webSocketId = socketId;
           await user.save();
 
-          io.to(socketId).emit("userConnection",  {
+          await io.to(socketId).emit("userConnection",  {
                                                     code: 200,
                                                     message: "connected successfully with user id: " + id,
+                                                    user:user,
+                                                    socketId:socketId
                                                   }
                               );
         }
@@ -737,7 +743,7 @@ io.on("connection", (socket) => {
     }
 
     try {
-      console.log('accepted the trip by driver')
+      
       const driverBySocketId = await driver_model.findOne({socketId: socket.id});
 
       if (driverBySocketId) {
@@ -766,7 +772,7 @@ io.on("connection", (socket) => {
         if (user.role == "COMPANY") {
 
           if (user?.socketId) {
-            console.log('user app side send------' ,user?.socketId)
+            
             await io.to(user?.socketId).emit("tripAcceptedBYDriver",
                                                                     {
                                                                       trip,
@@ -774,9 +780,9 @@ io.on("connection", (socket) => {
                                                                     },
                                                                     (err, ack) => {
                                                                       if (ack) {
-                                                                        console.log('send to main company')
+                                                                       
                                                                       } else {
-                                                                        console.log('not send to main company')
+                                                                        
                                                                       }
                                                                     }
                                             );
@@ -920,7 +926,7 @@ io.on("connection", (socket) => {
               // for partner app side
               if (partnerAccount?.socketId) {
 
-                console.log('partnerAccount app side send------' ,partnerAccount?.socketId)
+                
                 await io.to(partnerAccount?.socketId).emit("tripAcceptedBYDriver",  {
                                                                                       trip,
                                                                                       message: "Trip accepted successfully",
