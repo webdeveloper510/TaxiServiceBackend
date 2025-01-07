@@ -60,6 +60,7 @@ router.post("/add_sub_admin", [verifyToken], subAdminController.add_sub_admin);
 router.post( "/search_company", [verifyToken], subAdminController.search_company);
 router.post( "/all_company_list", [verifyToken], subAdminController.companyList);
 router.post( "/company_revenue_details/:company_id", [verifyToken], subAdminController.companyRevenueDetails);
+router.post( "/driver_revenue_details/:driver_id", [verifyToken], subAdminController.driverRevenueDetails);
 router.post( "/hotel_revenue_details/:hotel_id", [verifyToken], subAdminController.hotelRevenueDetails);
 router.post("/access_search_company",[verifyToken],subAdminController.access_search_company);
 router.get("/send_request_trip/:id",[verifyToken],subAdminController.send_request_trip);
@@ -146,29 +147,18 @@ router.get("/check_company_id/:company_id", tripController.check_company_id);
 router.post("/add_trip_link", tripController.add_trip_link);
 router.post("/get_trip/:status", [verifyToken], tripController.get_trip);
 router.post("/company_get_trip/:status", [verifyToken], tripController.companyGetTrip);
+router.post("/driver_get_trip/:status", [verifyToken], tripController.driverGetTrip);
 router.post("/hotel_get_trip/:status", [verifyToken], tripController.HotelGetTrip);
 router.post("/company_hotel_list/:company_id", [verifyToken], subAdminController.companyHotelList);
 router.post("/get_access_trip/:status",[verifyToken],tripController.get_access_trip);
 router.post("/get_all_access_trip/:status",[verifyToken],tripController.get_all_access_trip);
 
-router.post(
-  "/get_trip_for_hotel/:status",
-  [verifyToken],
-  tripController.get_trip_for_hotel
-);
+router.post( "/get_trip_for_hotel/:status", [verifyToken], tripController.get_trip_for_hotel);
 router.post("/get_recent_trip", [verifyToken], tripController.get_recent_trip);
 router.post("/get_recent_trip_super",[verifyToken],tripController.get_recent_trip_super);
-router.post(
-  "/get_trip_by_company/:status",
-  [verifyToken],
-  tripController.get_trip_by_company
-);
+router.post( "/get_trip_by_company/:status", [verifyToken], tripController.get_trip_by_company);
 router.get("/get_trip_detail/:id", tripController.get_trip_detail);
-router.get(
-  "/access_get_trip_detail/:id/:company_id",
-  [verifyToken],
-  tripController.access_get_trip_detail
-);
+router.get("/access_get_trip_detail/:id/:company_id",[verifyToken],tripController.access_get_trip_detail);
 router.put("/alocate_driver/:id", [verifyToken], tripController.alocate_driver);
 router.put("/access_alocate_driver/:id", [verifyToken], tripController.access_alocate_driver);
 router.get("/check_trip_request/:id", tripController.check_trip_request);

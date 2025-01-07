@@ -1486,6 +1486,128 @@ exports.companyRevenueDetails = async (req, res) => {
             })
 }
 
+exports.driverRevenueDetails = async (req, res) => {
+  let data = req.body;
+  let driverId = new mongoose.Types.ObjectId(req.params.driver_id);
+  let driverData = await DRIVER.findOne({ _id: driverId });
+
+  if (!driverId || !driverData) {
+
+    return res.send({
+      code: constant.error_code,
+      message: "Invalid company",
+    });
+  }
+  
+  let dateFilter = data.dateFilter; // Corrected variable name
+  if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
+    dateFilter = "all";
+  }
+
+  // Update the query based on the date filter
+  let startDate, endDate;
+  let dateQuery = {};
+  if (dateFilter !== "all") {
+    
+    const today = new Date();
+    switch (dateFilter) {
+      case "this_week":
+        const todayDay = today.getDay();
+        startDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() - todayDay
+        );
+        endDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate() + (6 - todayDay)
+        );
+        break;
+      case "this_month":
+        startDate = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 1));
+        endDate = new Date(Date.UTC(today.getFullYear(), today.getMonth() + 1, 0));
+        break;
+      case "this_year":
+        
+
+        startDate = new Date(Date.UTC(today.getFullYear(), 0, 1));
+        endDate = new Date(Date.UTC(today.getFullYear(), 11, 31));
+        break;
+      case "dateRange":
+        startDate = new Date(req.body.startDate);
+        endDate = new Date(req.body.endDate);
+
+        // Modify the Date object with setHours
+        
+      default:
+        break;
+    }
+
+    if (startDate && endDate) { 
+
+      startDate.setUTCHours(0, 0, 1, 0);
+      endDate.setUTCHours(23, 59, 59, 999);
+      
+      // Convert the Date objects to ISO 8601 strings
+      // startDate = startDate.toISOString();
+      // endDate = endDate.toISOString();
+
+      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+    }
+    
+  }
+
+  console.log(dateQuery)
+  // Revenue and tripCount calculations Start
+  const companyTripPendingData =  await getDriverRevenueByStatus(driverId , constant.TRIP_STATUS.PENDING , false , dateQuery); // pending trip
+  const companyTripCompletedWithPaymentData =  await getDriverRevenueByStatus(driverId , constant.TRIP_STATUS.COMPLETED , true , dateQuery); // completed with payment
+  const companyTripCompletedWithoutPaymentData =  await getDriverRevenueByStatus(driverId , constant.TRIP_STATUS.COMPLETED , false , dateQuery); // completed without payment
+  const companyTripBookedPaymentData =  await getDriverRevenueByStatus(driverId , constant.TRIP_STATUS.BOOKED , false , dateQuery); // When driver accepted the trip but not started yet
+  const companyTripActivePaymentData =  await getDriverRevenueByStatus(driverId , constant.TRIP_STATUS.ACTIVE , false , dateQuery); // when driver going to take customer
+  // Revenue calculations End
+  
+  const dateList = await createBarChartDateData(req);
+  const tripBarChartResult = await getDriverTripCountWithLable(driverId , dateList   , constant.TRIP_STATUS.COMPLETED , true);
+  // let barCharData = [];
+
+  // if (dateList.length > 0) {
+
+  //   for(let value of dateList){
+  //     let newDateQuery = { pickup_time: { $gte: value.startDate, $lte: value.endDate } };
+  //     const tripData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , newDateQuery); // completed with payment
+  //     barCharData.push({ label : value.label , tripCount: tripData.tripCount})
+  //   }
+  // }
+  // console.log('dateList---' , dateList)
+
+  return res.send({
+                code:constant.success_code,
+                // data:data,
+                // company_id: companyId,
+                dateQuery: dateQuery,
+                chartRevenue: [
+                  { value: companyTripPendingData.revenue.toFixed(2), label: 'Pending Trips' },
+                  { value: companyTripBookedPaymentData.revenue.toFixed(2), label: 'Booked Trips' },
+                  { value: companyTripActivePaymentData.revenue.toFixed(2), label: 'Active Trips' },
+                  { value: companyTripCompletedWithPaymentData.revenue.toFixed(2), label: 'Completed Trips with Payment' },
+                  { value: companyTripCompletedWithoutPaymentData.revenue.toFixed(2), label: 'Completed Trips without Payment' },
+                  
+                ],
+                chartTripCount: [
+                  { value: companyTripPendingData.tripCount, label: 'Pending Trips' },
+                  { value: companyTripBookedPaymentData.tripCount, label: 'Booked Trips' },
+                  { value: companyTripActivePaymentData.tripCount, label: 'Active Trips' },
+                  { value: companyTripCompletedWithPaymentData.tripCount, label: 'Completed Trips with Payment' },
+                  { value: companyTripCompletedWithoutPaymentData.tripCount, label: 'Completed Trips without Payment' },
+                  
+                ],
+                tripBarChartResult:tripBarChartResult,
+                // dateQuery:dateQuery,
+                
+            })
+}
+
 exports.hotelRevenueDetails = async (req, res) => {
   let data = req.body;
   let hotelId = new mongoose.Types.ObjectId(req.params.hotel_id);
@@ -1662,6 +1784,46 @@ const getCompanyTripCountWithLable  = async (companyId ,dateList , tripStatus , 
             _id: null,
             totalTrips: { $sum: 1 },
             totalPayments: { $sum: "$companyPaymentAmount" }, // Replace "price" with the field representing payment amount
+          },
+        },
+    ];
+    return acc;
+  }, {});
+
+  const result = await TRIP.aggregate([
+      { $facet: facets }
+  ]);
+
+  const monthlyTripCounts = Object.entries(result[0]).map(([label, data]) => ({
+      label,
+      tripCount: data.length > 0 ? data[0].totalTrips : 0,
+      totalRevenue: data.length > 0 ? data[0].totalPayments: 0
+  }));
+
+  return monthlyTripCounts;
+}
+
+const getDriverTripCountWithLable  = async (driverId ,dateList , tripStatus , isPaid) => {
+
+  const facets = dateList.reduce((acc, month) => {
+    acc[month.label] = [
+        { 
+            $match: { 
+                pickup_date_time: { $gte: new Date(month.startDate), $lte: new Date(month.endDate) },
+                driver_name: driverId,
+                status: true,
+                trip_status: tripStatus,
+                is_deleted: false,
+                is_paid: isPaid
+            } 
+        },
+        // { $count: "tripCount" }
+
+        {
+          $group: {
+            _id: null,
+            totalTrips: { $sum: 1 },
+            totalPayments: { $sum: "$driverPaymentAmount" }, // Replace "price" with the field representing payment amount
           },
         },
     ];
@@ -1922,6 +2084,43 @@ const getComapnyRevenueByStatus = async (companyId ,tripStatus  = constant.TRIP_
         $group: {
             _id: null,
             companyPaymentAmount: { $sum: "$companyPaymentAmount" },
+            tripCount: { $sum: 1 }
+        }
+    }
+  ]);
+
+  // console.log('matchCompletedPaidCriteria------' , matchCompletedPaidCriteria , result)
+  return { revenue: result.length > 0 ? result[0].companyPaymentAmount : 0 , tripCount: result.length > 0 ? result[0].tripCount : 0 };
+}
+
+const getDriverRevenueByStatus = async (driverId ,tripStatus  = constant.TRIP_STATUS.PENDING, paidStatus = false , dateQuery = {}) => {
+
+  let matchCompletedPaidCriteria = {
+    $and: [
+      { driver_name : driverId},
+      { status: true },
+      { trip_status: tripStatus },
+      { is_deleted: false },
+      {is_paid: paidStatus},
+      
+    ],
+  };
+
+  if (dateQuery) {
+    matchCompletedPaidCriteria.$and.push(dateQuery);
+    console.log('dateQuery-------' , Object.keys(dateQuery).length)
+  }
+  
+  console.log('matchCompletedPaidCriteria------' , JSON.stringify(matchCompletedPaidCriteria))
+
+  const result = await TRIP.aggregate([
+    {
+        $match: matchCompletedPaidCriteria
+    },
+    {
+        $group: {
+            _id: null,
+            companyPaymentAmount: { $sum: "$driverPaymentAmount" },
             tripCount: { $sum: 1 }
         }
     }
