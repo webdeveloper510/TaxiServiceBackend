@@ -186,8 +186,6 @@ io.on("connection", (socket) => {
                                                     socketId:socketId
                                                   }
                               );
-          
-          
         }
         
         

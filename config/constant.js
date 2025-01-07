@@ -30,5 +30,12 @@ module.exports={
         UNVERIFIED: 'Unverified', 
         REGISTERED : 'Registered',
         DELETED : 'Deleted',
+    },
+
+    DRIVER_OFFLINE_ONLINE_STATUS: {
+        ALL: 'All',
+        OFFLINE: 'Offline', 
+        ONLINE : 'Online',
+        INRIDE : 'InRide',
     }
 }

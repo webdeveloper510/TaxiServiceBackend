@@ -1101,11 +1101,15 @@ exports.get_drivers_super = async (req, res) => {
     const data = req.body;
     const search = data.search || "";
     const selectedType = data.selectedType || constant.DRIVER_STATUS.VERIFIED;
+    const offline_online_check = data.offline_online_check || constant.DRIVER_OFFLINE_ONLINE_STATUS.ALL;
     const page = parseInt(data.page) || 1; // Current page number, default to 1
     const limit = parseInt(data.limit) || 10; // Number of items per page, default to 10
     const skip = (page - 1) * limit;
     const query = { is_deleted: false, };
 
+    
+
+    
     if (search.length > 0) {
       query.$or = [
         { email: { $regex: search, $options: "i" } },
@@ -1115,6 +1119,26 @@ exports.get_drivers_super = async (req, res) => {
         { last_name: { $regex: search, $options: "i" } },
         { address_1: { $regex: search, $options: "i" } },
       ];
+    }
+
+    // When user wnats offline drivers
+    if (offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.ONLINE) {
+      query.status = true;
+      query.is_login = true;
+    } else if(offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.OFFLINE){
+
+      if (query?.$or) {
+        query.$or.push({status: false});
+        query.$or.push({is_login: false});
+      } else {
+        query.$or = [
+          {status: false},
+          {is_login: false}
+        ];
+      }
+      
+    } else if (offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.INRIDE) {
+      query.is_available = false;
     }
 
     if (selectedType === constant.DRIVER_STATUS.VERIFIED) {
@@ -1155,7 +1179,7 @@ exports.get_drivers_super = async (req, res) => {
     ]);
     
     totalCount = totalCount[0]?.totalCount || 0;
-    console.log('totalCount------' ,totalCount)
+    
     // const drivers = await DRIVER.find(query).populate('company_agency_id')
     //   .populate("defaultVehicle")
     //   .sort({ createdAt: -1 })
