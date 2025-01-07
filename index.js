@@ -133,12 +133,13 @@ io.on("connection", (socket) => {
         driverByToken.socketId = socketId;
         await driverByToken.save();
 
-        io.to(socketId).emit("driverNotification", {
-          code: 200,
-          message:
-            "connected successfully with addNewDriver driver id: " +
-            driverByToken._id,
-        });
+        await io.to(socketId).emit("driverNotification", {
+                                                            code: 200,
+                                                            message:
+                                                              "connected successfully with addNewDriver driver id: " +
+                                                              driverByToken._id,
+                                                          }
+                                  );
       }
     } catch (err) {
       console.log("🚀 ~ socket.on ~ err:", err);
@@ -218,6 +219,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("addUser", async ({ token , socketId }) => {
+
+    console.log('token-----' , token)
+    console.log('socketId-----' , socketId)
     if (!token || token == "") {
       io.to(socket.id).emit("userConnection", {
         code: 200,
@@ -277,7 +281,7 @@ io.on("connection", (socket) => {
       
 
     } catch (err) {
-      console.log("🚀 ~ socket.on ~ err:", err);
+      console.log("🚀 ~ socket.on ~ err: add Web user", err);
     }
   });
   socket.on("companyCancelledTrip", async ({ driverId, trip }) => {

@@ -7,6 +7,7 @@ const constant = require("../config/constant");
 const user_model = require("../models/user/user_model");
 const driver_model = require("../models/user/driver_model");
 const constants = require("../config/constant");
+const mongoose = require("mongoose");
 
 // const config = process.env
 verifyToken = async (req, res, next) => {
@@ -16,10 +17,10 @@ verifyToken = async (req, res, next) => {
     let isMobile = platform == "mobile";
     req.isMobile = isMobile;
     if (!token) {
-      res.send({
-        status: 400,
-        message: "something went wrong in token",
-      });
+      return res.send({
+                        status: 400,
+                        message: "something went wrong in token",
+                      });
     } else {
       jwt.verify(token, process.env.JWTSECRET, async (err, decoded) => {
         if (err) {
@@ -104,16 +105,14 @@ verifyToken = async (req, res, next) => {
 
           return res.send({
                             code: constant.tokenError,
-                            message:
-                              "You are blocked by administration. Please contact administration",
+                            message: "You are blocked by administration. Please contact administration",
                           });
         }
         if (user.role == "DRIVER" && user?.is_blocked) {
 
           return res.send({
                             code: constant.tokenError,
-                            message:
-                              "You are blocked by administration. Please contact administration",
+                            message: "You are blocked by administration. Please contact administration",
                           });
         }
         // user=  user.toObject();
@@ -134,6 +133,21 @@ verifyToken = async (req, res, next) => {
 
           req.companyPartnerAccess = true;
           req.CompanyPartnerDriverId = decoded.CompanyPartnerDriverId;
+          const companyId = decoded.userId;
+          const driverHasCompanyPartnerAccess = await driver_model.findOne({
+                                                                            _id: decoded.CompanyPartnerDriverId,
+                                                                            parnter_account_access  : {
+                                                                                                        $elemMatch: { company_id: new mongoose.Types.ObjectId(companyId) },
+                                                                                                      },
+                                                                          });
+
+          // If company take the access back then user will not continue with his account
+          if (!driverHasCompanyPartnerAccess) {
+            return res.send({
+                              status: constant.REVOKED_ACCOUNT_ERROR,
+                              Message: "The company has withdrawn access to the account",
+                            });
+          }
         } else {
           req.companyPartnerAccess = false;
         }
@@ -144,7 +158,7 @@ verifyToken = async (req, res, next) => {
   } catch (err) {
     console.log("🚀 ~ verifyToken= ~ err:", err);
     return res.send({
-                    status: 409,
+                    status: constant.tokenError,
                     Message: "Token is expired",
                   });
     

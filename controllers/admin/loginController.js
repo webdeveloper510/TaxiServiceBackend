@@ -514,10 +514,10 @@ exports.login_otp_verify = async (req, res) => {
     }
   } catch (error) {
     console.log("🚀 ~ exports.login= ~ err:", error);
-    res.send({
-      code: constants.error_code,
-      message: error.message,
-    });
+    return res.send({
+        code: constants.error_code,
+        message: error.message,
+      });
   }
 };
 

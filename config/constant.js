@@ -3,6 +3,7 @@ module.exports={
     error_code:401,
     not_found:404,
     tokenError: 409,
+    REVOKED_ACCOUNT_ERROR: 410,
     server_body_error : 500,
     ACCOUNT_SHARE_REVOKED: "REVOKED",
     ACCOUNT_SHARE_INVOKED: "INVOKED",
