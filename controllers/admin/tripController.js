@@ -493,12 +493,12 @@ exports.add_trip_link = async (req, res) => {
   }
 };
 
-exports.get_trip = async (req, res) => {
+exports.  get_trip = async (req, res) => {
   try {
     let data = req.body;
     let mid = new mongoose.Types.ObjectId(req.userId);
     let getIds = await USER.find({ role: "HOTEL", created_by: req.userId });
-
+    let pay_option = data.pay_option ? JSON.parse(data.pay_option) : []
     let search_value = data.comment ? data.comment : "";
     let ids = [];
     for (let i of getIds) {
@@ -554,6 +554,12 @@ exports.get_trip = async (req, res) => {
             { status: true },
             { trip_status: req.params.status },
             { is_deleted: false },
+            pay_option.length > 0 ? { 
+              $or: pay_option.map((option) => ({
+                                                 pay_option: { $regex: `^${option}$`, $options: "i" },
+                                              })
+                                  ), 
+            } : {},
             dateQuery,
           ],
         },
@@ -643,6 +649,7 @@ exports.get_trip = async (req, res) => {
         },
       },
     ]).sort({ createdAt: -1 });
+
     if (!get_trip) {
       res.send({
         code: constant.error_code,
@@ -1703,6 +1710,7 @@ exports.get_recent_trip = async (req, res) => {
 };
 
 exports.get_recent_trip_super = async (req, res) => {
+  
   try {
     let data = req.body;
     let mid = new mongoose.Types.ObjectId(req.userId);
@@ -1711,6 +1719,27 @@ exports.get_recent_trip_super = async (req, res) => {
     let page = parseInt(data.page) || 1; // Current page number, default to 1
     let limit = parseInt(data.limit) || 10; // Number of results per page, default to 10
     let skip = (page - 1) * limit;
+    let pay_option = data.pay_option ? JSON.parse(data.pay_option) : []
+    
+    let criteria = {
+                    $and: [
+                            {
+                              $or: [
+                                { comment: { $regex: search_value, $options: "i" } },
+                                { "trip_to.address": { $regex: search_value, $options: "i" } },
+                                { "trip_from.address": { $regex: search_value, $options: "i" } },
+                                { company_name: { $regex: search_value, $options: "i" } },
+                                { series_id: { $regex: search_value, $options: "i" } },
+                              ],
+                            },
+                            pay_option.length > 0 ? { 
+                                                      $or: pay_option.map((option) => ({
+                                                                                         pay_option: { $regex: `^${option}$`, $options: "i" },
+                                                                                      })
+                                                                          ), 
+                                                    } : {}   
+                          ]
+                }
 
     let get_trip = await TRIP.aggregate([
       {
@@ -1794,15 +1823,7 @@ exports.get_recent_trip_super = async (req, res) => {
         },
       },
       {
-        $match: {
-          $or: [
-            { comment: { $regex: search_value, $options: "i" } },
-            { "trip_to.address": { $regex: search_value, $options: "i" } },
-            { "trip_from.address": { $regex: search_value, $options: "i" } },
-            { company_name: { $regex: search_value, $options: "i" } },
-            { series_id: { $regex: search_value, $options: "i" } },
-          ],
-        },
+        $match: criteria
       },
       {
         $facet: {

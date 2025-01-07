@@ -37,5 +37,11 @@ module.exports={
         OFFLINE: 'Offline', 
         ONLINE : 'Online',
         INRIDE : 'InRide',
+    },
+    PAY_OPTION: {
+        CASH: 'Cash',
+        HOTEL_ACCOUNT: 'Hotel Account',
+        CARD: 'Card',
+        ON_ACCOUNT: 'ON ACCOUNT'
     }
 }

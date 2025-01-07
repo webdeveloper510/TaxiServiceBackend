@@ -1125,7 +1125,7 @@ exports.get_drivers_super = async (req, res) => {
     if (offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.ONLINE) {
       query.status = true;
       query.is_login = true;
-    } else if(offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.OFFLINE){
+    } else if(offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.OFFLINE){ // When user wnats online drivers
 
       if (query?.$or) {
         query.$or.push({status: false});
@@ -1137,7 +1137,7 @@ exports.get_drivers_super = async (req, res) => {
         ];
       }
       
-    } else if (offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.INRIDE) {
+    } else if (offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.INRIDE) { // When user wnats in ride drivers
       query.is_available = false;
     }
 

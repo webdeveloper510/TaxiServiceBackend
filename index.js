@@ -446,8 +446,7 @@ io.on("connection", (socket) => {
                                           );
 
                 // for refresh trip
-                await io.to(user?.socketId).emit(
-                                                  "refreshTrip",
+                await io.to(user?.socketId).emit("refreshTrip",
                                                   {
                                                     message:
                                                       "Trip Driver didn't accpet the trip. Please refresh the data",
@@ -456,15 +455,8 @@ io.on("connection", (socket) => {
                                                     // console.log("err----", err);
                                                     // console.log("ack---------", ack);
                                                     if (ack) {
-                                                      // console.log(
-                                                      //   "refreshTrip Trip canceled successfully by driver.---" +
-                                                      //     user?.webSocketId
-                                                      // );
                                                     } else {
-                                                      // console.log(
-                                                      //   "refreshTrip getting error in Trip canceled successfully by driver.---" +
-                                                      //     user?.webSocketId
-                                                      // );
+                                                     
                                                     }
                                                   }
                                                 );
@@ -484,15 +476,9 @@ io.on("connection", (socket) => {
                                                         // console.log("err----", err);
                                                         // console.log("ack---------", ack);
                                                         if (ack) {
-                                                          // console.log(
-                                                          //   "Trip canceled successfully by driver. sending to main company---" +
-                                                          //     user?.webSocketId
-                                                          // );
+                                                         
                                                         } else {
-                                                          // console.log(
-                                                          //   " getting error in Trip canceled successfully by driver. sending to main company---" +
-                                                          //     user?.webSocketId
-                                                          // );
+                                                         
                                                         }
                                                       }
                                                     );
@@ -508,15 +494,9 @@ io.on("connection", (socket) => {
                                                         // console.log("err----", err);
                                                         // console.log("ack---------", ack);
                                                         if (ack) {
-                                                          // console.log(
-                                                          //   "refreshTrip Trip canceled successfully by driver.---" +
-                                                          //     user?.webSocketId
-                                                          // );
+                                                          
                                                         } else {
-                                                          // console.log(
-                                                          //   "refreshTrip getting error in Trip canceled successfully by driver.---" +
-                                                          //     user?.webSocketId
-                                                          // );
+                                                          
                                                         }
                                                       }
                                                     );
@@ -620,15 +600,9 @@ io.on("connection", (socket) => {
                                                   // console.log("err----", err);
                                                   // console.log("ack---------", ack);
                                                   if (ack) {
-                                                    // console.log(
-                                                    //   "Message successfully delivered to the client. to assigned drivers---" +
-                                                    //     socketId
-                                                    // );
+                                                    
                                                   } else {
-                                                    // console.log(
-                                                    //   "Message delivery failed or was not acknowledged by the client. to assigned drivers---" +
-                                                    //     socketId
-                                                    // );
+                                                    
                                                   }
                                                 }
                                               );
@@ -895,15 +869,9 @@ io.on("connection", (socket) => {
                                                           // console.log("err----", err);
                                                           // console.log("ack---------", ack);
                                                           if (ack) {
-                                                            // console.log(
-                                                            //   "Trip accepted successfully to the assigned driver.---" +
-                                                            //     socketId
-                                                            // );
+                                                            
                                                           } else {
-                                                            // console.log(
-                                                            //   "getting error in Trip accepted successfully to the assigned driver.---" +
-                                                            //     socketId
-                                                            // );
+                                                            
                                                           }
                                                         }
                                                       );
