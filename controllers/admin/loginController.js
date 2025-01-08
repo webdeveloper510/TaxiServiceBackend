@@ -303,10 +303,7 @@ exports.login = async (req, res) => {
       
 
       //  OTP will send during the login for ADMIN AND SUPER_ADMIN
-      if (
-        check_data.role == constant.ROLES.ADMIN ||
-        check_data.role == constant.ROLES.SUPER_ADMIN
-      ) {
+      if ( check_data.role == constant.ROLES.ADMIN || check_data.role == constant.ROLES.SUPER_ADMIN ) {
         if (check_data.phone != "") {
           const uniqueId = `${uuidv4()}${Date.now()}${check_data._id}`;
 
@@ -370,6 +367,20 @@ exports.login = async (req, res) => {
         check_data.deviceToken = deviceToken;
       }
       await check_data.save();
+
+      if (check_data.isDriver) {
+
+        await DRIVER.findOneAndUpdate(
+                                        {_id: check_data.driverId},
+                                        {deviceToken: deviceToken},
+                                        { 
+                                          new: true,     // Return the updated document
+                                          upsert: false, // Do not create a new document if none is found
+                                        }
+                                      )
+      }
+      
+
       
       let getData;
       if (check_data.role == constant.ROLES.HOTEL) {

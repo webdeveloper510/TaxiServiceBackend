@@ -69,6 +69,7 @@ app.use((req, res, next) => {
 const PORT = process.env.PORT;
 httpServer.listen(PORT, () =>
   console.log(`app listening at http://localhost:${PORT}`)
+
 );
 
 app.use(function (req, res, next) {
@@ -1074,19 +1075,42 @@ const OfflineDriver = async (driverInfo) => {
 async function checkTripsAndSendNotifications() {
   try {
     const currentDate = new Date();
-    const fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
-    const thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
-    const trips = await trip_model
-      .find({
-        pickup_date_time: { $lte: fifteenMinutesBefore },
-        pickup_date_time: { $gte: thirteenMinutesBefore },
-        fifteenMinuteNotification: false,
-      })
-      .populate("driver_name");
+    // const fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
+    // const thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
+
+    let fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
+    let thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
+
+    const { startDateTime, endDateTime  , currentDateTime} = get15thMinuteRangeUTC();
+    fifteenMinutesBefore = new Date(endDateTime);
+    thirteenMinutesBefore = new Date(startDateTime);
+
+    const trips = await trip_model.find({
+                                          pickup_date_time: {$gte: (startDateTime), $lte: endDateTime },
+                                          // pickup_date_time: { $gte: thirteenMinutesBefore },
+                                          fifteenMinuteNotification: false,
+                                        })
+                                        .populate("driver_name");
+    
+    console.log('currentDateTime----' , currentDateTime)
+    console.log('thirteenMinutesBefore----' , thirteenMinutesBefore)
+    console.log('fifteenMinutesBefore----' , fifteenMinutesBefore)                                
+    
+    console.log('trips----' , trips)
+
     const notifications = [];
     const ids = [];
+
+    // for(let trip of trips) {
+    //   let companyAgecnyData = await agency_model.findOne({user_id: trip?.created_by_company_id});
+    //   const driverNotificationMessage = `Your trip with ID ${trip.trip_id} is scheduled to begin in 20 minutes. Kindly prepare accordingly.`;
+    //   const companyNotificationMessage = `Your trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
+    //   const driverPartnerAccountNotificationMessage = `Your (partner account - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
+    // }
+
+    
     trips.forEach((trip) => {
-      const message = `Your trip have ID ${trip._id} is scheduled in 15 minutes. Please get ready!`;
+      const message = `Your trip with ID ${trip.trip_id} is scheduled to begin in 15 minutes. Kindly prepare accordingly.`;
       ids.push(trip._id);
 
       if (trip?.driver_name?.deviceToken) {
@@ -1127,8 +1151,46 @@ async function logoutDriverAfterThreeHour() {
   }
 }
 
+const get15thMinuteRangeUTC = () => {
+
+  let currentTime = new Date();
+
+  let currentDateTime = new Date();
+  currentDateTime.setUTCHours(currentDateTime.getUTCHours());
+  currentDateTime.setUTCMinutes(currentDateTime.getUTCMinutes());
+
+  currentDateTime = currentDateTime.toISOString();
+  // Add 15 minutes to the current time
+  let futureTime = new Date(currentTime.getTime() + 20 * 60 * 1000);
+  
+  // Set the start time at the 15th minute in UTC with 0 seconds and 0 milliseconds
+  let startDateTime = new Date(futureTime);
+  startDateTime.setUTCHours(futureTime.getUTCHours());
+  startDateTime.setUTCMinutes(futureTime.getUTCMinutes());
+  startDateTime.setUTCSeconds(0); // Start at the 0th second
+  startDateTime.setUTCMilliseconds(0); // Start at the 0th millisecond
+
+  startDateTime = startDateTime.toISOString();
+
+  // Set the end time at the 15th minute in UTC with 59 seconds and 999 milliseconds
+  let endDateTime = new Date(futureTime);
+  endDateTime.setUTCHours(futureTime.getUTCHours());
+  endDateTime.setUTCMinutes(futureTime.getUTCMinutes());
+  endDateTime.setUTCSeconds(59); // End at the 59th second
+  endDateTime.setUTCMilliseconds(999); // End at the 999th millisecond
+                      
+  endDateTime = endDateTime.toISOString();
+
+  return { startDateTime, endDateTime , currentDateTime};
+};
+
+
 // Schedule the task using cron
 cron.schedule("* * * * *", () => {
+
+  console.log('running evry minute' , new Date())
+
+  // Send push notification to driver and company when trip will start in 15 minutes
   checkTripsAndSendNotifications();
   // logoutDriverAfterThreeHour()
 });
