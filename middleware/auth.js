@@ -144,7 +144,7 @@ verifyToken = async (req, res, next) => {
           // If company take the access back then user will not continue with his account
           if (!driverHasCompanyPartnerAccess) {
             return res.send({
-                              status: constant.REVOKED_ACCOUNT_ERROR,
+                              code: constant.REVOKED_ACCOUNT_ERROR,
                               Message: "The company has withdrawn access to the account",
                             });
           }
