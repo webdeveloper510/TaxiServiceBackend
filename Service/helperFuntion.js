@@ -42,11 +42,81 @@ exports.userDetailsByToken = async (token) => {
   return user;
 };
 
-exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
+// When driver will not found the customer on trip start location then it will called no show case
+exports.noShowTrip = async (companyId , trip_data , message, io) => {
+
+  const companyData = await user_model.findOne({ _id: companyId });
+
+  if (companyData?.socketId) {
+    await io.to(companyData?.socketId).emit("noShow", { message , trip_data } )
+  }
+
+  if (companyData?.webSocketId) {
+    console.log('companyData?.webSocketId------' , companyData?.webSocketId)
+    await io.to(companyData?.webSocketId).emit("noShow", { message , trip_data })
+  }
+
+  // functionality for the drivers who have account access as partner
+
+  const driverHasCompanyPartnerAccess = await driver_model.find({
+                                                                  parnter_account_access  : {
+                                                                                              $elemMatch: { company_id: new mongoose.Types.ObjectId(companyId) },
+                                                                                            },
+                                                                });
+
+  if (driverHasCompanyPartnerAccess){
+
+    for (let partnerAccount of driverHasCompanyPartnerAccess) {
 
 
+      // for partner app side
+      if (partnerAccount?.socketId) {
 
+        // for refresh trip
+        await io.to(partnerAccount?.socketId).emit("noShow", { message , trip_data } )
+      }
+
+      // for partner web side
+      if (partnerAccount?.webSocketId) {
+
+        // for refresh trip
+        await io.to(partnerAccount?.webSocketId).emit("noShow", { message , trip_data } )
+      }
+    }
+  }
+
+  // For the driver who has company access
+
+  const driverHasCompanyAccess = await driver_model.find({
+                                                            company_account_access  : {
+                                                                                        $elemMatch: { company_id: new mongoose.Types.ObjectId(companyId) },
+                                                                                      },
+                                                        });
+
+  if (driverHasCompanyAccess){
+
+    for (let driverCompanyAccess of driverHasCompanyAccess) {
+
+
+      // for partner app side
+      if (driverCompanyAccess?.socketId) {
+
+        // for refresh trip
+        await io.to(driverCompanyAccess?.socketId).emit("noShow", { message , trip_data } )
+      }
+
+      // for partner web side
+      if (driverCompanyAccess?.webSocketId) {
+
+        // for refresh trip
+        await io.to(driverCompanyAccess?.webSocketId).emit("noShow", { message , trip_data } )
+      }
+    }
+  }
   
+}
+
+exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
   const companyData = await user_model.findOne({ _id: companyId });
 
