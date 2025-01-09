@@ -1928,7 +1928,9 @@ exports.get_recent_trip_super = async (req, res) => {
     let page = parseInt(data.page) || 1; // Current page number, default to 1
     let limit = parseInt(data.limit) || 10; // Number of results per page, default to 10
     let skip = (page - 1) * limit;
-    let pay_option = data.pay_option ? JSON.parse(data.pay_option) : []
+    let pay_option = data.pay_option ? JSON.parse(data.pay_option) : [];
+    let trip_status = data.trip_status || '';
+    trip_status = trip_status == 'All' || trip_status == '' ? '' : trip_status; 
     
     let criteria = {
                     $and: [
@@ -1946,10 +1948,13 @@ exports.get_recent_trip_super = async (req, res) => {
                                                                                          pay_option: { $regex: `^${option}$`, $options: "i" },
                                                                                       })
                                                                           ), 
-                                                    } : {}   
+                                                    } : {},
+                                                    
+                            trip_status ? {trip_status: trip_status} : {}
                           ]
                 }
 
+          
     let get_trip = await TRIP.aggregate([
       {
         $match: {
