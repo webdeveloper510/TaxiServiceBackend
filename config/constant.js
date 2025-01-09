@@ -23,7 +23,8 @@ module.exports={
         ACTIVE: 'Active', // When driver is going on customer destination
         COMPLETED: 'Completed', // When driver reached to the destination
         CANCELED: 'Canceled', //  When compnay cancelled the trip from driver
-        PENDING: 'Pending' // When trip is created
+        PENDING: 'Pending', // When trip is created
+        NO_SHOW: 'NoShow'// when user will not be present at the trip start location
     },
     DRIVER_STATUS: {
         VERIFIED: 'Verified',

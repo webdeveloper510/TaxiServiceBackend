@@ -134,16 +134,16 @@ const trip = new Schema({
         }
     },
     created_by:{
-        type:mongoose.Schema.Types.ObjectId,ref:'users',
+        type:mongoose.Schema.Types.ObjectId,ref:'user',
     },
     created_by_company_id: {
-        type:mongoose.Schema.Types.ObjectId,ref:'users',
+        type:mongoose.Schema.Types.ObjectId,ref:'user',
     },
     created_by_accessed_driver_id: { // If driver has company's account to create  , update and delete access
-        type:mongoose.Schema.Types.ObjectId,ref:'drivers', 
+        type:mongoose.Schema.Types.ObjectId,ref:'driver', 
     },
     hotel_id: { // If hotel added in the trip User_id of agencies collection
-        type:mongoose.Schema.Types.ObjectId,ref:'agencies', 
+        type:mongoose.Schema.Types.ObjectId,ref:'agency', 
         default: null,
     },
 

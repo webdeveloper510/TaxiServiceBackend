@@ -1089,8 +1089,9 @@ async function checkTripsAndSendNotifications() {
                                           pickup_date_time: {$gte: (startDateTime), $lte: endDateTime },
                                           // pickup_date_time: { $gte: thirteenMinutesBefore },
                                           fifteenMinuteNotification: false,
+                                          driver_name: { $ne: null }
                                         })
-                                        .populate("driver_name");
+                                        .populate([{ path: "driver_name" }, { path: "created_by_company_id" }]);
     
     console.log('currentDateTime----' , currentDateTime)
     console.log('thirteenMinutesBefore----' , thirteenMinutesBefore)
@@ -1101,30 +1102,79 @@ async function checkTripsAndSendNotifications() {
     const notifications = [];
     const ids = [];
 
-    // for(let trip of trips) {
-    //   let companyAgecnyData = await agency_model.findOne({user_id: trip?.created_by_company_id});
-    //   const driverNotificationMessage = `Your trip with ID ${trip.trip_id} is scheduled to begin in 20 minutes. Kindly prepare accordingly.`;
-    //   const companyNotificationMessage = `Your trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
-    //   const driverPartnerAccountNotificationMessage = `Your (partner account - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
-    // }
+    for(let trip of trips) {
+      let companyAgecnyData = await agency_model.findOne({user_id: trip?.created_by_company_id});
+      const driverNotificationMessage = `Your trip with ID ${trip.trip_id} is scheduled to begin in 20 minutes. Kindly prepare accordingly.`;
+      const driverNotificationTitleMessage = `Driver Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
+      const companyNotificationMessage = `Your trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
+      const companyNotificationTitleMessage = `Company Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
+      const driverPartnerAccountNotificationMessage = `Your (partner account - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
+      const driverPartnerAccountNotificationTitleMessage = `Company (partner account - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
+      const driverCompanyAccountNotificationMessage = `Your (company access - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
+      const driverCompanyAccountNotificationTitleMessage = `Company (company access - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
+      // send to trip's driver
+      if (trip?.driver_name?.deviceToken) {
+       
+          sendNotification( trip?.driver_name?.deviceToken, driverNotificationMessage, driverNotificationTitleMessage, trip )
+      }
+
+      // send to trip's company
+      if (trip.created_by_company_id?.deviceToken) {
+        sendNotification( trip.created_by_company_id?.deviceToken, companyNotificationMessage, companyNotificationTitleMessage, trip )
+      }
+
+      // functionality for the drivers who have account access as partner
+      const driverHasCompanyPartnerAccess = await driver_model.find({
+                                                                      parnter_account_access  : {
+                                                                                                  $elemMatch: { company_id: new mongoose.Types.ObjectId(trip?.created_by_company_id) },
+                                                                                                },
+                                                                    });
+      
+      if (driverHasCompanyPartnerAccess){
+
+        for (let partnerAccount of driverHasCompanyPartnerAccess) {
+          if (partnerAccount?.deviceToken) {
+            await sendNotification( partnerAccount?.deviceToken, driverPartnerAccountNotificationMessage, driverPartnerAccountNotificationTitleMessage, trip )
+          }
+        }
+      }
+
+      // functionality for the drivers who have account access as partner
+      const driverHasCompanyAccess = await driver_model.find({
+                                                              company_account_access  : {
+                                                                                          $elemMatch: { company_id: new mongoose.Types.ObjectId(trip?.created_by_company_id) },
+                                                                                        },
+                                                            });
+
+      if (driverHasCompanyAccess){
+
+        for (let accountAccess of driverHasCompanyAccess) {
+          if (accountAccess?.deviceToken) {
+            await sendNotification( accountAccess?.deviceToken, driverCompanyAccountNotificationMessage, driverCompanyAccountNotificationTitleMessage, trip )
+          }
+        }
+      }
+
+      
+    }
 
     
-    trips.forEach((trip) => {
-      const message = `Your trip with ID ${trip.trip_id} is scheduled to begin in 15 minutes. Kindly prepare accordingly.`;
-      ids.push(trip._id);
+    // trips.forEach((trip) => {
+    //   const message = `Your trip with ID ${trip.trip_id} is scheduled to begin in 15 minutes. Kindly prepare accordingly.`;
+    //   ids.push(trip._id);
 
-      if (trip?.driver_name?.deviceToken) {
-        notifications.push(
-          sendNotification(
-            trip?.driver_name?.deviceToken,
-            message,
-            message,
-            trip
-          )
-        );
-      }
-    });
-    const res = await Promise.all(notifications);
+    //   if (trip?.driver_name?.deviceToken) {
+    //     notifications.push(
+    //       sendNotification(
+    //         trip?.driver_name?.deviceToken,
+    //         message,
+    //         message,
+    //         trip
+    //       )
+    //     );
+    //   }
+    // });
+    // const res = await Promise.all(notifications);
 
     await trip_model.updateMany(
       { _id: { $in: ids } },

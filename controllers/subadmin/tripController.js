@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
-const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
+const {partnerAccountRefreshTrip , noShowTrip} = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 
 exports.add_trip = async (req, res) => {
@@ -450,6 +450,43 @@ exports.edit_trip = async (req, res) => {
           // })
         }
       }
+
+      // refresh trip functionality for the drivers who have account access as partner
+      
+      partnerAccountRefreshTrip(trip_data.created_by_company_id , "A trip has been changed.Please refresh the data", req.io);
+      res.send({
+        code: constant.success_code,
+        message: "Updated successfully",
+        result: update_trip,
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
+exports.noShowUser = async (req, res) => {
+  try {
+    let data = req.body;
+    let criteria = { _id: req.params.id };
+    let trip_data = await TRIP.findOne(criteria);
+
+    let option = { new: true };
+    data.status = true;
+
+    let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
+    if (!update_trip) {
+      res.send({
+        code: constant.error_code,
+        message: "Unable to update the trip",
+      });
+    } else {
+      
+      // When driver will not found the customer on trip start location then it will called no show case
+      noShowTrip(trip_data.created_by_company_id , trip_data  , "Driver didn't find the customer on location", req.io);
 
       // refresh trip functionality for the drivers who have account access as partner
       
