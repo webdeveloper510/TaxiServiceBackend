@@ -476,7 +476,7 @@ exports.noShowUser = async (req, res) => {
 
     let option = { new: true };
     data.status = true;
-
+    data.trip_status = 'Pending';
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
     if (!update_trip) {
       res.send({
@@ -485,23 +485,23 @@ exports.noShowUser = async (req, res) => {
       });
     } else {
       
-      // When driver will not found the customer on trip start location then it will called no show case
-      noShowTrip(trip_data.created_by_company_id , trip_data  , "Driver didn't find the customer on location", req.io);
+      // If the driver does not find the customer at the trip's starting location, it will be classified as a "no-show" case.
+      noShowTrip(trip_data.created_by_company_id , trip_data  , `The driver was unable to locate the customer at the specified location for Trip ID:- ${update_trip.trip_id}`, req.io);
 
-      // refresh trip functionality for the drivers who have account access as partner
+      // Implement a "Refresh Trip" functionality for drivers with partner account access.
       
-      partnerAccountRefreshTrip(trip_data.created_by_company_id , "A trip has been changed.Please refresh the data", req.io);
-      res.send({
-        code: constant.success_code,
-        message: "Updated successfully",
-        result: update_trip,
-      });
+      partnerAccountRefreshTrip(trip_data.created_by_company_id , "The trip details have been updated. Please refresh the data to view the changes", req.io);
+      return res.send({
+                        code: constant.success_code,
+                        message: "Updated successfully",
+                        result: update_trip,
+                      });
     }
   } catch (err) {
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 };
 

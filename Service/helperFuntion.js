@@ -10,6 +10,7 @@ const serviceAccount = require("../taxi24-5044e-firebase-adminsdk-khmt0-c7c4ce00
 const twilio = require("twilio");
 const mongoose = require("mongoose");
 const CONSTANT = require("../config/constant");
+const constant = require("../config/constant");
 // Initialize Twilio client
 const client = twilio(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
 
@@ -46,16 +47,16 @@ exports.userDetailsByToken = async (token) => {
 // When driver will not found the customer on trip start location then it will called no show case
 exports.noShowTrip = async (companyId , trip_data , message, io) => {
 
-  const companyData = await user_model.findOne({ _id: companyId });
+  const companyData = await user_model.findOne({ _id: companyId  , role: constant.ROLES.COMPANY});
   const companyMetaData = await AGENCY_MODEL.findOne({user_id: companyId});
-
+  console.log('companyId-----' , companyId);
   if (companyData?.socketId) {
     await io.to(companyData?.socketId).emit("noShow", { message , trip_data } )
   }
 
   // Informed to the company when driver didn't  find the  customer  on pickup location
   if (companyData?.deviceToken) {
-    sendNotification(companyData?.deviceToken , message , 'NO SHOW CUSTOMER' , {})
+    this.sendNotification(companyData?.deviceToken , message , 'NO SHOW CUSTOMER' , {})
   }
 
   if (companyData?.webSocketId) {
@@ -66,6 +67,7 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
   // functionality for the drivers who have account access as partner
 
   const driverHasCompanyPartnerAccess = await driver_model.find({
+                                                                  _id: { $ne: trip_data.driver_name}, //Notifications and pop-ups will exclude the driver currently assigned to the ride.
                                                                   parnter_account_access  : {
                                                                                               $elemMatch: { company_id: new mongoose.Types.ObjectId(companyId) },
                                                                                             },
@@ -92,7 +94,7 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
 
       // Informed to the company when driver didn't  find the  customer  on pickup location
       if (partnerAccount?.deviceToken) {
-        sendNotification(partnerAccount?.deviceToken , message , 'NO SHOW CUSTOMER ( Partner Account Access:-  ${companyMetaData?.company_name})' , {})
+        this.sendNotification(partnerAccount?.deviceToken , message , 'NO SHOW CUSTOMER ( Partner Account Access:-  ${companyMetaData?.company_name})' , {})
       }
     }
   }
@@ -100,6 +102,7 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
   // For the driver who has company access
 
   const driverHasCompanyAccess = await driver_model.find({
+                                                            _id: { $ne: trip_data.driver_name}, //Notifications and pop-ups will exclude the driver currently assigned to the ride.
                                                             company_account_access  : {
                                                                                         $elemMatch: { company_id: new mongoose.Types.ObjectId(companyId) },
                                                                                       },
@@ -112,7 +115,7 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
 
       // for partner app side
       if (driverCompanyAccess?.socketId) {
-
+        console.log('driverCompanyAccess----------' , driverCompanyAccess.first_name , trip_data.driver_name)
         // for refresh trip
         await io.to(driverCompanyAccess?.socketId).emit("noShow", { message , trip_data } )
       }
@@ -125,8 +128,8 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
       }
 
       // Informed to the company when driver didn't  find the  customer  on pickup location
-      if (partnerAccount?.deviceToken) {
-        sendNotification(partnerAccount?.deviceToken , message , `NO SHOW CUSTOMER (Account Access:-  ${companyMetaData?.company_name})`  , {})
+      if (driverCompanyAccess?.deviceToken) {
+        this.sendNotification(driverCompanyAccess?.deviceToken , message , `NO SHOW CUSTOMER (Account Access:-  ${companyMetaData?.company_name})`  , {})
       }
     }
   }

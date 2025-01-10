@@ -2766,18 +2766,27 @@ exports.favoriteDriver = async (req, res) => {
 exports.update_account_access = async (req, res) => {
   try {
     // USER AGENCY AGENCY
-    const driver = await driver_model
-      .findById(req?.body?.driver_id)
-      .populate("created_by");
+    const driver = await driver_model.findById(req?.body?.driver_id).populate("created_by");
 
     if (!driver) {
       return res.send({
-        code: constant.error_code,
-        message: "Driver not found",
-      });
+                        code: constant.error_code,
+                        message: "Driver not found",
+                      });
     }
 
+    if (req.user?.driverId._id == req?.body?.driver_id) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: `You are not permitted to assign account access to yourself.`,
+                      });
+    }
+
+    console.log(req.user.driverId)
+
     if (req.user?.role == constant.ROLES.COMPANY) {
+
       let user_detail = await USER.findById(req.user._id);
       let company_detials = await AGENCY.findOne({ user_id: req.user._id });
       let driver_company_detials = await USER.findById(driver.driver_company_id);
@@ -2796,7 +2805,7 @@ exports.update_account_access = async (req, res) => {
 
           const response = await sendNotification(
                                                     driver_token,
-                                                    `Shared Account revoked By ${company_detials.company_name}`,
+                                                    `The shared account has been revoked By ${company_detials.company_name}`,
                                                     `Account Revoked`,
                                                     company_detials
                                                   );
@@ -2819,7 +2828,7 @@ exports.update_account_access = async (req, res) => {
         if (driver_token != "") {
           const response = await sendNotification(
                                                     driver_token,
-                                                    `${company_detials.company_name} shared the account with you`,
+                                                    `${company_detials.company_name} has shared the account with you`,
                                                     `Account Shared`,
                                                     company_detials
                                                   );
@@ -2878,11 +2887,12 @@ exports.updatePartnerAccountAccess = async (req, res) => {
                       });
     }
 
-    if (driver._id == req?.body?.driver_id) {
-      // return res.send({
-      //                   code: constant.error_code,
-      //                   message: "Assigning the partner role to oneself is not permitted.",
-      //                 });
+    if (req.user?.driverId._id == req?.body?.driver_id) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: `You are not permitted to assign partner account access to yourself.`,
+                      });
     }
 
     
