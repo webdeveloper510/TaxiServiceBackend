@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user/user_model");
 const driver_model = require("../models/user/driver_model");
 const user_model = require("../models/user/user_model");
+const AGENCY_MODEL = require("../models/user/agency_model.js");
 const { default: axios } = require("axios");
 const admin = require("firebase-admin");
 const serviceAccount = require("../taxi24-5044e-firebase-adminsdk-khmt0-c7c4ce0029.json");
@@ -46,9 +47,15 @@ exports.userDetailsByToken = async (token) => {
 exports.noShowTrip = async (companyId , trip_data , message, io) => {
 
   const companyData = await user_model.findOne({ _id: companyId });
+  const companyMetaData = await AGENCY_MODEL.findOne({user_id: companyId});
 
   if (companyData?.socketId) {
     await io.to(companyData?.socketId).emit("noShow", { message , trip_data } )
+  }
+
+  // Informed to the company when driver didn't  find the  customer  on pickup location
+  if (companyData?.deviceToken) {
+    sendNotification(companyData?.deviceToken , message , 'NO SHOW CUSTOMER' , {})
   }
 
   if (companyData?.webSocketId) {
@@ -82,6 +89,11 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
         // for refresh trip
         await io.to(partnerAccount?.webSocketId).emit("noShow", { message , trip_data } )
       }
+
+      // Informed to the company when driver didn't  find the  customer  on pickup location
+      if (partnerAccount?.deviceToken) {
+        sendNotification(partnerAccount?.deviceToken , message , 'NO SHOW CUSTOMER ( Partner Account Access:-  ${companyMetaData?.company_name})' , {})
+      }
     }
   }
 
@@ -110,6 +122,11 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
 
         // for refresh trip
         await io.to(driverCompanyAccess?.webSocketId).emit("noShow", { message , trip_data } )
+      }
+
+      // Informed to the company when driver didn't  find the  customer  on pickup location
+      if (partnerAccount?.deviceToken) {
+        sendNotification(partnerAccount?.deviceToken , message , `NO SHOW CUSTOMER (Account Access:-  ${companyMetaData?.company_name})`  , {})
       }
     }
   }
