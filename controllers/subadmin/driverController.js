@@ -819,12 +819,48 @@ exports.getAllTripsForDrivers = async (req, res) => {
       });
     } else {
 
-      res.send({
-        code: constant.success_code,
-        message: "Success",
-        totalCount: totalCount,
-        result: get_trip,
-      });
+
+      // For driver only
+      
+      let currentDate = new Date();
+      let startOfCurrentWeek = new Date(currentDate);
+      startOfCurrentWeek.setHours(0, 0, 0, 0);
+      startOfCurrentWeek.setDate( startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay());
+
+      const totalActiveTrips = await  TRIP.find({
+                                                  driver_name: id,
+                                                  trip_status: "Active",
+                                                })
+                                          .countDocuments();
+
+      const totalUnpaidTrips = await TRIP.find({
+                                                driver_name: id,
+                                                trip_status: "Completed",
+                                                is_paid: false,
+                                                drop_time: {
+                                                  $lte: startOfCurrentWeek,
+                                                },
+                                              })
+                                          .countDocuments();
+
+      const totalReachedTrip = await TRIP.find({
+                                                driver_name: id,
+                                                trip_status: "Reached",
+                                                is_paid: false,
+                                              })
+                                          .countDocuments();
+
+
+
+      return res.send({
+                        code: constant.success_code,
+                        message: "Success",
+                        totalCount: totalCount,
+                        result: get_trip,
+                        totalActiveTrips,
+                        totalUnpaidTrips,
+                        totalReachedTrip,
+                      });
     }
   } catch (err) {
     res.send({
