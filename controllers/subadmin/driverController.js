@@ -836,15 +836,30 @@ exports.getTripsCountForDrivers = async (req, res) => {
 
   try {
 
-    let mid = new mongoose.Types.ObjectId(req.userId);
+    let id = new mongoose.Types.ObjectId(req.userId);
 
-    let get_trip =  await TRIP.find({
-                                    driver_name: mid,
-                                    status: true,
-                                    trip_status: req.params.status,
-                                    is_deleted: false
-                                  })
-                              .countDocuments();
+    let criteria = {};
+
+    if (req.user.role == constant.ROLES.COMPANY) {
+
+      criteria =  {
+                    created_by_company_id: id,
+                    status: true,
+                    trip_status: req.params.status,
+                    is_deleted: false
+                  }
+    } else if (req.user.role == constant.ROLES.DRIVER ) {
+
+      criteria =  {
+                    driver_name: id,
+                    status: true,
+                    trip_status: req.params.status,
+                    is_deleted: false
+                  }
+    }
+
+
+    let get_trip =  await TRIP.countDocuments(criteria);
     
     return res.send({
                       code: constant.success_code,
