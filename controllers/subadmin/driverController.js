@@ -701,20 +701,11 @@ exports.getAllTripsForDrivers = async (req, res) => {
 
     if (req.user.role == constant.ROLES.COMPANY) {
 
-      criteria =  {
-                    created_by_company_id: id,
-                    status: true,
-                    trip_status: req.params.status,
-                    is_deleted: false
-                  }
+      criteria.created_by_company_id =  id;
+
     } else if (req.user.role == constant.ROLES.DRIVER ) {
 
-      criteria =  {
-                    driver_name: id,
-                    status: true,
-                    trip_status: req.params.status,
-                    is_deleted: false
-                  }
+      criteria.driver_name = id;
     }
 
     const totalCount = await TRIP.countDocuments(criteria);
