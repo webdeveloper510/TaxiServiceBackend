@@ -49,7 +49,7 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
 
   const companyData = await user_model.findOne({ _id: companyId  , role: constant.ROLES.COMPANY});
   const companyMetaData = await AGENCY_MODEL.findOne({user_id: companyId});
-  console.log('companyId-----' , companyId);
+  
   if (companyData?.socketId) {
     await io.to(companyData?.socketId).emit("noShow", { message , trip_data } )
   }
@@ -60,7 +60,7 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
   }
 
   if (companyData?.webSocketId) {
-    console.log('companyData?.webSocketId------' , companyData?.webSocketId)
+    
     await io.to(companyData?.webSocketId).emit("noShow", { message , trip_data })
   }
 
@@ -145,7 +145,7 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
   }
 
   if (companyData?.webSocketId) {
-    console.log('companyData?.webSocketId------' , companyData?.webSocketId)
+    
     await io.to(companyData?.webSocketId).emit("refreshTrip", { message: message })
   }
 

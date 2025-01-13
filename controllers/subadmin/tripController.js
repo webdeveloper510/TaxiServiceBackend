@@ -476,7 +476,7 @@ exports.noShowUser = async (req, res) => {
 
     let option = { new: true };
     data.status = true;
-    data.trip_status = 'Pending';
+    
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
     if (!update_trip) {
       res.send({
