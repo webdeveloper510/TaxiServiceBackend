@@ -687,24 +687,35 @@ exports.get_trips_for_drivers = async (req, res) => {
 
 exports.getAllTripsForDrivers = async (req, res) => {
   try {
-    let data = req.body;
-    let mid = new mongoose.Types.ObjectId(req.userId);
-    // let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
 
-    // let search_value = data.comment ? data.comment : ''
-    // let ids = []
-    // for (let i of getIds) {
-    //     ids.push(i._id)
-    // }
-    // const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+    let data = req.body;
+    let id = new mongoose.Types.ObjectId(req.userId);
+    
     const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
     const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page if not provided
-    const criteria =  {
-                        driver_name: mid,
+    let   criteria =  {
                         status: true,
                         trip_status: req.params.status,
                         is_deleted: false,
                       };
+
+    if (req.user.role == constant.ROLES.COMPANY) {
+
+      criteria =  {
+                    created_by_company_id: id,
+                    status: true,
+                    trip_status: req.params.status,
+                    is_deleted: false
+                  }
+    } else if (req.user.role == constant.ROLES.DRIVER ) {
+
+      criteria =  {
+                    driver_name: id,
+                    status: true,
+                    trip_status: req.params.status,
+                    is_deleted: false
+                  }
+    }
 
     const totalCount = await TRIP.countDocuments(criteria);
 
