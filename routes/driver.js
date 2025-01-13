@@ -22,6 +22,8 @@ router.post('/get_reports',[verifyToken],driverController.get_reports)
 router.put('/reset_password',[verifyToken],driverController.reset_password)
 router.get('/get_trips_for_driver/:status',[verifyToken],driverController.get_trips_for_driver)
 router.get('/get_trips_for_drivers/:status',[verifyToken],driverController.get_trips_for_drivers)
+router.get('/get_all_trips_for_drivers/:status',[verifyToken],driverController.getAllTripsForDrivers)
+router.get('/get_trips_count_for_drivers/:status',[verifyToken],driverController.getTripsCountForDrivers)
 
 
 // company account access list company_access_list

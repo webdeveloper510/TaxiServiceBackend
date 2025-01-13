@@ -635,6 +635,8 @@ exports.get_trips_for_drivers = async (req, res) => {
         },
       },
     ]).sort({ createdAt: -1 });
+
+
     if (!get_trip) {
       res.send({
         code: constant.error_code,
@@ -682,6 +684,181 @@ exports.get_trips_for_drivers = async (req, res) => {
     });
   }
 };
+
+exports.getAllTripsForDrivers = async (req, res) => {
+  try {
+    let data = req.body;
+    let mid = new mongoose.Types.ObjectId(req.userId);
+    // let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
+
+    // let search_value = data.comment ? data.comment : ''
+    // let ids = []
+    // for (let i of getIds) {
+    //     ids.push(i._id)
+    // }
+    // const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page if not provided
+    const criteria =  {
+                        driver_name: mid,
+                        status: true,
+                        trip_status: req.params.status,
+                        is_deleted: false,
+                      };
+
+    const totalCount = await TRIP.countDocuments(criteria);
+
+    let get_trip = await TRIP.aggregate([
+      {
+        $match: criteria,
+      },
+      {
+        $lookup: {
+          from: "drivers",
+          localField: "driver_name",
+          foreignField: "_id",
+          as: "driver",
+        },
+      },
+      {
+        $lookup: {
+          from: "vehicles",
+          localField: "vehicle",
+          foreignField: "_id",
+          as: "vehicle",
+        },
+      },
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "hotel_id",
+          foreignField: "user_id",
+          as: "hotelData",
+        },
+      },
+
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "created_by_company_id",
+          foreignField: "user_id",
+          as: "userData",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "created_by_company_id",
+          foreignField: "_id",
+          as: "companyData",
+        },
+      },
+      {
+        $unwind: {
+          path: "$userData",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          // userData: 1,
+          customer_phone: "$userData.p_number",
+          company_phone:{ $arrayElemAt: ["$companyData.phone", 0] },
+          trip_from: 1,
+          trip_to: 1,
+          is_paid: 1,
+          pickup_date_time: 1,
+          trip_status: 1,
+          price: 1,
+          createdAt: 1,
+          created_by: 1,
+          status: 1,
+          passenger_detail: 1,
+          customerDetails: 1,
+          vehicle_type: 1,
+          comment: 1,
+          commission: 1,
+          pay_option: 1,
+          company_name: "$userData.company_name",
+          user_company_name: "$userData.company_name",
+          user_company_phone: "$userData.phone",
+          hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
+          driver_name: {
+            $concat: [
+              { $arrayElemAt: ["$driver.first_name", 0] },
+              " ",
+              { $arrayElemAt: ["$driver.last_name", 0] },
+            ],
+          },
+          vehicle: {
+            $concat: [
+              { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+              " ",
+              { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
+            ],
+          },
+          trip_id: 1,
+        },
+      },
+      // Pagination: skip and limit
+      {
+        $skip: (page - 1) * limit, // Skip documents for previous pages
+      },
+      {
+        $limit: limit, // Limit the number of documents returned
+      },
+    ]).sort({ createdAt: -1 });
+
+    
+    if (!get_trip) {
+      res.send({
+        code: constant.error_code,
+        message: "Unable to get the trips",
+      });
+    } else {
+
+      res.send({
+        code: constant.success_code,
+        message: "Success",
+        totalCount: totalCount,
+        result: get_trip,
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
+exports.getTripsCountForDrivers = async (req, res) => {
+
+  try {
+
+    let mid = new mongoose.Types.ObjectId(req.userId);
+
+    let get_trip =  await TRIP.find({
+                                    driver_name: mid,
+                                    status: true,
+                                    trip_status: req.params.status,
+                                    is_deleted: false
+                                  })
+                              .countDocuments();
+    
+    return res.send({
+                      code: constant.success_code,
+                      count: get_trip,
+                    });
+
+  } catch (err) {
+    console.log('getTripsCountForDrivers--~~')
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
 
 exports.login = async (req, res) => {
   try {

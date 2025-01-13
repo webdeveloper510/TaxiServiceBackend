@@ -356,72 +356,76 @@ exports.access_add_trip = async (req, res) => {
     }
 
     let data = req.body;
-    data.created_by = data.created_by ? data.created_by : req.userId;
-    // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
-    data.trip_id = await getNextSequenceValue();
-    let token_code = randToken.generate(
-      4,
-      "1234567890abcdefghijklmnopqrstuvxyz"
-    );
-    let check_user = await USER.findOne({ _id: req.userId });
-    let currentDate = moment().format("YYYY-MM-DD");
-    let check_id = await TRIP.aggregate([
-      {
-        $match: {
-          createdAt: {
-            $gte: new Date(currentDate),
-            $lt: new Date(
-              new Date(currentDate).getTime() + 24 * 60 * 60 * 1000
-            ), // Add 1 day to include the entire day
-          },
-        },
-      },
-    ]);
-    let series = Number(check_id.length) + 1;
-    data.series_id = token_code + "-" + "000" + series;
-
-    data.trip_id = "T" + "-" + data.trip_id;
-    let distance = (
-      geolib.getDistance(
-        {
-          latitude: data.trip_from.log,
-          longitude: data.trip_from.lat,
-        },
-        {
-          latitude: data.trip_to.log,
-          longitude: data.trip_to.lat,
-        }
-      ) * 0.00062137
-    ).toFixed(2);
-
-    let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
-    let fare_per_km = getFare
-      ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12)
-      : 10;
-    if (!data.price) {
-      data.price = (fare_per_km * Number(distance)).toFixed(2);
-    }
 
 
-    if (data?.commission && data?.commission?.commission_value != 0) {
-      
-      let commission = data.commission.commission_value;
-      if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
-        commission = (data.price * data.commission.commission_value) / 100;
+    // when we want insert lot of data at one time to check the
+    // for (let i = 0; i < 900; i++) {
+
+      data.created_by = data.created_by ? data.created_by : req.userId;
+      // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
+      data.trip_id = await getNextSequenceValue();
+      let token_code = randToken.generate(4,"1234567890abcdefghijklmnopqrstuvxyz");
+      let check_user = await USER.findOne({ _id: req.userId });
+      let currentDate = moment().format("YYYY-MM-DD");
+      let check_id = await TRIP.aggregate([
+                                            {
+                                              $match: {
+                                                createdAt: {
+                                                  $gte: new Date(currentDate),
+                                                  $lt: new Date(
+                                                    new Date(currentDate).getTime() + 24 * 60 * 60 * 1000
+                                                  ), // Add 1 day to include the entire day
+                                                },
+                                              },
+                                            },
+                                          ]
+                                        );
+
+      let series = Number(check_id.length) + 1;
+      data.series_id = token_code + "-" + "000" + series;
+
+      data.trip_id = "T" + "-" + data.trip_id;
+      let distance = (geolib.getDistance(
+                                          {
+                                            latitude: data.trip_from.log,
+                                            longitude: data.trip_from.lat,
+                                          },
+                                          {
+                                            latitude: data.trip_to.log,
+                                            longitude: data.trip_to.lat,
+                                          }
+                                        ) * 0.00062137
+                      ).toFixed(2);
+
+      let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
+      let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10;
+      if (!data.price) {
+        data.price = (fare_per_km * Number(distance)).toFixed(2);
       }
 
-      const company = await AGENCY.findOne({ user_id: data.created_by_company_id, });
-      data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
-      data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
-      data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
-    } else {
-      data.superAdminPaymentAmount = 0;
-      data.companyPaymentAmount = 0;
-      data.driverPaymentAmount = data.price
-    }
+
+      if (data?.commission && data?.commission?.commission_value != 0) {
+        
+        let commission = data.commission.commission_value;
+        if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
+          commission = (data.price * data.commission.commission_value) / 100;
+        }
+
+        const company = await AGENCY.findOne({ user_id: data.created_by_company_id, });
+        data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
+        data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
+        data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
+      } else {
+        data.superAdminPaymentAmount = 0;
+        data.companyPaymentAmount = 0;
+        data.driverPaymentAmount = data.price
+      }
 
 
-    let add_trip = await TRIP(data).save();
+      let add_trip = await TRIP(data).save();
+    // }
+    
+
     if (!add_trip) {
       res.send({
         code: constant.error_code,
