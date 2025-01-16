@@ -1575,46 +1575,29 @@ exports.get_all_access_trip = async (req, res) => {
 
     if (companyIds.length == 0) {
       return res.send({
-        code: constant.error_code,
-        message: "No data found",
-        result : []
-      });
+                        code: constant.error_code,
+                        message: "No data found",
+                        result : []
+                      });
     }
     
 
     let data = req.body;
+    const page = parseInt(data.page) || 1; // Default to page 1 if not provided
+    const limit = parseInt(data.limit) || 10; // Default to 10 items per page if not provided
 
-    // let mid = new mongoose.Types.ObjectId(req.userId)
-    // let getIds = await USER.find({ role: 'HOTEL', created_by: req.userId })
-
-    // let search_value = data.comment ? data.comment : ''
-    // let ids = []
-    // for (let i of getIds) {
-    //     ids.push(i._id)
-    // }
-
-    // const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+    let   criteria =  {
+                        status: true,
+                        trip_status: req.params.status,
+                        is_deleted: false,
+                        created_by_company_id: { $in: companyIds.map(id => new mongoose.Types.ObjectId(id)) }
+                      };
+              
+    const totalCount = await TRIP.countDocuments(criteria);
 
     let get_trip = await TRIP.aggregate([
       {
-        $match: {
-          $and: [
-            // {
-            //     $or: [
-            //         { created_by: { $in: objectIds } },
-            //         { created_by: mid },
-            //     ]
-            // },
-            {
-              created_by_company_id: {
-                $in: companyIds.map(id => new mongoose.Types.ObjectId(id))
-              },
-            },
-            { status: true },
-            { trip_status: req.params.status },
-            { is_deleted: false },
-          ],
-        },
+        $match: criteria,
       },
       {
         $lookup: {
@@ -1688,6 +1671,13 @@ exports.get_all_access_trip = async (req, res) => {
           trip_id: 1,
         },
       },
+      // Pagination: skip and limit
+      {
+        $skip: (page - 1) * limit, // Skip documents for previous pages
+      },
+      {
+        $limit: limit, // Limit the number of documents returned
+      },
     ]).sort({ createdAt: -1 });
     if (!get_trip) {
       res.send({
@@ -1698,6 +1688,7 @@ exports.get_all_access_trip = async (req, res) => {
       res.send({
         code: constant.success_code,
         message: "Success",
+        totalCount: totalCount,
         result: get_trip,
       });
     }
