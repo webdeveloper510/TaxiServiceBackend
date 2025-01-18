@@ -107,7 +107,7 @@ io.on("connection", (socket) => {
                               );
       }
     } catch (err) {
-      console.log("🚀 ~ socket.on ~ err:", err);
+      console.log("🚀 ~ socket.on ~ addWebNewDriver err:", err);
     }
   });
 
@@ -144,7 +144,7 @@ io.on("connection", (socket) => {
                                   );
       }
     } catch (err) {
-      console.log("🚀 ~ socket.on ~ err:", err);
+      console.log("🚀 ~ socket.on ~ addNewDriver err:", err);
     }
   });
 
@@ -213,7 +213,7 @@ io.on("connection", (socket) => {
       }
 
     } catch (err) {
-      console.log("🚀 ~ socket.on ~ err:", err);
+      console.log("🚀 ~ socket.on ~ addWebUser err:", err);
     }
   });
 
@@ -280,7 +280,7 @@ io.on("connection", (socket) => {
       
 
     } catch (err) {
-      console.log("🚀 ~ socket.on ~ err: add Web user", err);
+      console.log("🚀 ~ socket.on ~ err: addUser", err);
     }
   });
 
@@ -300,6 +300,8 @@ io.on("connection", (socket) => {
                                                                 trip: trip,
                                                               }
                                               );
+
+        await io.to(driverById?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
       }
 
       if (driverById?.webSocketId) {
@@ -1162,6 +1164,7 @@ const get15thMinuteRangeUTC = () => {
   currentDateTime = currentDateTime.toISOString();
   // Add 15 minutes to the current time
   let futureTime = new Date(currentTime.getTime() + 20 * 60 * 1000);
+  
   
   // Set the start time at the 15th minute in UTC with 0 seconds and 0 milliseconds
   let startDateTime = new Date(futureTime);
