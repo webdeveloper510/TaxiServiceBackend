@@ -1033,7 +1033,7 @@ async function checkTripsAndSendNotifications() {
     let fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
     let thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
 
-    const { startDateTime, endDateTime  , currentDateTime} = get15thMinuteRangeUTC();
+    const { startDateTime, endDateTime  , currentDateTime} = get20thMinuteRangeUTC();
     fifteenMinutesBefore = new Date(endDateTime);
     thirteenMinutesBefore = new Date(startDateTime);
 
@@ -1049,7 +1049,6 @@ async function checkTripsAndSendNotifications() {
     console.log('thirteenMinutesBefore----' , thirteenMinutesBefore)
     console.log('fifteenMinutesBefore----' , fifteenMinutesBefore)                                
     
-    console.log('trips----' , trips)
 
     const notifications = [];
     const ids = [];
@@ -1066,12 +1065,13 @@ async function checkTripsAndSendNotifications() {
       const driverCompanyAccountNotificationTitleMessage = `Company (company access - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
       // send to trip's driver
       if (trip?.driver_name?.deviceToken) {
-       
+          
           sendNotification( trip?.driver_name?.deviceToken, driverNotificationMessage, driverNotificationTitleMessage, trip )
       }
 
       // send to trip's company
       if (trip.created_by_company_id?.deviceToken) {
+        
         sendNotification( trip.created_by_company_id?.deviceToken, companyNotificationMessage, companyNotificationTitleMessage, trip )
       }
 
@@ -1153,7 +1153,7 @@ async function logoutDriverAfterThreeHour() {
   }
 }
 
-const get15thMinuteRangeUTC = () => {
+const get20thMinuteRangeUTC = () => {
 
   let currentTime = new Date();
 
