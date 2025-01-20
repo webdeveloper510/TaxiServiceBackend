@@ -2,6 +2,7 @@ const VEHICLE = require("../../models/user/vehicle_model");
 const USER = require("../../models/user/user_model");
 const VEHICLETYPE = require("../../models/admin/vehicle_type");
 const FARE = require("../../models/user/fare_model");
+const SETTINGS = require("../../models/user/setting_model");
 // const VEHICLETYPE = require('../../models/user/trip_model')
 const constant = require("../../config/constant");
 
@@ -253,5 +254,66 @@ exports.edit_fare = async (req, res) => {
       code: constant.error_code,
       message: err.message,
     });
+  }
+};
+
+exports.adminSettings = async (req, res) => {
+  try {
+    const settings = await SETTINGS.find()
+    res.send({
+      code: constant.error_code,
+      message:settings,
+    });
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
+exports.updateAdminSettings = async (req, res) => {
+  try {
+
+    let data = req.body
+    const settings = await SETTINGS.find()
+    
+    for (const key in data) {
+      
+        const matchedKey = Object.values(constant.ADMIN_SETTINGS).find(value => value === key);
+
+        if (matchedKey) {
+
+            let checkKeyExist = await SETTINGS.findOne({key: key});
+
+            if (checkKeyExist) {
+
+              // settings will be updated
+              let updated_data = { value : data[key] };
+              let option = { new: true };
+              await SETTINGS.findOneAndUpdate({key: key} , updated_data ,option);
+              
+              
+            } else {
+
+              // New settings will be added
+              const newSetting = new SETTINGS({ key: key, value: data[key] });
+              await newSetting.save();
+              
+            }
+        
+        }
+    }
+
+    return res.send({
+                      code: constant.error_code,
+                      message: `The settings have been successfully updated.`,
+                    });
+  } catch (err) {
+
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 };

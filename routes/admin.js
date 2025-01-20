@@ -165,21 +165,9 @@ router.get("/check_trip_request/:id", tripController.check_trip_request);
 router.get("/get_counts_dashboard",[verifyToken],tripController.get_counts_dashboard);
 
 // trip payment
-router.post(
-  "/pay_trip_commission/:id",
-  [verifyToken],
-  paymentController.tripCommissionPayment
-);
-router.post(
-  "/failed_trip_commission/:id",
-  [verifyToken],
-  paymentController.failedTripPay
-);
-router.post(
-  "/success_trip_commission/:id",
-  [verifyToken],
-  paymentController.successTripPay
-);
+router.post("/pay_trip_commission/:id",[verifyToken],paymentController.tripCommissionPayment);
+router.post("/failed_trip_commission/:id",[verifyToken],paymentController.failedTripPay);
+router.post("/success_trip_commission/:id",[verifyToken],paymentController.successTripPay);
 router.get("/transactions",[verifyToken],paymentController.getCommissionTrans);
 router.get("/admin_transaction",[verifyToken , adminAuth],paymentController.adminTransaction);
 router.post("/payCompany", [verifyToken], paymentController.payCompany);
@@ -189,4 +177,7 @@ router.post("/update_account_access",[verifyToken],subAdminController.update_acc
 router.post("/update_partner_account_access",[verifyToken],subAdminController.updatePartnerAccountAccess);
 router.get("/get_driver_list",[verifyToken],subAdminController.get_driver_list);
 router.get("/getPartnerDriverList",[verifyToken],subAdminController.getPartnerDriverList);
+router.get("/settings",[verifyToken , adminAuth],fareController.adminSettings);
+router.post("/upate_settings",[verifyToken , adminAuth],fareController.updateAdminSettings);
+
 module.exports = router;

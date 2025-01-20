@@ -44,5 +44,9 @@ module.exports={
         HOTEL_ACCOUNT: 'Hotel Account',
         CARD: 'Card',
         ON_ACCOUNT: 'ON ACCOUNT'
+    },
+    ADMIN_SETTINGS: {
+        SOMMISION: 'commision',
+        PRE_NOTIFICATION_TIME: 'pre_notification_time', // The system will send a notification to the user a specified amount of time before the scheduled trip begins
     }
 }
