@@ -133,7 +133,8 @@ exports.createPaymentIntent = async (req, res) => {
         let checkPlanExist = await PLANS_MODEL.findOne({planId: planId});
 
         if (checkPlanExist) {
-            const amount = checkPlanExist.price * 100;
+            vatRate = 0.21; // 21%
+            const amount = (checkPlanExist.price * 100) * ( 1 + vatRate);
             const currency = 'eur';
 
             const paymentIntent = await stripe.paymentIntents.create({
