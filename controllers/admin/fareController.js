@@ -261,7 +261,7 @@ exports.adminSettings = async (req, res) => {
   try {
     const settings = await SETTINGS.find()
     res.send({
-      code: constant.error_code,
+      code: constant.success_code,
       message:settings,
     });
   } catch (err) {
@@ -306,7 +306,7 @@ exports.updateAdminSettings = async (req, res) => {
     }
 
     return res.send({
-                      code: constant.error_code,
+                      code: constant.success_code,
                       message: `The settings have been successfully updated.`,
                     });
   } catch (err) {
