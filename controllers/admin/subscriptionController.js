@@ -133,7 +133,7 @@ exports.createPaymentIntent = async (req, res) => {
         let checkPlanExist = await PLANS_MODEL.findOne({planId: planId});
 
         if (checkPlanExist) {
-            vatRate = 0.21; // 21%
+            const vatRate = 0.21; // 21%
             const amount = (checkPlanExist.price * 100) * ( 1 + vatRate);
             const currency = 'eur';
 
