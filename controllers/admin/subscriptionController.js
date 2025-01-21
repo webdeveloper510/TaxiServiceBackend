@@ -120,4 +120,46 @@ exports.updateProducts = async (req, res) => {
                     message: error.message,
                 });
     }
+    
+}
+
+exports.createPaymentIntent = async (req, res) => {
+
+    try{
+        
+        let data = req.body;
+        const planId = req.body.planId || 0;
+
+        let checkPlanExist = await PLANS_MODEL.findOne({planId: planId});
+
+        if (checkPlanExist) {
+            const amount = checkPlanExist.price * 100;
+            const currency = 'eur';
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                                                                        amount, // Amount in the smallest currency unit (e.g., cents for USD)
+                                                                        currency,
+                                                                        payment_method_types: ['card'], // Default to 'card'
+                                                                    });
+          
+            return res.send({
+                                code: constant.success_code,
+                                clientSecret: paymentIntent.client_secret,
+                            });
+        } else {
+            return  res.send({
+                                code: constant.error_code,
+                                message: `The provided plan ID is invalid.`,
+                            });
+        }
+        
+    } catch (error) {
+
+        console.error('Error fetching subscription products:', error.message);
+        return  res.send({
+                    code: constant.error_code,
+                    message: error.message,
+                });
+    }
+    
 }

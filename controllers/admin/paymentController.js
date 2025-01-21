@@ -29,19 +29,12 @@ exports.tripCommissionPayment = async (req, res) => {
     try {
       let commission = trip_by_id.commission.commission_value;
 
-      if (
-        trip_by_id.commission.commission_type === "Percentage" &&
-        trip_by_id.commission.commission_value > 0
-      ) {
-        commission =
-          (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
+      if ( trip_by_id.commission.commission_type === "Percentage" && trip_by_id.commission.commission_value > 0 ) {
+        commission = (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
       }
       commission = commission.toFixed(2);
 
-      const paymentResult = await initiateStripePayment(
-        trip_by_id,
-        parseInt(commission * 100)
-      );
+      const paymentResult = await initiateStripePayment( trip_by_id, parseInt(commission * 100) );
       res.send({
         code: constant.success_code,
         result: paymentResult,

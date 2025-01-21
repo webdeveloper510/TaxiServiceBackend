@@ -26,17 +26,6 @@ const plans = new Schema({
         type:String,
         required: false,
     },
-    // features: { // driver will login the company account with all access
-    //     type: [
-    //       {
-    //         feature: {
-    //             type: String, // Each feature is a string
-    //             required: false, // Ensure every feature has a value
-    //         },
-    //       },
-    //     ],
-    //     default: [],
-    // }
     features:{
         type:[ ]
     }
