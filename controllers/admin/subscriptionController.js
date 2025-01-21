@@ -84,7 +84,7 @@ exports.getProducts = async (req, res) => {
         let plans = await PLANS_MODEL.find({status: true});
         return  res.send({
             code: constant.success_code,
-            message: plans,
+            message: plans.reverse(),
         });
     } catch (error) {
 
