@@ -8,6 +8,7 @@ var driverController = require("../controllers/admin/driverController");
 var fareController = require("../controllers/admin/fareController");
 var tripController = require("../controllers/admin/tripController");
 let paymentController = require("../controllers/admin/paymentController.js");
+let subscriptionController = require("../controllers/admin/subscriptionController.js");
 const { verifyToken } = require("../middleware/auth");
 const { adminAuth } = require("../middleware/adminAuth");
 
@@ -179,5 +180,10 @@ router.get("/get_driver_list",[verifyToken],subAdminController.get_driver_list);
 router.get("/getPartnerDriverList",[verifyToken],subAdminController.getPartnerDriverList);
 router.get("/settings",[verifyToken , adminAuth],fareController.adminSettings);
 router.post("/upate_settings",[verifyToken , adminAuth],fareController.updateAdminSettings);
+
+// Subscription APIs
+router.get("/get_subscriptions_products_from_stripe",subscriptionController.getSubscriptionProductsFromStripe);
+router.get("/get_products",subscriptionController.getProducts);
+router.post("/update_products/:id",[verifyToken , adminAuth] ,subscriptionController.updateProducts);
 
 module.exports = router;

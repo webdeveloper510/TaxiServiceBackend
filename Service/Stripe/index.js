@@ -1,6 +1,6 @@
 const trip_model = require("../../models/user/trip_model");
 ///
-const stripe = require("stripe")("sk_test_Vg8WAFbiq48h1IoZVb1WnNSj");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.initiateStripePayment = async (trip, amount) => {
   try {
