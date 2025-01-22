@@ -36,6 +36,8 @@ app.post(
               process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
           );
 
+          const endpointSecret = "whsec_119990049064e716007867c2b91616eda5958f92c993b0a4c166a62b46ff07b5";
+
           console.log("Received Headers:", req.headers);
           console.log("Type of req.body:", typeof req.body);
           console.log("Instance of Buffer:", req.body instanceof Buffer);
@@ -48,7 +50,7 @@ app.post(
               event = stripe.webhooks.constructEvent(
                   req.body,
                   sig,
-                  process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
+                  endpointSecret
               );
           } catch (err) {
               console.error("Error verifying webhook signature:", err.message);
