@@ -26,7 +26,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 
 // Apply raw body parser specifically for Stripe webhook
-app.post( "/subscription_webhook", express.raw({type: 'application/json'}), async (req, res) => {
+app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
       try {
          
 
