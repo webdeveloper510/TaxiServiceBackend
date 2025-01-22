@@ -65,6 +65,9 @@ app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), 
     try {
 
       console.log('Webhook triggered:', process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
+      console.log('Webhook Headers:', req.headers);
+
+      return
       
       try {
         
