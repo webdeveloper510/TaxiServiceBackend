@@ -24,6 +24,40 @@ const httpServer = http.createServer(app);
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // view engine setup
 
+// Apply raw body parser specifically for Stripe webhook
+app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
+      try {
+         
+
+        const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
+
+          console.log("Received Headers:", req.headers);
+          console.log("Type of req.body:", typeof req.body);
+          console.log("Instance of Buffer:", req.body instanceof Buffer);
+          // console.log("Raw Body (String):", req.body.toString());
+          
+          const sig = req.headers['stripe-signature'];
+          let event;
+
+          try {
+            event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+            console.log("Webhook received successfully----" , event);
+          } catch (err) {
+            console.log(`Webhook Error: ${err.message}`);
+            return;
+          }
+
+          // Log the webhook event
+          
+
+          console.log("Webhook received successfully");
+      } catch (error) {
+          console.error("Error in webhook handler:", error.message);
+          
+      }
+  }
+);
+
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -79,41 +113,6 @@ httpServer.listen(PORT, () =>
 app.use(function (req, res, next) {
   next(createError(404));
 });
-
-
-// Apply raw body parser specifically for Stripe webhook
-app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
-  try {
-     
-
-    const endpointSecret = "whsec_NEu6ZvNG2cJN5peFOee3J9jCQ2tSIDBA";
-
-      console.log("Received Headers:", req.headers);
-      console.log("Type of req.body:", typeof req.body);
-      console.log("Instance of Buffer:", req.body instanceof Buffer);
-      // console.log("Raw Body (String):", req.body.toString());
-      
-      const sig = req.headers['stripe-signature'];
-      let event;
-
-      try {
-        event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-        console.log("Webhook received successfully----" , event);
-      } catch (err) {
-        console.log(`Webhook Error: ${err.message}`);
-        return;
-      }
-
-      // Log the webhook event
-      
-
-      console.log("Webhook received successfully");
-  } catch (error) {
-      console.error("Error in webhook handler:", error.message);
-      
-  }
-}
-);
 
 io.on("connection", (socket) => {
   
