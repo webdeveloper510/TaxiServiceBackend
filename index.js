@@ -37,8 +37,9 @@ app.post(
           );
 
           console.log("Received Headers:", req.headers);
-          console.log("Raw Body (Buffer):", req.body);
-          console.log("Raw Body (String):", req.body.toString());
+          console.log("Type of req.body:", typeof req.body);
+          console.log("Instance of Buffer:", req.body instanceof Buffer);
+          console.log("Raw Body (String):", req.body.toString()); 
           const sig = req.headers["stripe-signature"];
           let event;
 
