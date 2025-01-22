@@ -37,7 +37,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           console.log("Instance of Buffer:", req.body instanceof Buffer);
           // console.log("Raw Body (String):", req.body.toString());
           
-
+          const sig = req.headers['stripe-signature'];
           let event;
 
           try {
