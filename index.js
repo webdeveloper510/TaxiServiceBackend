@@ -68,7 +68,7 @@ app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), 
       console.log('Webhook Headers:', req.headers['stripe-signature']);
       console.log('Webhook body--:', req.body);
 
-      return
+     
       
       try {
         
@@ -82,15 +82,14 @@ app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), 
         } catch (err) {
             console.log('error events----------' , err.message)
            
-            return;
         }
 
         console.log('webhook event------' , event)
         
-        return 
+        
       } catch (err) {
         console.error('Error verifying webhook signature:', err.message);
-       return 
+       
       }
 
     } catch (error) {
