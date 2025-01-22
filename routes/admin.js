@@ -186,5 +186,6 @@ router.get("/get_subscriptions_products_from_stripe",subscriptionController.getS
 router.get("/get_products",subscriptionController.getProducts);
 router.post("/update_products/:id",[verifyToken , adminAuth] ,subscriptionController.updateProducts);
 router.post("/create_payment_intent",[verifyToken] ,subscriptionController.createPaymentIntent);
+router.post("/subscription_webhook" , subscriptionController.subscriptionWebhook);
 
 module.exports = router;

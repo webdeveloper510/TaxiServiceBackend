@@ -164,3 +164,40 @@ exports.createPaymentIntent = async (req, res) => {
     }
     
 }
+
+exports.subscriptionWebhook = async (req, res) => {
+    try {
+
+        const sig = request.headers['stripe-signature'];
+
+        let event;
+
+        try {
+
+            event = stripe.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
+
+        } catch (err) {
+            response.status(400).send(`Webhook Error: ${err.message}`);
+            return;
+        }
+
+        console.log('webhook event------' , event)
+        console.log('------')
+        console.log('')
+        console.log('')
+        console.log('')
+        console.log('webhook event------' , JSON.stringify(event))
+
+        return  res.send({
+            code: constant.success_code,
+            message: `webhook called`,
+        });
+    } catch (error) {
+
+        console.error('Error fetching subscription products:', error.message);
+        return  res.send({
+                    code: constant.error_code,
+                    message: error.message,
+                });
+    }
+}
