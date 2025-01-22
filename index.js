@@ -31,10 +31,7 @@ app.post(
   bodyParser.raw({type: "*/*"}),
   async (req, res) => {
       try {
-          console.log(
-              "Webhook triggered:",
-              process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
-          );
+         
 
           const endpointSecret = "whsec_119990049064e716007867c2b91616eda5958f92c993b0a4c166a62b46ff07b5";
 
@@ -47,24 +44,23 @@ app.post(
 
           try {
               // Construct event using the raw body
-              event = stripe.webhooks.constructEvent(
+              event = await stripe.webhooks.constructEvent(
                   req.body,
                   sig,
                   endpointSecret
               );
           } catch (err) {
               console.error("Error verifying webhook signature:", err.message);
-              res.status(400).send(`Webhook Error: ${err.message}`);
-              return;
+              
           }
 
           // Log the webhook event
           console.log("Webhook event:", event);
 
-          res.status(200).send("Webhook received successfully");
+          console.log("Webhook received successfully");
       } catch (error) {
           console.error("Error in webhook handler:", error.message);
-          res.status(500).send("Internal Server Error");
+          
       }
   }
 );
