@@ -23,7 +23,16 @@ const jwt = require("jsonwebtoken");
 const httpServer = http.createServer(app);
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // view engine setup
-
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+  },
+}
+);
+app.use((req, res, next) => {
+req.io = io; // Set the io object in the request object
+next();
+});
 
 // Apply raw body parser specifically for Stripe webhook
 app.post(
@@ -72,16 +81,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-const io = new Server(httpServer, {
-                                    cors: {
-                                      origin: "*",
-                                    },
-                                  }
-                      );
-app.use((req, res, next) => {
-  req.io = io; // Set the io object in the request object
-  next();
-});
+
 
 app.use("/uploads/", express.static("./uploads"));
 
