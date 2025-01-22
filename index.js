@@ -24,6 +24,44 @@ const httpServer = http.createServer(app);
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // view engine setup
 
+
+// Apply raw body parser specifically for Stripe webhook
+app.post(
+  "/subscription_webhook",
+  bodyParser.raw({ type: "application/json" }),
+  async (req, res) => {
+      try {
+          console.log(
+              "Webhook triggered:",
+              process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
+          );
+          const sig = req.headers["stripe-signature"];
+          let event;
+
+          try {
+              // Construct event using the raw body
+              event = stripe.webhooks.constructEvent(
+                  req.body,
+                  sig,
+                  process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
+              );
+          } catch (err) {
+              console.error("Error verifying webhook signature:", err.message);
+              res.status(400).send(`Webhook Error: ${err.message}`);
+              return;
+          }
+
+          // Log the webhook event
+          console.log("Webhook event:", event);
+
+          res.status(200).send("Webhook received successfully");
+      } catch (error) {
+          console.error("Error in webhook handler:", error.message);
+          res.status(500).send("Internal Server Error");
+      }
+  }
+);
+
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -61,42 +99,7 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
-app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
-    try {
 
-      console.log('Webhook triggered:', process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
-      console.log('Webhook Headers:', req.headers['stripe-signature']);
-      console.log('Webhook body--:', req.body);
-
-     
-      
-      try {
-        
-        const sig = req.headers['stripe-signature'];
-        let event;
-
-        try {
-
-            event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
-
-        } catch (err) {
-            console.log('error events----------' , err.message)
-           
-        }
-
-        console.log('webhook event------' , event)
-        
-        
-      } catch (err) {
-        console.error('Error verifying webhook signature:', err.message);
-       
-      }
-
-    } catch (error) {
-      console.error('Error in webhook handler:', error.message);
-      return 
-    }
-  });
 
 app.use((req, res, next) => {
   res.send({
