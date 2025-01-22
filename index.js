@@ -26,30 +26,26 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 
 // Apply raw body parser specifically for Stripe webhook
-app.post(
-  "/subscription_webhook",
-  bodyParser.raw({type: "*/*"}),
-  async (req, res) => {
+app.post( "/subscription_webhook", express.raw({type: 'application/json'}), async (req, res) => {
       try {
          
 
-          const endpointSecret = "whsec_119990049064e716007867c2b91616eda5958f92c993b0a4c166a62b46ff07b5";
+        const endpointSecret = "whsec_119990049064e716007867c2b91616eda5958f92c993b0a4c166a62b46ff07b5";
 
           console.log("Received Headers:", req.headers);
           console.log("Type of req.body:", typeof req.body);
           console.log("Instance of Buffer:", req.body instanceof Buffer);
           // console.log("Raw Body (String):", req.body.toString());
-          const sig = req.headers["stripe-signature"];
+          
+
           let event;
 
           try {
-              // Construct event using the raw body
-              event = await stripe.webhooks.constructEvent( req.body, sig, endpointSecret );
-
-              console.log("Webhook event:", event);
+            event = await stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+            console.log("Webhook received successfully----" , event);
           } catch (err) {
-              console.error("Error verifying webhook signature:", err.message);
-              
+            response.status(400).send(`Webhook Error: ${err.message}`);
+            return;
           }
 
           // Log the webhook event
