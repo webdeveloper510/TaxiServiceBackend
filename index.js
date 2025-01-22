@@ -35,6 +35,10 @@ app.post(
               "Webhook triggered:",
               process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
           );
+
+          console.log("Received Headers:", req.headers);
+          console.log("Raw Body (Buffer):", req.body);
+          console.log("Raw Body (String):", req.body.toString());
           const sig = req.headers["stripe-signature"];
           let event;
 
