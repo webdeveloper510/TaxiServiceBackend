@@ -41,10 +41,10 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           let event;
 
           try {
-            event = await stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+            event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
             console.log("Webhook received successfully----" , event);
           } catch (err) {
-            response.status(400).send(`Webhook Error: ${err.message}`);
+            console.log(`Webhook Error: ${err.message}`);
             return;
           }
 
