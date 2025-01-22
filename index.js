@@ -44,18 +44,16 @@ app.post(
 
           try {
               // Construct event using the raw body
-              event = await stripe.webhooks.constructEvent(
-                  req.body,
-                  sig,
-                  endpointSecret
-              );
+              event = await stripe.webhooks.constructEvent( req.body, sig, endpointSecret );
+
+              console.log("Webhook event:", event);
           } catch (err) {
               console.error("Error verifying webhook signature:", err.message);
               
           }
 
           // Log the webhook event
-          console.log("Webhook event:", event);
+          
 
           console.log("Webhook received successfully");
       } catch (error) {
