@@ -167,7 +167,7 @@ exports.createPaymentIntent = async (req, res) => {
 
 exports.subscriptionWebhook = async (req, res) => {
     try {
-        console.log('webhook triggered')
+        console.log('webhook triggered-------' , process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET)
         const sig = req.headers['stripe-signature'];
         let event;
 
@@ -186,7 +186,7 @@ exports.subscriptionWebhook = async (req, res) => {
         console.log('')
         console.log('')
         console.log('')
-        console.log('webhook event------' , JSON.stringify(event))
+        // console.log('webhook event------' , JSON.stringify(event))
 
         return  res.send({
             code: constant.success_code,

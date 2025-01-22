@@ -1,6 +1,7 @@
 require("dotenv").config();
 var createError = require("http-errors");
 var express = require("express");
+const bodyParser = require('body-parser');
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
@@ -20,6 +21,7 @@ var app = express();
 app.use(cors());
 const jwt = require("jsonwebtoken");
 const httpServer = http.createServer(app);
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // view engine setup
 
 app.use(logger("dev"));
@@ -58,6 +60,39 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render("error");
 });
+
+app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), async (req, res) => {
+    try {
+
+      console.log('Webhook triggered:', process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
+      
+      const sig = req.headers['stripe-signature'];
+      let event;
+
+      try {
+        // Construct the event using the raw body
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
+        console.log('Event received:', event);
+        
+
+        // // Handle the event
+        // if (event.type === 'payment_intent.succeeded') {
+        //   const paymentIntent = event.data.object;
+        //   console.log('PaymentIntent was successful:', paymentIntent);
+        // } else {
+        //   console.log(`Unhandled event type ${event.type}`);
+        // }
+
+        res.status(200).send();
+      } catch (err) {
+        console.error('Error verifying webhook signature:', err.message);
+        res.status(400).send(`Webhook Error: ${err.message}`);
+      }
+
+    } catch (error) {
+      console.error('Error in webhook handler:', error.message);
+    }
+  });
 
 app.use((req, res, next) => {
   res.send({
