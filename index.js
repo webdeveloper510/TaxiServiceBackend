@@ -28,7 +28,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // Apply raw body parser specifically for Stripe webhook
 app.post(
   "/subscription_webhook",
-  bodyParser.raw({ type: "application/json" }),
+  bodyParser.raw({type: "*/*"}),
   async (req, res) => {
       try {
           console.log(
@@ -39,7 +39,7 @@ app.post(
           console.log("Received Headers:", req.headers);
           console.log("Type of req.body:", typeof req.body);
           console.log("Instance of Buffer:", req.body instanceof Buffer);
-          console.log("Raw Body (String):", req.body.toString()); 
+          // console.log("Raw Body (String):", req.body.toString());
           const sig = req.headers["stripe-signature"];
           let event;
 
@@ -69,8 +69,8 @@ app.post(
 
 app.use(logger("dev"));
 app.use(express.json());
-// app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 const io = new Server(httpServer, {
                                     cors: {
