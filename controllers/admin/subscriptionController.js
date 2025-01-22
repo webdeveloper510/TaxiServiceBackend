@@ -168,13 +168,12 @@ exports.createPaymentIntent = async (req, res) => {
 exports.subscriptionWebhook = async (req, res) => {
     try {
 
-        const sig = request.headers['stripe-signature'];
-
+        const sig = req.headers['stripe-signature'];
         let event;
 
         try {
 
-            event = stripe.webhooks.constructEvent(request.body, sig, process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
+            event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
 
         } catch (err) {
             response.status(400).send(`Webhook Error: ${err.message}`);
