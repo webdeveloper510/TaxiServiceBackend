@@ -66,31 +66,32 @@ app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), 
 
       console.log('Webhook triggered:', process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
       
-      const sig = req.headers['stripe-signature'];
-      let event;
-
       try {
-        // Construct the event using the raw body
-        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
-        console.log('Event received:', event);
         
+        const sig = req.headers['stripe-signature'];
+        let event;
 
-        // // Handle the event
-        // if (event.type === 'payment_intent.succeeded') {
-        //   const paymentIntent = event.data.object;
-        //   console.log('PaymentIntent was successful:', paymentIntent);
-        // } else {
-        //   console.log(`Unhandled event type ${event.type}`);
-        // }
+        try {
 
-        res.status(200).send();
+            event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
+
+        } catch (err) {
+            console.log('error events----------' , err.message)
+           
+            return;
+        }
+
+        console.log('webhook event------' , event)
+        
+        return 
       } catch (err) {
         console.error('Error verifying webhook signature:', err.message);
-        res.status(400).send(`Webhook Error: ${err.message}`);
+       return 
       }
 
     } catch (error) {
       console.error('Error in webhook handler:', error.message);
+      return 
     }
   });
 

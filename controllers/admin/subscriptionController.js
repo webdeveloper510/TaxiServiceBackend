@@ -177,7 +177,7 @@ exports.subscriptionWebhook = async (req, res) => {
 
         } catch (err) {
             console.log('error----------' , err.message)
-            res.status(400).send(`Webhook Error: ${err.message}`);
+           
             return;
         }
 
