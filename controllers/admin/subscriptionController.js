@@ -167,7 +167,7 @@ exports.createPaymentIntent = async (req, res) => {
 
 exports.subscriptionWebhook = async (req, res) => {
     try {
-
+        console.log('webhook triggered')
         const sig = req.headers['stripe-signature'];
         let event;
 
