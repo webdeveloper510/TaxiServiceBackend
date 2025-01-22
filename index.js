@@ -30,7 +30,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
       try {
          
 
-        const endpointSecret = "whsec_119990049064e716007867c2b91616eda5958f92c993b0a4c166a62b46ff07b5";
+        const endpointSecret = "whsec_NEu6ZvNG2cJN5peFOee3J9jCQ2tSIDBA";
 
           console.log("Received Headers:", req.headers);
           console.log("Type of req.body:", typeof req.body);
