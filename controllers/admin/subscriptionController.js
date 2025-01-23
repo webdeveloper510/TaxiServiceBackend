@@ -158,7 +158,7 @@ exports.createPaymentIntent = async (req, res) => {
         
     } catch (error) {
 
-        console.error('Error fetching subscription products:', error.message);
+        console.error('Error createPaymentIntent error:', error.message);
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -167,39 +167,65 @@ exports.createPaymentIntent = async (req, res) => {
     
 }
 
-exports.subscriptionWebhook = async (req, res) => {
+exports.createSetupIntent = async (req, res) => {
+
     try {
-        console.log('webhook triggered-------' , process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET)
-        const sig = req.headers['stripe-signature'];
-        let event;
-
-        try {
-
-            event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET);
-
-        } catch (err) {
-            console.log('error----------' , err.message)
-           
-            return;
-        }
-
-        console.log('webhook event------' , event)
-        console.log('------')
-        console.log('')
-        console.log('')
-        console.log('')
-        // console.log('webhook event------' , JSON.stringify(event))
-
-        return  res.send({
-            code: constant.success_code,
-            message: `webhook called`,
+        const customerId  = req.user.stripeCustomerId;
+    
+        const setupIntent = await stripe.setupIntents.create({
+          customer: customerId,
         });
-    } catch (error) {
-
-        console.error('Error fetching subscription products:', error.message);
+    
+        
         return  res.send({
-                    code: constant.error_code,
-                    message: error.message,
-                });
-    }
+                            code: constant.success_code,
+                            clientSecret: setupIntent.client_secret,
+                        });
+      } catch (error) {
+        console.error('Error creating setup intent:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+      }
+    
+}
+
+exports.createSubscription = async (req, res) => {
+
+    try {
+        
+        const priceId = req.body?.priceId || '';
+        const customerId  = req.user.stripeCustomerId;
+
+        let checkPlanExist = await PLANS_MODEL.findOne({productPriceId: priceId});
+
+        if (checkPlanExist) {
+            
+            const subscription = await stripe.subscriptions.create({
+                                                                        customer: customerId,
+                                                                        items: [{ price: priceId }],
+                                                                        payment_behavior: 'default_incomplete',
+                                                                        expand: ['latest_invoice.payment_intent'],
+                                                                    });
+          
+            return res.send({
+                                code: constant.success_code,
+                                subscriptionId: subscription.id,
+                                clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+                            });
+        } else {
+            return  res.send({
+                                code: constant.error_code,
+                                message: `The provided plan ID is invalid.`,
+                            });
+        }
+      
+      } catch (error) {
+        console.error('Error creating subscription:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+      }
 }
