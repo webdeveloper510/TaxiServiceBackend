@@ -25,6 +25,7 @@ exports.getSubscriptionProductsFromStripe = async (req, res) => {
 
                 return {
                     ...product,
+                    priceDetails: priceDetails,
                     price: priceDetails.unit_amount / 100, // Include detailed price information
                 };
             })
@@ -41,6 +42,7 @@ exports.getSubscriptionProductsFromStripe = async (req, res) => {
                                     planId: product.id,
                                     status: product.active,
                                     price: product.price,
+                                    productPriceId:product.priceDetails.id,
                                     description: product.description,
                                     
                                 }

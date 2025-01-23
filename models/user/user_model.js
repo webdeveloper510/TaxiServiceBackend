@@ -169,6 +169,10 @@ const user = new Schema(
       type: Date,
       default: Date.now(),
     },
+    stripeCustomerId: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

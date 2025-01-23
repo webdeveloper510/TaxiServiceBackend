@@ -22,6 +22,11 @@ const plans = new Schema({
         required: true,
         default:0.0
     },
+    productPriceId:{
+        type:String,
+        required: true,
+        default:''
+    },
     description: {
         type:String,
         required: false,

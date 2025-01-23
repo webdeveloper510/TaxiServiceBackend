@@ -10,6 +10,7 @@ const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -142,6 +143,12 @@ exports.add_driver = async (req, res) => {
     save_driver.lastUsedTokenMobile = new Date();
 
     save_driver.jwtToken = jwtToken;
+
+    // Create or get stripe customer id
+    let customer = await stripe.customers.list({ email: data.email });
+    customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
+    
+    save_driver.stripeCustomerId = customer.id;
     save_driver.lastUsedToken = new Date();
 
     await save_driver.save();
@@ -504,6 +511,11 @@ exports.adminAddDriver = async (req, res) => {
     data.password = hashedPassword;
 
     
+    // Create or get stripe customer id
+    let customer = await stripe.customers.list({ email: data.email });
+    customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
+    
+    save_driver.stripeCustomerId = customer.id;
     
     let save_driver = await DRIVER(data).save();
    

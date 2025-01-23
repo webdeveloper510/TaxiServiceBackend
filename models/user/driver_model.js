@@ -228,11 +228,19 @@ const driver = new Schema(
       type: String,
       default: "",
     },
-    currentTrip: { type: Schema.Types.ObjectId, ref: "trip", default: null },
+    currentTrip: { 
+      type: Schema.Types.ObjectId, 
+      ref: "trip", 
+      default: null 
+    },
     defaultVehicle: {
       type: Schema.Types.ObjectId,
       ref: "vehicle",
       default: null,
+    },
+    stripeCustomerId: {
+      type: String,
+      default: "",
     },
   },
   { timestamps: true }
