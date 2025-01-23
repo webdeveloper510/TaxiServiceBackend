@@ -86,52 +86,49 @@ exports.add_driver = async (req, res) => {
     const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
     data.lastUsedToken = new Date();
     data.created_by = superAdmin; // Assuming you have user authentication
-    let check_other1 = await DRIVER.findOne({
-      email: { $regex: data.email, $options: "i" },
-      is_deleted: false,
-    });
-    let check_other2 = await DRIVER.findOne({
-      phone: data.phone,
-      is_deleted: false,
-    });
-    let check_other3 = await user_model.findOne({
-      email: { $regex: data.email, $options: "i" },
-      is_deleted: false,
-    });
-    let check_other4 = await user_model.findOne({
-      phone: data.phone,
-      is_deleted: false,
-    });
+    let check_other1 = await DRIVER.findOne({ email: { $regex: data.email, $options: "i" }, is_deleted: false, });
+
+    let check_other2 = await DRIVER.findOne({ phone: data.phone, is_deleted: false, });
+
+    let check_other3 = await user_model.findOne({ email: { $regex: data.email, $options: "i" }, is_deleted: false, });
+    let check_other4 = await user_model.findOne({ phone: data.phone, is_deleted: false, });
     if (check_other1) {
-      res.send({
-        code: constant.error_code,
-        message: "Email Already exist",
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message: "Email Already exist",
+                      });
+      
     }
     if (check_other2) {
-      res.send({
-        code: constant.error_code,
-        message: "Phone Already exist",
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message: "Phone Already exist",
+                      });
+      
     }
     if (check_other3) {
-      res.send({
-        code: constant.error_code,
-        message:
-          "This email is already registered as a Company. Sign in to register as a driver.",
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message:
+                          "This email is already registered as a Company. Sign in to register as a driver.",
+                      });
+      
     }
     if (check_other4) {
-      res.send({
-        code: constant.error_code,
-        message:
-          "This Phone Number is already registered as a Company. Sign in to register as a driver.",
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message:
+                          "This Phone Number is already registered as a Company. Sign in to register as a driver.",
+                      });
+      
     }
+
+    // Create or get stripe customer id
+    let customer = await stripe.customers.list({ email: data.email });
+    customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
+    
+    data.stripeCustomerId = customer.id;
+
     let save_driver = await DRIVER(data).save();
     let jwtToken = jwt.sign(
       { userId: save_driver._id },
@@ -144,11 +141,7 @@ exports.add_driver = async (req, res) => {
 
     save_driver.jwtToken = jwtToken;
 
-    // Create or get stripe customer id
-    let customer = await stripe.customers.list({ email: data.email });
-    customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
     
-    save_driver.stripeCustomerId = customer.id;
     save_driver.lastUsedToken = new Date();
 
     await save_driver.save();
@@ -515,7 +508,7 @@ exports.adminAddDriver = async (req, res) => {
     let customer = await stripe.customers.list({ email: data.email });
     customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
     
-    save_driver.stripeCustomerId = customer.id;
+    data.stripeCustomerId = customer.id;
     
     let save_driver = await DRIVER(data).save();
    
