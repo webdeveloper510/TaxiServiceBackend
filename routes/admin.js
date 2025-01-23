@@ -187,6 +187,7 @@ router.get("/get_products",subscriptionController.getProducts);
 router.post("/update_products/:id",[verifyToken , adminAuth] ,subscriptionController.updateProducts);
 router.post("/create_payment_intent",[verifyToken] ,subscriptionController.createPaymentIntent);
 router.get("/create-setup-intent",[verifyToken] ,subscriptionController.createSetupIntent);
+router.post("/create-subscription",[verifyToken] ,subscriptionController.createSubscription);
 // router.post("/subscription_webhook" , subscriptionController.subscriptionWebhook);
 
 module.exports = router;
