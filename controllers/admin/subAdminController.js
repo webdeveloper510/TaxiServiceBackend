@@ -19,7 +19,7 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require("../../models/user/driver_model");
 const imageStorage = require("../../config/awss3");
-
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // const imageStorage = new CloudinaryStorage({
 //     cloudinary: cloudinary,
 //     params: {
