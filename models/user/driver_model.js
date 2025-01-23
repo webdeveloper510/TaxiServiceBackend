@@ -242,6 +242,10 @@ const driver = new Schema(
       type: String,
       default: "",
     },
+    driverCounterId: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

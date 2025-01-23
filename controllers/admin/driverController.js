@@ -11,6 +11,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -128,6 +129,7 @@ exports.add_driver = async (req, res) => {
     customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
     
     data.stripeCustomerId = customer.id;
+    data.driverCounterId = `D-`+ await getDriverNextSequenceValue();
 
     let save_driver = await DRIVER(data).save();
     let jwtToken = jwt.sign(
@@ -509,6 +511,8 @@ exports.adminAddDriver = async (req, res) => {
     customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
     
     data.stripeCustomerId = customer.id;
+    data.driverCounterId = `D-`+ await getDriverNextSequenceValue();
+    
     
     let save_driver = await DRIVER(data).save();
    
@@ -2260,6 +2264,12 @@ exports.convertIntoDriver = async (req, res) => {
       
       const company_agency_id = companyInfo ? companyInfo[0].companyDetails._id : null;
 
+      let customer = await stripe.customers.list({ user: data.email });
+      customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: user.email });
+
+      stripeCustomerId = customer.id;
+      const driverCounterId = `D-`+ await getDriverNextSequenceValue();
+      
       let save_driver = await DRIVER({
         ...data,
         first_name: user.first_name,
@@ -2271,13 +2281,13 @@ exports.convertIntoDriver = async (req, res) => {
         created_by: user._id,
         isDocUploaded: true,
         driver_company_id: req.userId,
-        company_agency_id:company_agency_id
+        company_agency_id:company_agency_id,
+        driverCounterId: driverCounterId,
+        stripeCustomerId: stripeCustomerId
       }).save();
-      let jwtToken = jwt.sign(
-        { userId: save_driver._id },
-        process.env.JWTSECRET,
-        { expiresIn: "365d" }
-      );
+
+      let jwtToken = jwt.sign( { userId: save_driver._id }, process.env.JWTSECRET, { expiresIn: "365d" } );
+
       if (req.isMobile) save_driver.jwtTokenMobile = jwtToken;
       else save_driver.jwtToken = jwtToken;
       const result = save_driver.toObject();
@@ -2288,12 +2298,12 @@ exports.convertIntoDriver = async (req, res) => {
       let saveUserData = await req.user.save();
 
       const newUser = await user_model.updateOne(
-        { _id: req.user._id },
-        {
-          driverId: save_driver._id,
-          isDriver: true,
-        }
-      );
+                                                  { _id: req.user._id },
+                                                  {
+                                                    driverId: save_driver._id,
+                                                    isDriver: true,
+                                                  }
+                                                );
       await save_driver.save();
       if (!save_driver) {
         res.send({

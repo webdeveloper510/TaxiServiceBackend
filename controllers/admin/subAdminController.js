@@ -2,9 +2,7 @@ const USER = require("../../models/user/user_model");
 const AGENCY = require("../../models/user/agency_model");
 const DRIVER = require("../../models/user/driver_model");
 const TRIP = require("../../models/user/trip_model");
-const {
-  getCompanyNextSequenceValue,
-} = require("../../models/user/company_counter_model");
+const { getCompanyNextSequenceValue } = require("../../models/user/company_counter_model");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const constant = require("../../config/constant");
@@ -131,6 +129,7 @@ exports.add_sub_admin = async (req, res) => {
       data.company_id = data.company_id;
     }
 
+
     let check_hotel = await AGENCY.findOne({ company_id: data.company_id });
     
     if (check_hotel) {
@@ -140,8 +139,15 @@ exports.add_sub_admin = async (req, res) => {
                       });
     }
     // data.role = 'COMPANY'
+
+    // Create or get stripe customer id
+    let customer = await stripe.customers.list({ email: data.email });
+    customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
+    data.stripeCustomerId = customer.id; //  stripe customer id assiged
+    
     data.created_by = req.userId;
     let save_data = await USER(data).save();
+
     if (!save_data) {
       res.send({
         code: constant.error_code,
