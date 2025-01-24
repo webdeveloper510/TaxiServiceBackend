@@ -49,8 +49,12 @@ module.exports={
         SOMMISION: 'commision',
         PRE_NOTIFICATION_TIME: 'pre_notification_time', // The system will send a notification to the user a specified amount of time before the scheduled trip begins
     },
-    SUBSCRIPTION_AMOUNT_STATUS: {
+    SUBSCRIPTION_PAYMENT_STATUS: {
         PAID: true,
         UNPAID: false
+    },
+    SUBSCRIPTION_STATUS: {
+        ACTIVE: true,
+        InACTIVE: false
     }
 }

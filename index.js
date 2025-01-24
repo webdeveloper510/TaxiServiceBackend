@@ -56,21 +56,25 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             // Extract relevant information
             const subscriptionId = invoice.subscription; // Subscription ID
 
-            let subscription = await SUBSCRIPTIOON_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_AMOUNT_STATUS.UNPAID })
+            let subscription = await SUBSCRIPTIOON_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
             
 
             let updateData = {
               chargeId: invoice.charge,
               paymentIntentId: invoice.payment_intent,
-              invoiceId: invoice.id
+              invoiceId: invoice.id,
+              paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+              active: constant.SUBSCRIPTION_STATUS.ACTIVE,
             }
             await SUBSCRIPTIOON_MODEL.updateOne(
                                                   { _id: subscription._id }, // filter
                                                   { $set: updateData } // update operation
                                               );
+
+            console .log('updated_data------' , updateData)
           }
 
-          console .log('updated_data------' , updateData)
+          
           // Log the webhook event
           
 
