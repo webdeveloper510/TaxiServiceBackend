@@ -6,6 +6,7 @@ const {
 const constant = require("../../config/constant");
 
 const PLANS_MODEL = require("../../models/admin/plan_model");
+const SUBSCRIPTIOON_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.getSubscriptionProductsFromStripe = async (req, res) => {
@@ -202,17 +203,56 @@ exports.createSubscription = async (req, res) => {
 
         if (checkPlanExist) {
             
-            const subscription = await stripe.subscriptions.create({
+            const createSubscription = await stripe.subscriptions.create({
                                                                         customer: customerId,
                                                                         items: [{ price: priceId }],
                                                                         payment_behavior: 'default_incomplete',
                                                                         expand: ['latest_invoice.payment_intent'],
                                                                     });
-          
+            
+            // Convert UNIX timestamps to JavaScript Date objects
+            const startPeriod = new Date(createSubscription.current_period_start * 1000); // Convert to milliseconds
+            const endPeriod = new Date(createSubscription.current_period_end * 1000);
+            let subscriptionData =  {
+                                        subscriptionId: createSubscription.id,
+                                        productPriceId: priceId,
+                                        planId: checkPlanExist.planId,
+                                        customerId: customerId,
+                                        role: req.user.role,
+                                        purchaseBy: req.user._id,
+                                        amount: checkPlanExist.price,
+                                        startPeriod: startPeriod,
+                                        endPeriod: endPeriod
+                                    }
+
+            if (req.user.role == constant.ROLES.COMPANY) {
+                subscriptionData.purchaseByCompanyId = new mongoose.Types.ObjectId(req.userId);
+            }
+
+            if (req.user.role == constant.ROLES.DRIVER) {
+                subscriptionData.purchaseByDriverId = new mongoose.Types.ObjectId(req.userId);
+            }
+
+            const newSubscription = new SUBSCRIPTIOON_MODEL(subscriptionData);
+            await newSubscription.save();
+
+            // Get invoice ID
+            const invoiceId = createSubscription.latest_invoice.id;
+
+            // Get payment intent ID
+            const paymentIntentId = createSubscription.latest_invoice.payment_intent.id;
+
+            // Get charge ID (if payment intent contains charges)
+            const chargeId = createSubscription?.latest_invoice?.payment_intent?.charges?.data[0]?.id || null;
+            
             return res.send({
                                 code: constant.success_code,
-                                subscriptionId: subscription.id,
-                                clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+                                subscriptionId: createSubscription.id,
+                                clientSecret: createSubscription.latest_invoice.payment_intent.client_secret,
+                                invoiceId: invoiceId,
+                                paymentIntentId: paymentIntentId,
+                                chargeId: chargeId,
+                                createSubscription:createSubscription
                             });
         } else {
             return  res.send({

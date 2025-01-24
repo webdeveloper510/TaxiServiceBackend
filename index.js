@@ -16,10 +16,12 @@ const { driverDetailsByToken, userDetailsByToken, sendNotification, } = require(
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
+const SUBSCRIPTIOON_MODEL = require("./models/user/subscription_model");
 const mongoose = require("mongoose");
 var app = express();
 app.use(cors());
 const jwt = require("jsonwebtoken");
+const constant = require("./config/constant.js");
 const httpServer = http.createServer(app);
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // view engine setup
@@ -48,6 +50,27 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             return;
           }
 
+          if (event.type === 'invoice.payment_succeeded') {
+            const invoice = event.data.object;
+
+            // Extract relevant information
+            const subscriptionId = invoice.subscription; // Subscription ID
+
+            let subscription = await SUBSCRIPTIOON_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_AMOUNT_STATUS.UNPAID })
+            
+
+            let updateData = {
+              chargeId: invoice.charge,
+              paymentIntentId: invoice.payment_intent,
+              invoiceId: invoice.id
+            }
+            await SUBSCRIPTIOON_MODEL.updateOne(
+                                                  { _id: subscription._id }, // filter
+                                                  { $set: updateData } // update operation
+                                              );
+          }
+
+          console .log('updated_data------' , updateData)
           // Log the webhook event
           
 
