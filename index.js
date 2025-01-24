@@ -56,22 +56,66 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             // Extract relevant information
             const subscriptionId = invoice.subscription; // Subscription ID
 
-            let subscription = await SUBSCRIPTIOON_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
+            let subscriptionExist = await SUBSCRIPTIOON_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
             
 
-            let updateData = {
-              chargeId: invoice.charge,
-              paymentIntentId: invoice.payment_intent,
-              invoiceId: invoice.id,
-              paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-              active: constant.SUBSCRIPTION_STATUS.ACTIVE,
-              invoicePdfUrl: invoice.invoice_pdf,
-              invoiceUrl: invoice.hosted_invoice_url,
+            let updateData;
+
+            // When payemnt will be first time
+            if (invoice.billing_reason !== `subscription_create`) {
+
+
+              updateData =  {
+                              chargeId: invoice.charge,
+                              paymentIntentId: invoice.payment_intent,
+                              invoiceId: invoice.id,
+                              paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                              active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                              invoicePdfUrl: invoice.invoice_pdf,
+                              invoiceUrl: invoice.hosted_invoice_url,
+                              billing_reason: `subscription_create`
+                            }
+
+              await SUBSCRIPTIOON_MODEL.updateOne(
+                                                    { _id: subscriptionExist._id }, // filter
+                                                    { $set: updateData } // update operation
+                                                );
+            } else if (invoice.billing_reason=== 'subscription_create') {
+
+              const subscriptionLine = invoice.lines.data.find(line => line.type === 'subscription');
+              // Convert UNIX timestamps to JavaScript Date objects
+              const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
+              const endPeriod = new Date(subscriptionLine.period.end * 1000);
+
+              
+              let option = { new: true };
+              await SUBSCRIPTIOON_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.InACTIVE} ,option);
+
+              updateData =  {
+                subscriptionId:invoice.subscription,
+                planId: subscriptionExist.planId,
+                productPriceId: subscriptionExist.priceId,
+                customerId: subscriptionExist.customerId,
+                role: subscriptionExist.role,
+                purchaseBy: subscriptionExist.purchaseBy,
+                amount: subscriptionExist.amount,
+                billing_reason: `subscription_cycle`,
+                startPeriod: startPeriod,
+                endPeriod: endPeriod,
+                chargeId: invoice.charge,
+                paymentIntentId: invoice.payment_intent,
+                invoiceId: invoice.id,
+                paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                invoicePdfUrl: invoice.invoice_pdf,
+                invoiceUrl: invoice.hosted_invoice_url,
+              }
+
+              const subscriptionRenewal = new SUBSCRIPTIOON_MODEL(updateData);
+              await subscriptionRenewal.save();
+              console.log('saved successfully----------')
             }
-            await SUBSCRIPTIOON_MODEL.updateOne(
-                                                  { _id: subscription._id }, // filter
-                                                  { $set: updateData } // update operation
-                                              );
+            
 
             console .log('updated_data------' , updateData)
           }
