@@ -65,6 +65,8 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               invoiceId: invoice.id,
               paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
               active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+              invoicePdfUrl: invoice.invoice_pdf,
+              invoiceUrl: invoice.hosted_invoice_url,
             }
             await SUBSCRIPTIOON_MODEL.updateOne(
                                                   { _id: subscription._id }, // filter
