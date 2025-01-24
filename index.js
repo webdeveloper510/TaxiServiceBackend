@@ -62,7 +62,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             let updateData;
 
             // When payemnt will be first time
-            if (invoice.billing_reason !== `subscription_create`) {
+            if (invoice.billing_reason === `subscription_create`) {
 
 
               updateData =  {
@@ -80,7 +80,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                                     { _id: subscriptionExist._id }, // filter
                                                     { $set: updateData } // update operation
                                                 );
-            } else if (invoice.billing_reason=== 'subscription_create') {
+            } else if (invoice.billing_reason=== 'subscription_cycle') {
 
               const subscriptionLine = invoice.lines.data.find(line => line.type === 'subscription');
               // Convert UNIX timestamps to JavaScript Date objects
@@ -113,7 +113,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
               const subscriptionRenewal = new SUBSCRIPTIOON_MODEL(updateData);
               await subscriptionRenewal.save();
-              console.log('saved successfully----------')
+              console.log('saved successfully')
             }
             
 
