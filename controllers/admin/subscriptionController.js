@@ -6,8 +6,9 @@ const {
 const constant = require("../../config/constant");
 
 const PLANS_MODEL = require("../../models/admin/plan_model");
-const SUBSCRIPTIOON_MODEL = require("../../models/user/subscription_model");
+const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { sendPaymentFailEmail } = require("../../Service/helperFuntion");
 
 exports.getSubscriptionProductsFromStripe = async (req, res) => {
     try {
@@ -204,11 +205,11 @@ exports.createSubscription = async (req, res) => {
         if (checkPlanExist) {
             
             const createSubscription = await stripe.subscriptions.create({
-                                                                        customer: customerId,
-                                                                        items: [{ price: priceId }],
-                                                                        payment_behavior: 'default_incomplete',
-                                                                        expand: ['latest_invoice.payment_intent'],
-                                                                    });
+                                                                            customer: customerId,
+                                                                            items: [{ price: priceId }],
+                                                                            payment_behavior: 'default_incomplete',
+                                                                            expand: ['latest_invoice.payment_intent'],
+                                                                        });
             
             // Convert UNIX timestamps to JavaScript Date objects
             const startPeriod = new Date(createSubscription.current_period_start * 1000); // Convert to milliseconds
@@ -233,7 +234,7 @@ exports.createSubscription = async (req, res) => {
                 subscriptionData.purchaseByDriverId = new mongoose.Types.ObjectId(req.userId);
             }
 
-            const newSubscription = new SUBSCRIPTIOON_MODEL(subscriptionData);
+            const newSubscription = new SUBSCRIPTION_MODEL(subscriptionData);
             await newSubscription.save();
 
             // Get invoice ID
@@ -258,6 +259,47 @@ exports.createSubscription = async (req, res) => {
             return  res.send({
                                 code: constant.error_code,
                                 message: `The provided plan ID is invalid.`,
+                            });
+        }
+      
+      } catch (error) {
+        console.error('Error creating subscription:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+      }
+}
+
+
+exports.cancelSubscription = async (req, res) => {
+
+    try {
+        
+        const subscriptionId = req.body?.subscriptionId || '';
+       
+        let subscriptionPlan = await SUBSCRIPTION_MODEL.findOne({subscriptionId: subscriptionId});
+        
+
+        if (subscriptionPlan) {
+
+            const canceledSubscription = await stripe.subscriptions.cancel(subscriptionId);
+            
+            let option = { new: true };
+            let updatedData = {
+                active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+                cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.USER_CANCEL
+            }
+            await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+
+            return res.send({
+                                code: constant.success_code,
+                                message:`Subscription has been cancelled`
+                            });
+        } else {
+            return  res.send({
+                                code: constant.error_code,
+                                message: `Subscription not found.`,
                             });
         }
       

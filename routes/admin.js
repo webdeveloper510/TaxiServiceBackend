@@ -188,6 +188,7 @@ router.post("/update_products/:id",[verifyToken , adminAuth] ,subscriptionContro
 router.post("/create_payment_intent",[verifyToken] ,subscriptionController.createPaymentIntent);
 router.get("/create-setup-intent",[verifyToken] ,subscriptionController.createSetupIntent);
 router.post("/create-subscription",[verifyToken] ,subscriptionController.createSubscription);
+router.post("/cancel-subscription",[verifyToken] ,subscriptionController.cancelSubscription);
 // router.post("/subscription_webhook" , subscriptionController.subscriptionWebhook);
 
 module.exports = router;

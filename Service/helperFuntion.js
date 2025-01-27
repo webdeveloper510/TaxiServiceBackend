@@ -4,6 +4,8 @@ const User = require("../models/user/user_model");
 const driver_model = require("../models/user/driver_model");
 const user_model = require("../models/user/user_model");
 const AGENCY_MODEL = require("../models/user/agency_model.js");
+const SUBSCRIPTION_MODEL = require("../models/user/subscription_model");
+const PLANS_MODEL = require("../models/admin/plan_model");
 const { default: axios } = require("axios");
 const admin = require("firebase-admin");
 const serviceAccount = require("../taxi24-5044e-firebase-adminsdk-khmt0-c7c4ce0029.json");
@@ -11,6 +13,8 @@ const twilio = require("twilio");
 const mongoose = require("mongoose");
 const CONSTANT = require("../config/constant");
 const constant = require("../config/constant");
+const nodemailer = require("nodemailer");
+const emailConstant = require("../config/emailConstant");
 // Initialize Twilio client
 const client = twilio(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
 
@@ -275,6 +279,301 @@ exports.sendNotification = async (to, message, title, data) => {
     return error;
   }
 };
+
+exports.emailHeader = async () => {
+
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+                              <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
+                              @import url(https://fonts.googleapis.com/css?family=Nunito);
+                            
+                              /* Take care of image borders and formatting */
+                            
+                              img {
+                                max-width: 600px;
+                                outline: none;
+                                text-decoration: none;
+                                -ms-interpolation-mode: bicubic;
+                              }
+                              html{
+                                margin: 0;
+                                padding:0;
+                              }
+                            
+                              a {
+                                text-decoration: none;
+                                border: 0;
+                                outline: none;
+                                color: #bbbbbb;
+                              }
+                            
+                              a img {
+                                border: none;
+                              }
+                            
+                              /* General styling */
+                            
+                              td, h1, h2, h3  {
+                                font-family: Helvetica, Arial, sans-serif;
+                                font-weight: 400;
+                              }
+                            
+                              td {
+                                text-align: center;
+                              }
+                            
+                              body {
+                                -webkit-font-smoothing:antialiased;
+                                -webkit-text-size-adjust:none;
+                                width: 100%;
+                                height: 100%;
+                                color: #666;
+                                background: #fff;
+                                font-size: 16px;
+                                width: 100%;
+                                padding: 0px;
+                                margin: 0px;
+                              }
+                            
+                              table {
+                                border-collapse: collapse !important;
+                              }
+                            
+                              .headline {
+                                color: #444;
+                                font-size: 36px;
+                                    padding-top: 10px;
+                              }
+                            
+                            .force-full-width {
+                              width: 100% !important;
+                            }
+                            
+                            
+                              </style><style media="screen" type="text/css">
+                                  @media screen {
+                                    td, h1, h2, h3 {
+                                      font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
+                                    }
+                                  }
+                              </style><style media="only screen and (max-width: 480px)" type="text/css">
+                                /* Mobile styles */
+                                @media only screen and (max-width: 480px) {
+                            
+                                  table[class="w320"] {
+                                    width: 320px !important;
+                                  }
+                                }
+                              </style>
+                              <style type="text/css"></style>
+                              
+                              </head>
+                              <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
+                            <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="
+                                margin-top: 30px;
+                                margin-bottom: 10px;
+                              border-radius: 10px;
+                            box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);
+                            background:#ccc;
+                              ">
+                            <tbody><tr>
+                            <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
+                            <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
+                            <tbody><tr>
+                            <td align="center" class="" valign="top">
+                            <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
+                            <tbody style="margin-top: 5px;">
+                              <tr class="" style="border-bottom: 1px solid #cccccc38;">
+                            <td class="">
+                            <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
+                            </td>
+                            </tr>
+                            <tr class=""><td class="headline"> iDispatch!</td></tr>
+                            <tr>
+                            <td>`;
+
+}
+
+exports.emailFooter = async () => {
+
+  return `<br></td>
+                            </tr>
+                            </tbody></table></center>
+                            </td>
+                            </tr>
+                            <tr>
+                            <td class="">
+                            <div class="">
+                            </div>
+                            <br>
+                            </td>
+                            </tr>
+                            </tbody>
+                              
+                              </table>
+                            
+                            <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
+                            <tbody>
+                            <tr>
+                            <td class="" style="color:#444;
+                                                ">
+                              </td>
+                            </tr>
+                            </tbody></table></td>
+                            </tr>
+                            </tbody></table></center>
+                            </td>
+                            </tr>
+                            </tbody></table>
+                            </body></html>`;
+}
+
+exports.sendPaymentFailEmail = async (subsctiptionId , reseon) => {
+
+  
+  let subscriptionDetails = await SUBSCRIPTION_MODEL.findOne({subscriptionId: subsctiptionId}).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+  let toEmail = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? subscriptionDetails?.purchaseByCompanyId?.email : subscriptionDetails?.purchaseByDriverId?.email;
+  let UserName = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? `${subscriptionDetails?.purchaseByCompanyId?.first_name } ${subscriptionDetails?.purchaseByCompanyId?.last_name}` : `${subscriptionDetails?.purchaseByDriverId?.first_name } ${subscriptionDetails?.purchaseByDriverId?.last_name}`;
+
+  let reseonName = reseon === CONSTANT.SUBSCRIPTION_CANCEL_REASON.USER_CANCEL ? `Cancelled by you` : reseon.replace(/_/g, ' ');
+
+  const currentDate = new Date();
+
+  // Get day, month, and year
+  const day = String(currentDate.getDate()).padStart(2, '0'); // Add leading zero if needed
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based, add 1 and pad
+  const year = String(currentDate.getFullYear()); // Get last two digits of the year
+
+  // Format date as dd mm yy
+  const formattedDate = `${day}-${month}-${year}`;
+
+  var transporter = nodemailer.createTransport(emailConstant.credentials);
+  let subject = ``;
+  if (reseon === CONSTANT.SUBSCRIPTION_CANCEL_REASON.CARD_DECLINED) {
+
+    subject = `Action Required: Payment Declined for Your Subscription`;
+  } else if (reseon === CONSTANT.SUBSCRIPTION_CANCEL_REASON.INSUFFUCIENT_FUNDS) {
+    console.log('INSUFFUCIENT_FUNDS-------')
+    subject = `Action Required: Your Subscription Payment Declined (Insufficient Funds)`;
+  } else if (reseon === CONSTANT.SUBSCRIPTION_CANCEL_REASON.EXPIRED_CARD) {
+
+    subject = `Action Required: Your Subscription Payment Declined (Expired Card)`;
+  } else if (reseon === CONSTANT.SUBSCRIPTION_CANCEL_REASON.EXPIRED_CARD) {
+
+    subject = `Action Required: Your Subscription Payment Declined (Card Blocked)`;
+  } else if (reseon === CONSTANT.SUBSCRIPTION_CANCEL_REASON.PROCESSING_ERROR) {
+
+    subject = `Action Required: Your Subscription Payment Declined (Processing Error)`;
+  } else if (reseon === CONSTANT.SUBSCRIPTION_CANCEL_REASON.PROCESSING_ERROR) {
+
+    subject = `Action Required: Your Subscription Payment Declined (Unknown Error)`;
+  } else if (reseon === CONSTANT.SUBSCRIPTION_CANCEL_REASON.USER_CANCEL) {
+
+    subject = `Action Required: Your Subscription Cancellation`;
+  }
+
+  const bodyHtml = `<center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
+                            <td class="" style="color:#444; font-weight: 400;"><br>
+                            Dear ${UserName}
+                            <br>
+                            <br>
+                              I hope this message finds you well. We are writing to inform you that your subscription has been canceled due to a ${reseonName}. Unfortunately, we were unable to process your recent payment, which has resulted in the immediate cancellation of your subscription.
+                             
+                            <br>
+                            <br>
+                            <span style="font-weight:bold;">Details of the Transaction:</span> 
+                            <br>
+                              <ul>
+                                <li>
+                                  <span style="font-weight:bold;">Subscription ID: </span> ${subscriptionDetails.subscriptionId}
+                                </li>
+                                <li>
+                                  <span style="font-weight:bold;">Attempted Amount: </span> €${subscriptionDetails.amount}
+                                </li>
+                                <li>
+                                  <span style="font-weight:bold;">Date of Attempt: </span>  ${formattedDate}
+                                </li>
+                              </ul>
+                            <br><br>  
+                            <span>
+                              To reactivate your plan and continue enjoying our services, we invite you to purchase a new subscription. You can easily do this by logging into your account on our App or website and selecting the subscription plan that best suits your needs.
+                            </span>
+                            <br><br>
+                            <span>
+                              If you have any questions or require assistance during this process, please do not hesitate to reach out to our support team at ${emailConstant.from_email}. We are here to help!
+                            </span>
+                            <br><br>
+
+                            <span>
+                              Thank you for your understanding, and we look forward to welcoming you back soon.
+                            </span>
+                            <br><br>`;
+
+  let template = ` ${bodyHtml}`
+  var mailOptions = {
+                      from: emailConstant.from_email,
+                      to: toEmail,
+                      subject: subject,
+                      html: template
+                    };
+  await transporter.sendMail(mailOptions);
+  return {reseon , subject}
+
+}
+
+exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
+
+  let subscriptionDetails = await SUBSCRIPTION_MODEL.findOne({subscriptionId: subsctiptionId}).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+  const planDetails = await PLANS_MODEL.findOne({planId:subscriptionDetails?.planId });
+  let toEmail = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? subscriptionDetails?.purchaseByCompanyId?.email : subscriptionDetails?.purchaseByDriverId?.email;
+  let UserName = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? `${subscriptionDetails?.purchaseByCompanyId?.first_name } ${subscriptionDetails?.purchaseByCompanyId?.last_name}` : `${subscriptionDetails?.purchaseByDriverId?.first_name } ${subscriptionDetails?.purchaseByDriverId?.last_name}`;
+
+  const currentDate = new Date();
+
+  // Get day, month, and year
+  const day = String(currentDate.getDate()).padStart(2, '0'); // Add leading zero if needed
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based, add 1 and pad
+  const year = String(currentDate.getFullYear()); // Get last two digits of the year
+
+  // Format date as dd mm yy
+  const formattedDate = `${day}-${month}-${year}`;
+  const subject = `Welcome to ${UserName} – Subscription Activated`
+  const bodyHtml =  `
+                      <p>
+                          Dear ${UserName},
+                          <br><br>
+                          We are thrilled to welcome you to Idispatch Mobility! Your subscription has been successfully activated, and you can now enjoy all the benefits of your ${planDetails.name}.
+                          
+                          <br><br>
+                          
+                          <span style="font-weight:bold;">Subscription Details:</span>
+                          
+                          <br><br>
+
+                          <ul>
+                            <li> <span style="font-weight:bold;">Subscription ID:</span> ${subsctiptionId}</li>
+                            <li> <span style="font-weight:bold;">Plan Name:</span> ${planDetails.name}</li>
+                            <li> <span style="font-weight:bold;">Start Date:</span> ${planDetails.startPeriod}</li>
+                            <li> <span style="font-weight:bold;">Next Billing Date:</span> ${planDetails.endPeriod} + (21% VAT)</li>
+                            <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount}</li>
+                          </ul>
+
+                          <br><br>
+                          Thank you for choosing Idispatch Mobility. We're excited to have you with us and look forward to delivering an amazing experience!
+
+                          Best regards,
+                          Idispatch Mobility Team
+                      </p>
+                    `;
+  let template = ` ${bodyHtml}`
+  var mailOptions = {
+                      from: emailConstant.from_email,
+                      to: toEmail,
+                      subject: subject,
+                      html: template
+                    };
+  await transporter.sendMail(mailOptions);
+  return {reseon , subject}
+}
 
 //   try {
 //     const accessToken = await getAccessToken();

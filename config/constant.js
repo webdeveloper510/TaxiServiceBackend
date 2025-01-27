@@ -55,6 +55,16 @@ module.exports={
     },
     SUBSCRIPTION_STATUS: {
         ACTIVE: true,
-        InACTIVE: false
+        INACTIVE: false
+    },
+    SUBSCRIPTION_CANCEL_REASON: {
+        USER_CANCEL: `user_cancel`,
+        CARD_DECLINED: `card_declined`,
+        INSUFFUCIENT_FUNDS: `insufficient_funds`,
+        EXPIRED_CARD: `expired_card`,
+        CARD_BLOCKED: `card_blocked`,
+        PROCESSING_ERROR: `processing_error`,
+        UNKNOWN_ERROR: ` unknown_error`,
+        
     }
 }

@@ -38,6 +38,10 @@ const subscriptions = new Schema({
         type:String,
         default:''
     },
+    cancelReason:{
+        type:String,
+        default:''
+    },
     invoicePdfUrl:{
         type:String,
         default:''
@@ -59,7 +63,7 @@ const subscriptions = new Schema({
         default:Date.now()
     },
     purchaseByCompanyId:{
-        type:mongoose.Schema.Types.ObjectId,ref:'users',
+        type:mongoose.Schema.Types.ObjectId,ref:'user',
         default: null
     },
     purchaseByDriverId:{

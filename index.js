@@ -12,7 +12,7 @@ const cors = require("cors");
 const agency_model = require("./models/user/agency_model.js");
 var apiRouter = require("./routes/index.js");
 const { Server } = require("socket.io");
-const { driverDetailsByToken, userDetailsByToken, sendNotification, } = require("./Service/helperFuntion");
+const { driverDetailsByToken, userDetailsByToken, sendNotification, sendPaymentFailEmail , sendEmailSubscribeSubcription} = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
@@ -32,11 +32,6 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
          
 
         const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
-
-          console.log("Received Headers:", req.headers);
-          console.log("Type of req.body:", typeof req.body);
-          console.log("Instance of Buffer:", req.body instanceof Buffer);
-          // console.log("Raw Body (String):", req.body.toString());
           
           const sig = req.headers['stripe-signature'];
           let event;
@@ -80,6 +75,8 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                                     { _id: subscriptionExist._id }, // filter
                                                     { $set: updateData } // update operation
                                                 );
+              await sendEmailSubscribeSubcription(subscriptionId);
+
             } else if (invoice.billing_reason=== 'subscription_cycle') {
 
               const subscriptionLine = invoice.lines.data.find(line => line.type === 'subscription');
@@ -89,7 +86,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
               
               let option = { new: true };
-              await SUBSCRIPTIOON_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.InACTIVE} ,option);
+              await SUBSCRIPTIOON_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
 
               updateData =  {
                 subscriptionId:invoice.subscription,
@@ -118,12 +115,15 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             
 
             console .log('updated_data------' , updateData)
+          } else if (event.type ===`invoice.payment_failed`) { // when Payment will be failed
+
+            const invoice = event.data.object;
+            await handleInvoicePaymentFailure(invoice)
           }
 
           
           // Log the webhook event
           
-
           console.log("Webhook received successfully");
       } catch (error) {
           console.error("Error in webhook handler:", error.message);
@@ -131,6 +131,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
       }
   }
 );
+
 
 app.use(logger("dev"));
 app.use(express.json());
@@ -1197,5 +1198,72 @@ cron.schedule("* * * * *", () => {
   checkTripsAndSendNotifications();
   // logoutDriverAfterThreeHour()
 });
+
+const handleInvoicePaymentFailure = async (invoice) => {
+  // Handle invoice payment failures similarly
+  const errorCode = invoice.last_payment_error?.code;
+  const subscriptionId = invoice.subscription; // Subscription ID
+  let option = { new: true };
+  let updatedData;
+  switch (errorCode) {
+      case 'card_declined':
+          console.error('Invoice payment failed: Card was declined.');
+          
+          updatedData = {
+                          active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+                          cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.CARD_DECLINED
+                        }
+          await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+          await sendPaymentFailEmail(subscriptionId , constant.SUBSCRIPTION_CANCEL_REASON.CARD_DECLINED)
+          break;
+      case 'insufficient_funds':
+          console.error('Invoice payment failed: Insufficient funds in the account.');
+          
+          updatedData = {
+                          active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+                          cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.INSUFFUCIENT_FUNDS
+                        }
+          await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+          await sendPaymentFailEmail(subscriptionId , constant.SUBSCRIPTION_CANCEL_REASON.INSUFFUCIENT_FUNDS)
+          break;
+      case 'expired_card':
+          console.error('Invoice payment failed: The card has expired.');
+          updatedData = {
+                          active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+                          cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.EXPIRED_CARD
+                        }
+          await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+          await sendPaymentFailEmail(subscriptionId , constant.SUBSCRIPTION_CANCEL_REASON.EXPIRED_CARD)
+          break;
+      case 'card_blocked':
+          console.error('Invoice payment failed: The card is blocked.');
+          updatedData = {
+                          active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+                          cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.CARD_BLOCKED
+                        }
+          await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+          await sendPaymentFailEmail(subscriptionId , constant.SUBSCRIPTION_CANCEL_REASON.CARD_BLOCKED)
+          break;
+      case 'processing_error':
+          console.error('Invoice payment failed: A technical error occurred while processing.');
+          updatedData = {
+                      active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+                      cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.PROCESSING_ERROR
+                    }
+          await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+          await sendPaymentFailEmail(subscriptionId , constant.SUBSCRIPTION_CANCEL_REASON.PROCESSING_ERROR)
+          break;
+      default:
+          console.error('Invoice payment failed for an unknown reason.');
+
+          updatedData = {
+                          active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+                          cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.UNKNOWN_ERROR
+                        }
+          await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+          await sendPaymentFailEmail(subscriptionId , constant.SUBSCRIPTION_CANCEL_REASON.UNKNOWN_ERROR)
+          break;
+  }
+}
 
 module.exports = app;
