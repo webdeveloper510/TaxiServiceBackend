@@ -597,7 +597,7 @@ exports.getUserActivePayedPlans = async (userInfo) => {
 
 exports.getUserCurrentActivePayedPlan = async (userInfo) => {
 
-  // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 
+  // Get the plan if plan end date will not expire based on the current date and it is paid. it is doesn't matter if client cancel that subscription 
   const currentDate = new Date();
   let conditions = {
                       role: userInfo.role == CONSTANT.ROLES.COMPANY ? CONSTANT.ROLES.COMPANY : CONSTANT.ROLES.DRIVER,

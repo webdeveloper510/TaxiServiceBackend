@@ -91,7 +91,7 @@ exports.getProducts = async (req, res) => {
         if (plans) {
 
             for(let value of plans) {
-                value.userActivePlan = value?.planId == activePlan?.planId ? true : false;
+                value.userActivePlan = value?.planId == activePlan?.planId ? true : false; // hihlight the active plan in the list
             }
         }
         return  res.send({
