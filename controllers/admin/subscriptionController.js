@@ -85,11 +85,11 @@ exports.getProducts = async (req, res) => {
 
     try{
 
-        let activePlan = await getUserActivePlan(req.user);
-        return  res.send({
-            code: constant.success_code,
-            planList: activePlan,
-        });
+        // let activePlan = await getUserActivePlan(req.user);
+        // return  res.send({
+        //     code: constant.success_code,
+        //     planList: activePlan,
+        // });
         let plans = await PLANS_MODEL.find({status: true});
         return  res.send({
             code: constant.success_code,
