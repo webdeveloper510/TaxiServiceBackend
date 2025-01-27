@@ -88,7 +88,7 @@ exports.getProducts = async (req, res) => {
         let plans = await PLANS_MODEL.find({status: true});
         return  res.send({
             code: constant.success_code,
-            message: plans.reverse(),
+            planList: plans.reverse(),
         });
     } catch (error) {
 
@@ -294,7 +294,7 @@ exports.cancelSubscription = async (req, res) => {
 
             return res.send({
                                 code: constant.success_code,
-                                message:`Subscription has been cancelled`
+                                message:`Subscription has been cancelled successfully`
                             });
         } else {
             return  res.send({
