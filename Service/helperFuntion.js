@@ -577,8 +577,23 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
 
 exports.getUserActivePlan = async (userInfo) => {
 
-  return userInfo;
-  let subscriptionDetails = await SUBSCRIPTION_MODEL.findOne({subscriptionId: subsctiptionId}).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+  // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 
+  const currentDate = new Date();
+  let conditions = {
+                      role: userInfo.role == CONSTANT.ROLES.COMPANY ? CONSTANT.ROLES.COMPANY : CONSTANT.ROLES.DRIVER,
+                      paid: CONSTANT.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                      endPeriod: { $gt: currentDate }, // Ensure endPeriod is greater than the current date
+                  }
+
+  if (userInfo.role == CONSTANT.ROLES.COMPANY) {
+    
+    conditions.purchaseByCompanyId = userInfo._id;
+  } else {
+    conditions.purchaseByCompanyId = userInfo._id;
+  }
+
+  return await SUBSCRIPTION_MODEL.find(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+
 }
 
 //   try {

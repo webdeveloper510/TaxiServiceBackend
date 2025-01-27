@@ -85,16 +85,15 @@ exports.getProducts = async (req, res) => {
 
     try{
 
-        // let activePlan = await getUserActivePlan(req.user);
-        // return  res.send({
-        //     code: constant.success_code,
-        //     planList: activePlan,
-        // });
+        let activePlan = await getUserActivePlan(req.user);
+        
         let plans = await PLANS_MODEL.find({status: true});
+
         return  res.send({
-            code: constant.success_code,
-            planList: plans.reverse(),
-        });
+                            code: constant.success_code,
+                            activePlan:activePlan,
+                            planList: plans.reverse(),
+                        });
     } catch (error) {
 
         console.error('Error fetching subscription products:', error.message);
