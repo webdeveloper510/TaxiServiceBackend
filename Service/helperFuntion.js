@@ -575,6 +575,12 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
   return {reseon , subject}
 }
 
+exports.getUserActivePlan = async (userInfo) => {
+
+  return userInfo;
+  let subscriptionDetails = await SUBSCRIPTION_MODEL.findOne({subscriptionId: subsctiptionId}).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+}
+
 //   try {
 //     const accessToken = await getAccessToken();
 

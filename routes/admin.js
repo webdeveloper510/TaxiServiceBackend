@@ -183,7 +183,8 @@ router.post("/upate_settings",[verifyToken , adminAuth],fareController.updateAdm
 
 // Subscription APIs
 router.get("/get_subscriptions_products_from_stripe",subscriptionController.getSubscriptionProductsFromStripe);
-router.get("/get_products",subscriptionController.getProducts);
+router.get("/get_products",[verifyToken] ,subscriptionController.getProducts);
+router.get("/get_plans",subscriptionController.getProducts);
 router.post("/update_products/:id",[verifyToken , adminAuth] ,subscriptionController.updateProducts);
 router.post("/create_payment_intent",[verifyToken] ,subscriptionController.createPaymentIntent);
 router.get("/create-setup-intent",[verifyToken] ,subscriptionController.createSetupIntent);

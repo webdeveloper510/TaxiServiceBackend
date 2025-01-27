@@ -8,7 +8,7 @@ const constant = require("../../config/constant");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { sendPaymentFailEmail } = require("../../Service/helperFuntion");
+const { getUserActivePlan } = require("../../Service/helperFuntion");
 
 exports.getSubscriptionProductsFromStripe = async (req, res) => {
     try {
@@ -85,6 +85,11 @@ exports.getProducts = async (req, res) => {
 
     try{
 
+        let activePlan = await getUserActivePlan(req.user);
+        return  res.send({
+            code: constant.success_code,
+            planList: activePlan,
+        });
         let plans = await PLANS_MODEL.find({status: true});
         return  res.send({
             code: constant.success_code,
