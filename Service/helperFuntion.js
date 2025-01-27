@@ -595,7 +595,7 @@ exports.getUserActivePayedPlans = async (userInfo) => {
   return await SUBSCRIPTION_MODEL.find(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
 }
 
-exports.getUserCurrentActivePayedPlans = async (userInfo) => {
+exports.getUserCurrentActivePayedPlan = async (userInfo) => {
 
   // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 
   const currentDate = new Date();
@@ -613,8 +613,15 @@ exports.getUserCurrentActivePayedPlans = async (userInfo) => {
     conditions.purchaseByCompanyId = userInfo._id;
   }
 
-  return await SUBSCRIPTION_MODEL.findOne(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+  let activePlan = await SUBSCRIPTION_MODEL.findOne(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId').lean();  // Use lean to get plain objects
+  
+  if (activePlan) {
 
+    const planDetails = await PLANS_MODEL.findOne({planId: activePlan.planId});
+    activePlan.planDetails = planDetails ? planDetails : {}
+  }
+
+  return activePlan
 }
 
 //   try {

@@ -8,7 +8,7 @@ const constant = require("../../config/constant");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getUserActivePayedPlans ,getUserCurrentActivePayedPlans } = require("../../Service/helperFuntion");
+const { getUserActivePayedPlans ,getUserCurrentActivePayedPlan } = require("../../Service/helperFuntion");
 
 exports.getSubscriptionProductsFromStripe = async (req, res) => {
     try {
@@ -85,13 +85,13 @@ exports.getProducts = async (req, res) => {
 
     try{
 
-        let activePlan = await getUserCurrentActivePayedPlans(req.user)
+        let activePlan = await getUserCurrentActivePayedPlan(req.user)
         let plans = await PLANS_MODEL.find({status: true}).lean();  // Use lean to get plain objects
 
         if (plans) {
 
             for(let value of plans) {
-                value.userActivePlan = value.planId == activePlan.planId ? true : false;
+                value.userActivePlan = value?.planId == activePlan?.planId ? true : false;
             }
         }
         return  res.send({
@@ -212,6 +212,26 @@ exports.createSubscription = async (req, res) => {
         let checkPlanExist = await PLANS_MODEL.findOne({productPriceId: priceId});
 
         if (checkPlanExist) {
+
+            if (req.user.role == constant.ROLES.COMPANY) {
+
+                let activePlan = await getUserCurrentActivePayedPlan(req.user);
+
+                
+                //  If there will be any current subscription then it will be cancelled. and new susbcription will be add
+                if (activePlan) {
+                    const subscriptionId = activePlan.subscriptionId
+                    const canceledSubscription = await stripe.subscriptions.cancel(subscriptionId);
+            
+                    let option = { new: true };
+                    let updatedData = {
+                        active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+                        cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.USER_CANCEL
+                    }
+                    await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+                    
+                }
+            }
             
             const createSubscription = await stripe.subscriptions.create({
                                                                             customer: customerId,
