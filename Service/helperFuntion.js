@@ -575,7 +575,7 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
   return {reseon , subject}
 }
 
-exports.getUserActivePlan = async (userInfo) => {
+exports.getUserActivePayedPlans = async (userInfo) => {
 
   // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 
   const currentDate = new Date();
@@ -593,6 +593,27 @@ exports.getUserActivePlan = async (userInfo) => {
   }
 
   return await SUBSCRIPTION_MODEL.find(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+}
+
+exports.getUserCurrentActivePayedPlans = async (userInfo) => {
+
+  // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 
+  const currentDate = new Date();
+  let conditions = {
+                      role: userInfo.role == CONSTANT.ROLES.COMPANY ? CONSTANT.ROLES.COMPANY : CONSTANT.ROLES.DRIVER,
+                      paid: CONSTANT.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                      endPeriod: { $gt: currentDate }, // Ensure endPeriod is greater than the current date
+                      active: CONSTANT.SUBSCRIPTION_STATUS.ACTIVE
+                  }
+
+  if (userInfo.role == CONSTANT.ROLES.COMPANY) {
+    
+    conditions.purchaseByCompanyId = userInfo._id;
+  } else {
+    conditions.purchaseByCompanyId = userInfo._id;
+  }
+
+  return await SUBSCRIPTION_MODEL.findOne(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
 
 }
 

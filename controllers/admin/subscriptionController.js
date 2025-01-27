@@ -8,7 +8,7 @@ const constant = require("../../config/constant");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getUserActivePlan } = require("../../Service/helperFuntion");
+const { getUserActivePayedPlans ,getUserCurrentActivePayedPlans } = require("../../Service/helperFuntion");
 
 exports.getSubscriptionProductsFromStripe = async (req, res) => {
     try {
@@ -85,10 +85,15 @@ exports.getProducts = async (req, res) => {
 
     try{
 
-        let activePlan = await getUserActivePlan(req.user);
-        
-        let plans = await PLANS_MODEL.find({status: true});
+        let activePlan = await getUserCurrentActivePayedPlans(req.user)
+        let plans = await PLANS_MODEL.find({status: true}).lean();  // Use lean to get plain objects
 
+        if (plans) {
+
+            for(let value of plans) {
+                value.userActivePlan = value.planId == activePlan.planId ? true : false;
+            }
+        }
         return  res.send({
                             code: constant.success_code,
                             activePlan:activePlan,
