@@ -817,7 +817,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
       res.send({
         code: constant.error_code,
         message: "Unable to get the trips",
-        activePlans: getActivePaidPlans ? true  : false
+        activePlans: getActivePaidPlans.length > 0 ? true  : false
       });
     } else {
 
@@ -857,7 +857,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
       return res.send({
                         code: constant.success_code,
                         message: "Success",
-                        activePlans: getActivePaidPlans ? true  : false,
+                        activePlans: getActivePaidPlans.length > 0 ? true  : false,
                         totalCount: totalCount,
                         result: get_trip,
                         totalActiveTrips,
