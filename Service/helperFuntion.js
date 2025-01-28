@@ -595,6 +595,20 @@ exports.getUserActivePayedPlans = async (userInfo) => {
   return await SUBSCRIPTION_MODEL.find(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
 }
 
+exports.getCompanyActivePayedPlans = async (companyId) => {
+
+  // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 
+  const currentDate = new Date();
+  let conditions = {
+                      role: CONSTANT.ROLES.COMPANY,
+                      paid: CONSTANT.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                      endPeriod: { $gt: currentDate }, // Ensure endPeriod is greater than the current date
+                      purchaseByCompanyId : new mongoose.Types.ObjectId(companyId)
+                  }
+
+  return await SUBSCRIPTION_MODEL.find(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+}
+
 exports.getUserCurrentActivePayedPlan = async (userInfo) => {
 
   // Get the plan if plan end date will not expire based on the current date and it is paid. it is doesn't matter if client cancel that subscription 

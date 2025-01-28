@@ -9,7 +9,7 @@ const randToken = require("rand-token").generator();
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-
+const { getUserActivePayedPlans } = require("../../Service/helperFuntion");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -811,11 +811,13 @@ exports.getAllTripsForDrivers = async (req, res) => {
       },
     ]).sort({ createdAt: -1 });
 
+    const getActivePaidPlans = await getUserActivePayedPlans(req.user)
     
     if (!get_trip) {
       res.send({
         code: constant.error_code,
         message: "Unable to get the trips",
+        activePlans: getActivePaidPlans ? true  : false
       });
     } else {
 
@@ -855,11 +857,13 @@ exports.getAllTripsForDrivers = async (req, res) => {
       return res.send({
                         code: constant.success_code,
                         message: "Success",
+                        activePlans: getActivePaidPlans ? true  : false,
                         totalCount: totalCount,
                         result: get_trip,
                         totalActiveTrips,
                         totalUnpaidTrips,
                         totalReachedTrip,
+                        
                       });
     }
   } catch (err) {
