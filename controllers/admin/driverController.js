@@ -2017,13 +2017,7 @@ exports.get_active_drivers = async (req, res) => {
       startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
     ); // Set to Monday of current week
     let getDetail = await USER.findOne({ _id: req.userId });
-    // let getDrivers = await DRIVER.find({
-    //   status: true,
-    //   is_login: true,
-    //   defaultVehicle: { $ne: null },
-    // })
-    //   .populate("defaultVehicle")
-    //   .sort({ createdAt: -1 });
+    
     let getDrivers = await DRIVER.aggregate([
       {
         $match: {
@@ -2120,6 +2114,28 @@ exports.get_active_drivers = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "subscriptions", // Assuming the collection name for subscriptions is "subscriptions"
+          localField: "_id",
+          foreignField: "purchaseByDriverId", // Adjust based on your schema
+          as: "subscriptionData",
+          pipeline: [
+            {
+              $match: {
+                paid: true,
+                endPeriod: { $gt: new Date() }, // Current date filter
+              },
+            },
+          ],
+        },
+      },
+      {
+        $match: {
+          totalUnpaidTrips: 0,
+          subscriptionData: { $ne: [] }, // Ensures the driver has active subscriptions
+        },
+      },
+      {
         $match: {
           totalUnpaidTrips: 0,
         },
@@ -2128,6 +2144,8 @@ exports.get_active_drivers = async (req, res) => {
         $sort: { createdAt: -1 },
       },
     ]);
+
+console.log('new Date()------' , new Date())
     if (!getDrivers) {
       res.send({
         code: constant.error_code,
@@ -2136,14 +2154,14 @@ exports.get_active_drivers = async (req, res) => {
     } else {
       const fv = getDetail?.favoriteDrivers?.map((id) => id.toString()) || [];
       const driver = getDrivers.map((d) => d);
-      const result = driver.map((d) => {
-        let isFavorite = false;
-        if (fv.includes(d._id.toString())) {
-          isFavorite = true;
-        }
-        d.isFavorite = isFavorite;
-        return d;
-      });
+      const result = driver.map((d) =>  {
+                                            let isFavorite = false;
+                                            if (fv.includes(d._id.toString())) {
+                                              isFavorite = true;
+                                            }
+                                            d.isFavorite = isFavorite;
+                                            return d;
+                                        });
       res.send({
         code: constant.success_code,
         message: "Success",
