@@ -85,6 +85,9 @@ exports.getProducts = async (req, res) => {
 
     try{
 
+        // Plan will work for first month if user cancel the susbcription after payment and user can use this
+        let activePayedPlan = await getUserActivePayedPlans(req.user);
+
         let activePlan = await getUserCurrentActivePayedPlan(req.user)
         let plans = await PLANS_MODEL.find({status: true}).lean();  // Use lean to get plain objects
 
@@ -96,6 +99,7 @@ exports.getProducts = async (req, res) => {
         }
         return  res.send({
                             code: constant.success_code,
+                            activePayedPlan: activePayedPlan.reverse(),
                             activePlan:activePlan,
                             access: req.user,
                             planList: plans.reverse(),
