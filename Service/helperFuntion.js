@@ -589,9 +589,9 @@ exports.getUserActivePayedPlans = async (userInfo) => {
     
     conditions.purchaseByCompanyId = userInfo._id;
   } else {
-    conditions.purchaseByCompanyId = userInfo._id;
+    conditions.purchaseByDriverId = userInfo._id;
   }
-
+  
   return await SUBSCRIPTION_MODEL.find(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
 }
 
