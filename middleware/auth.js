@@ -11,6 +11,7 @@ const mongoose = require("mongoose");
 
 // const config = process.env
 verifyToken = async (req, res, next) => {
+
   try {
     let token = req.headers["x-access-token"];
     let platform = req.headers.platform;

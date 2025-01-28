@@ -2145,7 +2145,7 @@ exports.get_active_drivers = async (req, res) => {
       },
     ]);
 
-console.log('new Date()------' , new Date())
+
     if (!getDrivers) {
       res.send({
         code: constant.error_code,

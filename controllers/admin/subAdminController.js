@@ -2771,6 +2771,7 @@ exports.favoriteDriver = async (req, res) => {
 
 exports.update_account_access = async (req, res) => {
   try {
+
     // USER AGENCY AGENCY
     const driver = await driver_model.findById(req?.body?.driver_id).populate("created_by");
 
@@ -2781,15 +2782,13 @@ exports.update_account_access = async (req, res) => {
                       });
     }
 
-    if (req.user?.driverId._id == req?.body?.driver_id) {
+    if (req.user?.driverId?._id == req?.body?.driver_id) {
 
       return res.send({
                         code: constant.error_code,
                         message: `You are not permitted to assign account access to yourself.`,
                       });
     }
-
-    console.log(req.user.driverId)
 
     if (req.user?.role == constant.ROLES.COMPANY) {
 
