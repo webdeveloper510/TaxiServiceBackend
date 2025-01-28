@@ -2892,7 +2892,7 @@ exports.updatePartnerAccountAccess = async (req, res) => {
                       });
     }
 
-    if (req.user?.driverId._id == req?.body?.driver_id) {
+    if (req.user?.driverId?._id == req?.body?.driver_id) {
 
       return res.send({
                         code: constant.error_code,
