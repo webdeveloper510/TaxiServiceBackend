@@ -610,9 +610,10 @@ exports.getUserCurrentActivePayedPlan = async (userInfo) => {
     
     conditions.purchaseByCompanyId = userInfo._id;
   } else {
-    conditions.purchaseByCompanyId = userInfo._id;
+    conditions.purchaseByDriverId = userInfo._id;
   }
 
+ 
   let activePlan = await SUBSCRIPTION_MODEL.findOne(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId').lean();  // Use lean to get plain objects
   
   if (activePlan) {
