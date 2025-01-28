@@ -1559,23 +1559,8 @@ exports.get_access_trip = async (req, res) => {
 
 exports.get_all_access_trip = async (req, res) => {
   try {
-    // if (req.user.role == "DRIVER") {
-    //   let is_driver_has_company_access = await isDriverHasCompanyAccess(
-    //     req.user,
-    //     req.body.company_id
-    //   );
-
-    //   if (!is_driver_has_company_access) {
-    //     res.send({
-    //       code: constant.ACCESS_ERROR_CODE,
-    //       message: "The company's access has been revoked",
-    //     });
-
-    //     return;
-    //   }
-    // }
-
-    const companyIds = await req.user.company_account_access.map(item => item.company_id);
+    
+    let companyIds = await req.user.company_account_access.map(item => item.company_id);
 
     if (companyIds.length == 0) {
       return res.send({
@@ -1584,8 +1569,21 @@ exports.get_all_access_trip = async (req, res) => {
                         result : []
                       });
     }
-    
 
+    let filteredCompanyId = [];
+
+    // remove the driver who doesn't have the asctive payed plan
+    for (let value of companyIds) {
+      let getActivePaidPlans = await getCompanyActivePayedPlans(value)
+
+      if (getActivePaidPlans.length > 0) {
+        filteredCompanyId.push(value)
+      }
+    }
+    
+    companyIds = filteredCompanyId;
+    
+  
     let data = req.body;
     const page = parseInt(data.page) || 1; // Default to page 1 if not provided
     const limit = parseInt(data.limit) || 10; // Default to 10 items per page if not provided
