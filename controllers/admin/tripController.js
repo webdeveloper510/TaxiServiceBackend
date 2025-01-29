@@ -15,7 +15,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const moment = require("moment");
 const { sendNotification } = require("../../Service/helperFuntion");
-const { isDriverHasCompanyAccess , getCompanyActivePayedPlans } = require("../../Service/helperFuntion");
+const { isDriverHasCompanyAccess , getCompanyActivePaidPlans } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
@@ -1533,12 +1533,12 @@ exports.get_access_trip = async (req, res) => {
       },
     ]).sort({ createdAt: -1 });
 
-    const getActivePaidPlans = await getCompanyActivePayedPlans(req.body.company_id)
+    const getActivePaidPlans = await getCompanyActivePaidPlans(req.body.company_id)
     if (!get_trip) {
       res.send({
         code: constant.error_code,
         message: "Unable to get the trips",
-        activePlans: getActivePaidPlans ? true  : false
+        activePlans: getActivePaidPlans.length > 0 ? true  : false
       });
     } else {
       res.send({
@@ -1546,7 +1546,7 @@ exports.get_access_trip = async (req, res) => {
         message: "Success",
         result: get_trip,
         totalCount: totalCount,
-        activePlans: getActivePaidPlans ? true  : false
+        activePlans: getActivePaidPlans.length > 0 ? true  : false
       });
     }
   } catch (err) {
@@ -1574,7 +1574,7 @@ exports.get_all_access_trip = async (req, res) => {
 
     // remove the driver who doesn't have the asctive payed plan
     for (let value of companyIds) {
-      let getActivePaidPlans = await getCompanyActivePayedPlans(value)
+      let getActivePaidPlans = await getCompanyActivePaidPlans(value)
 
       if (getActivePaidPlans.length > 0) {
         filteredCompanyId.push(value)

@@ -8,7 +8,7 @@ const constant = require("../../config/constant");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getUserActivePayedPlans ,getUserCurrentActivePayedPlan } = require("../../Service/helperFuntion");
+const { getUserActivePaidPlans ,getUserCurrentActivePayedPlan } = require("../../Service/helperFuntion");
 
 exports.getSubscriptionProductsFromStripe = async (req, res) => {
     try {
@@ -86,7 +86,7 @@ exports.getProducts = async (req, res) => {
     try{
 
         // Plan will work for first month if user cancel the susbcription after payment and user can use this
-        let activePayedPlan = await getUserActivePayedPlans(req.user);
+        let activePayedPlan = await getUserActivePaidPlans(req.user);
 
         let activePlan = await getUserCurrentActivePayedPlan(req.user)
         let plans = await PLANS_MODEL.find({status: true}).lean();  // Use lean to get plain objects
@@ -338,6 +338,34 @@ exports.cancelSubscription = async (req, res) => {
         }
       
       } catch (error) {
+        console.error('Error creating subscription:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+      }
+}
+
+exports.getMyPaidPlans = async (req, res) => {
+
+    try {
+
+        let activePayedPlan = await getUserActivePaidPlans(req.user);
+
+        if (activePayedPlan.length > 0) {
+            
+            return res.send({
+                                code: constant.success_code,
+                                data:activePayedPlan
+                            });
+        } else {
+            
+            return  res.send({
+                                code: constant.error_code,
+                                message: `You don't have any paid plan`,
+                            });
+        }
+    } catch (error) {
         console.error('Error creating subscription:', error.message);
         return  res.send({
                             code: constant.error_code,

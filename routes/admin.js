@@ -190,6 +190,7 @@ router.post("/create_payment_intent",[verifyToken] ,subscriptionController.creat
 router.get("/create-setup-intent",[verifyToken] ,subscriptionController.createSetupIntent);
 router.post("/create-subscription",[verifyToken] ,subscriptionController.createSubscription);
 router.post("/cancel-subscription",[verifyToken] ,subscriptionController.cancelSubscription);
+router.get("/get-my-paid-plans",[verifyToken] ,subscriptionController.getMyPaidPlans);
 // router.post("/subscription_webhook" , subscriptionController.subscriptionWebhook);
 
 module.exports = router;

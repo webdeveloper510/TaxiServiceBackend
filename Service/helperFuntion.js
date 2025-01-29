@@ -575,7 +575,7 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
   return {reseon , subject}
 }
 
-exports.getUserActivePayedPlans = async (userInfo) => {
+exports.getUserActivePaidPlans = async (userInfo) => {
 
   // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 
   const currentDate = new Date();
@@ -595,7 +595,7 @@ exports.getUserActivePayedPlans = async (userInfo) => {
   return await SUBSCRIPTION_MODEL.find(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
 }
 
-exports.getCompanyActivePayedPlans = async (companyId) => {
+exports.getCompanyActivePaidPlans = async (companyId) => {
 
   // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 
   const currentDate = new Date();
