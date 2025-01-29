@@ -1230,6 +1230,7 @@ exports.get_drivers_super = async (req, res) => {
           zip_code:1,
           phone:1,
           company_account_access:1,
+          is_special_plan_active:1,
           profile_image:1,
           gender:1,
           is_available:1,
