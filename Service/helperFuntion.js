@@ -567,8 +567,6 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                     `;
   let template = ` ${bodyHtml}`
 
-  toEmail = `vsingh@codenomad.net`;
-
   var transporter = nodemailer.createTransport(emailConstant.credentials);
   var mailOptions = {
                       from: emailConstant.from_email,
