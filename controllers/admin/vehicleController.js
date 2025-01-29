@@ -172,7 +172,7 @@ exports.get_vehicles = async (req, res) => {
         let get_vehicle = await VEHICLE.find({
             $and: [
                 { is_deleted: false },
-                { created_by: req.userId },
+                { agency_user_id: req.userId },
                 // {
                 //     $or: [
                 //         { created_by: req.userId },
