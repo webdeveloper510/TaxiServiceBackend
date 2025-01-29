@@ -12,6 +12,7 @@ const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip , noShowTrip} = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
+const SETTING_MODEL = require("../../models/user/setting_model");
 
 exports.add_trip = async (req, res) => {
   try {
@@ -401,9 +402,10 @@ exports.edit_trip = async (req, res) => {
         if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
           commission = (data.price * data.commission.commission_value) / 100;
         }
-  
-        const company = await AGENCY.findOne({ user_id: data.created_by_company_id, });
-        data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
+
+        const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
+
+        data.superAdminPaymentAmount = (commission * parseFloat(adminCommision?.value)) / 100 || 0;
         data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
         data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
   
@@ -538,9 +540,9 @@ exports.access_edit_trip = async (req, res) => {
         commission = (data.price * data.commission.commission_value) / 100;
       }
 
-      
-      const company = await AGENCY.findOne({ user_id: data.created_by_company_id, });
-      data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
+      const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
+
+      data.superAdminPaymentAmount = (commission * parseFloat(adminCommision.value)) / 100 || 0;
       data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
       data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
 

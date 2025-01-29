@@ -7,6 +7,7 @@ const { getNextSequenceValue } = require("../../models/user/trip_counter_model")
 var FARES = require("../../models/user/fare_model");
 // const FARES = require('../../models/admin/fare_model')
 const TRIP = require("../../models/user/trip_model");
+const SETTING_MODEL = require("../../models/user/setting_model");
 const multer = require("multer");
 const path = require("path");
 const constant = require("../../config/constant");
@@ -299,11 +300,18 @@ exports.add_trip = async (req, res) => {
         commission = (data.price * data.commission.commission_value) / 100;
       }
 
+      const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
+
       
-      const company = await AGENCY.findOne({ user_id: data.created_by_company_id, });
-      data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
+      data.superAdminPaymentAmount = (commission * parseFloat(adminCommision.value)) / 100 || 0;
       data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
       data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
+
+      return res.send({
+        code: constant.error_code,
+        adminCommision:adminCommision,
+        message: data,
+      });
 
     } else {
       data.superAdminPaymentAmount = 0;
@@ -311,6 +319,7 @@ exports.add_trip = async (req, res) => {
       data.driverPaymentAmount = data.price
     }
 
+    return
     
     let add_trip = await TRIP(data).save();
     if (!add_trip) {
@@ -410,9 +419,9 @@ exports.access_add_trip = async (req, res) => {
         if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
           commission = (data.price * data.commission.commission_value) / 100;
         }
-
-        const company = await AGENCY.findOne({ user_id: data.created_by_company_id, });
-        data.superAdminPaymentAmount = (commission * parseFloat(company.commision)) / 100 || 0;
+        const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
+        
+        data.superAdminPaymentAmount = (commission * parseFloat(adminCommision.value)) / 100 || 0;
         data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
         data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
       } else {

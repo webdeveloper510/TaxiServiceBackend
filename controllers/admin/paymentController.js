@@ -6,6 +6,7 @@ const {
 const constant = require("../../config/constant");
 const agency_model = require("../../models/user/agency_model");
 const transaction = require("../../models/user/transaction");
+const SETTING_MODEL = require("../../models/user/setting_model");
 // const transaction = require("../../models/user/transaction");
 const TRIP = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
@@ -140,13 +141,12 @@ exports.successTripPay = async (req, res) => {
         const companyData = await user_model.findOne({
           _id: trip_by_id.created_by_company_id,
         });
-        const company = await agency_model.findOne({
-          user_id: companyData._id,
-        });
+        const company = await agency_model.findOne({ user_id: companyData._id });
 
         const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
-        const superAdminCommission =
-          (commission * parseFloat(company.commision)) / 100 || 0;
+        
+        const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
+        const superAdminCommission = (commission * parseFloat(adminCommision.value)) / 100 || 0;
 
         const companyTransaction = new transaction({
           from: trip_by_id.driver_name,
