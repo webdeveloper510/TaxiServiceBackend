@@ -42,6 +42,10 @@ const subscriptions = new Schema({
         type:String,
         default:''
     },
+    invoiceName:{
+        type:String,
+        default:''
+    },
     invoicePdfUrl:{
         type:String,
         default:''

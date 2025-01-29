@@ -556,7 +556,6 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                             <li> <span style="font-weight:bold;">Start Date:</span> ${planDetails.startPeriod}</li>
                             <li> <span style="font-weight:bold;">Next Billing Date:</span> ${planDetails.endPeriod} + (21% VAT)</li>
                             <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount}</li>
-                            ${subscriptionDetails.invoiceUrl}
                           </ul>
 
                           <br><br>
@@ -575,7 +574,14 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                       from: emailConstant.from_email,
                       to: toEmail,
                       subject: subject,
-                      html: template
+                      html: template,
+                      attachments: [
+                        {
+                            filename: `${subscriptionDetails.invoiceName}.pdf`,  // Change filename as needed
+                            path: `${subscriptionDetails.invoicePdfUrl}`,  // Provide the correct path to the file
+                            contentType: 'application/pdf' // Set appropriate content type
+                        }
+                      ]
                     };
   let sendEmail = await transporter.sendMail(mailOptions);
   return sendEmail
