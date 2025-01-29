@@ -78,6 +78,10 @@ const subscriptions = new Schema({
         type:Boolean,
         default:false
     },
+    isRefund:{
+        type:Boolean,
+        default:false
+    },
     amount: {
         type: Number,
         default: 0

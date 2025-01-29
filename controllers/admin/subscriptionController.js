@@ -8,7 +8,7 @@ const constant = require("../../config/constant");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getUserActivePaidPlans ,getUserCurrentActivePayedPlan } = require("../../Service/helperFuntion");
+const { getUserActivePaidPlans ,getUserCurrentActivePayedPlan , sendEmailSubscribeSubcription} = require("../../Service/helperFuntion");
 
 
 exports.createTax = async (req, res) => {
@@ -116,6 +116,7 @@ exports.getProducts = async (req, res) => {
 
     try{
 
+        let send = await sendEmailSubscribeSubcription('sub_1QmV1JKNzdNk7dDQIBMvy4kz');
         // Plan will work for first month if user cancel the susbcription after payment and user can use this
         let activePayedPlan = await getUserActivePaidPlans(req.user);
 
@@ -130,6 +131,7 @@ exports.getProducts = async (req, res) => {
         }
         return  res.send({
                             code: constant.success_code,
+                            send:send,
                             activePayedPlan: activePayedPlan.reverse(),
                             activePlan:activePlan,
                             access: req.user,

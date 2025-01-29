@@ -509,6 +509,7 @@ exports.sendPaymentFailEmail = async (subsctiptionId , reseon) => {
                             <br><br>`;
 
   let template = ` ${bodyHtml}`
+ 
   var mailOptions = {
                       from: emailConstant.from_email,
                       to: toEmail,
@@ -555,6 +556,7 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                             <li> <span style="font-weight:bold;">Start Date:</span> ${planDetails.startPeriod}</li>
                             <li> <span style="font-weight:bold;">Next Billing Date:</span> ${planDetails.endPeriod} + (21% VAT)</li>
                             <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount}</li>
+                            ${subscriptionDetails.invoiceUrl}
                           </ul>
 
                           <br><br>
@@ -565,14 +567,18 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                       </p>
                     `;
   let template = ` ${bodyHtml}`
+
+  toEmail = `vsingh@codenomad.net`;
+
+  var transporter = nodemailer.createTransport(emailConstant.credentials);
   var mailOptions = {
                       from: emailConstant.from_email,
                       to: toEmail,
                       subject: subject,
                       html: template
                     };
-  await transporter.sendMail(mailOptions);
-  return {reseon , subject}
+  let sendEmail = await transporter.sendMail(mailOptions);
+  return sendEmail
 }
 
 exports.getUserActivePaidPlans = async (userInfo) => {

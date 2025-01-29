@@ -2236,6 +2236,7 @@ exports.companyList = async (req, res) => {
           profile_image: 1,
           role: 1,
           totalBalance: 1,
+          is_special_plan_active:1,
           status: 1,
           isDriver:1,
           is_blocked:1,
