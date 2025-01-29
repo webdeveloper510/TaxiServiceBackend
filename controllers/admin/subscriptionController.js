@@ -10,6 +10,37 @@ const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { getUserActivePaidPlans ,getUserCurrentActivePayedPlan } = require("../../Service/helperFuntion");
 
+
+exports.createTax = async (req, res) => {
+    try{
+
+        const taxRate = await stripe.taxRates.create({
+            display_name: 'VAT',
+            description: '21% VAT',
+            percentage: 21,
+            inclusive: false, // Set to false for additional charge
+        });
+    
+        console.log('Created Tax Rate:', taxRate.id);
+        
+
+        return  res.send({
+            code: constant.success_code,
+            tax_id: taxRate.id,
+        });
+    
+    
+    } catch (error) {
+
+        console.error('Error fetching subscription products:', error.message);
+        
+
+        return  res.send({
+                    code: constant.error_code,
+                    message: error.message,
+                });
+    }
+}
 exports.getSubscriptionProductsFromStripe = async (req, res) => {
     try {
 
@@ -240,7 +271,10 @@ exports.createSubscription = async (req, res) => {
             
             const createSubscription = await stripe.subscriptions.create({
                                                                             customer: customerId,
-                                                                            items: [{ price: priceId }],
+                                                                            items: [{ 
+                                                                                        price: priceId,
+                                                                                        tax_rates: [process.env.STRIPE_VAT_TAX_ID]
+                                                                                    }],
                                                                             payment_behavior: 'default_incomplete',
                                                                             expand: ['latest_invoice.payment_intent'],
                                                                         });
@@ -359,7 +393,7 @@ exports.getMyPaidPlans = async (req, res) => {
                                 data:activePayedPlan
                             });
         } else {
-            
+
             return  res.send({
                                 code: constant.error_code,
                                 message: `You don't have any paid plan`,

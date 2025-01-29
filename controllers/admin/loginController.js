@@ -610,16 +610,14 @@ exports.get_token_detail = async (req, res) => {
 
    
     let result1;
-    const userByID = await USER.findOne({ _id: req.userId }).populate(
-      "driverId"
-    );
+    const userByID = await USER.findOne({ _id: req.userId }).populate("driverId");
 
-    let lookupData = {
-                      from: "agencies",
-                      localField: "_id",
-                      foreignField: "user_id",
-                      as: "company_detail",
-                    }
+    let lookupData  =   {
+                          from: "agencies",
+                          localField: "_id",
+                          foreignField: "user_id",
+                          as: "company_detail",
+                        };
 
     if (req.user.role == constant.ROLES.HOTEL) {
       
