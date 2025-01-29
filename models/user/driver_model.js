@@ -174,6 +174,10 @@ const driver = new Schema(
       type: Boolean,
       default: false,
     },
+    is_special_plan_active: { // admin can give this plan to any driver or company then this user can't take any plan and he can use the system
+      type: Boolean,
+      default: false,
+    },
     locationUpdatedAt: {
       type: Date,
       default: Date.now,
