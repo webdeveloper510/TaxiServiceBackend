@@ -17,6 +17,7 @@ const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
 const SUBSCRIPTIOON_MODEL = require("./models/user/subscription_model");
+const SETTING_MODEL = require("./models/user/setting_model");
 const mongoose = require("mongoose");
 var app = express();
 app.use(cors());
@@ -1154,8 +1155,11 @@ async function logoutDriverAfterThreeHour() {
   }
 }
 
-const get20thMinuteRangeUTC = () => {
+const get20thMinuteRangeUTC = async () => {
 
+  const adminPrepreNotificationTime = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.PRE_NOTIFICATION_TIME});
+
+  const preNotificationTime = parseInt(parseFloat(adminPrepreNotificationTime.value))
   let currentTime = new Date();
 
   let currentDateTime = new Date();
@@ -1164,8 +1168,9 @@ const get20thMinuteRangeUTC = () => {
 
   currentDateTime = currentDateTime.toISOString();
   // Add 15 minutes to the current time
-  let futureTime = new Date(currentTime.getTime() + 20 * 60 * 1000);
-  
+  let futureTime = new Date(currentTime.getTime() + preNotificationTime * 60 * 1000);
+  console.log(currentDateTime)
+  console.log(futureTime)
   
   // Set the start time at the 15th minute in UTC with 0 seconds and 0 milliseconds
   let startDateTime = new Date(futureTime);
