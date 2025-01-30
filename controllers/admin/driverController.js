@@ -1806,9 +1806,14 @@ exports.get_active_drivers = async (req, res) => {
       },
       {
         $match: {
-          totalUnpaidTrips: 0,
-          subscriptionData: { $ne: [] }, // Ensures the driver has active subscriptions
-        },
+          $or: [
+            { is_special_plan_active: true }, // subscription will not check when is_special_plan_active is true
+            { 
+              totalUnpaidTrips: 0, 
+              subscriptionData: { $ne: [] } // If user didn't have the plan then it will not add in the list if he didn't have is_special_plan_active true
+            }
+          ]
+        }
       },
       {
         $match: {
