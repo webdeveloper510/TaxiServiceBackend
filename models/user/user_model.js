@@ -173,7 +173,23 @@ const user = new Schema(
       type: Date,
       default: Date.now(),
     },
-    stripeCustomerId: {
+    stripeCustomerId: { // for the subscription payments
+      type: String,
+      default: "",
+    },
+    connectedAccountId: { // for the payout payments
+      type: String,
+      default: "",
+    },
+    isaccountAttched: { // if user account detail is attached with stripe connect account 
+      type: Boolean,
+      default: false,
+    },
+    externalAccountId: { // external account id after attaching the bank details with connect account
+      type: String,
+      default: "",
+    },
+    stripeCustomerId: { // for the subscription payments
       type: String,
       default: "",
     },
