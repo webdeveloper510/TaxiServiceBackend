@@ -116,7 +116,7 @@ exports.getProducts = async (req, res) => {
 
     try{
 
-        let clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        let clientIp = req.ip;
 
         console.log('clientIp-----------' , clientIp)
         //const connectAccountId = await createConnectedAccount();
