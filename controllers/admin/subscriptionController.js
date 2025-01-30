@@ -8,7 +8,7 @@ const constant = require("../../config/constant");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getUserActivePaidPlans ,getUserCurrentActivePayedPlan , createConnectedAccount} = require("../../Service/helperFuntion");
+const { getUserActivePaidPlans ,getUserCurrentActivePayedPlan , createConnectedAccount , attachBankAccount} = require("../../Service/helperFuntion");
 
 
 exports.createTax = async (req, res) => {
@@ -116,10 +116,10 @@ exports.getProducts = async (req, res) => {
 
     try{
 
-        let clientIp = req.ip;
+        // const connectAccountId = await createConnectedAccount();
+        // const externalAccountId = await attachBankAccount(connectAccountId , {accountHolderName: "vijay rana" , iban: 'NL91ABNA0417164300'});
 
-        console.log('clientIp-----------' , clientIp)
-        //const connectAccountId = await createConnectedAccount();
+        // console.log(connectAccountId)
         // Plan will work for first month if user cancel the susbcription after payment and user can use this
         let activePayedPlan = await getUserActivePaidPlans(req.user);
 
@@ -134,7 +134,6 @@ exports.getProducts = async (req, res) => {
         }
         return  res.send({
                             code: constant.success_code,
-                            clientIp:clientIp,
                             activePayedPlan: activePayedPlan.reverse(),
                             activePlan:activePlan,
                             access: req.user,

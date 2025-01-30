@@ -7,7 +7,7 @@ const bankAccountDetails = new Schema({
         required: true,
         default:''
     },
-    ibnNumber: {
+    ibanNumber: {
         type: String,
         required: true,
         default: ''
