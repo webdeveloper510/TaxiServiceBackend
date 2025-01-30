@@ -307,20 +307,12 @@ exports.add_trip = async (req, res) => {
       data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
       data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
 
-      return res.send({
-        code: constant.error_code,
-        adminCommision:adminCommision,
-        message: data,
-      });
-
     } else {
       data.superAdminPaymentAmount = 0;
       data.companyPaymentAmount = 0;
       data.driverPaymentAmount = data.price
     }
 
-    return
-    
     let add_trip = await TRIP(data).save();
     if (!add_trip) {
       return res.send({
