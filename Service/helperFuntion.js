@@ -15,6 +15,8 @@ const CONSTANT = require("../config/constant");
 const constant = require("../config/constant");
 const nodemailer = require("nodemailer");
 const emailConstant = require("../config/emailConstant");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const IBAN = require('iban');
 // Initialize Twilio client
 const client = twilio(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
 
@@ -29,6 +31,126 @@ exports.driverDetailsByToken = async (token) => {
 
   return driver;
 };
+
+exports.createConnectedAccount = async () =>{
+  try {
+
+    const account = await stripe.accounts.create({
+        type: 'custom',
+        country: 'NL', // Country of the bank account
+        capabilities: {
+            card_payments: { requested: true },
+            transfers: { requested: true }
+        },
+        business_type: 'individual', // or 'company', depending on the user
+        tos_acceptance: {
+            date: Math.floor(Date.now() / 1000), // Current time in seconds
+            ip: '127.0.0.1', // Replace with the user's actual IP
+        }
+    });
+    console.log('Connected Account Created:', account.id);
+    return account.id;
+  } catch (error) {
+      console.error('Error creating connected account:', error);
+      throw error;
+  }
+}
+
+
+exports.attachBankAccount = async (connectedAccountId, bankDetails) => {
+  try {
+      const externalAccount = await stripe.accounts.createExternalAccount(
+          connectedAccountId,
+          {
+              external_account: {
+                  object: 'bank_account',
+                  country: 'NL', // Country code
+                  currency: 'eur', // Currency
+                  account_holder_name: bankDetails.accountHolderName,
+                  account_holder_type: 'individual', // or 'company'
+                  iban: bankDetails.iban // IBAN for Netherlands
+              }
+          }
+      );
+      console.log('Bank Account Attached:', externalAccount);
+      return externalAccount.id;
+  } catch (error) {
+      console.error('Error attaching bank account:', error);
+      throw error;
+  }
+}
+
+
+exports.updateBankAccount = async (connectedAccountId, newBankDetails) => {
+  try {
+      // Validate IBAN format
+      if (!IBAN.isValid(newBankDetails.iban)) {
+          throw new Error('Invalid IBAN format. Please provide a valid IBAN.');
+      }
+
+      // Get all external accounts (bank accounts) for the connected account
+      const bankAccounts = await stripe.accounts.listExternalAccounts(connectedAccountId, { object: 'bank_account' });
+
+      if (bankAccounts.data.length === 0) {
+          throw new Error('No bank account found for this user.');
+      }
+
+      // Assume the first bank account is the one to update (you can modify this if needed)
+      const oldBankAccountId = bankAccounts.data[0].id;
+
+      console.log(`Old Bank Account Found: ${oldBankAccountId}, Deleting it...`);
+
+      // Remove the old bank account
+      await stripe.accounts.deleteExternalAccount(connectedAccountId, oldBankAccountId);
+      console.log('Old Bank Account Removed Successfully');
+
+      // Tokenize the new bank account
+      const token = await stripe.tokens.create({
+          bank_account: {
+              country: 'NL',
+              currency: 'eur',
+              account_holder_name: newBankDetails.accountHolderName,
+              account_holder_type: 'individual', // or 'company'
+              iban: newBankDetails.iban
+          }
+      });
+
+      console.log('New Bank Account Token Created:', token.id);
+
+      // Attach the new bank account
+      const externalAccount = await stripe.accounts.createExternalAccount(
+          connectedAccountId,
+          { external_account: token.id }
+      );
+
+      console.log('New Bank Account Attached Successfully:', externalAccount.id);
+      return externalAccount.id;
+
+  } catch (error) {
+      console.error('Error updating bank account:', error.message);
+      throw new Error(`Failed to update bank account: ${error.message}`);
+  }
+}
+
+exports.sendPayout = async (amount, connectedAccountId) => {
+  try {
+      const payout = await stripe.payouts.create(
+                                                    {
+                                                      amount : amount * 100, // Amount in cents (e.g., 1000 = €10.00)
+                                                        currency: 'eur', // Currency
+                                                    },
+                                                    {
+                                                        stripeAccount: connectedAccountId, // The connected account ID
+                                                    }
+                                                );
+      
+      console.log('Payout Successful:', payout);
+      return payout;
+  } catch (error) {
+      console.error('Error sending payout:', error);
+      throw error;
+  }
+}
 
 exports.sendSms = async (data) => {
   try {
