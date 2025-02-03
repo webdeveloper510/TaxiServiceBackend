@@ -116,10 +116,10 @@ exports.getProducts = async (req, res) => {
 
     try{
 
-        // const connectAccountId = await createConnectedAccount();
-        // const externalAccountId = await attachBankAccount(connectAccountId , {accountHolderName: "vijay rana" , iban: 'NL91ABNA0417164300'});
+        const connectAccountId = await createConnectedAccount();
+        const externalAccountId = await attachBankAccount(connectAccountId , {accountHolderName: "vijay rana" , iban: 'NL91ABNA0417164300'});
 
-        // console.log(connectAccountId)
+        console.log(connectAccountId , externalAccountId)
         // Plan will work for first month if user cancel the susbcription after payment and user can use this
         let activePayedPlan = await getUserActivePaidPlans(req.user);
 

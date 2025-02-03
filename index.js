@@ -10,6 +10,7 @@ const db = require("./config/db");
 const http = require("http");
 const cors = require("cors");
 const agency_model = require("./models/user/agency_model.js");
+const LOGS = require("./models/user/logs_model"); // Import the Driver model
 var apiRouter = require("./routes/index.js");
 const { Server } = require("socket.io");
 const { driverDetailsByToken, userDetailsByToken, sendNotification, sendPaymentFailEmail , sendEmailSubscribeSubcription} = require("./Service/helperFuntion");
@@ -43,6 +44,16 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             console.log("Webhook JSON.stringify----" , JSON.stringify(event));
           } catch (err) {
             console.log(`Webhook Error: ${err.message}`);
+
+            let logs_data = {
+                              api_name: 'subscription_webhook',
+                              payload: JSON.stringify(req.body),
+                              error_message: err.message,
+                              error_response: JSON.stringify(err)
+                              
+                            };
+            const logEntry = new LOGS(logs_data);
+            await logEntry.save();
             return;
           }
 
@@ -128,7 +139,14 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           console.log("Webhook received successfully");
       } catch (error) {
           console.error("Error in webhook handler:", error.message);
-          
+          let logs_data = {
+                            api_name: 'subscription_webhook',
+                            payload: JSON.stringify(req.body),
+                            error_message: err.message,
+                            error_response: JSON.stringify(err)
+                          };
+          const logEntry = new LOGS(logs_data);
+          await logEntry.save();
       }
   }
 );

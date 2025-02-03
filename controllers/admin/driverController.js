@@ -731,16 +731,7 @@ exports.get_drivers_list = async (req, res) => {
       const differenceInMs = api_end_time - api_start_time;
       const differenceInSeconds = differenceInMs / 1000; // Convert to seconds
 
-      let logs_data = {
-        api_start_time: api_start_time,
-        api_end_time: api_end_time,
-        response_time: differenceInSeconds,
-        user_id: req.userId,
-        role: req.user.role,
-        api_name: req.route ? req.route.path : req.originalUrl,
-      };
-      const logEntry = new LOGS(logs_data);
-      logEntry.save();
+      
       res.send({
         code: constant.success_code,
         message: "Driver list retrieved successfully",

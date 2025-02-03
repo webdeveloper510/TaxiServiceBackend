@@ -35,20 +35,36 @@ exports.driverDetailsByToken = async (token) => {
 exports.createConnectedAccount = async () =>{
   try {
 
+    // const account = await stripe.accounts.create({
+    //     type: 'custom',
+    //     country: 'NL', // Country of the bank account
+    //     capabilities: {
+    //         card_payments: { requested: true },
+    //         transfers: { requested: true }
+    //     },
+    //     business_type: 'individual', // or 'company', depending on the user
+    //     tos_acceptance: {
+    //         date: Math.floor(Date.now() / 1000), // Current time in seconds
+    //         ip: '127.0.0.1', // Replace with the user's actual IP
+    //     }
+    // });
+    // console.log('Connected Account Created:', account.id);
+
     const account = await stripe.accounts.create({
-        type: 'custom',
-        country: 'NL', // Country of the bank account
-        capabilities: {
-            card_payments: { requested: true },
-            transfers: { requested: true }
+      country: 'NL',
+      email: 'jenny.rosen@example.com',
+      controller: {
+        fees: {
+          payer: 'application',
         },
-        business_type: 'individual', // or 'company', depending on the user
-        tos_acceptance: {
-            date: Math.floor(Date.now() / 1000), // Current time in seconds
-            ip: '127.0.0.1', // Replace with the user's actual IP
-        }
+        losses: {
+          payments: 'application',
+        },
+        stripe_dashboard: {
+          type: 'express',
+        },
+      },
     });
-    console.log('Connected Account Created:', account.id);
     return account.id;
   } catch (error) {
       console.error('Error creating connected account:', error);
@@ -59,21 +75,45 @@ exports.createConnectedAccount = async () =>{
 
 exports.attachBankAccount = async (connectedAccountId, bankDetails) => {
   try {
-      const externalAccount = await stripe.accounts.createExternalAccount(
-          connectedAccountId,
-          {
-              external_account: {
-                  object: 'bank_account',
-                  country: 'NL', // Country code
-                  currency: 'eur', // Currency
-                  account_holder_name: bankDetails.accountHolderName,
-                  account_holder_type: 'individual', // or 'company'
-                  iban: bankDetails.iban // IBAN for Netherlands
-              }
-          }
-      );
-      console.log('Bank Account Attached:', externalAccount);
-      return externalAccount.id;
+
+    const bankAccount = await stripe.accounts.createExternalAccount(
+      connectedAccountId,
+      {
+        external_account: {
+          // object: 'bank_account',
+          // country: 'US',
+          // currency: 'usd',
+          // account_holder_name: 'Jenny Rosen',
+          // account_holder_type: 'individual', // 'individual' or 'company'
+          // routing_number: '110000000', // Replace with a real routing number
+          // account_number: '000123456789', // Replace with a real bank account number
+
+          object: 'bank_account',
+          country: 'NL', // Netherlands
+          currency: 'eur', // Euros
+          account_holder_name: 'Jenny Rosen',
+          account_holder_type: 'individual', // 'individual' or 'company'
+          iban: "NL91ABNA0417164300",
+        },
+      }
+    );
+
+    return bankAccount
+      // const externalAccount = await stripe.accounts.createExternalAccount(
+      //     connectedAccountId,
+      //     {
+      //         external_account: {
+      //             object: 'bank_account',
+      //             country: 'NL', // Country code
+      //             currency: 'eur', // Currency
+      //             account_holder_name: bankDetails.accountHolderName,
+      //             account_holder_type: 'individual', // or 'company'
+      //             iban: bankDetails.iban // IBAN for Netherlands
+      //         }
+      //     }
+      // );
+      // console.log('Bank Account Attached:', externalAccount);
+      // return externalAccount.id;
   } catch (error) {
       console.error('Error attaching bank account:', error);
       throw error;

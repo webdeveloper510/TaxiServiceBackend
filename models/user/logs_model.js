@@ -14,17 +14,9 @@ const logs = new Schema({
         type: String,
         default: ''
     },
-    api_start_time: {
-        type: Date,
+    error_message: {
+        type: String,
         default: null
-    },
-    api_start_time: {
-        type: Date,
-        default: null
-    },
-    response_time: {
-        type: Number, // time will be stored in seconds
-        default: 0
     },
     user_id: {
         type: String,
