@@ -8,7 +8,7 @@ const constant = require("../../config/constant");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getUserActivePaidPlans ,getUserCurrentActivePayedPlan , createConnectedAccount , attachBankAccount} = require("../../Service/helperFuntion");
+const { getUserActivePaidPlans ,getUserCurrentActivePayedPlan , createConnectedAccount , attachBankAccount , createCustomAccount , createAccountLink} = require("../../Service/helperFuntion");
 
 
 exports.createTax = async (req, res) => {
@@ -115,7 +115,10 @@ exports.getSubscriptionProductsFromStripe = async (req, res) => {
 exports.getProducts = async (req, res) => {
 
     try{
+// 
 
+        // const custom = await createCustomAccount();
+        // const account_link = await createAccountLink(custom.id);
         // const connectAccountId = await createConnectedAccount();
         // const externalAccountId = await attachBankAccount(connectAccountId , {accountHolderName: "vijay rana" , iban: 'NL91ABNA0417164300'});
 
@@ -133,7 +136,9 @@ exports.getProducts = async (req, res) => {
             }
         }
         return  res.send({
-                            code: constant.success_code,
+                            // custom:custom,
+                            // account_link: account_link,
+                            code: constant.success_code,    
                             activePayedPlan: activePayedPlan.reverse(),
                             activePlan:activePlan,
                             access: req.user,

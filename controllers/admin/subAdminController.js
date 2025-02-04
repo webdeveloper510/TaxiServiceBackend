@@ -156,6 +156,7 @@ exports.add_sub_admin = async (req, res) => {
 
       data.bankAccountId = data.iban_details.bank_account.id;
       const externalAccount = await attachBankAccount(connectedAccountId , data.iban_details.id);
+      console.log('externalAccount---' , JSON.stringify(externalAccount));
       
       data.externalAccountId = externalAccount.id;
       data.bankAccountId = data.iban_details.bank_account.id;
