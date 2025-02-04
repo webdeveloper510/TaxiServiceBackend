@@ -181,7 +181,7 @@ const user = new Schema(
       type: String,
       default: "",
     },
-    isaccountAttched: { // if user account detail is attached with stripe connect account 
+    isAccountAttched: { // if user bank's account detail is attached with stripe connect account 
       type: Boolean,
       default: false,
     },
@@ -189,10 +189,15 @@ const user = new Schema(
       type: String,
       default: "",
     },
-    stripeCustomerId: { // for the subscription payments
+    bankAccountId: { // external account id after attaching the bank details with connect account
       type: String,
       default: "",
     },
+    isExternalAccountVerified: { // If user bank account with connect is verified by stripe
+      type: Boolean,
+      default: false,
+    },
+    
   },
   { timestamps: true }
 );

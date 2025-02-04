@@ -25,9 +25,9 @@ exports.createTax = async (req, res) => {
         
 
         return  res.send({
-            code: constant.success_code,
-            tax_id: taxRate.id,
-        });
+                            code: constant.success_code,
+                            tax_id: taxRate.id,
+                        });
     
     
     } catch (error) {

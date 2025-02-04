@@ -1,6 +1,7 @@
 const USER = require("../../models/user/user_model");
 const AGENCY = require("../../models/user/agency_model");
 const DRIVER = require("../../models/user/driver_model");
+const BANK_ACCOUNT_DETAILS_MODEL = require("../../models/user/bank_account_details_model");
 const TRIP = require("../../models/user/trip_model");
 const { getCompanyNextSequenceValue } = require("../../models/user/company_counter_model");
 const bcrypt = require("bcrypt");
@@ -14,7 +15,7 @@ require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
 const { sendNotification } = require("../../Service/helperFuntion");
-const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
+const { isDriverHasCompanyAccess , createConnectedAccount , attachBankAccount} = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require("../../models/user/driver_model");
@@ -121,7 +122,7 @@ exports.add_sub_admin = async (req, res) => {
     data.password = hashedPassword;
     data.stored_password= passwordEmail;
 
-    if (data.role == "COMPANY") {
+    if (data.role == constant.ROLES.COMPANY) {
       // data.company_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
       data.company_id = await getCompanyNextSequenceValue();
       data.company_id = "C" + "-" + data.company_id;
@@ -144,22 +145,56 @@ exports.add_sub_admin = async (req, res) => {
     let customer = await stripe.customers.list({ email: data.email });
     customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
     data.stripeCustomerId = customer.id; //  stripe customer id assiged
+
+    const connectedAccountId = await createConnectedAccount(data.email); // created connected account 
+    data.connectedAccountId = connectedAccountId;
+
+    let bankAccountDetails = {};
+
+    // Attach bank to connected account
+    if (data.iban_details) {
+
+      data.bankAccountId = data.iban_details.bank_account.id;
+      const externalAccount = await attachBankAccount(connectedAccountId , data.iban_details.id);
+      
+      data.externalAccountId = externalAccount.id;
+      data.bankAccountId = data.iban_details.bank_account.id;
+
+      bankAccountDetails.placeHolderName = data.iban_details.bank_account.account_holder_name;
+      bankAccountDetails.ibnBankDetails = data.iban_details.bank_account;
+      bankAccountDetails.externalAccountId = externalAccount.id;
+      bankAccountDetails.role = data.role;
+      bankAccountDetails.userId = null;
+      bankAccountDetails.ownerId = null;
+
+    }
+
+    delete data.iban_details;
     
     data.created_by = req.userId;
     let save_data = await USER(data).save();
 
     if (!save_data) {
-      res.send({
-        code: constant.error_code,
-        message: "Something went wrong",
-      });
+      return res.send({
+                        code: constant.error_code,
+                        message: "Something went wrong",
+                      });
     } else {
       let jwtToken = jwt.sign(
-        { userId: save_data._id, email: save_data.email, role: save_data.role },
-        process.env.JWTSECRET,
-        { expiresIn: "365d" }
-      );
+                                { userId: save_data._id, email: save_data.email, role: save_data.role },
+                                process.env.JWTSECRET,
+                                { expiresIn: "365d" }
+                              );
       data.user_id = save_data._id;
+
+      // If user gave th IBAN number for attaching the bank account
+      if (bankAccountDetails?.externalAccountId) {
+
+        bankAccountDetails.userId = save_data._id;
+        bankAccountDetails.ownerId = save_data._id;
+        const newbankAccountDetails = new BANK_ACCOUNT_DETAILS_MODEL(bankAccountDetails);
+        await newbankAccountDetails.save();
+      }
 
       // mail function
       var transporter = nodemailer.createTransport(emailConstant.credentials);
@@ -345,17 +380,17 @@ exports.add_sub_admin = async (req, res) => {
       }
 
       return res.send({
-                code: constant.success_code,
-                message: "Sub admin added successfully",
-                result: save_data,
-                jwtToken: jwtToken,
-              });
+                        code: constant.success_code,
+                        message: "Sub admin added successfully",
+                        result: save_data,
+                        jwtToken: jwtToken,
+                      });
     }
   } catch (err) {
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 };
 

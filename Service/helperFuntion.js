@@ -32,7 +32,7 @@ exports.driverDetailsByToken = async (token) => {
   return driver;
 };
 
-exports.createConnectedAccount = async () =>{
+exports.createConnectedAccount = async (email ) =>{
   try {
 
     // const account = await stripe.accounts.create({
@@ -52,19 +52,30 @@ exports.createConnectedAccount = async () =>{
 
     const account = await stripe.accounts.create({
       country: 'NL',
-      email: 'jenny.rosen@example.com',
+      email: email, 
+      // capabilities: {
+      //                 card_payments: { requested: true },
+      //                 transfers: { requested: true },
+      //               },
+      // business_type: 'individual',
+      // external_account: {
+      //                         object: 'bank_account',
+      //                         country: 'NL',
+      //                         currency: 'eur',
+      //                     },
       controller: {
-        fees: {
-          payer: 'application',
-        },
-        losses: {
-          payments: 'application',
-        },
-        stripe_dashboard: {
-          type: 'express',
-        },
-      },
+                    fees: {
+                      payer: 'application',
+                    },
+                    losses: {
+                      payments: 'application',
+                    },
+                    stripe_dashboard: {
+                      type: 'express',
+                    },
+                  },
     });
+    console.log('account.id------' , account)
     return account.id;
   } catch (error) {
       console.error('Error creating connected account:', error);
@@ -73,32 +84,15 @@ exports.createConnectedAccount = async () =>{
 }
 
 
-exports.attachBankAccount = async (connectedAccountId, bankDetails) => {
+exports.attachBankAccount = async (connectedAccountId, accountTokenId) => {
   try {
 
-    const bankAccount = await stripe.accounts.createExternalAccount(
+    const externalBankAccount = await stripe.accounts.createExternalAccount(
       connectedAccountId,
-      {
-        external_account: {
-          // object: 'bank_account',
-          // country: 'US',
-          // currency: 'usd',
-          // account_holder_name: 'Jenny Rosen',
-          // account_holder_type: 'individual', // 'individual' or 'company'
-          // routing_number: '110000000', // Replace with a real routing number
-          // account_number: '000123456789', // Replace with a real bank account number
-
-          object: 'bank_account',
-          country: 'NL', // Netherlands
-          currency: 'eur', // Euros
-          account_holder_name: 'Jenny Rosen',
-          account_holder_type: 'individual', // 'individual' or 'company'
-          iban: "NL91ABNA0417164300",
-        },
-      }
+      { external_account: accountTokenId, }
     );
 
-    return bankAccount
+    return externalBankAccount
       // const externalAccount = await stripe.accounts.createExternalAccount(
       //     connectedAccountId,
       //     {
@@ -115,7 +109,7 @@ exports.attachBankAccount = async (connectedAccountId, bankDetails) => {
       // console.log('Bank Account Attached:', externalAccount);
       // return externalAccount.id;
   } catch (error) {
-      console.error('Error attaching bank account:', error);
+      console.error('Error attaching bank account :', error);
       throw error;
   }
 }

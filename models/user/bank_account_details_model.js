@@ -4,13 +4,13 @@ const Schema = mongoose.Schema
 const bankAccountDetails = new Schema({
     placeHolderName:{
         type:String,
-        required: true,
+        required: false,
         default:''
     },
-    ibanNumber: {
-        type: String,
+    ibnBankDetails: {
+        type: Object,
         required: true,
-        default: ''
+        default: {}
     },
     externalAccountId: {
         type: String,
@@ -19,7 +19,7 @@ const bankAccountDetails = new Schema({
     },
     isDelete: {
         type: String,
-        required: true,
+        required: false,
         default: ''
     },
     role: {
