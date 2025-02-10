@@ -124,9 +124,16 @@ exports.getProducts = async (req, res) => {
 
         // console.log(connectAccountId , externalAccountId)
         // Plan will work for first month if user cancel the susbcription after payment and user can use this
-        let activePayedPlan = await getUserActivePaidPlans(req.user);
 
-        let activePlan = await getUserCurrentActivePayedPlan(req.user)
+        let activePayedPlan = [];
+        let activePlan;
+
+        if (req.user) {
+
+            activePayedPlan = await getUserActivePaidPlans(req.user);
+            activePlan = await getUserCurrentActivePayedPlan(req.user);
+        }
+       
         let plans = await PLANS_MODEL.find({status: true}).lean();  // Use lean to get plain objects
 
         if (plans) {
