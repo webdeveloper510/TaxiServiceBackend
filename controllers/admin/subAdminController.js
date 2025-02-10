@@ -15,7 +15,7 @@ require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
 const { sendNotification } = require("../../Service/helperFuntion");
-const { isDriverHasCompanyAccess , createConnectedAccount , attachBankAccount} = require("../../Service/helperFuntion");
+const { isDriverHasCompanyAccess , createConnectedAccount , attachBankAccount , createCustomAccount} = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require("../../models/user/driver_model");
@@ -146,7 +146,7 @@ exports.add_sub_admin = async (req, res) => {
     customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
     data.stripeCustomerId = customer.id; //  stripe customer id assiged
 
-    const connectedAccountId = await createConnectedAccount(data.email); // created connected account 
+    const connectedAccountId = await createCustomAccount(data.email); // created connected account 
     data.connectedAccountId = connectedAccountId;
 
     let bankAccountDetails = {};
@@ -154,20 +154,19 @@ exports.add_sub_admin = async (req, res) => {
     // Attach bank to connected account
     if (data.iban_details) {
 
-      data.bankAccountId = data.iban_details.bank_account.id;
-      const externalAccount = await attachBankAccount(connectedAccountId , data.iban_details.id);
-      console.log('externalAccount---' , JSON.stringify(externalAccount));
+      // data.bankAccountId = data.iban_details.bank_account.id;
+      // const externalAccount = await attachBankAccount(connectedAccountId , data.iban_details.id);
+      // console.log('externalAccount---' , JSON.stringify(externalAccount));
       
-      data.externalAccountId = externalAccount.id;
-      data.bankAccountId = data.iban_details.bank_account.id;
+      // data.externalAccountId = externalAccount.id;
+      // data.bankAccountId = data.iban_details.bank_account.id;
 
-      bankAccountDetails.placeHolderName = data.iban_details.bank_account.account_holder_name;
-      bankAccountDetails.ibnBankDetails = data.iban_details.bank_account;
-      bankAccountDetails.externalAccountId = externalAccount.id;
-      bankAccountDetails.role = data.role;
-      bankAccountDetails.userId = null;
-      bankAccountDetails.ownerId = null;
-
+      // bankAccountDetails.placeHolderName = data.iban_details.bank_account.account_holder_name;
+      // bankAccountDetails.ibnBankDetails = data.iban_details.bank_account;
+      // bankAccountDetails.externalAccountId = externalAccount.id;
+      // bankAccountDetails.role = data.role;
+      // bankAccountDetails.userId = null;
+      // bankAccountDetails.ownerId = null;
     }
 
     delete data.iban_details;
@@ -191,10 +190,10 @@ exports.add_sub_admin = async (req, res) => {
       // If user gave th IBAN number for attaching the bank account
       if (bankAccountDetails?.externalAccountId) {
 
-        bankAccountDetails.userId = save_data._id;
-        bankAccountDetails.ownerId = save_data._id;
-        const newbankAccountDetails = new BANK_ACCOUNT_DETAILS_MODEL(bankAccountDetails);
-        await newbankAccountDetails.save();
+        // bankAccountDetails.userId = save_data._id;
+        // bankAccountDetails.ownerId = save_data._id;
+        // const newbankAccountDetails = new BANK_ACCOUNT_DETAILS_MODEL(bankAccountDetails);
+        // await newbankAccountDetails.save();
       }
 
       // mail function

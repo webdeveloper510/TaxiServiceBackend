@@ -181,17 +181,9 @@ const user = new Schema(
       type: String,
       default: "",
     },
-    isAccountAttched: { // if user bank's account detail is attached with stripe connect account 
+    isAccountAttched: { // if user bank's account detail is attached with stripe connect account during the onboarding
       type: Boolean,
       default: false,
-    },
-    externalAccountId: { // external account id after attaching the bank details with connect account
-      type: String,
-      default: "",
-    },
-    bankAccountId: { // external account id after attaching the bank details with connect account
-      type: String,
-      default: "",
     },
     isExternalAccountVerified: { // If user bank account with connect is verified by stripe
       type: Boolean,

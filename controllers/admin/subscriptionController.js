@@ -115,10 +115,10 @@ exports.getSubscriptionProductsFromStripe = async (req, res) => {
 exports.getProducts = async (req, res) => {
 
     try{
-// 
 
-        // const custom = await createCustomAccount();
-        // const account_link = await createAccountLink(custom.id);
+
+        const custom = await createCustomAccount();
+        const account_link = await createAccountLink(custom.id);
         // const connectAccountId = await createConnectedAccount();
         // const externalAccountId = await attachBankAccount(connectAccountId , {accountHolderName: "vijay rana" , iban: 'NL91ABNA0417164300'});
 
@@ -136,8 +136,8 @@ exports.getProducts = async (req, res) => {
             }
         }
         return  res.send({
-                            // custom:custom,
-                            // account_link: account_link,
+                            custom:custom,
+                            account_link: account_link,
                             code: constant.success_code,    
                             activePayedPlan: activePayedPlan.reverse(),
                             activePlan:activePlan,

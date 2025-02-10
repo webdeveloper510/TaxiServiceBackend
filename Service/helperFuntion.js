@@ -114,31 +114,26 @@ exports.attachBankAccount = async (connectedAccountId, accountTokenId) => {
   }
 }
 
-exports.createCustomAccount = async () => {
+exports.createCustomAccount = async (email) => {
   try {
       const account = await stripe.accounts.create({
-          type: 'custom',
-          country: 'NL', // Netherlands
-          email: 'business@example.com',
-          business_type: 'individual', // or 'company'
-          capabilities: {
-              card_payments: { requested: true },
-              transfers: { requested: true }
+        country: 'NL',
+        email: email,
+        type: 'custom',
+        business_type: 'company', // or 'individual'
+        capabilities: {
+          card_payments: {
+            requested: true,
           },
-          external_account: {
-              object: "bank_account",
-              country: "NL",
-              currency: "EUR",
-              account_number: "NL91ABNA0417164300"
+          transfers: {
+            requested: true,
           },
-          tos_acceptance: {
-              date: Math.floor(Date.now() / 1000),
-              ip: "192.168.1.1" // Replace with real IP
-          }
+        },
       });
 
-      console.log("Connected Account Created:", account.id);
-      return account;
+
+    console.log('account.id------' , JSON.stringify(account))
+    return account.id;
   } catch (error) {
       console.error("Error creating account:", error);
       throw error;
@@ -151,7 +146,7 @@ exports.createAccountLink = async (accountId) => {
       const accountLink = await stripe.accountLinks.create({
           account: accountId,
           refresh_url: 'https://idispatch.nl/',
-          return_url: 'https://idispatch.nl/',
+          return_url: 'https://idispatch.nl/super-admin/all-companies',
           type: 'account_onboarding',
       });
 
