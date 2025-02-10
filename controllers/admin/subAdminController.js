@@ -169,7 +169,7 @@ exports.add_sub_admin = async (req, res) => {
       // bankAccountDetails.ownerId = null;
     }
 
-    delete data.iban_details;
+    // delete data.iban_details;
     
     data.created_by = req.userId;
     let save_data = await USER(data).save();
