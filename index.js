@@ -136,7 +136,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           
           // Log the webhook event
           console.log("Webhook received successfully");
-          // res.send();
+          res.send();
       } catch (error) {
           console.error("Error in webhook handler:", error.message);
           let logs_data = {
