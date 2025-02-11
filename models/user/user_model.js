@@ -185,10 +185,10 @@ const user = new Schema(
       type: Boolean,
       default: false,
     },
-    isExternalAccountVerified: { // If user bank account with connect is verified by stripe
-      type: Boolean,
-      default: false,
-    },
+    // isExternalAccountVerified: { // If user bank account with connect is verified by stripe
+    //   type: Boolean,
+    //   default: false,
+    // },
     
   },
   { timestamps: true }

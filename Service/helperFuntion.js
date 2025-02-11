@@ -114,6 +114,7 @@ exports.attachBankAccount = async (connectedAccountId, accountTokenId) => {
   }
 }
 
+// create account during user's creation
 exports.createCustomAccount = async (email) => {
   try {
       const account = await stripe.accounts.create({
@@ -140,8 +141,8 @@ exports.createCustomAccount = async (email) => {
   }
 };
 
-
-exports.createAccountLink = async (accountId) => {
+// User onboard's link for stripe after custom account creation
+exports.stripeOnboardingAccountLink = async (accountId) => {
   try {
       const accountLink = await stripe.accountLinks.create({
           account: accountId,
@@ -156,6 +157,19 @@ exports.createAccountLink = async (accountId) => {
       console.error("Error creating account link:", error);
   }
 };
+
+// User onboard's link for stripe after custom account creation
+exports.getConnectedAccountDetails = async (accountId) => {
+  try {
+
+    const account = await stripe.accounts.retrieve(accountId);
+    console.log("Account Details:", account);
+    return account;
+  } catch (error) {
+      console.error("Error creating account link:", error);
+  }
+};
+
 
 
 exports.updateBankAccount = async (connectedAccountId, newBankDetails) => {
@@ -232,13 +246,14 @@ exports.sendPayout = async (amount, connectedAccountId) => {
 exports.sendSms = async (data) => {
   try {
     let payload = {
-      body: data.message,
-      to: data.to,
-      from: "+3197010204679",
-    };
+                    body: data.message,
+                    to: data.to,
+                    from: "+3197010204679",
+                  };
     // const message = await client.messages.create(payload);
   } catch (error) {}
 };
+
 exports.userDetailsByToken = async (token) => {
   const { userId } = jwt.verify(token, process.env.JWTSECRET);
 
@@ -729,6 +744,45 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                             contentType: 'application/pdf' // Set appropriate content type
                         }
                       ]
+                    };
+  let sendEmail = await transporter.sendMail(mailOptions);
+  return sendEmail
+}
+
+exports.sendEmailMissingInfoStripeOnboaring = async (accountId , missingFields) => {
+
+  let userCondition = {connectedAccountId : accountId}
+  const userDetail = await user_model.findOne(userCondition);
+  const formattedFields = missingFields.map(field => `<li>${field}</li>`).join("");
+  const onboardingLink = await this.stripeOnboardingAccountLink(accountId)
+  const subject = `Action Required: Complete Your Stripe Account Setup`;
+  let toEmail = userDetail?.email;
+  const bodyHtml =  `
+                      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                          <h2 style="color: #333;">Hi ${userDetail?.first_name} ${userDetail?.last_name},</h2>
+                          <p>We noticed that your Stripe account setup is incomplete. To start receiving payments, you need to provide some missing information.</p>
+                          
+                          <h3 style="color: #ff4d4d;">Required Information:</h3>
+                          <ul>${formattedFields}</ul>
+                          
+                          <p>Please update your details as soon as possible to avoid any disruptions.</p>
+                          
+                          <p><a href="${onboardingLink}" style="display: inline-block; padding: 10px 15px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px;">
+                              Complete Your Setup
+                          </a></p>
+
+                          <p>If you have any questions, feel free to reach out.</p>
+                          <p>Best regards, <br><strong>Idispatch Mobility</strong></p>
+                      </div>
+                  `;
+  let template = ` ${bodyHtml}`
+
+  var transporter = nodemailer.createTransport(emailConstant.credentials);
+  var mailOptions = {
+                      from: emailConstant.from_email,
+                      to: toEmail,
+                      subject: subject,
+                      html: template
                     };
   let sendEmail = await transporter.sendMail(mailOptions);
   return sendEmail

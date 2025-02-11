@@ -64,7 +64,13 @@ module.exports={
         EXPIRED_CARD: `expired_card`,
         CARD_BLOCKED: `card_blocked`,
         PROCESSING_ERROR: `processing_error`,
-        UNKNOWN_ERROR: ` unknown_error`,
+        UNKNOWN_ERROR: ` unknown_error`
+    },
+    CONNECTED_ACCOUNT: {
+        ACCOUNT_ATTACHED_STATUS: {
+            ACCOUNT_ATTACHED: true,
+            ACCOUNT_NOT_ATTACHED: false,
+        }
         
     }
 }

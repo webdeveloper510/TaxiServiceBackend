@@ -1,14 +1,18 @@
 const { default: mongoose } = require("mongoose");
-const {
-  initiateStripePayment,
-  checkPaymentStatus,
-} = require("../../Service/Stripe");
+const { initiateStripePayment, checkPaymentStatus,} = require("../../Service/Stripe");
 const constant = require("../../config/constant");
-
+const USER_MODEL = require("../../models/user/user_model");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getUserActivePaidPlans ,getUserCurrentActivePayedPlan , createConnectedAccount , attachBankAccount , createCustomAccount , createAccountLink} = require("../../Service/helperFuntion");
+const { getUserActivePaidPlans ,
+        getUserCurrentActivePayedPlan , 
+        getConnectedAccountDetails , 
+        sendEmailMissingInfoStripeOnboaring ,
+        createConnectedAccount , 
+        attachBankAccount , 
+        createCustomAccount , 
+        stripeOnboardingAccountLink} = require("../../Service/helperFuntion");
 
 
 exports.createTax = async (req, res) => {
@@ -118,7 +122,7 @@ exports.getProducts = async (req, res) => {
 
 
         // const custom = await createCustomAccount();
-        // const account_link = await createAccountLink(custom.id);
+        // const account_link = await stripeOnboardingAccountLink(custom.id);
         // const connectAccountId = await createConnectedAccount();
         // const externalAccountId = await attachBankAccount(connectAccountId , {accountHolderName: "vijay rana" , iban: 'NL91ABNA0417164300'});
 
@@ -416,6 +420,98 @@ exports.getMyPaidPlans = async (req, res) => {
                                 message: `You don't have any paid plan`,
                             });
         }
+    } catch (error) {
+        console.error('Error creating subscription:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+      }
+}
+
+exports.userOnboard = async (req, res) => {
+    try {
+        const user_id = req.params.id || null;
+        const userDetails = await USER_MODEL.findOne({_id : user_id});
+
+        
+        if (userDetails?.connectedAccountId) {
+
+            if (userDetails?.isAccountAttched) {
+
+                return  res.send({
+                                    code: constant.error_code,
+                                    message: `User's account already attached`,
+                                });
+            } else {
+
+                const onboardLink = await stripeOnboardingAccountLink(userDetails?.connectedAccountId);
+                return  res.send({
+                                    code: constant.success_code,
+                                    link: onboardLink,
+                                });
+            }
+            
+        } else {
+            return  res.send({
+                                code: constant.error_code,
+                                message: `User doesn't have platform stripe account`,
+                            });
+        }
+    } catch (error) {
+        console.error('Error creating subscription:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+      }
+}
+
+exports.getConnectedAccountDetails = async (req, res) => {
+
+    try {
+        const userId = req.params.id || null;
+        let userCondition = {_id : userId}
+        const userDetails = await USER_MODEL.findOne(userCondition);
+        
+        if (userDetails?.connectedAccountId) {
+
+            const connectedAccountDetails = await getConnectedAccountDetails(userDetails?.connectedAccountId);
+
+            // User account verified
+            if (connectedAccountDetails?.charges_enabled &&  
+                connectedAccountDetails?.payouts_enabled &&
+                connectedAccountDetails?.capabilities?.transfers == `active` && 
+                connectedAccountDetails?.capabilities?.card_payments == `active`
+            ) {
+                let updateData =    { isAccountAttched : constant.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED}
+                let option = { new: true };
+                await USER_MODEL.findOneAndUpdate(userCondition , updateData ,option);
+            }
+
+            // If any information is pending from user side during stripe onboarding
+            if (connectedAccountDetails.requirements.currently_due.length > 0) {
+                // Sent email to user to complete the pending stripe  onboarding info
+                await sendEmailMissingInfoStripeOnboaring(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
+            }
+
+            return  res.send({
+                                code: constant.success_code,
+                                charges_enabled:connectedAccountDetails?.charges_enabled,
+                                payouts_enabled:connectedAccountDetails?.payouts_enabled,
+                                capabilities_transfers:connectedAccountDetails?.capabilities?.transfers,
+                                capabilities_card_payments:connectedAccountDetails?.capabilities?.card_payments,
+                                
+                                message: connectedAccountDetails,
+                            });
+        } else {
+            return  res.send({
+                                code: constant.error_code,
+                                message: `User doesn't have platform stripe account`,
+                            });
+        }
+        
+
     } catch (error) {
         console.error('Error creating subscription:', error.message);
         return  res.send({
