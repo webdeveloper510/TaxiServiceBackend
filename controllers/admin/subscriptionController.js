@@ -262,9 +262,7 @@ exports.createSubscription = async (req, res) => {
 
     try {
         
-        
-        // const priceId = req.body?.priceId || '';
-        const priceId = `price_1QmV0KKNzdNk7dDQtK5FD6sa`;
+        const priceId = req.body?.priceId || '';
         const customerId  = req.user.stripeCustomerId;
 
         let checkPlanExist = await PLANS_MODEL.findOne({productPriceId: priceId});
