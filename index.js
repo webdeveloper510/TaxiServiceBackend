@@ -31,15 +31,132 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // Apply raw body parser specifically for Stripe webhook
 app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
       try {
-         console.log('webhook caalled------')
+         
+
+        const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
+          
+          const sig = req.headers['stripe-signature'];
+          let event;
+
+          try {
+            event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+            console.log("Webhook received successfully----" , event);
+            console.log("Webhook JSON.stringify----" , JSON.stringify(event));
+          } catch (err) {
+            console.log(`Webhook Error: ${err.message}`);
+
+            let logs_data = {
+                              api_name: 'subscription_webhook',
+                              payload: JSON.stringify(req.body),
+                              error_message: err.message,
+                              error_response: JSON.stringify(err)
+                              
+                            };
+            const logEntry = new LOGS(logs_data);
+            await logEntry.save();
+            return;
+          }
+
+          let logs_data = {
+            api_name: 'subscription_webhook',
+            payload: event.type,
+            error_message: `webhook`,
+            error_response: JSON.stringify(event)
+          };
+          const logEntry = new LOGS(logs_data);
+          await logEntry.save();
+
+          if (event.type === 'invoice.payment_succeeded') {
+            const invoice = event.data.object;
+
+            // Extract relevant information
+            const subscriptionId = invoice.subscription; // Subscription ID
+
+            let subscriptionExist = await SUBSCRIPTIOON_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
+            
+
+            let updateData;
+
+            // When payemnt will be first time
+            if (invoice.billing_reason === `subscription_create`) {
+
+
+              updateData =  {
+                              chargeId: invoice.charge,
+                              paymentIntentId: invoice.payment_intent,
+                              invoiceId: invoice.id,
+                              paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                              active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                              invoicePdfUrl: invoice.invoice_pdf,
+                              invoiceUrl: invoice.hosted_invoice_url,
+                              billing_reason: `subscription_create`
+                            }
+
+              await SUBSCRIPTIOON_MODEL.updateOne(
+                                                    { _id: subscriptionExist._id }, // filter
+                                                    { $set: updateData } // update operation
+                                                );
+              await sendEmailSubscribeSubcription(subscriptionId);
+
+            } else if (invoice.billing_reason=== 'subscription_cycle') {
+
+              const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
+              // Convert UNIX timestamps to JavaScript Date objects
+              const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
+              const endPeriod = new Date(subscriptionLine.period.end * 1000);
+
+              
+              let option = { new: true };
+              await SUBSCRIPTIOON_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
+
+              updateData =  {
+                subscriptionId:invoice.subscription,
+                planId: subscriptionExist.planId,
+                productPriceId: subscriptionExist.priceId,
+                customerId: subscriptionExist.customerId,
+                role: subscriptionExist.role,
+                purchaseBy: subscriptionExist.purchaseBy,
+                amount: subscriptionExist.amount,
+                billing_reason: `subscription_cycle`,
+                startPeriod: startPeriod,
+                endPeriod: endPeriod,
+                chargeId: invoice.charge,
+                paymentIntentId: invoice.payment_intent,
+                invoiceId: invoice.id,
+                paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                invoicePdfUrl: invoice.invoice_pdf,
+                invoiceUrl: invoice.hosted_invoice_url,
+              }
+
+              const subscriptionRenewal = new SUBSCRIPTIOON_MODEL(updateData);
+              await subscriptionRenewal.save();
+              console.log('saved successfully')
+            }
+            
+
+            console .log('updated_data------' , updateData)
+          } else if (event.type ===`invoice.payment_failed`) { // when Payment will be failed
+
+            const invoice = event.data.object;
+            await handleInvoicePaymentFailure(invoice)
+          }
 
           
           // Log the webhook event
           console.log("Webhook received successfully");
-          res.send();
+          res.status(200).send({ received: true });
       } catch (error) {
           console.error("Error in webhook handler:", error.message);
-          res.send();
+          let logs_data = {
+                            api_name: 'subscription_webhook',
+                            payload: JSON.stringify(req.body),
+                            error_message: err.message,
+                            error_response: JSON.stringify(err)
+                          };
+          const logEntry = new LOGS(logs_data);
+          await logEntry.save();
+          res.status(500).send();
       }
   }
 );
