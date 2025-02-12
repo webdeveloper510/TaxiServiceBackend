@@ -96,6 +96,14 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                                     { _id: subscriptionExist._id }, // filter
                                                     { $set: updateData } // update operation
                                                 );
+              let logs_data = {
+                api_name: 'subscription_webhook',
+                payload: event.type,
+                error_message: `billing_reason - subscription_create`,
+                error_response: JSON.stringify(event)
+              };
+              const logEntry = new LOGS(logs_data);
+              await logEntry.save();
               await sendEmailSubscribeSubcription(subscriptionId);
 
             } else if (invoice.billing_reason=== 'subscription_cycle') {
@@ -131,6 +139,15 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
               const subscriptionRenewal = new SUBSCRIPTIOON_MODEL(updateData);
               await subscriptionRenewal.save();
+
+              let logs_data = {
+                api_name: 'subscription_webhook',
+                payload: event.type,
+                error_message: `billing_reason - subscription_cycle`,
+                error_response: JSON.stringify(event)
+              };
+              const logEntry = new LOGS(logs_data);
+              await logEntry.save();
               console.log('saved successfully')
             }
             
@@ -139,7 +156,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           } else if (event.type ===`invoice.payment_failed`) { // when Payment will be failed
 
             const invoice = event.data.object;
-            await handleInvoicePaymentFailure(invoice)
+            // await handleInvoicePaymentFailure(invoice)
           }
 
           
