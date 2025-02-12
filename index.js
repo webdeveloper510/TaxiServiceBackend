@@ -31,7 +31,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // Apply raw body parser specifically for Stripe webhook
 app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
       try {
-         
+         console.log('webhook caalled------')
 
         const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
           
@@ -57,15 +57,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             return;
           }
 
-          let logs_data = {
-            api_name: 'subscription_webhook',
-            payload: JSON.stringify(event),
-            error_message: event.type,
-            error_response: JSON.stringify(event)
-            
-          };
-          const logEntry = new LOGS(logs_data);
-          await logEntry.save();
+         
 
           if (event.type === 'invoice.payment_succeeded') {
             const invoice = event.data.object;
