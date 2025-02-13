@@ -156,7 +156,30 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           } else if (event.type ===`invoice.payment_failed`) { // when Payment will be failed
 
             const invoice = event.data.object;
-            // await handleInvoicePaymentFailure(invoice)
+
+            // Retry payment (optional)
+            const retryInvoice = await stripe.invoices.pay(invoice.id, {
+              off_session: true, // Try charging without user interaction
+            });
+
+            if (retryInvoice.status === "paid") {
+              console.log("Retried payment successful");
+              let logs_data = {
+                api_name: 'subscription_webhook',
+                payload: JSON.stringify(event),
+                error_message: `Retry payment`,
+                error_response: JSON.stringify(event)
+              };
+              const logEntry = new LOGS(logs_data);
+              await logEntry.save();
+            } else {
+
+              console.log("Retry failed, sending email to user...");
+              // Notify the user to update their payment method
+              await handleInvoicePaymentFailure(invoice)
+            }
+
+           
           }
 
           
