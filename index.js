@@ -63,7 +63,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           const logEntry = new LOGS(logs_data);
           logEntry.save();
 
-          if (event.type === 'charge.succeeded') {
+          if (event.type === 'invoice.payment_succeeded') {
             const invoice = event.data.object;
 
             // Extract relevant information
@@ -151,7 +151,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
             // console .log('updated_data------' , updateData)
 
-          } else if (event.type ===`charge.failed`) { // when Payment will be failed
+          } else if (event.type ===`invoice.payment_failed`) { // when Payment will be failed
 
             const invoice = event.data.object;
 
@@ -1246,8 +1246,8 @@ const get20thMinuteRangeUTC = async () => {
   currentDateTime = currentDateTime.toISOString();
   // Add 15 minutes to the current time
   let futureTime = new Date(currentTime.getTime() + preNotificationTime * 60 * 1000);
-  // console.log(currentDateTime)
-  // console.log(futureTime)
+  console.log(currentDateTime)
+  console.log(futureTime)
   
   // Set the start time at the 15th minute in UTC with 0 seconds and 0 milliseconds
   let startDateTime = new Date(futureTime);
