@@ -53,7 +53,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                               
                             };
             const logEntry = new LOGS(logs_data);
-            await logEntry.save();
+            logEntry.save();
             return;
           }
 
@@ -64,7 +64,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             error_response: JSON.stringify(event)
           };
           const logEntry = new LOGS(logs_data);
-          await logEntry.save();
+          logEntry.save();
 
           if (event.type === 'invoice.payment_succeeded') {
             const invoice = event.data.object;
@@ -92,7 +92,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                               billing_reason: `subscription_create`
                             }
 
-              await SUBSCRIPTIOON_MODEL.updateOne(
+              SUBSCRIPTIOON_MODEL.updateOne(
                                                     { _id: subscriptionExist._id }, // filter
                                                     { $set: updateData } // update operation
                                                 );
@@ -103,8 +103,8 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                 error_response: JSON.stringify(event)
               };
               const logEntry = new LOGS(logs_data);
-              await logEntry.save();
-              await sendEmailSubscribeSubcription(subscriptionId);
+              logEntry.save();
+              sendEmailSubscribeSubcription(subscriptionId);
 
             } else if (invoice.billing_reason=== 'subscription_cycle') {
 
@@ -115,7 +115,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
               
               let option = { new: true };
-              await SUBSCRIPTIOON_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
+              SUBSCRIPTIOON_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
 
               updateData =  {
                 subscriptionId:invoice.subscription,
@@ -138,7 +138,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               }
 
               const subscriptionRenewal = new SUBSCRIPTIOON_MODEL(updateData);
-              await subscriptionRenewal.save();
+              subscriptionRenewal.save();
 
               let logs_data = {
                 api_name: 'subscription_webhook',
@@ -147,7 +147,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                 error_response: JSON.stringify(event)
               };
               const logEntry = new LOGS(logs_data);
-              await logEntry.save();
+              logEntry.save();
               console.log('saved successfully')
             }
             
@@ -157,27 +157,38 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
             const invoice = event.data.object;
 
+            let logs_data = {
+              api_name: 'subscription_webhook',
+              payload: JSON.stringify(event),
+              error_message: `Retry payment`,
+              error_response: JSON.stringify(event)
+            };
+            const logEntry = new LOGS(logs_data);
+            logEntry.save();
+
             // Retry payment (optional)
-            const retryInvoice = await stripe.invoices.pay(invoice.id, {
-              off_session: true, // Try charging without user interaction
-            });
+            // const retryInvoice = await stripe.invoices.pay(invoice.id, {
+            //   off_session: true, // Try charging without user interaction
+            // });
 
-            if (retryInvoice.status === "paid") {
-              console.log("Retried payment successful");
-              let logs_data = {
-                api_name: 'subscription_webhook',
-                payload: JSON.stringify(event),
-                error_message: `Retry payment`,
-                error_response: JSON.stringify(event)
-              };
-              const logEntry = new LOGS(logs_data);
-              await logEntry.save();
-            } else {
+            // if (retryInvoice.status === "paid") {
+            //   console.log("Retried payment successful");
+            //   let logs_data = {
+            //     api_name: 'subscription_webhook',
+            //     payload: JSON.stringify(event),
+            //     error_message: `Retry payment`,
+            //     error_response: JSON.stringify(event)
+            //   };
+            //   const logEntry = new LOGS(logs_data);
+            //   await logEntry.save();
+            // } else {
 
-              console.log("Retry failed, sending email to user...");
-              // Notify the user to update their payment method
-              await handleInvoicePaymentFailure(invoice)
-            }
+            //   console.log("Retry failed, sending email to user...");
+            //   // Notify the user to update their payment method
+            //   await handleInvoicePaymentFailure(invoice)
+            // }
+
+            // handleInvoicePaymentFailure(invoice)
 
            
           }
@@ -195,8 +206,8 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                             error_response: JSON.stringify(err)
                           };
           const logEntry = new LOGS(logs_data);
-          await logEntry.save();
-          res.status(500).send();
+          logEntry.save();
+          res.status(500).send({ received: true  , error_message: error.message});
       }
   }
 );
