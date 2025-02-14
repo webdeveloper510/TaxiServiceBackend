@@ -40,21 +40,18 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
           try {
             event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-            console.log("Webhook received successfully----" , event);
-            console.log("Webhook JSON.stringify----" , JSON.stringify(event));
+            console.log("Webhook received successfully----" , event.type);
+            // console.log("Webhook JSON.stringify----" , JSON.stringify(event));
           } catch (err) {
             console.log(`Webhook Error: ${err.message}`);
 
-            let logs_data = {
-                              api_name: 'subscription_webhook',
-                              payload: JSON.stringify(req.body),
-                              error_message: err.message,
-                              error_response: JSON.stringify(err)
-                              
+            let logs_data = { api_name: 'subscription_webhook', payload: JSON.stringify(req.body),
+                              error_message: err.message, error_response: JSON.stringify(err)
                             };
+
             const logEntry = new LOGS(logs_data);
             logEntry.save();
-            return;
+            return res.status(200).send({ received: true , error_message: err.message });
           }
 
           let logs_data = {
@@ -196,7 +193,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           
           // Log the webhook event
           console.log("Webhook received successfully");
-          res.status(200).send({ received: true });
+          return res.status(200).send({ received: true  , message: `Webhook received successfully`});
       } catch (error) {
           console.error("Error in webhook handler:", error.message);
           let logs_data = {
@@ -207,7 +204,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                           };
           const logEntry = new LOGS(logs_data);
           logEntry.save();
-          res.status(500).send({ received: true  , error_message: error.message});
+          return res.status(200).send({ received: true , error_message: error.message });
       }
   }
 );
