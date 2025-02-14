@@ -197,19 +197,21 @@ exports.createPaymentIntent = async (req, res) => {
     try{
         
         let data = req.body;
-        const planId = req.body.planId || 0;
+        const productPriceId = req.body.priceId || 0;
 
-        let checkPlanExist = await PLANS_MODEL.findOne({planId: planId});
+        let checkPlanExist = await PLANS_MODEL.findOne({productPriceId: productPriceId});
 
         if (checkPlanExist) {
             const vatRate = 0.21; // 21%
-            const amount = Math.round((checkPlanExist.price * 100) * ( 1 + vatRate));
-            const currency = 'eur';
+            const amount = Math.round((checkPlanExist.price * 100));
+            const customerId = req.user.stripeCustomerId;
 
             const paymentIntent = await stripe.paymentIntents.create({
-                                                                        amount, // Amount in the smallest currency unit (e.g., cents for USD)
-                                                                        currency,
-                                                                        payment_method_types: ['card'], // Default to 'card'
+                                                                        amount:amount, // Amount in the smallest currency unit (e.g., cents for USD)
+                                                                        currency: 'eur',
+                                                                        payment_method_types: ['ideal'],
+                                                                        customer: customerId,
+                                                                        // payment_method_types: ['card'], // Default to 'card'
                                                                     });
           
             return res.send({

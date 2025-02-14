@@ -1246,8 +1246,8 @@ const get20thMinuteRangeUTC = async () => {
   currentDateTime = currentDateTime.toISOString();
   // Add 15 minutes to the current time
   let futureTime = new Date(currentTime.getTime() + preNotificationTime * 60 * 1000);
-  console.log(currentDateTime)
-  console.log(futureTime)
+  // console.log(currentDateTime)
+  // console.log(futureTime)
   
   // Set the start time at the 15th minute in UTC with 0 seconds and 0 milliseconds
   let startDateTime = new Date(futureTime);
@@ -1274,7 +1274,7 @@ const get20thMinuteRangeUTC = async () => {
 // Schedule the task using cron
 cron.schedule("* * * * *", () => {
 
-  console.log('running evry minute' , new Date())
+  // console.log('running evry minute' , new Date())
 
   // Send push notification to driver and company when trip will start in 20 minutes
   checkTripsAndSendNotifications();
