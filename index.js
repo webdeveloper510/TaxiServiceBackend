@@ -63,7 +63,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           const logEntry = new LOGS(logs_data);
           logEntry.save();
 
-          if (event.type === 'invoice.payment_succeeded') {
+          if (event.type === 'charge.succeeded') {
             const invoice = event.data.object;
 
             // Extract relevant information
@@ -151,7 +151,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
             // console .log('updated_data------' , updateData)
 
-          } else if (event.type ===`invoice.payment_failed`) { // when Payment will be failed
+          } else if (event.type ===`charge.failed`) { // when Payment will be failed
 
             const invoice = event.data.object;
 
