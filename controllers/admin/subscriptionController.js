@@ -263,6 +263,7 @@ exports.createSubscription = async (req, res) => {
     try {
         
         const priceId = req.body?.priceId || '';
+        const paymentMethodId = req.body?.paymentMethodId || '';
         const customerId  = req.user.stripeCustomerId;
 
         let checkPlanExist = await PLANS_MODEL.findOne({productPriceId: priceId});
@@ -277,7 +278,7 @@ exports.createSubscription = async (req, res) => {
                 //  If there will be any current subscription then it will be cancelled. and new susbcription will be add
                 if (activePlan) {
                     const subscriptionId = activePlan.subscriptionId
-                    const canceledSubscription = await stripe.subscriptions.cancel(subscriptionId);
+                    const canceledSubscription = await stripe.subscriptions.cancel(subscriptionId);// cancllled the previous plan
             
                     let option = { new: true };
                     let updatedData = {
@@ -288,6 +289,11 @@ exports.createSubscription = async (req, res) => {
                     
                 }
             }
+
+            await stripe.paymentMethods.attach(paymentMethodId, { customer: customerId, } );
+            
+            // ✅ Set it as the default payment method for future payments
+            await stripe.customers.update(customerId,  { invoice_settings: { default_payment_method: paymentMethodId } });
             
             const createSubscription = await stripe.subscriptions.create({
                                                                             customer: customerId,
@@ -295,6 +301,7 @@ exports.createSubscription = async (req, res) => {
                                                                                         price: priceId,
                                                                                         tax_rates: [process.env.STRIPE_VAT_TAX_ID]
                                                                                     }],
+                                                                            default_payment_method: paymentMethodId, // Attach the saved payment method
                                                                             payment_behavior: 'default_incomplete',
                                                                             expand: ['latest_invoice.payment_intent'],
                                                                         });
