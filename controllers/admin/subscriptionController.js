@@ -509,7 +509,7 @@ exports.getConnectedAccountDetails = async (req, res) => {
                                     // capabilities_transfers:connectedAccountDetails?.capabilities?.transfers,
                                     // capabilities_card_payments:connectedAccountDetails?.capabilities?.card_payments,
                                     
-                                    message: connectedAccountDetails,
+                                    message: `Your bank account attached successfully with the platform`,
                                 });
             } else {
                 return  res.send({
