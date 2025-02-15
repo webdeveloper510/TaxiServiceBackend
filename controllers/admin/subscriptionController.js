@@ -454,7 +454,7 @@ exports.userOnboardOnStripe = async (req, res) => {
                                 });
             } else {
 
-                const onboardLink = await stripeOnboardingAccountLink(userDetails?.connectedAccountId);
+                const onboardLink = await stripeOnboardingAccountLink(userDetails?.connectedAccountId , user_id);
                 return  res.send({
                                     code: constant.success_code,
                                     link: onboardLink,
