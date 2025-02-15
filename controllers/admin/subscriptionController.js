@@ -438,7 +438,7 @@ exports.getMyPaidPlans = async (req, res) => {
       }
 }
 
-exports.userOnboard = async (req, res) => {
+exports.userOnboardOnStripe = async (req, res) => {
     try {
         const user_id = req.params.id || null;
         const userDetails = await USER_MODEL.findOne({_id : user_id});

@@ -142,12 +142,12 @@ exports.createCustomAccount = async (email) => {
 };
 
 // User onboard's link for stripe after custom account creation
-exports.stripeOnboardingAccountLink = async (accountId) => {
+exports.stripeOnboardingAccountLink = async (accountId , user_id) => {
   try {
       const accountLink = await stripe.accountLinks.create({
           account: accountId,
-          refresh_url: 'https://idispatch.nl/',
-          return_url: 'https://idispatch.nl/super-admin/all-companies',
+          refresh_url: `https://idispatch.nl/bank-account-verification-pending/${user_id}`,
+          return_url: `https://idispatch.nl/bank-account-verification-completed/${user_id}`,
           type: 'account_onboarding',
       });
 

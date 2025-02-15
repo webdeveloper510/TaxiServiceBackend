@@ -195,7 +195,7 @@ router.get("/get-my-paid-plans",[verifyToken] ,subscriptionController.getMyPaidP
 // router.post("/subscription_webhook" , subscriptionController.subscriptionWebhook);
 
 // Connected account Api's
-router.get("/user-onboard-on-stripe/:id" , subscriptionController.userOnboard); // user will submit all the details to attach the bank account detail to strripe connected account
+router.get("/user-onboard-on-stripe/:id" , subscriptionController.userOnboardOnStripe); // user will submit all the details to attach the bank account detail to strripe connected account
 router.get("/get-connected-account-details/:id" , subscriptionController.getConnectedAccountDetails);
 
 module.exports = router;
