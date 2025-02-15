@@ -496,23 +496,29 @@ exports.getConnectedAccountDetails = async (req, res) => {
                 let updateData =    { isAccountAttched : constant.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED}
                 let option = { new: true };
                 await USER_MODEL.findOneAndUpdate(userCondition , updateData ,option);
+
+                if (connectedAccountDetails.requirements.currently_due.length > 0) {
+                    // Sent email to user to complete the pending stripe  onboarding info
+                    await sendEmailMissingInfoStripeOnboaring(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
+                }
+    
+                return  res.send({
+                                    code: constant.success_code,
+                                    // charges_enabled:connectedAccountDetails?.charges_enabled,
+                                    // payouts_enabled:connectedAccountDetails?.payouts_enabled,
+                                    // capabilities_transfers:connectedAccountDetails?.capabilities?.transfers,
+                                    // capabilities_card_payments:connectedAccountDetails?.capabilities?.card_payments,
+                                    
+                                    message: connectedAccountDetails,
+                                });
+            } else {
+                return  res.send({
+                                    code: constant.error_code,
+                                    message: `You bank account verification is still pending`,
+                                });
             }
 
-            // If any information is pending from user side during stripe onboarding
-            if (connectedAccountDetails.requirements.currently_due.length > 0) {
-                // Sent email to user to complete the pending stripe  onboarding info
-                await sendEmailMissingInfoStripeOnboaring(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
-            }
-
-            return  res.send({
-                                code: constant.success_code,
-                                charges_enabled:connectedAccountDetails?.charges_enabled,
-                                payouts_enabled:connectedAccountDetails?.payouts_enabled,
-                                capabilities_transfers:connectedAccountDetails?.capabilities?.transfers,
-                                capabilities_card_payments:connectedAccountDetails?.capabilities?.card_payments,
-                                
-                                message: connectedAccountDetails,
-                            });
+            
         } else {
             return  res.send({
                                 code: constant.error_code,
