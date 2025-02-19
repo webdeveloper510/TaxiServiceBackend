@@ -268,7 +268,7 @@ exports.createIdealCheckoutSession = async (req, res) => {
         const priceId = req.body?.priceId || '';
 
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['ideal'],
+            payment_method_types: ['ideal' , 'sepa_debit'],
             mode: 'subscription',  //isSubscription ? "subscription" : "payment",
             success_url: 'http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}', // Redirect after payment success
             cancel_url: 'http://localhost:3000/cancel', // Redirect if the user cancels

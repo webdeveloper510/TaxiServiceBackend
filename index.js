@@ -1446,16 +1446,16 @@ const idealPaymentSubscription = async (req , invoice) => {
     const paymentIntent = await stripe.paymentIntents.retrieve(invoice.payment_intent);
     const payymentMethodId = paymentIntent?.payment_method;
 
-    if (payymentMethodId) {
-      await stripe.paymentMethods.attach(payymentMethodId, { customer: customerId });
+    // if (payymentMethodId) {
+    //   await stripe.paymentMethods.attach(payymentMethodId, { customer: customerId });
 
-      // Update the default payment method for future invoices
-      await stripe.customers.update(customerId, {
-          invoice_settings: { default_payment_method: payymentMethodId }
-      });
+    //   // Update the default payment method for future invoices
+    //   await stripe.customers.update(customerId, {
+    //       invoice_settings: { default_payment_method: payymentMethodId }
+    //   });
 
-      console.log('Payment method updated for future payments.');
-    }
+    //   console.log('Payment method updated for future payments.');
+    // }
     return true;
     
    } catch (error) {
