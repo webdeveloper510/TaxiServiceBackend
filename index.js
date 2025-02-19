@@ -17,7 +17,7 @@ const { driverDetailsByToken, userDetailsByToken, sendNotification, sendPaymentF
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
-const SUBSCRIPTIOON_MODEL = require("./models/user/subscription_model");
+const SUBSCRIPTION_MODEL = require("./models/user/subscription_model");
 const SETTING_MODEL = require("./models/user/setting_model");
 const PLANS_MODEL = require("./models/admin/plan_model");
 const mongoose = require("mongoose");
@@ -71,7 +71,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             // Extract relevant information
             const subscriptionId = invoice.subscription; // Subscription ID
 
-            let subscriptionExist = await SUBSCRIPTIOON_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
+            let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
             
 
             let updateData;
@@ -106,10 +106,10 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                   billing_reason: `subscription_create`
                                 }
     
-                  SUBSCRIPTIOON_MODEL.updateOne(
-                                                        { _id: subscriptionExist._id }, // filter
-                                                        { $set: updateData } // update operation
-                                                    );
+                  SUBSCRIPTION_MODEL.updateOne(
+                                                  { _id: subscriptionExist._id }, // filter
+                                                  { $set: updateData } // update operation
+                                              );
                   let logs_data = {
                     api_name: 'subscription_webhook',
                     payload: event.type,
@@ -129,7 +129,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
     
                   
                   let option = { new: true };
-                  SUBSCRIPTIOON_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
+                  SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
     
                   updateData =  {
                     subscriptionId:invoice.subscription,
@@ -151,7 +151,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                     invoiceUrl: invoice.hosted_invoice_url,
                   }
     
-                  const subscriptionRenewal = new SUBSCRIPTIOON_MODEL(updateData);
+                  const subscriptionRenewal = new SUBSCRIPTION_MODEL(updateData);
                   subscriptionRenewal.save();
     
                   let logs_data = {
@@ -1399,8 +1399,6 @@ const idealPaymentSubscription = async (req , invoice) => {
     const driveId = driverDetails && driverDetails._id ? driverDetails._id : null;
     const userId = userDetails && userDetails._id ? userDetails._id : null;
 
-    console.log('Driver ID:', driveId , 'planDetails.name--' , planDetails.name);  // Debugging
-    console.log('User ID:', userId);
     let  detail = {};
 
     if (planDetails.name == `Pro` || planDetails.name ==  `Premium`) {
@@ -1439,6 +1437,9 @@ const idealPaymentSubscription = async (req , invoice) => {
       invoiceName: invoice?.number
     }
     console.log('created-data---------' , subscriptionData)
+    
+    const newSubscription = new SUBSCRIPTION_MODEL(subscriptionData);
+    await newSubscription.save();
     return true;
     
    } catch (error) {
