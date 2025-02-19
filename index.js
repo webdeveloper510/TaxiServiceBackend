@@ -1399,11 +1399,11 @@ const idealPaymentSubscription = async (req , invoice) => {
     let  detail = {};
 
     if (planDetails.name === `Pro` || planDetails.name ===  `Premium`) {
-      detail.purchaseByCompanyId = userDetails._id; 
+      detail.purchaseByCompanyId = userDetails?._id; 
       detail.purchaseBy = userDetails?._id; 
       detail.role = constant.ROLES.COMPANY;
     } else {
-      detail.purchaseByDriverId = userDetails._id; 
+      detail.purchaseByDriverId = driver_model?._id; 
       detail.purchaseBy = driver_model?._id; 
       detail.role = constant.ROLES.DRIVER;
     }
@@ -1440,8 +1440,8 @@ const idealPaymentSubscription = async (req , invoice) => {
     let logs_data = {
                       api_name: 'subscription_webhook ideal payment',
                       payload: JSON.stringify(req.body),
-                      error_message: err.message,
-                      error_response: JSON.stringify(err)
+                      error_message: error.message,
+                      error_response: JSON.stringify(error)
                     };
     const logEntry = new LOGS(logs_data);
     await logEntry.save();
