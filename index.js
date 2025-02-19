@@ -1392,8 +1392,8 @@ const idealPaymentSubscription = async (req , invoice) => {
     const subscription = await stripe.subscriptions.retrieve(invoice.subscription);
 
         // Get the Payment Method ID from the invoice payment intent
-        const paymentIntent = await stripe.paymentIntents.retrieve(subscription.latest_invoice.payment_intent);
-console.log('paymentIntent.payment_method---' , paymentIntent.payment_method)
+        // const paymentIntent = await stripe.paymentIntents.retrieve(subscription.latest_invoice.payment_intent);
+console.log('paymentIntent.payment_method---' , subscription)
     const subscriptionId = invoice.subscription;
     // const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const planId = invoice.lines.data[0]?.price?.product;
