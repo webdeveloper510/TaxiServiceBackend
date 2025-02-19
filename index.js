@@ -1399,7 +1399,7 @@ const idealPaymentSubscription = async (req , invoice) => {
     const driveId = driverDetails && driverDetails._id ? driverDetails._id.toString() : null;
     const userId = userDetails && userDetails._id ? userDetails._id.toString() : null;
 
-    console.log('Driver ID:', driveId);  // Debugging
+    console.log('Driver ID:', driveId , 'planDetails.name--' , planDetails.name);  // Debugging
     console.log('User ID:', userId);
     let  detail = {};
 
