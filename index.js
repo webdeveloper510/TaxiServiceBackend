@@ -1396,7 +1396,7 @@ const idealPaymentSubscription = async (req , invoice) => {
     const userDetails = await user_model.findOne({stripeCustomerId: customerId});
     const driverDetails = await driver_model.findOne({stripeCustomerId: customerId});
 
-    console.log('driverDetails------' , driverDetails)
+    console.log('driverDetails------' , driverDetails._id)
     let  detail = {};
 
     if (planDetails.name === `Pro` || planDetails.name ===  `Premium`) {
