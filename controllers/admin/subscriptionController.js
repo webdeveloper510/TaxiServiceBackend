@@ -267,8 +267,6 @@ exports.createIdealCheckoutSession = async (req, res) => {
         const customerId  = req.user.stripeCustomerId;
         const priceId = req.body?.priceId || '';
 
-        let checkPlanExist = await PLANS_MODEL.findOne({productPriceId: priceId});
-
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['ideal'],
             mode: 'subscription',  //isSubscription ? "subscription" : "payment",
@@ -293,11 +291,6 @@ exports.createIdealCheckoutSession = async (req, res) => {
                     tax_rates: [process.env.STRIPE_VAT_TAX_ID], // Optional: Add tax rate
                 },
             ],
-            // metadata: {
-            //     purchaseBy: req.user._id,  // Your app’s user ID
-            //     role: req.user.role,
-            //     customInfo: 'ideal payment method used by vijay'
-            // }
         });
 
         return res.json({ url: session.url });

@@ -86,6 +86,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
   
               console.log('Payment Method Type:', paymentMethod.type);
   
+              // Susbscription with ideal payment method
               if (paymentMethod.type === 'ideal') {
                   console.log('This subscription was created using iDEAL.');
                   // Store this info in your database if needed
@@ -1388,6 +1389,11 @@ const idealPaymentSubscription = async (req , invoice) => {
 
   try {
 
+    const subscription = await stripe.subscriptions.retrieve(session.subscription);
+
+        // Get the Payment Method ID from the invoice payment intent
+        const paymentIntent = await stripe.paymentIntents.retrieve(subscription.latest_invoice.payment_intent);
+console.log('paymentIntent.payment_method---' , paymentIntent.payment_method)
     const subscriptionId = invoice.subscription;
     // const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const planId = invoice.lines.data[0]?.price?.product;
