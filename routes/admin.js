@@ -189,6 +189,7 @@ router.get("/get_plans",subscriptionController.getProducts);
 router.post("/update_products/:id",[verifyToken , adminAuth] ,subscriptionController.updateProducts);
 router.post("/create_payment_intent",[verifyToken] ,subscriptionController.createPaymentIntent);
 router.get("/create-setup-intent",[verifyToken] ,subscriptionController.createSetupIntent);
+router.post("/create-ideal-checkout-session",[verifyToken] ,subscriptionController.createIdealCheckoutSession);
 router.post("/create-subscription",[verifyToken] ,subscriptionController.createSubscription);
 router.post("/cancel-subscription",[verifyToken] ,subscriptionController.cancelSubscription);
 router.get("/get-my-paid-plans",[verifyToken] ,subscriptionController.getMyPaidPlans);

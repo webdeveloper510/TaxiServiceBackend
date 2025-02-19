@@ -260,6 +260,53 @@ exports.createSetupIntent = async (req, res) => {
     
 }
 
+exports.createIdealCheckoutSession = async (req, res) => {
+
+    try {
+
+        const customerId  = req.user.stripeCustomerId;
+        const priceId = req.body?.priceId || '';
+
+        let checkPlanExist = await PLANS_MODEL.findOne({productPriceId: priceId});
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['ideal'],
+            mode: 'subscription',  //isSubscription ? "subscription" : "payment",
+            success_url: 'http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}', // Redirect after payment success
+            cancel_url: 'http://localhost:3000/cancel', // Redirect if the user cancels
+            // customer_email: req.body.email, // Optional
+            customer: customerId,
+            line_items: [
+                // {
+                //     price_data: {
+                //         currency: 'eur',
+                //         product_data: {
+                //             name: 'Subscription Initial Payment',
+                //         },
+                //         unit_amount: checkPlanExist.price * 100, // Amount in cents (e.g., 10€ = 1000)
+                //     },
+                //     quantity: 1,
+                // },
+                {
+                    price: priceId, // Use Stripe's Price ID
+                    quantity: 1,
+                    tax_rates: [process.env.STRIPE_VAT_TAX_ID], // Optional: Add tax rate
+                },
+            ],
+        });
+
+        res.json({ url: session.url });
+
+    } catch (error) {
+
+        console.error('Error createPaymentIntent error:', error.message);
+        return  res.send({
+                    code: constant.error_code,
+                    message: error.message,
+                });
+    }
+}
+
 exports.createSubscription = async (req, res) => {
 
     try {

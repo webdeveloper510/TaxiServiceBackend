@@ -200,8 +200,8 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           let logs_data = {
                             api_name: 'subscription_webhook error',
                             payload: JSON.stringify(req.body),
-                            error_message: err.message,
-                            error_response: JSON.stringify(err)
+                            error_message: error.message,
+                            error_response: JSON.stringify(error)
                           };
           const logEntry = new LOGS(logs_data);
           logEntry.save();
