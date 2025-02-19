@@ -1396,17 +1396,19 @@ const idealPaymentSubscription = async (req , invoice) => {
     const userDetails = await user_model.findOne({stripeCustomerId: customerId});
     const driverDetails = await driver_model.findOne({stripeCustomerId: customerId});
 
-    console.log('driverDetails------' , driverDetails._id)
+    const driveId = driverDetails._id;
+    const userId = userDetails._id;
+    console.log('driverDetails------' , driveId)
     let  detail = {};
 
     if (planDetails.name === `Pro` || planDetails.name ===  `Premium`) {
       
-      detail.purchaseByCompanyId = userDetails?._id; 
-      detail.purchaseBy = userDetails?._id; 
+      detail.purchaseByCompanyId = userId; 
+      detail.purchaseBy = userId; 
       detail.role = constant.ROLES.COMPANY;
     } else {
-      detail.purchaseByDriverId = driver_model?._id; 
-      detail.purchaseBy = driverDetails?._id; 
+      detail.purchaseByDriverId = driveId; 
+      detail.purchaseBy = driveId; 
       detail.role = constant.ROLES.DRIVER;
     }
 
