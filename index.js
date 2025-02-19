@@ -19,6 +19,7 @@ const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
 const SUBSCRIPTIOON_MODEL = require("./models/user/subscription_model");
 const SETTING_MODEL = require("./models/user/setting_model");
+const PLANS_MODEL = require("./models/admin/plan_model");
 const mongoose = require("mongoose");
 var app = express();
 app.use(cors());
@@ -1389,6 +1390,20 @@ const idealPaymentSubscription = async (invoice) => {
 
     const subscriptionId = invoice.subscription;
     // const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const planId = invoice.lines.data[0]?.price?.product;
+    const customerId = invoice?.customer;
+    const planDetails = await PLANS_MODEL.findOne({planId: planId});
+    const userDetails = await user_model.findOne({stripeCustomerId: customerId});
+
+    let  detail = {purchaseBy : userDetails._id};
+
+    if (planDetails.name === `Pro` || planDetails.name ===  `Premium`) {
+      detail.purchaseByCompanyId = userDetails._id; 
+      detail.role = constant.ROLES.COMPANY;
+    } else {
+      detail.purchaseByDriverId = userDetails._id; 
+      detail.role = constant.ROLES.DRIVER;
+    }
 
     const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
     // Convert UNIX timestamps to JavaScript Date objects
@@ -1397,11 +1412,10 @@ const idealPaymentSubscription = async (invoice) => {
 
     let subscriptionData =  {
       subscriptionId: subscriptionId,
-      planId: invoice.lines.data[0]?.price?.product,
+      planId: planId,
       productPriceId: invoice.lines.data[0]?.price?.id,
-      customerId: invoice?.customer,
-      role: invoice.metadata.role,
-      purchaseBy: invoice.metadata.purchaseBy,
+      customerId: customerId,
+      ...detail,
       chargeId: invoice.charge,
       paymentIntentId: invoice.payment_intent,
       invoiceId: invoice.id,

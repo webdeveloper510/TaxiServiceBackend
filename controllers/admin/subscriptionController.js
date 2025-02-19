@@ -264,6 +264,13 @@ exports.createIdealCheckoutSession = async (req, res) => {
 
     try {
 
+        const subscription = await stripe.subscriptions.retrieve("sub_1QuIVmKNzdNk7dDQ531s7fKZ");
+
+            // Get metadata from the subscription
+        const metadata = subscription.metadata;
+        res.json(metadata);
+
+
         const customerId  = req.user.stripeCustomerId;
         const priceId = req.body?.priceId || '';
 
@@ -294,13 +301,13 @@ exports.createIdealCheckoutSession = async (req, res) => {
                 },
             ],
             metadata: {
-                userId: req.user.id,  // Your app’s user ID
-                planName: checkPlanExist.name,
-                customInfo: 'Any additional info you need'
+                purchaseBy: req.user._id,  // Your app’s user ID
+                role: req.user.role,
+                customInfo: 'ideal payment method used by vijay'
             }
         });
 
-        res.json({ url: session.url });
+        return res.json({ url: session.url });
 
     } catch (error) {
 
