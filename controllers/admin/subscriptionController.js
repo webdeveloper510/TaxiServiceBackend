@@ -264,6 +264,27 @@ exports.createIdealCheckoutSession = async (req, res) => {
 
     try {
 
+        const subscription = await stripe.subscriptions.retrieve("sub_1QuG3DKNzdNk7dDQ5ZQzbKJ1");
+
+console.log('Subscription Start Date:', new Date(subscription.current_period_start * 1000));
+console.log('Subscription End Date:', new Date(subscription.current_period_end * 1000));
+
+        const paymentIntent = await stripe.paymentIntents.retrieve("pi_3QuG3EKNzdNk7dDQ1kNDj2OI");
+
+        if (paymentIntent.payment_method) {
+            // Retrieve Payment Method
+            const paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
+
+            console.log('Payment Method Type:', paymentMethod.type);
+
+            if (paymentMethod.type === 'ideal') {
+                console.log('This subscription was created using iDEAL.');
+                // Store this info in your database if needed
+            }
+        }
+
+        return res.json({ url: 'vijay' });
+
         const customerId  = req.user.stripeCustomerId;
         const priceId = req.body?.priceId || '';
 
@@ -293,6 +314,11 @@ exports.createIdealCheckoutSession = async (req, res) => {
                     tax_rates: [process.env.STRIPE_VAT_TAX_ID], // Optional: Add tax rate
                 },
             ],
+            metadata: {
+                userId: req.user.id,  // Your app’s user ID
+                planName: checkPlanExist.name,
+                customInfo: 'Any additional info you need'
+            }
         });
 
         res.json({ url: session.url });

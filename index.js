@@ -30,9 +30,10 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // Apply raw body parser specifically for Stripe webhook
 app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
-      try {
+  const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
+    try {
          
-        const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+        
         const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
           
           const sig = req.headers['stripe-signature'];
@@ -74,79 +75,99 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
             let updateData;
 
-            // When payemnt will be first time
-            if (invoice.billing_reason === `subscription_create`) {
+            let paymentIntentId = invoice.payment_intent;
+
+            const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+            if (paymentIntent.payment_method) {
+              // Retrieve Payment Method
+              const paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
+  
+              console.log('Payment Method Type:', paymentMethod.type);
+  
+              if (paymentMethod.type === 'ideal') {
+                  console.log('This subscription was created using iDEAL.');
+                  // Store this info in your database if needed
+                  await idealPaymentSubscription(invoice);
+              } else {
+
+                if (invoice.billing_reason === `subscription_create`) {
 
 
-              updateData =  {
-                              chargeId: invoice.charge,
-                              paymentIntentId: invoice.payment_intent,
-                              invoiceId: invoice.id,
-                              paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-                              active: constant.SUBSCRIPTION_STATUS.ACTIVE,
-                              invoicePdfUrl: invoice.invoice_pdf,
-                              invoiceUrl: invoice.hosted_invoice_url,
-                              billing_reason: `subscription_create`
-                            }
-
-              SUBSCRIPTIOON_MODEL.updateOne(
-                                                    { _id: subscriptionExist._id }, // filter
-                                                    { $set: updateData } // update operation
-                                                );
-              let logs_data = {
-                api_name: 'subscription_webhook',
-                payload: event.type,
-                error_message: `billing_reason - subscription_create`,
-                error_response: JSON.stringify(event)
-              };
-              const logEntry = new LOGS(logs_data);
-              logEntry.save();
-              sendEmailSubscribeSubcription(subscriptionId);
-
-            } else if (invoice.billing_reason=== 'subscription_cycle') {
-
-              const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
-              // Convert UNIX timestamps to JavaScript Date objects
-              const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
-              const endPeriod = new Date(subscriptionLine.period.end * 1000);
-
-              
-              let option = { new: true };
-              SUBSCRIPTIOON_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
-
-              updateData =  {
-                subscriptionId:invoice.subscription,
-                planId: subscriptionExist.planId,
-                productPriceId: subscriptionExist.priceId,
-                customerId: subscriptionExist.customerId,
-                role: subscriptionExist.role,
-                purchaseBy: subscriptionExist.purchaseBy,
-                amount: subscriptionExist.amount,
-                billing_reason: `subscription_cycle`,
-                startPeriod: startPeriod,
-                endPeriod: endPeriod,
-                chargeId: invoice.charge,
-                paymentIntentId: invoice.payment_intent,
-                invoiceId: invoice.id,
-                paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-                active: constant.SUBSCRIPTION_STATUS.ACTIVE,
-                invoicePdfUrl: invoice.invoice_pdf,
-                invoiceUrl: invoice.hosted_invoice_url,
+                  updateData =  {
+                                  chargeId: invoice.charge,
+                                  paymentIntentId: invoice.payment_intent,
+                                  invoiceId: invoice.id,
+                                  paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                                  active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                                  invoicePdfUrl: invoice.invoice_pdf,
+                                  invoiceUrl: invoice.hosted_invoice_url,
+                                  billing_reason: `subscription_create`
+                                }
+    
+                  SUBSCRIPTIOON_MODEL.updateOne(
+                                                        { _id: subscriptionExist._id }, // filter
+                                                        { $set: updateData } // update operation
+                                                    );
+                  let logs_data = {
+                    api_name: 'subscription_webhook',
+                    payload: event.type,
+                    error_message: `billing_reason - subscription_create`,
+                    error_response: JSON.stringify(event)
+                  };
+                  const logEntry = new LOGS(logs_data);
+                  logEntry.save();
+                  sendEmailSubscribeSubcription(subscriptionId);
+    
+                } else if (invoice.billing_reason=== 'subscription_cycle') {
+    
+                  const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
+                  // Convert UNIX timestamps to JavaScript Date objects
+                  const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
+                  const endPeriod = new Date(subscriptionLine.period.end * 1000);
+    
+                  
+                  let option = { new: true };
+                  SUBSCRIPTIOON_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
+    
+                  updateData =  {
+                    subscriptionId:invoice.subscription,
+                    planId: subscriptionExist.planId,
+                    productPriceId: subscriptionExist.priceId,
+                    customerId: subscriptionExist.customerId,
+                    role: subscriptionExist.role,
+                    purchaseBy: subscriptionExist.purchaseBy,
+                    amount: subscriptionExist.amount,
+                    billing_reason: `subscription_cycle`,
+                    startPeriod: startPeriod,
+                    endPeriod: endPeriod,
+                    chargeId: invoice.charge,
+                    paymentIntentId: invoice.payment_intent,
+                    invoiceId: invoice.id,
+                    paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                    active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                    invoicePdfUrl: invoice.invoice_pdf,
+                    invoiceUrl: invoice.hosted_invoice_url,
+                  }
+    
+                  const subscriptionRenewal = new SUBSCRIPTIOON_MODEL(updateData);
+                  subscriptionRenewal.save();
+    
+                  let logs_data = {
+                    api_name: 'subscription_webhook',
+                    payload: event.type,
+                    error_message: `billing_reason - subscription_cycle`,
+                    error_response: JSON.stringify(event)
+                  };
+                  const logEntry = new LOGS(logs_data);
+                  logEntry.save();
+                  // console.log('saved successfully')
+                }
               }
-
-              const subscriptionRenewal = new SUBSCRIPTIOON_MODEL(updateData);
-              subscriptionRenewal.save();
-
-              let logs_data = {
-                api_name: 'subscription_webhook',
-                payload: event.type,
-                error_message: `billing_reason - subscription_cycle`,
-                error_response: JSON.stringify(event)
-              };
-              const logEntry = new LOGS(logs_data);
-              logEntry.save();
-              // console.log('saved successfully')
             }
+
+            // When payemnt will be first time
+            
             
 
             // console .log('updated_data------' , updateData)
@@ -1353,6 +1374,54 @@ const handleInvoicePaymentFailure = async (invoice) => {
     console.error("Error in webhook handler:", error.message);
     let logs_data = {
                       api_name: 'subscription_webhook',
+                      payload: JSON.stringify(req.body),
+                      error_message: err.message,
+                      error_response: JSON.stringify(err)
+                    };
+    const logEntry = new LOGS(logs_data);
+    await logEntry.save();
+}
+}
+
+const idealPaymentSubscription = async (invoice) => {
+
+  try {
+
+    const subscriptionId = invoice.subscription;
+    // const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+    const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
+    // Convert UNIX timestamps to JavaScript Date objects
+    const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
+    const endPeriod = new Date(subscriptionLine.period.end * 1000);
+
+    let subscriptionData =  {
+      subscriptionId: subscriptionId,
+      planId: invoice.lines.data[0]?.price?.product,
+      productPriceId: invoice.lines.data[0]?.price?.id,
+      customerId: invoice?.customer,
+      role: invoice.metadata.role,
+      purchaseBy: invoice.metadata.purchaseBy,
+      chargeId: invoice.charge,
+      paymentIntentId: invoice.payment_intent,
+      invoiceId: invoice.id,
+      paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+      active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+      invoicePdfUrl: invoice.invoice_pdf,
+      invoiceUrl: invoice.hosted_invoice_url,
+      billing_reason: invoice.billing_reason === `subscription_create` ? `subscription_create` : `subscription_cycle`,
+      startPeriod: startPeriod,
+      endPeriod: endPeriod,
+      amount: invoice.lines.data[0]?.amount_excluding_tax / 100,
+      invoiceName: invoice?.number
+    }
+    console.log('created-data---------' , subscriptionData)
+    return true;
+    
+   } catch (error) {
+    console.error("Error in webhook handler:", error.message);
+    let logs_data = {
+                      api_name: 'subscription_webhook ideal payment',
                       payload: JSON.stringify(req.body),
                       error_message: err.message,
                       error_response: JSON.stringify(err)
