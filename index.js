@@ -1389,11 +1389,8 @@ const idealPaymentSubscription = async (req , invoice) => {
 
   try {
 
-    const paymentIntent = await stripe.paymentIntents.retrieve(invoice.payment_intent);
+    
 
-        // Get the Payment Method ID from the invoice payment intent
-        // const paymentIntent = await stripe.paymentIntents.retrieve(subscription.latest_invoice.payment_intent);
-console.log('paymentIntent.payment_method---' , paymentIntent.payment_method)
     const subscriptionId = invoice.subscription;
     // const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const planId = invoice.lines.data[0]?.price?.product;
@@ -1442,10 +1439,23 @@ console.log('paymentIntent.payment_method---' , paymentIntent.payment_method)
       amount: invoice.lines.data[0]?.amount_excluding_tax / 100,
       invoiceName: invoice?.number
     }
-    console.log('created-data---------' , subscriptionData)
     
     const newSubscription = new SUBSCRIPTION_MODEL(subscriptionData);
     await newSubscription.save();
+
+    const paymentIntent = await stripe.paymentIntents.retrieve(invoice.payment_intent);
+    const payymentMethodId = paymentIntent?.payment_method;
+
+    if (payymentMethodId) {
+      await stripe.paymentMethods.attach(payymentMethodId, { customer: customerId });
+
+      // Update the default payment method for future invoices
+      await stripe.customers.update(customerId, {
+          invoice_settings: { default_payment_method: payymentMethodId }
+      });
+
+      console.log('Payment method updated for future payments.');
+    }
     return true;
     
    } catch (error) {
