@@ -89,7 +89,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               if (paymentMethod.type === 'ideal') {
                   console.log('This subscription was created using iDEAL.');
                   // Store this info in your database if needed
-                  await idealPaymentSubscription(invoice);
+                  await idealPaymentSubscription(req , invoice);
               } else {
 
                 if (invoice.billing_reason === `subscription_create`) {
@@ -1384,7 +1384,7 @@ const handleInvoicePaymentFailure = async (invoice) => {
 }
 }
 
-const idealPaymentSubscription = async (invoice) => {
+const idealPaymentSubscription = async (req , invoice) => {
 
   try {
 
@@ -1394,14 +1394,17 @@ const idealPaymentSubscription = async (invoice) => {
     const customerId = invoice?.customer;
     const planDetails = await PLANS_MODEL.findOne({planId: planId});
     const userDetails = await user_model.findOne({stripeCustomerId: customerId});
+    const driverDetails = await driver_model.findOne({stripeCustomerId: customerId});
 
-    let  detail = {purchaseBy : userDetails._id};
+    let  detail = {};
 
     if (planDetails.name === `Pro` || planDetails.name ===  `Premium`) {
       detail.purchaseByCompanyId = userDetails._id; 
+      detail.purchaseBy = userDetails?._id; 
       detail.role = constant.ROLES.COMPANY;
     } else {
       detail.purchaseByDriverId = userDetails._id; 
+      detail.purchaseBy = driver_model?._id; 
       detail.role = constant.ROLES.DRIVER;
     }
 

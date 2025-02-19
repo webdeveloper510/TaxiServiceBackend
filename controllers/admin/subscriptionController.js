@@ -264,13 +264,6 @@ exports.createIdealCheckoutSession = async (req, res) => {
 
     try {
 
-        const subscription = await stripe.subscriptions.retrieve("sub_1QuIVmKNzdNk7dDQ531s7fKZ");
-
-            // Get metadata from the subscription
-        const metadata = subscription.metadata;
-        res.json(metadata);
-
-
         const customerId  = req.user.stripeCustomerId;
         const priceId = req.body?.priceId || '';
 
@@ -300,11 +293,11 @@ exports.createIdealCheckoutSession = async (req, res) => {
                     tax_rates: [process.env.STRIPE_VAT_TAX_ID], // Optional: Add tax rate
                 },
             ],
-            metadata: {
-                purchaseBy: req.user._id,  // Your app’s user ID
-                role: req.user.role,
-                customInfo: 'ideal payment method used by vijay'
-            }
+            // metadata: {
+            //     purchaseBy: req.user._id,  // Your app’s user ID
+            //     role: req.user.role,
+            //     customInfo: 'ideal payment method used by vijay'
+            // }
         });
 
         return res.json({ url: session.url });
