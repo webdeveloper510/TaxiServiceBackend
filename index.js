@@ -1396,8 +1396,8 @@ const idealPaymentSubscription = async (req , invoice) => {
     const userDetails = await user_model.findOne({stripeCustomerId: customerId});
     const driverDetails = await driver_model.findOne({stripeCustomerId: customerId});
 
-    const driveId = driverDetails._id;
-    const userId = userDetails._id;
+    const driveId = driverDetails?._id;
+    const userId = userDetails?._id;
     console.log('driverDetails------' , driveId)
     let  detail = {};
 
