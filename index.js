@@ -1398,17 +1398,17 @@ const idealPaymentSubscription = async (req , invoice) => {
 
     const driveId = driverDetails?._id;
     const userId = userDetails?._id;
-    console.log('driverDetails------' , driveId)
+    console.log('driverDetails------' , driveId.toString())
     let  detail = {};
 
     if (planDetails.name === `Pro` || planDetails.name ===  `Premium`) {
       
-      detail.purchaseByCompanyId = userId; 
-      detail.purchaseBy = userId; 
+      detail.purchaseByCompanyId = userId.toString(); 
+      detail.purchaseBy = userId.toString(); 
       detail.role = constant.ROLES.COMPANY;
     } else {
-      detail.purchaseByDriverId = driveId; 
-      detail.purchaseBy = driveId; 
+      detail.purchaseByDriverId = driveId.toString(); 
+      detail.purchaseBy = driveId.toString(); 
       detail.role = constant.ROLES.DRIVER;
     }
 
