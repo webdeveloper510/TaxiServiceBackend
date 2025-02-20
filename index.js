@@ -90,7 +90,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
                   console.log('This subscription was created using iDEAL.');
                   // Store this info in your database if needed
-                  await idealPaymentSubscription(req , invoice);
+                  await idealPaymentSubscription(req , invoice , paymentMethod.type);
               } else {
 
                 if (invoice.billing_reason === `subscription_create`) {
@@ -1385,7 +1385,7 @@ const handleInvoicePaymentFailure = async (invoice) => {
 }
 }
 
-const idealPaymentSubscription = async (req , invoice) => {
+const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
 
   try {
 
@@ -1446,16 +1446,16 @@ const idealPaymentSubscription = async (req , invoice) => {
     const paymentIntent = await stripe.paymentIntents.retrieve(invoice.payment_intent);
     const payymentMethodId = paymentIntent?.payment_method;
 
-    // if (payymentMethodId) {
-    //   await stripe.paymentMethods.attach(payymentMethodId, { customer: customerId });
+    if (payymentMethodId  && paymentMethodType === 'sepa_debit') {
+      await stripe.paymentMethods.attach(payymentMethodId, { customer: customerId });
 
-    //   // Update the default payment method for future invoices
-    //   await stripe.customers.update(customerId, {
-    //       invoice_settings: { default_payment_method: payymentMethodId }
-    //   });
+      // Update the default payment method for future invoices
+      await stripe.customers.update(customerId, {
+          invoice_settings: { default_payment_method: payymentMethodId }
+      });
 
-    //   console.log('Payment method updated for future payments.');
-    // }
+      console.log('Payment method updated for future payments.');
+    }
     return true;
     
    } catch (error) {
