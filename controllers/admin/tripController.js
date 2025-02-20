@@ -1437,7 +1437,7 @@ exports.get_access_trip = async (req, res) => {
         message: "Invalid company",
       });
     }
-
+    
     const page = parseInt(data.page) || 1; // Default to page 1 if not provided
     const limit = parseInt(data.limit) || 10; // Default to 10 items per page if not provided
     
@@ -1535,22 +1535,24 @@ exports.get_access_trip = async (req, res) => {
     ]).sort({ createdAt: -1 });
 
     const getActivePaidPlans = await getCompanyActivePaidPlans(req.body.company_id);
-   
+    let hasSpecialPlan = await USER.findOne({_id: req.body.company_id});
     if (!get_trip) {
       res.send({
         code: constant.error_code,
         message: "Unable to get the trips",
         activePlans: getActivePaidPlans.length > 0 ? true  : false,
-        hasSpecialPlan: check_company?.is_special_plan_active ? true: false
+        hasSpecialPlan: hasSpecialPlan?.is_special_plan_active ? true: false
       });
     } else {
+      
       res.send({
         code: constant.success_code,
         message: "Success",
         result: get_trip,
         totalCount: totalCount,
         activePlans: getActivePaidPlans.length > 0 ? true  : false,
-        hasSpecialPlan: check_company?.is_special_plan_active ? true: false
+        hasSpecialPlan: hasSpecialPlan?.is_special_plan_active ? true: false,
+        
       });
     }
   } catch (err) {
