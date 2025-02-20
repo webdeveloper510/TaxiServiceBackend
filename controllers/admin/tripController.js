@@ -1575,8 +1575,15 @@ exports.get_all_access_trip = async (req, res) => {
 
     // remove the driver who doesn't have the asctive payed plan
     for (let value of companyIds) {
-      let getActivePaidPlans = await getCompanyActivePaidPlans(value)
+      const checkUserSpecialPlan = await USER.findOne({_id: value , is_special_plan_active: true});
+      
+      if (checkUserSpecialPlan?._id) {
+        filteredCompanyId.push(value)
+        continue;
+      }
 
+      let getActivePaidPlans = await getCompanyActivePaidPlans(value)
+      
       if (getActivePaidPlans.length > 0) {
         filteredCompanyId.push(value)
       }
@@ -1692,7 +1699,7 @@ exports.get_all_access_trip = async (req, res) => {
         code: constant.success_code,
         message: "Success",
         totalCount: totalCount,
-        result: get_trip,
+        result: get_trip
       });
     }
   } catch (err) {
