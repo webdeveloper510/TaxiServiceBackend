@@ -175,6 +175,10 @@ const trip = new Schema({
         type: Boolean,
         default: false,
     },
+    is_company_paid: {
+        type: Boolean,
+        default: false,
+    },
     fifteenMinuteNotification:{
         type: Boolean,
         default: false,

@@ -209,7 +209,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             //   await handleInvoicePaymentFailure(invoice)
             // }
 
-            // handleInvoicePaymentFailure(invoice)
+            handleInvoicePaymentFailure(invoice)
 
            
           }

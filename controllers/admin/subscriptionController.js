@@ -260,6 +260,7 @@ exports.createSetupIntent = async (req, res) => {
     
 }
 
+// IDEAL or SEPA subscription functionality
 exports.createIdealCheckoutSession = async (req, res) => {
 
     try {
@@ -270,8 +271,8 @@ exports.createIdealCheckoutSession = async (req, res) => {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['ideal' , 'sepa_debit'],
             mode: 'subscription',  //isSubscription ? "subscription" : "payment",
-            success_url: 'http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}', // Redirect after payment success
-            cancel_url: 'http://localhost:3000/cancel', // Redirect if the user cancels
+            success_url: `${process.env.FRONTEND_URL}/subscription-payment-success?session_id={CHECKOUT_SESSION_ID}`, // Redirect after payment success
+            cancel_url: `${process.env.FRONTEND_URL}/subscription-payment-fail`, // Redirect if the user cancels
             // customer_email: req.body.email, // Optional
             customer: customerId,
             line_items: [
@@ -486,32 +487,37 @@ exports.getMyPaidPlans = async (req, res) => {
 exports.userOnboardOnStripe = async (req, res) => {
     try {
         const user_id = req.params.id || null;
-        const userDetails = await USER_MODEL.findOne({_id : user_id});
+        let userDetails = await USER_MODEL.findOne({_id : user_id});
 
+        if (!userDetails?.connectedAccountId) {
+
+            // Create the connected account ID if user didn't have
+            const connectedAccountId = await createCustomAccount(userDetails?.email);
+
+            userDetails = await USER_MODEL.findByIdAndUpdate(
+                                                                {_id : user_id}, // User ID
+                                                                { connectedAccountId:connectedAccountId }, // Updated field
+                                                                { new: true } // Returns the updated document
+                                                            );
+        }
         
-        if (userDetails?.connectedAccountId) {
 
-            if (userDetails?.isAccountAttched) {
+        if (userDetails?.isAccountAttched) {
 
-                return  res.send({
-                                    code: constant.error_code,
-                                    message: `User's account already attached`,
-                                });
-            } else {
-
-                const onboardLink = await stripeOnboardingAccountLink(userDetails?.connectedAccountId , user_id);
-                return  res.send({
-                                    code: constant.success_code,
-                                    link: onboardLink,
-                                });
-            }
-            
-        } else {
             return  res.send({
                                 code: constant.error_code,
-                                message: `User doesn't have platform stripe account`,
+                                message: `User's account already attached`,
+                            });
+        } else {
+
+            const onboardLink = await stripeOnboardingAccountLink(userDetails?.connectedAccountId , user_id);
+            return  res.send({
+                                code: constant.success_code,
+                                link: onboardLink,
                             });
         }
+            
+        
     } catch (error) {
         console.error('Error creating subscription:', error.message);
         return  res.send({

@@ -15,18 +15,20 @@ exports.tripCommissionPayment = async (req, res) => {
   try {
     let tripId = req.params.id;
     const trip_by_id = await TRIP.findById(tripId);
+
     if (!trip_by_id) {
       return res.send({
-        code: constant.error_code,
-        message: "Unable to get the trip by id",
-      });
+                        code: constant.error_code,
+                        message: "Unable to get the trip by id",
+                      });
     }
     if (trip_by_id.is_paid) {
       return res.send({
-        code: constant.error_code,
-        message: "Already paid",
-      });
+                        code: constant.error_code,
+                        message: "Already paid",
+                      });
     }
+
     try {
       let commission = trip_by_id.commission.commission_value;
 
@@ -37,28 +39,26 @@ exports.tripCommissionPayment = async (req, res) => {
 
       const paymentResult = await initiateStripePayment( trip_by_id, parseInt(commission * 100) );
       res.send({
-        code: constant.success_code,
-        result: paymentResult,
-        trip_by_id,
-        message: "Success fully payment is created",
-        // commission
-      });
+                  code: constant.success_code,
+                  result: paymentResult,
+                  trip_by_id,
+                  message: "Success fully payment is created",
+                  // commission
+                });
     } catch (error) {
-      res.send({
-        code: constant.error_code,
-        message: "Error while creating payment",
-      });
+      return res.send({
+                        code: constant.error_code,
+                        message: "Error while creating payment",
+                      });
     }
   } catch (err) {
-    console.log(
-      "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",
-      err
-    );
+    
+    console.log("🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",err);
 
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 };
 
@@ -103,44 +103,41 @@ exports.successTripPay = async (req, res) => {
   try {
     let tripId = req.params.id;
     const trip_by_id = await TRIP.findById(tripId);
+
     if (!trip_by_id) {
       return res.send({
-        code: constant.error_code,
-        message: "Unable to get the trip by id",
-      });
+                        code: constant.error_code,
+                        message: "Unable to get the trip by id",
+                      });
     }
+
     if (trip_by_id.is_paid) {
+
       return res.send({
-        code: constant.error_code,
-        message: "Already paid",
-      });
+                        code: constant.error_code,
+                        message: "Already paid",
+                      });
     }
+
     // check from strip side is payment completed
     try {
-      const resultFromStipe = await checkPaymentStatus(
-        trip_by_id?.stripe_payment?.payment_intent_id
-      );
+      const resultFromStipe = await checkPaymentStatus( trip_by_id?.stripe_payment?.payment_intent_id );
 
       if (resultFromStipe.payment_status === "paid") {
+
         trip_by_id.is_paid = true;
         trip_by_id.stripe_payment.payment_status = "Paid";
         await trip_by_id.save();
         let commission = trip_by_id.commission.commission_value;
-        if (
-          trip_by_id.commission.commission_type === "Percentage" &&
-          trip_by_id.commission.commission_value > 0
-        ) {
-          commission =
-            (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
+
+        if ( trip_by_id.commission.commission_type === "Percentage" && trip_by_id.commission.commission_value > 0 ) {
+
+          commission = (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
         }
 
-        const customer = await user_model.findOne({
-          _id: trip_by_id.created_by,
-        });
+        const customer = await user_model.findOne({ _id: trip_by_id.created_by, });
 
-        const companyData = await user_model.findOne({
-          _id: trip_by_id.created_by_company_id,
-        });
+        const companyData = await user_model.findOne({ _id: trip_by_id.created_by_company_id, });
         const company = await agency_model.findOne({ user_id: companyData._id });
 
         const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
@@ -149,65 +146,62 @@ exports.successTripPay = async (req, res) => {
         const superAdminCommission = (commission * parseFloat(adminCommision.value)) / 100 || 0;
 
         const companyTransaction = new transaction({
-          from: trip_by_id.driver_name,
-          to: companyData._id,
-          amount: commission - superAdminCommission,
-          trip: trip_by_id._id,
-          type: "credit",
-        });
+                                                      from: trip_by_id.driver_name,
+                                                      to: companyData._id,
+                                                      amount: commission - superAdminCommission,
+                                                      trip: trip_by_id._id,
+                                                      type: "credit",
+                                                    });
         await companyTransaction.save();
         const superTransaction = new transaction({
-          from: trip_by_id.driver_name,
-          to: superAdmin._id,
-          amount: superAdminCommission,
-          trip: trip_by_id._id,
-          type: "credit",
-        });
+                                                    from: trip_by_id.driver_name,
+                                                    to: superAdmin._id,
+                                                    amount: superAdminCommission,
+                                                    trip: trip_by_id._id,
+                                                    type: "credit",
+                                                  });
         await superTransaction.save();
-        const companyBalance =
-          companyData.totalBalance + commission - superAdminCommission;
+        const companyBalance = companyData.totalBalance + commission - superAdminCommission;
 
         const updateCompanyWallet = await user_model.updateOne(
-          { _id: companyData._id },
-          { $set: { totalBalance: companyBalance } }
-        );
+                                                                  { _id: companyData._id },
+                                                                  { $set: { totalBalance: companyBalance } }
+                                                                );
 
         const superBalance = superAdmin.totalBalance + superAdminCommission;
 
         const updateSuperWallet = await user_model.updateOne(
-          { _id: superAdmin._id },
-          { $set: { totalBalance: superBalance } }
-        );
+                                                              { _id: superAdmin._id },
+                                                              { $set: { totalBalance: superBalance } }
+                                                            );
 
         return res.send({
-          result: trip_by_id,
-          code: constant.success_code,
-          message: "Payment Paid",
-          resultFromStipe,
-        });
+                          result: trip_by_id,
+                          code: constant.success_code,
+                          message: "Payment Paid",
+                          resultFromStipe,
+                        });
       } else {
+        
         trip_by_id.is_paid = false;
         trip_by_id.stripe_payment.payment_status = "Failed";
         await trip_by_id.save();
         res.send({
-          result: trip_by_id,
-          code: constant.error_code,
-          message: "Payment Not Paid Yet",
-        });
+                    result: trip_by_id,
+                    code: constant.error_code,
+                    message: "Payment Not Paid Yet",
+                  });
       }
     } catch (error) {
       throw error;
     }
   } catch (err) {
-    console.log(
-      "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",
-      err
-    );
+    console.log( "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:", err );
 
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 };
 
