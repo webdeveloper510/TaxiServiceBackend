@@ -108,10 +108,18 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                   billing_reason: `subscription_create`
                                 }
     
-                  SUBSCRIPTION_MODEL.updateOne(
+                  const result = SUBSCRIPTION_MODEL.updateOne(
                                                   { _id: subscriptionExist._id }, // filter
                                                   { $set: updateData } // update operation
                                               );
+                  console.log('updateData-----' , updateData)
+
+                  if (result.modifiedCount > 0) {
+                    console.log("Update successful:", result);
+                } else {
+                    console.log("No documents were updated. Either the data was already up to date or the document was not found.");
+                }
+
                   let logs_data = {
                     api_name: 'subscription_webhook',
                     payload: event.type,
