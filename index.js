@@ -93,9 +93,10 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                   await idealPaymentSubscription(req , invoice , paymentMethod.type);
               } else {
 
+                console.log('card payment conditio')
                 if (invoice.billing_reason === `subscription_create`) {
 
-
+                  console.log('card payment conditio--' , invoice.billing_reason)
                   updateData =  {
                                   chargeId: invoice.charge,
                                   paymentIntentId: invoice.payment_intent,
@@ -122,7 +123,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                   sendEmailSubscribeSubcription(subscriptionId);
     
                 } else if (invoice.billing_reason=== 'subscription_cycle') {
-    
+                  console.log('card payment conditio--' , invoice.billing_reason)
                   const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
                   // Convert UNIX timestamps to JavaScript Date objects
                   const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
