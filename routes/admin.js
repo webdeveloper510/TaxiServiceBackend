@@ -172,6 +172,8 @@ router.post("/success_trip_commission/:id",[verifyToken],paymentController.succe
 router.get("/transactions",[verifyToken],paymentController.getCommissionTrans);
 router.get("/admin_transaction",[verifyToken , adminAuth],paymentController.adminTransaction);
 router.post("/payCompany", [verifyToken], paymentController.payCompany);
+router.get("/admin_update_payment/:id", [verifyToken , adminAuth], paymentController.adminUpdatePayment);
+
 
 // Account access API
 router.post("/update_account_access",[verifyToken],subAdminController.update_account_access);

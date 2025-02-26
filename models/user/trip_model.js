@@ -176,7 +176,7 @@ const trip = new Schema({
         default: false,
     },
     payment_completed_date:{
-        type: Boolean,
+        type: Date ,
         default: null,
     },
     payment_collcted:{

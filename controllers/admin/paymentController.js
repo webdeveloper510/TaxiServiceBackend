@@ -458,3 +458,44 @@ const getTotalPayment = async (startDate = null) => {
 
   return totalPayment.length > 0 ? totalPayment[0].totalAmount : 0;
 };
+
+exports.adminUpdatePayment = async (req, res) => {
+
+  try {
+
+    let tripId = req.params.id;
+    let criteria = { _id: tripId };
+        let newValue = {
+          $set: {
+            is_paid : true,
+            "stripe_payment.payment_status" : "Paid",
+            payment_completed_date : new Date(),
+            payment_collcted : constant.PAYMENT_COLLECTION_TYPE.MANUALLY,
+            payment_upadted_by_admin: req.userId
+          },
+        };
+        let option = { new: true };
+        let trip = await TRIP.findByIdAndUpdate(criteria, newValue, option);
+
+        if (trip) {
+
+          return res.send({
+                            code: constant.success_code,
+                            data: trip,
+                          });
+        } else {
+          return res.send({
+                            code: constant.error_code,
+                            message: err.message,
+                          });
+        }
+
+  } catch (err) {
+    console.log( "🚀 ~ file: adminUpdatePayment.", err.message );
+
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
+  }
+}
