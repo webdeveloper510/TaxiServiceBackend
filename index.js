@@ -114,11 +114,14 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                               );
                   console.log('updateData-----' , updateData)
 
-                  if (result.modifiedCount > 0) {
-                    console.log("Update successful:", result);
-                } else {
-                    console.log("No documents were updated. Either the data was already up to date or the document was not found.");
-                }
+                  console.log("Update Result:", result);
+                  if (result.matchedCount === 0) {
+                      console.log("❌ No document matched the query.");
+                  } else if (result.modifiedCount === 0) {
+                      console.log("⚠️ Document found but not modified (same values).");
+                  } else {
+                      console.log("✅ Document updated successfully.");
+                  }
 
                 console.log('subscriptionExist--------' , subscriptionExist)
 
