@@ -109,7 +109,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                 }
     
                   const result = await SUBSCRIPTION_MODEL.updateOne(
-                                                  { _id: new ObjectId(subscriptionExist._id) }, // filter
+                                                  { _id: new mongoose.Types.ObjectId(subscriptionExist._id) }, // filter
                                                   { $set: updateData } // update operation
                                               );
                   console.log('updateData-----' , updateData)
