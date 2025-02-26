@@ -93,10 +93,10 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                   await idealPaymentSubscription(req , invoice , paymentMethod.type);
               } else {
 
-                console.log('card payment conditio')
+                
                 if (invoice.billing_reason === `subscription_create`) {
 
-                  console.log('card payment conditio--' , invoice.billing_reason)
+                  
                   updateData =  {
                                   chargeId: invoice.charge,
                                   paymentIntentId: invoice.payment_intent,
@@ -112,18 +112,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                                   { _id: new mongoose.Types.ObjectId(subscriptionExist._id) }, // filter
                                                   { $set: updateData } // update operation
                                               );
-                  console.log('updateData-----' , updateData)
-
-                  console.log("Update Result:", result);
-                  if (result.matchedCount === 0) {
-                      console.log("❌ No document matched the query.");
-                  } else if (result.modifiedCount === 0) {
-                      console.log("⚠️ Document found but not modified (same values).");
-                  } else {
-                      console.log("✅ Document updated successfully.");
-                  }
-
-                console.log('subscriptionExist--------' , subscriptionExist)
+                  
 
                   let logs_data = {
                     api_name: 'subscription_webhook',
@@ -136,7 +125,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                   sendEmailSubscribeSubcription(subscriptionId);
     
                 } else if (invoice.billing_reason=== 'subscription_cycle') {
-                  console.log('card payment conditio--' , invoice.billing_reason)
+                  
                   const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
                   // Convert UNIX timestamps to JavaScript Date objects
                   const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
