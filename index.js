@@ -89,7 +89,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               // Susbscription with ideal payment method
               if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
                   console.log('This subscription was created using iDEAL.');
-                  
+
                   // Store this info in your database if needed
                   await idealPaymentSubscription(req , invoice , paymentMethod.type);
               } else {
@@ -280,30 +280,27 @@ app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
 
-    const session_id = `cs_test_a1G1Y4aZI4P1IpvS5FtisTGimch9NsFljOpMXspKkhmgAgS52mrcoWt13E`
-    const session = await stripe.checkout.sessions.retrieve(session_id);
-    const invoice = await stripe.invoices.retrieve(session.invoice);
-    // const paymentIntent = await stripe.checkout.sessions.create({
-    //   payment_method_types: ["ideal"],
-    //   line_items: [
-    //     {
-    //       price_data: {
-    //         currency: "eur",
-    //         product_data: {
-    //           name: "Trip Commission 1012",
-    //         },
-    //         unit_amount: 4500,
-    //       },
-    //       quantity: 1,
-    //     },
-    //   ],
-    //   mode: "payment",
-    //   invoice_creation: {
-    //     enabled: true, // Enable invoice creation
-    //   },
-    //   success_url: `${process.env.FRONTEND_URL}/payment/success/1215`,
-    //   cancel_url: `${process.env.FRONTEND_URL}/payment/cancel/4654`,
-    // });
+    const paymentIntent = await stripe.checkout.sessions.create({
+      payment_method_types: ["ideal"],
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: "Trip Commission 1012",
+            },
+            unit_amount: 4500,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      invoice_creation: {
+        enabled: true, // Enable invoice creation
+      },
+      success_url: `${process.env.FRONTEND_URL}/payment/success/1215`,
+      cancel_url: `${process.env.FRONTEND_URL}/payment/cancel/4654`,
+    });
 
     const balance = await stripe.balance.retrieve();
     const trips = await trip_model.aggregate([
@@ -336,9 +333,8 @@ app.get( "/weekly-company-payment", async (req, res) => {
     return res.send({
       code: 200,
       message: "weekly-company-payment",
-      paymentIntent:invoice
-      // balance:balance,
-      // trips:trips
+      balance:balance,
+      trips:trips
     });
   } catch (error) {
     console.error("Error retrieving balance:", error);

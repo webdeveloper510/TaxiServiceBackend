@@ -10,6 +10,7 @@ const SETTING_MODEL = require("../../models/user/setting_model");
 // const transaction = require("../../models/user/transaction");
 const TRIP = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.tripCommissionPayment = async (req, res) => {
   try {
