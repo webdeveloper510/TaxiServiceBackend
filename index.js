@@ -89,6 +89,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               // Susbscription with ideal payment method
               if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
                   console.log('This subscription was created using iDEAL.');
+                  
                   // Store this info in your database if needed
                   await idealPaymentSubscription(req , invoice , paymentMethod.type);
               } else {
