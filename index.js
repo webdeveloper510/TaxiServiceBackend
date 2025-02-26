@@ -108,8 +108,8 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                   billing_reason: `subscription_create`
                                 }
     
-                  const result = SUBSCRIPTION_MODEL.updateOne(
-                                                  { _id: subscriptionExist._id }, // filter
+                  const result = await SUBSCRIPTION_MODEL.updateOne(
+                                                  { _id: new ObjectId(subscriptionExist._id) }, // filter
                                                   { $set: updateData } // update operation
                                               );
                   console.log('updateData-----' , updateData)
