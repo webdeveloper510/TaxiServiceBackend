@@ -127,6 +127,7 @@ exports.successTripPay = async (req, res) => {
 
         const invoice = await stripe.invoices.retrieve(resultFromStipe.invoice);
 
+        // getting the invice URL from the stripe if the payment has been made online
         if (invoice) {
           trip_by_id.hosted_invoice_url = invoice?.hosted_invoice_url ? invoice?.hosted_invoice_url : '';
           trip_by_id.invoice_pdf = invoice?.invoice_pdf ? invoice?.invoice_pdf : '';

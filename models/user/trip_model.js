@@ -182,7 +182,7 @@ const trip = new Schema({
     payment_collcted:{
         type:String,
         enum:['MANUALLY','ONLINE'],
-        default: null,
+        default: 'ONLINE',
     },
     payment_upadted_by_admin:{ // only admin can manually update the payment status
         type:mongoose.Schema.Types.ObjectId,ref:'user', 
@@ -196,7 +196,15 @@ const trip = new Schema({
     fifteenMinuteNotification:{
         type: Boolean,
         default: false,
-    }
+    },
+    hosted_invoice_url:{
+        type:String,
+        default: ""
+    },
+    invoice_pdf:{
+        type:String,
+        default: ""
+    },
 },{timestamps:true})
 
 module.exports = mongoose.model('trip',trip)
