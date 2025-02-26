@@ -72,5 +72,9 @@ module.exports={
             ACCOUNT_NOT_ATTACHED: false,
         }
         
+    },
+    PAYMENT_COLLECTION_TYPE: {
+        MANUALLY: `MANUALLY`,
+        ONLINE: `ONLINE`,
     }
 }

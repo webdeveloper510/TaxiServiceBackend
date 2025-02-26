@@ -175,6 +175,20 @@ const trip = new Schema({
         type: Boolean,
         default: false,
     },
+    payment_completed_date:{
+        type: Boolean,
+        default: null,
+    },
+    payment_collcted:{
+        type:String,
+        enum:['MANUALLY','ONLINE'],
+        default: null,
+    },
+    payment_upadted_by_admin:{ // only admin can manually update the payment status
+        type:mongoose.Schema.Types.ObjectId,ref:'user', 
+        default: null,
+    },
+
     is_company_paid: {
         type: Boolean,
         default: false,

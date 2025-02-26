@@ -127,6 +127,9 @@ exports.successTripPay = async (req, res) => {
 
         trip_by_id.is_paid = true;
         trip_by_id.stripe_payment.payment_status = "Paid";
+        trip_by_id.payment_completed_date = new Date();
+        trip_by_id.payment_collcted = constant.PAYMENT_COLLECTION_TYPE.ONLINE;
+        
         await trip_by_id.save();
         let commission = trip_by_id.commission.commission_value;
 

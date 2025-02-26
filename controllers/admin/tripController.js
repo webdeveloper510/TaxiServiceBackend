@@ -2021,6 +2021,7 @@ exports.get_recent_trip_super = async (req, res) => {
           pay_option: 1,
           customerDetails: 1,
           passengerCount: 1,
+          is_paid:1,
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
           driver_name: {
             $concat: [

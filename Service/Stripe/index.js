@@ -16,9 +16,13 @@ exports.initiateStripePayment = async (trip, amount) => {
             unit_amount: amount,
           },
           quantity: 1,
+          tax_rates: [process.env.STRIPE_VAT_TAX_ID]
         },
       ],
       mode: "payment",
+      invoice_creation: {
+        enabled: true, // Enable invoice creation
+      },
       success_url: `${process.env.FRONTEND_URL}/payment/success/${trip._id}`,
       cancel_url: `${process.env.FRONTEND_URL}/payment/cancel/${trip._id}`,
     });

@@ -272,6 +272,79 @@ app.use(function (err, req, res, next) {
 });
 
 
+app.get( "/weekly-company-payment", async (req, res) => {
+
+  try {
+
+    const session_id = `cs_test_a1G1Y4aZI4P1IpvS5FtisTGimch9NsFljOpMXspKkhmgAgS52mrcoWt13E`
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+    const invoice = await stripe.invoices.retrieve(session.invoice);
+    // const paymentIntent = await stripe.checkout.sessions.create({
+    //   payment_method_types: ["ideal"],
+    //   line_items: [
+    //     {
+    //       price_data: {
+    //         currency: "eur",
+    //         product_data: {
+    //           name: "Trip Commission 1012",
+    //         },
+    //         unit_amount: 4500,
+    //       },
+    //       quantity: 1,
+    //     },
+    //   ],
+    //   mode: "payment",
+    //   invoice_creation: {
+    //     enabled: true, // Enable invoice creation
+    //   },
+    //   success_url: `${process.env.FRONTEND_URL}/payment/success/1215`,
+    //   cancel_url: `${process.env.FRONTEND_URL}/payment/cancel/4654`,
+    // });
+
+    const balance = await stripe.balance.retrieve();
+    const trips = await trip_model.aggregate([
+                                              {
+                                                $lookup: {
+                                                  from: "users", 
+                                                  let: { companyId: "$created_by_company_id" }, // Use trip's `created_by_company_id`
+                                                  pipeline: [
+                                                    {
+                                                      $match: {
+                                                        $expr: { $eq: ["$_id", "$$companyId"] }, // Match `user._id` with `created_by_company_id`
+                                                        isAccountAttched: constant.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED, // Filter users where `isAccountAttched: true`
+                                                        connectedAccountId: { $ne: ""  }
+                                                      }
+                                                    }
+                                                  ],
+                                                  as: "companyDetails"
+                                                }
+                                              },
+                                              { $unwind: "$companyDetails" }, // Remove trips without a matching company
+                                              {
+                                                $project: {
+                                                  _id: 1,
+                                                  created_by_company_id: 1,
+                                                  "companyDetails.connectedAccountId": 1,
+                                                  "companyDetails.email": 1,
+                                                }
+                                              }
+                                            ]);
+    return res.send({
+      code: 200,
+      message: "weekly-company-payment",
+      paymentIntent:invoice
+      // balance:balance,
+      // trips:trips
+    });
+  } catch (error) {
+    console.error("Error retrieving balance:", error);
+    return  res.send({
+                        code: constant.error_code,
+                        message: error.message,
+                    });
+  }
+})
+
 
 app.use((req, res, next) => {
   res.send({
@@ -280,15 +353,19 @@ app.use((req, res, next) => {
   });
 });
 
+
 const PORT = process.env.PORT;
 httpServer.listen(PORT, () =>
   console.log(`app listening at http://localhost:${PORT}`)
 
 );
 
+
 app.use(function (req, res, next) {
   next(createError(404));
 });
+
+
 
 io.on("connection", (socket) => {
   
