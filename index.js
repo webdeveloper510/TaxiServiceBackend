@@ -120,6 +120,8 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                     console.log("No documents were updated. Either the data was already up to date or the document was not found.");
                 }
 
+                console.log('subscriptionExist--------' , subscriptionExist)
+
                   let logs_data = {
                     api_name: 'subscription_webhook',
                     payload: event.type,
