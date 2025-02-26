@@ -463,8 +463,19 @@ exports.adminUpdatePayment = async (req, res) => {
 
   try {
 
+    
     let tripId = req.params.id;
-    let criteria = { _id: tripId };
+
+    const tripInfo = await TRIP.findById(tripId);
+
+    if (tripInfo?.is_paid) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: `This trip already paid`,
+                      });
+    }
+      let criteria = { _id: tripId };
         let newValue = {
           $set: {
             is_paid : true,
