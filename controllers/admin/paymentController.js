@@ -39,6 +39,8 @@ exports.tripCommissionPayment = async (req, res) => {
       commission = commission.toFixed(2);
 
       const paymentResult = await initiateStripePayment( trip_by_id, parseInt(commission * 100) );
+
+      console.log('checkout session result----' , paymentResult)
       res.send({
                   code: constant.success_code,
                   result: paymentResult,
@@ -126,19 +128,25 @@ exports.successTripPay = async (req, res) => {
 
       if (resultFromStipe.payment_status === "paid") {
 
-        const invoice = await stripe.invoices.retrieve(resultFromStipe.invoice);
+        console.log('wait for 5 seconds')
+        setTimeout(async () => {
+          const invoice = await stripe.invoices.retrieve(resultFromStipe.invoice);
 
-        // getting the invice URL from the stripe if the payment has been made online
-        if (invoice) {
-          trip_by_id.hosted_invoice_url = invoice?.hosted_invoice_url ? invoice?.hosted_invoice_url : '';
-          trip_by_id.invoice_pdf = invoice?.invoice_pdf ? invoice?.invoice_pdf : '';
-        }
-        trip_by_id.is_paid = true;
-        trip_by_id.stripe_payment.payment_status = "Paid";
-        trip_by_id.payment_completed_date = new Date();
-        trip_by_id.payment_collcted = constant.PAYMENT_COLLECTION_TYPE.ONLINE;
+          // getting the invice URL from the stripe if the payment has been made online
+          if (invoice) {
+            trip_by_id.hosted_invoice_url = invoice?.hosted_invoice_url ? invoice?.hosted_invoice_url : '';
+            trip_by_id.invoice_pdf = invoice?.invoice_pdf ? invoice?.invoice_pdf : '';
+          }
+          trip_by_id.is_paid = true;
+          trip_by_id.stripe_payment.payment_status = "Paid";
+          trip_by_id.payment_completed_date = new Date();
+          trip_by_id.payment_collcted = constant.PAYMENT_COLLECTION_TYPE.ONLINE;
+          
+          await trip_by_id.save();
+          console.log('completed for 5 seconds')
+        }, 5000)
         
-        await trip_by_id.save();
+
         let commission = trip_by_id.commission.commission_value;
 
         if ( trip_by_id.commission.commission_type === "Percentage" && trip_by_id.commission.commission_value > 0 ) {
