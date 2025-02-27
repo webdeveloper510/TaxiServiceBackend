@@ -268,33 +268,58 @@ exports.createIdealCheckoutSession = async (req, res) => {
         const customerId  = req.user.stripeCustomerId;
         const priceId = req.body?.priceId || '';
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['ideal' , 'sepa_debit'],
-            mode: 'subscription',  //isSubscription ? "subscription" : "payment",
-            success_url: `${process.env.FRONTEND_URL}/subscription-payment-success?session_id={CHECKOUT_SESSION_ID}`, // Redirect after payment success
-            cancel_url: `${process.env.FRONTEND_URL}/subscription-payment-fail`, // Redirect if the user cancels
-            // customer_email: req.body.email, // Optional
-            customer: customerId,
-            line_items: [
-                // {
-                //     price_data: {
-                //         currency: 'eur',
-                //         product_data: {
-                //             name: 'Subscription Initial Payment',
-                //         },
-                //         unit_amount: checkPlanExist.price * 100, // Amount in cents (e.g., 10€ = 1000)
-                //     },
-                //     quantity: 1,
-                // },
-                {
-                    price: priceId, // Use Stripe's Price ID
-                    quantity: 1,
-                    tax_rates: [process.env.STRIPE_VAT_TAX_ID], // Optional: Add tax rate
-                },
-            ],
-        });
+        let checkPlanExist = await PLANS_MODEL.findOne({productPriceId: priceId});
 
-        return res.json({ url: session.url });
+        if (checkPlanExist) {
+
+            if (req.user.role == constant.ROLES.COMPANY) {
+
+                let activePlan = await getUserCurrentActivePayedPlan(req.user);
+
+                
+                //  If there will be any current subscription then it will be cancelled. and new susbcription will be add
+                if (activePlan) {
+                    const subscriptionId = activePlan.subscriptionId
+                    const canceledSubscription = await stripe.subscriptions.cancel(subscriptionId);// cancllled the previous plan
+            
+                    let option = { new: true };
+                    let updatedData =   {
+                                            active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+                                            cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.USER_CANCEL
+                                        };
+
+                    await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+                }
+            }
+
+            const session = await stripe.checkout.sessions.create({
+                                                                    payment_method_types: ['ideal' , 'sepa_debit'],
+                                                                    mode: 'subscription',  //isSubscription ? "subscription" : "payment",
+                                                                    success_url: `${process.env.FRONTEND_URL}/subscription-payment-success?session_id={CHECKOUT_SESSION_ID}`, // Redirect after payment success
+                                                                    cancel_url: `${process.env.FRONTEND_URL}/subscription-payment-fail`, // Redirect if the user cancels
+                                                                    // customer_email: req.body.email, // Optional
+                                                                    customer: customerId,
+                                                                    line_items: [
+                                                                                    {
+                                                                                        price: priceId, // Use Stripe's Price ID
+                                                                                        quantity: 1,
+                                                                                        tax_rates: [process.env.STRIPE_VAT_TAX_ID], // Optional: Add tax rate
+                                                                                    },
+                                                                                ],
+                                                                });
+    
+            return res.json({ 
+                                code: constant.success_code,
+                                url: session.url 
+                            });
+        } else {
+            return  res.send({
+                                code: constant.error_code,
+                                message: `The provided plan ID is invalid.`,
+                            });
+        }
+
+        
 
     } catch (error) {
 
