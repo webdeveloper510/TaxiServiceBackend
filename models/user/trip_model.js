@@ -1,6 +1,8 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
-
+const CONSTANT = require("../../config/constant");
+const PAYMENT_COLLECT_ENUM = await Object.values(CONSTANT.PAYMENT_COLLECTION_TYPE)
+console.log('CONSTANTavlue' , PAYMENT_COLLECT_ENUM)
 const trip = new Schema({
     driver_name:{
         type:mongoose.Schema.Types.ObjectId,ref:'driver',
@@ -181,8 +183,8 @@ const trip = new Schema({
     },
     payment_collcted:{
         type:String,
-        enum:['MANUALLY','ONLINE'],
-        default: 'ONLINE',
+        enum: PAYMENT_COLLECT_ENUM,
+        default: CONSTANT.PAYMENT_COLLECTION_TYPE.PENDING,
     },
     payment_upadted_by_admin:{ // only admin can manually update the payment status
         type:mongoose.Schema.Types.ObjectId,ref:'user', 

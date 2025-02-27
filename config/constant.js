@@ -76,5 +76,6 @@ module.exports={
     PAYMENT_COLLECTION_TYPE: {
         MANUALLY: `MANUALLY`,
         ONLINE: `ONLINE`,
+        PENDING: `PENDING`,
     }
 }
