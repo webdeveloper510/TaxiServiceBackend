@@ -691,7 +691,7 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
   const planDetails = await PLANS_MODEL.findOne({planId:subscriptionDetails?.planId });
   let toEmail = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? subscriptionDetails?.purchaseByCompanyId?.email : subscriptionDetails?.purchaseByDriverId?.email;
   let UserName = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? `${subscriptionDetails?.purchaseByCompanyId?.first_name } ${subscriptionDetails?.purchaseByCompanyId?.last_name}` : `${subscriptionDetails?.purchaseByDriverId?.first_name } ${subscriptionDetails?.purchaseByDriverId?.last_name}`;
-
+  toEmail = 'vsingh@codenomad.net';
   const currentDate = new Date();
 
   // Get day, month, and year
