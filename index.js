@@ -173,7 +173,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               console.log("💳 This invoice is for a **One-Time Payment**");
 
               const checkoutSessions = await stripe.checkout.sessions.list({
-                                                                            invoice: invoice.id, // Find session with this invoice
+                                                                            payment_intent: invoice.payment_intent, // Find session with this invoice
                                                                             limit: 1,
                                                                           });
 
@@ -198,6 +198,8 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                                                                         invoiceUpdateData, 
                                                                         option // Returns the updated document
                                                                       );
+                console.log('cheikng find update-----------')
+                console.log('cheikng find update' , updatedTrip)
               } else {
                 console.log("⚠️ No matching Checkout Session found.");
               }
@@ -307,28 +309,13 @@ app.use(function (err, req, res, next) {
 app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
-    
-    const paymentIntent = await stripe.checkout.sessions.create({
-      payment_method_types: ["ideal"],
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: "Trip Commission 1012",
-            },
-            unit_amount: 4500,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      invoice_creation: {
-        enabled: true, // Enable invoice creation
-      },
-      success_url: `${process.env.FRONTEND_URL}/payment/success/1215`,
-      cancel_url: `${process.env.FRONTEND_URL}/payment/cancel/4654`,
+    const id  = 'cs_test_a15rQBlIz1uPRCbXoYK6GW4DbQSKLtyLVNBgfOOpAZKHGvlvd13Ngs8OGb';
+    const pay = "pi_3Qx15DKNzdNk7dDQ0sXMCDG2";
+    const checkoutSessions = await stripe.checkout.sessions.list({
+      payment_intent:pay, // Find session with this invoice
+      limit: 1,
     });
+   
 
     const balance = await stripe.balance.retrieve();
     // const trips = await trip_model.aggregate([
@@ -362,7 +349,8 @@ app.get( "/weekly-company-payment", async (req, res) => {
                       code: 200,
                       message: "weekly-company-payment",
                       balance:balance,
-                      trips:trips
+                      checkoutSessions:checkoutSessions,
+                      // trips:trips
                     });
   } catch (error) {
     console.error("Error retrieving balance:", error);
