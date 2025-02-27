@@ -717,9 +717,9 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                           <ul>
                             <li> <span style="font-weight:bold;">Subscription ID:</span> ${subsctiptionId}</li>
                             <li> <span style="font-weight:bold;">Plan Name:</span> ${planDetails.name}</li>
-                            <li> <span style="font-weight:bold;">Start Date:</span> ${planDetails.startPeriod}</li>
-                            <li> <span style="font-weight:bold;">Next Billing Date:</span> ${planDetails.endPeriod} + (21% VAT)</li>
-                            <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount}</li>
+                            <li> <span style="font-weight:bold;">Start Date:</span> ${subscriptionDetails.startPeriod}</li>
+                            <li> <span style="font-weight:bold;">Next Billing Date:</span> ${subscriptionDetails.endPeriod} </li>
+                            <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount} + (21% VAT)</li>
                           </ul>
 
                           <br><br>

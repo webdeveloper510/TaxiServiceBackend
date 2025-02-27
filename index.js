@@ -307,14 +307,7 @@ app.use(function (err, req, res, next) {
 app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
-    const id  = 'cs_test_a15rQBlIz1uPRCbXoYK6GW4DbQSKLtyLVNBgfOOpAZKHGvlvd13Ngs8OGb';
-    const pay = "pi_3Qx15DKNzdNk7dDQ0sXMCDG2";
-    const checkoutSessions = await stripe.checkout.sessions.list({
-      payment_intent:pay, // Find session with this invoice
-      limit: 1,
-    });
    
-
     const balance = await stripe.balance.retrieve();
     // const trips = await trip_model.aggregate([
     //                                           {
@@ -347,7 +340,6 @@ app.get( "/weekly-company-payment", async (req, res) => {
                       code: 200,
                       message: "weekly-company-payment",
                       balance:balance,
-                      checkoutSessions:checkoutSessions,
                       // trips:trips
                     });
   } catch (error) {
