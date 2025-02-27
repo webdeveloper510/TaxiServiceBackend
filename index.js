@@ -185,8 +185,6 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                 const condition = { "stripe_payment.payment_intent_id": checkoutSessionsId };
                 const invoiceUpdateData = { 
                                             $set: {
-                                              "stripe_payment.payment_status": "Paid", 
-                                              is_paid: true,
                                               hosted_invoice_url: invoice?.hosted_invoice_url,
                                               invoice_pdf: invoice?.invoice_pdf,
                                             } 
