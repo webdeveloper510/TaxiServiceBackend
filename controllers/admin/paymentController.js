@@ -39,8 +39,6 @@ exports.tripCommissionPayment = async (req, res) => {
       commission = commission.toFixed(2);
 
       const paymentResult = await initiateStripePayment( trip_by_id, parseInt(commission * 100) );
-
-      console.log('checkout session result----' , paymentResult)
       res.send({
                   code: constant.success_code,
                   result: paymentResult,
@@ -189,6 +187,12 @@ exports.successTripPay = async (req, res) => {
                                                               { $set: { totalBalance: superBalance } }
                                                             );
 
+        console.log('success payment-------' , {
+          result: trip_by_id,
+          code: constant.success_code,
+          message: "Payment Paid",
+          resultFromStipe,
+        })
         return res.send({
                           result: trip_by_id,
                           code: constant.success_code,
@@ -200,6 +204,12 @@ exports.successTripPay = async (req, res) => {
         trip_by_id.is_paid = false;
         trip_by_id.stripe_payment.payment_status = "Failed";
         await trip_by_id.save();
+
+         console.log('failure payment-------', {
+          result: trip_by_id,
+          code: constant.error_code,
+          message: "Payment Not Paid Yet",
+        })
         res.send({
                     result: trip_by_id,
                     code: constant.error_code,
