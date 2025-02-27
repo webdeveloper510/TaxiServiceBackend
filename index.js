@@ -56,127 +56,155 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             return res.status(200).send({ received: true , error_message: err.message , istTime:istTime});
           }
 
-          let logs_data = {
-            api_name: 'subscription_webhook',
-            payload: event.type,
-            error_message: `webhook`,
-            error_response: JSON.stringify(event)
-          };
+          // -------------------- Main Logic start
+
+          let logs_data = { api_name: 'subscription_webhook', payload: event.type, error_message: `webhook`, error_response: JSON.stringify(event) };
           const logEntry = new LOGS(logs_data);
           logEntry.save();
 
           if (event.type === 'invoice.payment_succeeded') {
             const invoice = event.data.object;
-
-            // Extract relevant information
-            const subscriptionId = invoice.subscription; // Subscription ID
-
-            let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
-            
-
             let updateData;
 
-            let paymentIntentId = invoice.payment_intent;
+            if (invoice.billing_reason === "subscription_create") {
 
-            const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+              // Extract relevant information
+              const subscriptionId = invoice.subscription; // Subscription ID
 
-            if (paymentIntent.payment_method) {
-              // Retrieve Payment Method
+              let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
+              
+
+              
+
+              let paymentIntentId = invoice.payment_intent;
+
+              const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
               const paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
-  
-              console.log('Payment Method Type:', paymentMethod.type);
-  
-              // Susbscription with ideal payment method
-              if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
-                  console.log('This subscription was created using iDEAL.');
 
-                  // Store this info in your database if needed
-                  await idealPaymentSubscription(req , invoice , paymentMethod.type);
+              if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
+                console.log('This subscription was created using iDEAL.' , paymentMethod.type);
+
+                // Store this info in your database if needed
+                await idealPaymentSubscription(req , invoice , paymentMethod.type);
               } else {
 
-                
-                if (invoice.billing_reason === `subscription_create`) {
-
-                  
-                  updateData =  {
-                                  chargeId: invoice.charge,
-                                  paymentIntentId: invoice.payment_intent,
-                                  invoiceId: invoice.id,
-                                  paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-                                  active: constant.SUBSCRIPTION_STATUS.ACTIVE,
-                                  invoicePdfUrl: invoice.invoice_pdf,
-                                  invoiceUrl: invoice.hosted_invoice_url,
-                                  billing_reason: `subscription_create`
-                                }
-    
-                  const result = await SUBSCRIPTION_MODEL.updateOne(
-                                                  { _id: new mongoose.Types.ObjectId(subscriptionExist._id) }, // filter
-                                                  { $set: updateData } // update operation
-                                              );
-                  
-
-                  let logs_data = {
-                    api_name: 'subscription_webhook',
-                    payload: event.type,
-                    error_message: `billing_reason - subscription_create`,
-                    error_response: JSON.stringify(event)
-                  };
-                  const logEntry = new LOGS(logs_data);
-                  logEntry.save();
-                  sendEmailSubscribeSubcription(subscriptionId);
-    
-                } else if (invoice.billing_reason=== 'subscription_cycle') {
-                  
-                  const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
-                  // Convert UNIX timestamps to JavaScript Date objects
-                  const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
-                  const endPeriod = new Date(subscriptionLine.period.end * 1000);
-    
-                  
-                  let option = { new: true };
-                  SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
-    
-                  updateData =  {
-                    subscriptionId:invoice.subscription,
-                    planId: subscriptionExist.planId,
-                    productPriceId: subscriptionExist.priceId,
-                    customerId: subscriptionExist.customerId,
-                    role: subscriptionExist.role,
-                    purchaseBy: subscriptionExist.purchaseBy,
-                    amount: subscriptionExist.amount,
-                    billing_reason: `subscription_cycle`,
-                    startPeriod: startPeriod,
-                    endPeriod: endPeriod,
-                    chargeId: invoice.charge,
-                    paymentIntentId: invoice.payment_intent,
-                    invoiceId: invoice.id,
-                    paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-                    active: constant.SUBSCRIPTION_STATUS.ACTIVE,
-                    invoicePdfUrl: invoice.invoice_pdf,
-                    invoiceUrl: invoice.hosted_invoice_url,
-                  }
-    
-                  const subscriptionRenewal = new SUBSCRIPTION_MODEL(updateData);
-                  subscriptionRenewal.save();
-    
-                  let logs_data = {
-                    api_name: 'subscription_webhook',
-                    payload: event.type,
-                    error_message: `billing_reason - subscription_cycle`,
-                    error_response: JSON.stringify(event)
-                  };
-                  const logEntry = new LOGS(logs_data);
-                  logEntry.save();
-                  // console.log('saved successfully')
+                updateData =  {
+                  chargeId: invoice.charge,
+                  paymentIntentId: invoice.payment_intent,
+                  invoiceId: invoice.id,
+                  paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                  active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                  invoicePdfUrl: invoice.invoice_pdf,
+                  invoiceUrl: invoice.hosted_invoice_url,
+                  billing_reason: `subscription_create`
                 }
+
+                const result = await SUBSCRIPTION_MODEL.updateOne(
+                                                                      { _id: new mongoose.Types.ObjectId(subscriptionExist._id) }, // filter
+                                                                      { $set: updateData } // update operation
+                                                                  );
+
+                let logs_data = {
+                                  api_name: 'subscription_webhook',
+                                  payload: event.type,
+                                  error_message: `billing_reason - subscription_create`,
+                                  error_response: JSON.stringify(event)
+                                };
+
+                const logEntry = new LOGS(logs_data);
+                logEntry.save();
+
+                // Send subscription email to user
+                sendEmailSubscribeSubcription(subscriptionId);
               }
+
+            } else if (invoice.billing_reason === "subscription_cycle") {
+
+              // Extract relevant information
+              const subscriptionId = invoice.subscription; // Subscription ID
+
+              let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId})
+
+              const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
+              // Convert UNIX timestamps to JavaScript Date objects
+              const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
+              const endPeriod = new Date(subscriptionLine.period.end * 1000);
+
+              
+              let option = { new: true };
+
+              // Set inactive to old entry related to this subscription ID because new Entry will start
+              SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
+
+              updateData =  {
+                              subscriptionId:invoice.subscription,
+                              planId: subscriptionExist.planId,
+                              productPriceId: subscriptionExist.priceId,
+                              customerId: subscriptionExist.customerId,
+                              role: subscriptionExist.role,
+                              purchaseBy: subscriptionExist.purchaseBy,
+                              amount: subscriptionExist.amount,
+                              billing_reason: `subscription_cycle`,
+                              startPeriod: startPeriod,
+                              endPeriod: endPeriod,
+                              chargeId: invoice.charge,
+                              paymentIntentId: invoice.payment_intent,
+                              invoiceId: invoice.id,
+                              paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                              active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                              invoicePdfUrl: invoice.invoice_pdf,
+                              invoiceUrl: invoice.hosted_invoice_url,
+                            };
+
+              const subscriptionRenewal = new SUBSCRIPTION_MODEL(updateData);
+              subscriptionRenewal.save();
+
+              let logs_data = {
+                api_name: 'subscription_webhook',
+                payload: event.type,
+                error_message: `billing_reason - subscription_cycle`,
+                error_response: JSON.stringify(event)
+              };
+              const logEntry = new LOGS(logs_data);
+              logEntry.save();
+
+            } else if (invoice.billing_reason === "checkout" || invoice.billing_reason === "manual") {
+              console.log("💳 This invoice is for a **One-Time Payment**");
+
+              const checkoutSessions = await stripe.checkout.sessions.list({
+                                                                            invoice: invoice.id, // Find session with this invoice
+                                                                            limit: 1,
+                                                                          });
+
+              if (checkoutSessions.data.length > 0) {
+
+                const checkoutSessionsId = checkoutSessions.data[0].id;
+                console.log("🔗 This invoice belongs to Checkout Session:", checkoutSessionsId);
+
+                const condition = { "stripe_payment.payment_intent_id": checkoutSessionsId };
+                const invoiceUpdateData = { 
+                                            $set: {
+                                              "stripe_payment.payment_status": "Paid", 
+                                              is_paid: true,
+                                              hosted_invoice_url: invoice?.hosted_invoice_url,
+                                              invoice_pdf: invoice?.invoice_pdf,
+                                            } 
+                                          };
+                const option = { new: true } 
+                //  Update invoice URL into our system
+                const updatedTrip = await trip_model.findOneAndUpdate(
+                                                                        condition, // Find condition
+                                                                        invoiceUpdateData, 
+                                                                        option // Returns the updated document
+                                                                      );
+              } else {
+                console.log("⚠️ No matching Checkout Session found.");
+              }
+            } else {
+              console.log("⚠️ Unknown billing reason:", invoice.billing_reason);
             }
 
-            // When payemnt will be first time
-            
-            
-
-            // console .log('updated_data------' , updateData)
 
           } else if (event.type ===`invoice.payment_failed`) { // when Payment will be failed
 
@@ -279,7 +307,7 @@ app.use(function (err, req, res, next) {
 app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
-
+    
     const paymentIntent = await stripe.checkout.sessions.create({
       payment_method_types: ["ideal"],
       line_items: [
@@ -303,39 +331,39 @@ app.get( "/weekly-company-payment", async (req, res) => {
     });
 
     const balance = await stripe.balance.retrieve();
-    const trips = await trip_model.aggregate([
-                                              {
-                                                $lookup: {
-                                                  from: "users", 
-                                                  let: { companyId: "$created_by_company_id" }, // Use trip's `created_by_company_id`
-                                                  pipeline: [
-                                                    {
-                                                      $match: {
-                                                        $expr: { $eq: ["$_id", "$$companyId"] }, // Match `user._id` with `created_by_company_id`
-                                                        isAccountAttched: constant.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED, // Filter users where `isAccountAttched: true`
-                                                        connectedAccountId: { $ne: ""  }
-                                                      }
-                                                    }
-                                                  ],
-                                                  as: "companyDetails"
-                                                }
-                                              },
-                                              { $unwind: "$companyDetails" }, // Remove trips without a matching company
-                                              {
-                                                $project: {
-                                                  _id: 1,
-                                                  created_by_company_id: 1,
-                                                  "companyDetails.connectedAccountId": 1,
-                                                  "companyDetails.email": 1,
-                                                }
-                                              }
-                                            ]);
+    // const trips = await trip_model.aggregate([
+    //                                           {
+    //                                             $lookup: {
+    //                                               from: "users", 
+    //                                               let: { companyId: "$created_by_company_id" }, // Use trip's `created_by_company_id`
+    //                                               pipeline: [
+    //                                                 {
+    //                                                   $match: {
+    //                                                     $expr: { $eq: ["$_id", "$$companyId"] }, // Match `user._id` with `created_by_company_id`
+    //                                                     isAccountAttched: constant.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED, // Filter users where `isAccountAttched: true`
+    //                                                     connectedAccountId: { $ne: ""  }
+    //                                                   }
+    //                                                 }
+    //                                               ],
+    //                                               as: "companyDetails"
+    //                                             }
+    //                                           },
+    //                                           { $unwind: "$companyDetails" }, // Remove trips without a matching company
+    //                                           {
+    //                                             $project: {
+    //                                               _id: 1,
+    //                                               created_by_company_id: 1,
+    //                                               "companyDetails.connectedAccountId": 1,
+    //                                               "companyDetails.email": 1,
+    //                                             }
+    //                                           }
+    //                                         ]);
     return res.send({
-      code: 200,
-      message: "weekly-company-payment",
-      balance:balance,
-      trips:trips
-    });
+                      code: 200,
+                      message: "weekly-company-payment",
+                      balance:balance,
+                      trips:trips
+                    });
   } catch (error) {
     console.error("Error retrieving balance:", error);
     return  res.send({
