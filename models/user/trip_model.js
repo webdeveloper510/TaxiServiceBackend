@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const CONSTANT = require("../../config/constant");
 const PAYMENT_COLLECT_ENUM = Object.values(CONSTANT.PAYMENT_COLLECTION_TYPE)
-console.log('CONSTANTavlue' , PAYMENT_COLLECT_ENUM)
+
 const trip = new Schema({
     driver_name:{
         type:mongoose.Schema.Types.ObjectId,ref:'driver',

@@ -35,7 +35,8 @@
     "rand-token": "^1.0.1",
     "socket.io": "^4.7.2",
     "stripe": "^14.5.0",
-    "twilio": "^5.2.2"
+    "twilio": "^5.2.2",
+    "xlsx": "^0.18.5"
   },
   "main": "app.js",
   "author": "",

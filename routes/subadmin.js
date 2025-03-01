@@ -7,6 +7,7 @@ var agencyController = require('../controllers/admin/agencyController');
 var driverController = require('../controllers/admin/driverController');
 var fareController = require('../controllers/admin/fareController');
 var tripController = require('../controllers/subadmin/tripController');
+var priceUploadController = require('../controllers/subadmin/priceUploadController');
 const { verifyToken } = require('../middleware/auth');
 
 /* GET home page. */
@@ -22,5 +23,9 @@ router.put('/edit_trip/:id',[verifyToken],tripController.edit_trip)
 router.put('/no-show-user/:id',[verifyToken],tripController.noShowUser)
 router.put('/access_edit_trip/:id/:company_id',[verifyToken],tripController.access_edit_trip)
 router.delete('/delete_trip/:id',[verifyToken],tripController.delete_trip)
+router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 
+// Upload price feautre
+router.post('/upload_price',[verifyToken],priceUploadController.priceUploadController)
+router.post('/get_uploaded_price',[verifyToken],priceUploadController.getUploadedPrice)
 module.exports = router;
