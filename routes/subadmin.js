@@ -29,5 +29,6 @@ router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 router.post('/upload_price',[verifyToken , companyAuth],priceUploadController.priceUploadController)
 router.post('/get_uploaded_price',[verifyToken , companyAuth],priceUploadController.getUploadedPrice)
 router.get('/get_all_uploaded_price',[verifyToken],priceUploadController.getAllUploadedPrice)
+router.get('/get_access_all_uploaded_price/:id',[verifyToken],priceUploadController.getAccessAllUploadedPrice)
 router.post('/update_uploaded_price/:id',[verifyToken , companyAuth],priceUploadController.upateUploadedPrice)
 module.exports = router;

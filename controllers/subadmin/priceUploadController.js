@@ -41,6 +41,11 @@ exports.priceUploadController = async (req, res) => {
             const sheet = workbook.Sheets[sheetName];
             const jsonData = xlsx.utils.sheet_to_json(sheet);
 
+            return res.json({
+                code: constant.success_code,
+                message: jsonData,
+            });
+
             const bulkOps = jsonData.map(value => ({
                 updateOne: {
                     filter: { 
@@ -134,6 +139,27 @@ exports.getAllUploadedPrice = async (req, res) => {
     try {
 
         let searchQuery = { user_id: req.userId ,  status: true};
+
+        const allPriceList = await PRICE_MODEL.find(searchQuery);
+        return  res.send({
+                            code: constant.success_code,
+                            allPriceList: allPriceList,
+                        });
+    } catch (error) {
+        console.error('Error getUploadedPrice:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+    }
+    
+}
+
+exports.getAccessAllUploadedPrice = async (req, res) => {
+
+    try {
+        const id = req.params.id
+        let searchQuery = { user_id: id ,  status: true};
 
         const allPriceList = await PRICE_MODEL.find(searchQuery);
         return  res.send({
