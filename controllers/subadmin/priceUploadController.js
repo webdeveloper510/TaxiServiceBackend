@@ -113,9 +113,7 @@ exports.getUploadedPrice = async (req, res) => {
         const allPriceList = await PRICE_MODEL.find(searchQuery).skip(skip).limit(limit).sort({ _id: -1 });
         return  res.send({
             code: constant.success_code,
-            // searchQuery:searchQuery,
             allPriceList: allPriceList,
-           
             currentPage: page,
             totalPages: Math.ceil(totalCount / limit),
             totalItems: totalCount
@@ -131,7 +129,7 @@ exports.getUploadedPrice = async (req, res) => {
     
 }
 
-exports.getUploadedPrice = async (req, res) => {
+exports.getAllUploadedPrice = async (req, res) => {
 
     try {
 
@@ -152,19 +150,41 @@ exports.getUploadedPrice = async (req, res) => {
     
 }
 
-exports.upatePrice = async (req, res) => {
+exports.upateUploadedPrice = async (req, res) => {
 
     try {
 
         if (req.user.role == constant.ROLES.COMPANY) {
 
+            let data = req.body;
             const id = req.params.id;
-            const uploadedPriceId = await PRICE_MODEL.findById(id);
+            const uploadedPriceId = await PRICE_MODEL.findOne({_id: id , user_id: req.userId});
             
             if (uploadedPriceId) {
 
+                let updateData = {}
+
+                if (data?.amount) updateData.amount = data?.amount;
+
+                if (data?.status) updateData.status = data?.status;
+                
+                
+                const isUpdateData = await PRICE_MODEL.updateOne(
+                                                                    { _id: id }, // Filter condition
+                                                                    { $set: updateData } // Fields to update
+                                                                );
+                return  res.send({
+                                    code: constant.success_code,
+                                    message: `Data updated successfuly`,
+                                    });
+                
+                
             }else {
 
+                return  res.send({
+                                    code: constant.error_code,
+                                    message: `Data not found`,
+                                });
             }
         } else {
             return res.send({

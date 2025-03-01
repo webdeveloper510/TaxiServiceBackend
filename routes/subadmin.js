@@ -28,6 +28,6 @@ router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 // Upload price feautre
 router.post('/upload_price',[verifyToken , companyAuth],priceUploadController.priceUploadController)
 router.post('/get_uploaded_price',[verifyToken , companyAuth],priceUploadController.getUploadedPrice)
-router.get('/get_all_uploaded_price',[verifyToken],priceUploadController.getUploadedPrice)
-router.post('/update_price/:id',[verifyToken , companyAuth],priceUploadController.upatePrice)
+router.get('/get_all_uploaded_price',[verifyToken],priceUploadController.getAllUploadedPrice)
+router.post('/update_uploaded_price/:id',[verifyToken , companyAuth],priceUploadController.upateUploadedPrice)
 module.exports = router;
