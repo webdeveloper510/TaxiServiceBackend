@@ -101,10 +101,10 @@ exports.getUploadedPrice = async (req, res) => {
         }
 
         // If the search term is a valid number, add conditions for number fields
-        if (!isNaN(search)) {
+        if (!isNaN(search) && !search == '') {
             searchQuery.$or.push(
-                { number_of_person: numericSearch }, // Exact match for number
-                { amount: numericSearch } // Exact match for amount
+                { number_of_person: search }, // Exact match for number
+                { amount: search } // Exact match for amount
             );
         }
 
