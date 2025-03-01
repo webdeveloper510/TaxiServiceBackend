@@ -122,11 +122,62 @@ exports.getUploadedPrice = async (req, res) => {
             
         });
     } catch (error) {
-            console.error('Error getUploadedPrice:', error.message);
-            return  res.send({
-                                code: constant.error_code,
-                                message: error.message,
-                            });
-            }
+        console.error('Error getUploadedPrice:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+    }
     
+}
+
+exports.getUploadedPrice = async (req, res) => {
+
+    try {
+
+        let searchQuery = { user_id: req.userId ,  status: true};
+
+        const allPriceList = await PRICE_MODEL.find(searchQuery);
+        return  res.send({
+                            code: constant.success_code,
+                            allPriceList: allPriceList,
+                        });
+    } catch (error) {
+        console.error('Error getUploadedPrice:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+    }
+    
+}
+
+exports.upatePrice = async (req, res) => {
+
+    try {
+
+        if (req.user.role == constant.ROLES.COMPANY) {
+
+            const id = req.params.id;
+            const uploadedPriceId = await PRICE_MODEL.findById(id);
+            
+            if (uploadedPriceId) {
+
+            }else {
+
+            }
+        } else {
+            return res.send({
+                code: constant.error_code,
+                message: `You are not allowed to performed this action`,
+            });
+        }
+        
+    } catch (error) {
+        console.error('Error getUploadedPrice:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+    }
 }

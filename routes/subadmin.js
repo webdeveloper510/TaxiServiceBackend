@@ -9,7 +9,7 @@ var fareController = require('../controllers/admin/fareController');
 var tripController = require('../controllers/subadmin/tripController');
 var priceUploadController = require('../controllers/subadmin/priceUploadController');
 const { verifyToken } = require('../middleware/auth');
-
+const { companyAuth } = require("../middleware/companyAuth");
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
@@ -26,6 +26,8 @@ router.delete('/delete_trip/:id',[verifyToken],tripController.delete_trip)
 router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 
 // Upload price feautre
-router.post('/upload_price',[verifyToken],priceUploadController.priceUploadController)
-router.post('/get_uploaded_price',[verifyToken],priceUploadController.getUploadedPrice)
+router.post('/upload_price',[verifyToken , companyAuth],priceUploadController.priceUploadController)
+router.post('/get_uploaded_price',[verifyToken , companyAuth],priceUploadController.getUploadedPrice)
+router.get('/get_all_uploaded_price',[verifyToken],priceUploadController.getUploadedPrice)
+router.post('/update_price/:id',[verifyToken , companyAuth],priceUploadController.upatePrice)
 module.exports = router;
