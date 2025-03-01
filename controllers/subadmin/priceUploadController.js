@@ -41,10 +41,6 @@ exports.priceUploadController = async (req, res) => {
             const sheet = workbook.Sheets[sheetName];
             const jsonData = xlsx.utils.sheet_to_json(sheet);
 
-            return res.json({
-                code: constant.success_code,
-                message: jsonData,
-            });
 
             const bulkOps = jsonData.map(value => ({
                 updateOne: {
