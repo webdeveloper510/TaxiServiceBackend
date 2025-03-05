@@ -1170,12 +1170,10 @@ exports.getDriverList = async (req, res) => {
 
   try {
     const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
-    let getDetail = await USER.findOne({ _id: req.userId });
+    let getDetail = await DRIVER.findOne({ _id: req.userId });
 
     const search = req.query.search || "";
-    const query = {
-      is_deleted: false,
-    };
+    const query = { is_deleted: false, };
     if (search.length > 0) {
       query.$or = [
                     { email: { $regex: search, $options: "i" } },
