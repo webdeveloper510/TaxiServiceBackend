@@ -1195,6 +1195,7 @@ exports.getDriverList = async (req, res) => {
                                               phone: 1,
                                               status: 1,
                                               is_login: 1,
+                                              nickName:1,
                                               isVerified: 1,
                                             }
                                     );
