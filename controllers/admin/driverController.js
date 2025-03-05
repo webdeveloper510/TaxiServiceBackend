@@ -791,6 +791,7 @@ exports.get_drivers_super = async (req, res) => {
         { driver_company_name: { $regex: search, $options: "i" } },
         { first_name: { $regex: search, $options: "i" } },
         { last_name: { $regex: search, $options: "i" } },
+        { nickName: { $regex: search, $options: "i" } },
         { address_1: { $regex: search, $options: "i" } },
       ];
     }

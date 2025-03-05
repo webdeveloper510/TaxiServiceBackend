@@ -1183,6 +1183,7 @@ exports.getDriverList = async (req, res) => {
                     { first_name: { $regex: search, $options: "i" } },
                     { last_name: { $regex: search, $options: "i" } },
                     { address_1: { $regex: search, $options: "i" } },
+                    { nickName: { $regex: search, $options: "i" } },
                   ];
     }
 

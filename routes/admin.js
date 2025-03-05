@@ -100,11 +100,7 @@ router.post("/add_agency", [verifyToken], agencyController.add_agency);
 router.post("/add_driver", driverController.add_driver);
 router.post("/admin_add_driver",[verifyToken] , driverController.adminAddDriver);
 router.get("/get_drivers", [verifyToken], driverController.get_drivers);
-router.get(
-  "/get_drivers_list",
-  [verifyToken],
-  driverController.get_drivers_list
-);
+router.get("/get_drivers_list", [verifyToken], driverController.get_drivers_list);
 router.post("/get_drivers_super",[verifyToken],driverController.get_drivers_super);
 router.get("/deleted_drivers",[verifyToken],driverController.get_deleted_drivers_super);
 router.get("/get_driver_detail/:id",[verifyToken],driverController.get_driver_detail);
