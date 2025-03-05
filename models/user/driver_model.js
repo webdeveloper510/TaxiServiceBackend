@@ -84,6 +84,10 @@ const driver = new Schema(
       ],
       default: [],
     },
+    favoriteDrivers: {
+      type: [{ type: Schema.Types.ObjectId, ref: "driver" }],
+      default: [],
+    },
     deviceToken: {
       type: String,
       default: null,

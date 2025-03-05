@@ -28,5 +28,7 @@ router.get('/get_trips_count_for_drivers/:status',[verifyToken],driverController
 
 // company account access list company_access_list
 router.get('/company_access_list/',[verifyToken],driverController.company_access_list)
+router.get('/favorite_driver/:id',[verifyToken],driverController.favoriteDriver)
+router.get('/get_driver_list/',[verifyToken],driverController.getDriverList)
 
 module.exports = router;

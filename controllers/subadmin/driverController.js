@@ -1124,3 +1124,109 @@ exports.company_access_list = async (req, res) => {
     });
   }
 };
+
+exports.favoriteDriver = async (req, res) => {
+  try {
+    const driverId = new mongoose.Types.ObjectId(req.params.id);
+    const driver = await DRIVER.findById(driverId);
+    if (!driver) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "Driver not found",
+                      });
+    }
+
+    const user = req.user;
+    const isFavorite = user.favoriteDrivers.some(id => id.equals(driverId)); // Check if driver is already in the favorites
+
+    if (!isFavorite) {
+
+      // Add driver to the user's favorite list
+      user.favoriteDrivers.push(driverId);
+      // await user.save();
+      await DRIVER.updateOne( { _id: user._id },  { $set: {favoriteDrivers: user.favoriteDrivers} }  );
+      return res.send({
+        code: constant.success_code,
+        message: "Driver added successfully to favorite drivers",
+      });
+    } else {
+      user.favoriteDrivers = user.favoriteDrivers.filter(id => !id.equals( driverId ));
+      await DRIVER.updateOne( { _id: user._id },  { $set: {favoriteDrivers: user.favoriteDrivers} }  );
+      return res.send({
+        code: constant.success_code,
+        message: "Driver removed successfully from favorite driver",
+      });
+    }
+  } catch (err) {
+    return res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
+exports.getDriverList = async (req, res) => {
+  let api_start_time = new Date();
+
+  try {
+    const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
+    let getDetail = await USER.findOne({ _id: req.userId });
+
+    const search = req.query.search || "";
+    const query = {
+      is_deleted: false,
+    };
+    if (search.length > 0) {
+      query.$or = [
+                    { email: { $regex: search, $options: "i" } },
+                    { phone: { $regex: search, $options: "i" } },
+                    { first_name: { $regex: search, $options: "i" } },
+                    { last_name: { $regex: search, $options: "i" } },
+                    { address_1: { $regex: search, $options: "i" } },
+                  ];
+    }
+
+    const driver = await DRIVER.find(query, {
+                                              _id: 1,
+                                              profile_image: 1,
+                                              first_name: 1,
+                                              last_name: 1,
+                                              phone: 1,
+                                              status: 1,
+                                              is_login: 1,
+                                              isVerified: 1,
+                                            }
+                                    );
+                                    
+    if (driver) {
+      const favorite_driver = getDetail?.favoriteDrivers ? getDetail.favoriteDrivers.map((id) => id.toString()) : [];
+
+      const result = driver.map((d) => {
+                                        const driverObj = d.toObject();
+                                        let isFavorite = false;
+                                        if (favorite_driver.includes(driverObj._id.toString())) { isFavorite = true; }
+                                        driverObj.isFavorite = isFavorite;
+                                        return driverObj;
+                                      }
+                                );
+
+      return res.send({
+                        code: constant.success_code,
+                        message: "Driver list retrieved successfully",
+                        result: result,
+                      });
+    } else {
+      return res.send({
+                        code: constant.error_code,
+                        message: "No drivers found for the agency user",
+                      });
+    }
+  } catch (err) {
+    console.log("🚀 ~ exports.get_driver= ~ err:", err);
+
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
+  }
+};
