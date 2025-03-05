@@ -698,6 +698,7 @@ exports.get_drivers_list = async (req, res) => {
         { first_name: { $regex: search, $options: "i" } },
         { last_name: { $regex: search, $options: "i" } },
         { address_1: { $regex: search, $options: "i" } },
+        { nickName: { $regex: search, $options: "i" } },
       ];
     }
     const driver = await DRIVER.find(query, {
@@ -705,6 +706,7 @@ exports.get_drivers_list = async (req, res) => {
       profile_image: 1,
       first_name: 1,
       last_name: 1,
+      nickName:1,
       phone: 1,
       status: 1,
       is_login: 1,
