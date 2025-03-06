@@ -2613,7 +2613,11 @@ exports.access_alocate_driver = async (req, res) => {
           update_trip.user_company_phone = "";
 
           let user_agancy_data = await AGENCY.findOne({ user_id: req.body.company_id,  });
-
+          let hotel_data;
+          
+          if (update_trip?.hotel_id) {
+            hotel_data = await AGENCY.findOne({ user_id: update_trip?.hotel_id, });
+          }
           // Company name a nd phone added
           if (user_agancy_data) {
             user.user_company_name = user_agancy_data.company_name;
@@ -2621,6 +2625,7 @@ exports.access_alocate_driver = async (req, res) => {
 
             update_trip.user_company_name = user_agancy_data.company_name;
             update_trip.user_company_phone = user_agancy_data.phone;
+            update_trip.user_hotel_name = update_trip?.hotel_id ? hotel_data.company_name : "";
           }
 
           if ( check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {

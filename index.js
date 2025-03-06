@@ -241,7 +241,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             //   await handleInvoicePaymentFailure(invoice)
             // }
 
-            // handleInvoicePaymentFailure(invoice)
+            handleInvoicePaymentFailure(invoice)
 
            
           }
@@ -309,38 +309,39 @@ app.get( "/weekly-company-payment", async (req, res) => {
   try {
    
     const balance = await stripe.balance.retrieve();
-    // const trips = await trip_model.aggregate([
-    //                                           {
-    //                                             $lookup: {
-    //                                               from: "users", 
-    //                                               let: { companyId: "$created_by_company_id" }, // Use trip's `created_by_company_id`
-    //                                               pipeline: [
-    //                                                 {
-    //                                                   $match: {
-    //                                                     $expr: { $eq: ["$_id", "$$companyId"] }, // Match `user._id` with `created_by_company_id`
-    //                                                     isAccountAttched: constant.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED, // Filter users where `isAccountAttched: true`
-    //                                                     connectedAccountId: { $ne: ""  }
-    //                                                   }
-    //                                                 }
-    //                                               ],
-    //                                               as: "companyDetails"
-    //                                             }
-    //                                           },
-    //                                           { $unwind: "$companyDetails" }, // Remove trips without a matching company
-    //                                           {
-    //                                             $project: {
-    //                                               _id: 1,
-    //                                               created_by_company_id: 1,
-    //                                               "companyDetails.connectedAccountId": 1,
-    //                                               "companyDetails.email": 1,
-    //                                             }
-    //                                           }
-    //                                         ]);
+    const trips = await trip_model.aggregate([
+                                              {
+                                                $lookup: {
+                                                  from: "users", 
+                                                  let: { companyId: "$created_by_company_id" }, // Use trip's `created_by_company_id`
+                                                  pipeline: [
+                                                    {
+                                                      $match: {
+                                                        $expr: { $eq: ["$_id", "$$companyId"] }, // Match `user._id` with `created_by_company_id`
+                                                        isAccountAttched: constant.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED, // Filter users where `isAccountAttched: true`
+                                                        connectedAccountId: { $ne: ""  }
+                                                      }
+                                                    }
+                                                  ],
+                                                  as: "companyDetails"
+                                                }
+                                              },
+                                              { $unwind: "$companyDetails" }, // Remove trips without a matching company
+                                              {
+                                                $project: {
+                                                  _id: 1,
+                                                  created_by_company_id: 1,
+                                                  trip_id:1,
+                                                  "companyDetails.connectedAccountId": 1,
+                                                  "companyDetails.email": 1,
+                                                }
+                                              }
+                                            ]);
     return res.send({
                       code: 200,
                       message: "weekly-company-payment",
                       balance:balance,
-                      // trips:trips
+                      trips:trips
                     });
   } catch (error) {
     console.error("Error retrieving balance:", error);
