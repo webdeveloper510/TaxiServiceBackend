@@ -4,6 +4,7 @@ const User = require("../models/user/user_model");
 const driver_model = require("../models/user/driver_model");
 const user_model = require("../models/user/user_model");
 const AGENCY_MODEL = require("../models/user/agency_model.js");
+const TRIP_MODEL = require("../models/user/trip_model.js");
 const SUBSCRIPTION_MODEL = require("../models/user/subscription_model");
 const PLANS_MODEL = require("../models/admin/plan_model");
 const { default: axios } = require("axios");
@@ -991,6 +992,116 @@ exports.getUserCurrentActivePayedPlan = async (userInfo) => {
   return activePlan
 }
 
+// get the trip that has been completed before 1 week
+exports.getPendingPayoutTripsBeforeWeek = async () => {
+  try {
+    const trips = await TRIP_MODEL.aggregate([
+                                                  {
+                                                    $lookup: {
+                                                      from: "users", 
+                                                      let: { companyId: "$created_by_company_id" }, // Use trip's `created_by_company_id`
+                                                      pipeline: [
+                                                        {
+                                                          $match: {
+                                                            $expr: { $eq: ["$_id", "$$companyId"] }, // Match `user._id` with `created_by_company_id`
+                                                            isAccountAttched: CONSTANT.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED, // Filter users where `isAccountAttched: true`
+                                                            connectedAccountId: { $ne: ""  }
+                                                          }
+                                                        }
+                                                      ],
+                                                      as: "companyDetails"
+                                                    }
+                                                  },
+                                                  { $unwind: "$companyDetails" }, // Remove trips without a matching company
+                                                  {
+                                                    $project: {
+                                                      _id: 1,
+                                                      created_by_company_id: 1,
+                                                      trip_id:1,
+                                                      pickup_date_time: 1,
+                                                      "companyDetails.connectedAccountId": 1,
+                                                      "companyDetails.email": 1,
+                                                    }
+                                                  }
+                                                ]);
+
+    return trips
+  } catch (error) {
+    console.error("Error retrieving balance:", error);
+    return  res.send({
+                        code: constant.error_code,
+                        message: error.message,
+                    });
+  }
+}
+
+exports.transferToConnectedAccount = async (amount, connectedAccountId , tripId) => {
+
+  try {
+
+    const transfer = await stripe.transfers.create({
+                                                    amount: amount * 100, // Amount in cents (e.g., $10 = 1000) 
+                                                    currency: "eur",
+                                                    destination: connectedAccountId, // Connected account ID
+                                                    transfer_group: tripId, // Optional: Group for tracking
+                                                  });
+
+    console.log("Transfer Successful:---------", transfer);
+    return transfer;
+  } catch (error) {
+    console.error("Error Transfer balance:", error.message);
+    throw error;
+  }
+}
+
+
+exports.sendPayoutToBank = async (amount, connectedAccountId) => {
+
+  try {
+
+    const payout = await stripe.payouts.create(
+                                                {
+                                                  amount: amount * 100, // Amount in cents
+                                                  currency: "eur",
+                                                },
+                                                {
+                                                  stripeAccount: connectedAccountId, // Specify connected account
+                                                }
+                                              );
+
+    console.log("Payout Successful:", payout);
+    return payout;
+  } catch (error) {
+
+    console.error("Error sendPayoutToBank balance:",  error.message);
+    throw error;
+  }
+}
+
+
+exports.checkPayouts = async (connectedAccountId) => {
+
+  try {
+
+    const payouts = await stripe.payouts.list(
+                                                { limit: 5 }, // Retrieve the last 5 payouts
+                                                { stripeAccount: connectedAccountId } // For a specific connected account
+                                              );
+
+    console.log("Payout Successful:", payouts);
+
+    // pending	 => Stripe has scheduled the payout, but it hasn’t started yet.
+    // in_transit	=> The payout is being processed and on the way to the bank.
+    // paid	 => The money has reached the connected account’s bank.
+    // failed	=> The payout failed (e.g., incorrect bank details).
+
+    return payouts?.data;
+  } catch (error) {
+
+    console.error("Error checkPayouts status:",  error.message);
+    throw error;
+  }
+}
 //   try {
 //     const accessToken = await getAccessToken();
 

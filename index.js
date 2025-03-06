@@ -13,7 +13,16 @@ const agency_model = require("./models/user/agency_model.js");
 const LOGS = require("./models/user/logs_model"); // Import the Driver model
 var apiRouter = require("./routes/index.js");
 const { Server } = require("socket.io");
-const { driverDetailsByToken, userDetailsByToken, sendNotification, sendPaymentFailEmail , sendEmailSubscribeSubcription} = require("./Service/helperFuntion");
+const { driverDetailsByToken, 
+        userDetailsByToken, 
+        sendNotification, 
+        sendPaymentFailEmail , 
+        sendEmailSubscribeSubcription , 
+        getPendingPayoutTripsBeforeWeek,
+        transferToConnectedAccount,
+        sendPayoutToBank,
+        checkPayouts
+      } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
@@ -309,39 +318,32 @@ app.get( "/weekly-company-payment", async (req, res) => {
   try {
    
     const balance = await stripe.balance.retrieve();
-    const trips = await trip_model.aggregate([
-                                              {
-                                                $lookup: {
-                                                  from: "users", 
-                                                  let: { companyId: "$created_by_company_id" }, // Use trip's `created_by_company_id`
-                                                  pipeline: [
-                                                    {
-                                                      $match: {
-                                                        $expr: { $eq: ["$_id", "$$companyId"] }, // Match `user._id` with `created_by_company_id`
-                                                        isAccountAttched: constant.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED, // Filter users where `isAccountAttched: true`
-                                                        connectedAccountId: { $ne: ""  }
-                                                      }
-                                                    }
-                                                  ],
-                                                  as: "companyDetails"
-                                                }
-                                              },
-                                              { $unwind: "$companyDetails" }, // Remove trips without a matching company
-                                              {
-                                                $project: {
-                                                  _id: 1,
-                                                  created_by_company_id: 1,
-                                                  trip_id:1,
-                                                  "companyDetails.connectedAccountId": 1,
-                                                  "companyDetails.email": 1,
-                                                }
-                                              }
-                                            ]);
+    const tripList = await getPendingPayoutTripsBeforeWeek();
+
+    if (balance?.available[0]?.amount && balance?.available[0]?.amount > 100) {
+        const amount = 5;
+        const connectedAccountId = `acct_1QxRoi4CiWWLkHIH`;
+        const tripId = `T-1051`
+        const payoutList = await checkPayouts(connectedAccountId);
+        // const transferDedtails = await transferToConnectedAccount(amount, connectedAccountId , tripId);
+        // const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
+        return res.send({
+                          code: 200,
+                          message: "weekly-company-payment",
+                          balance:balance,
+                          // transferDedtails,
+                          // payoutDetails
+                          payoutList
+                        });
+    } else {
+      
+      console.log(`You dont have enough payment in your account.`)
+    }
     return res.send({
                       code: 200,
                       message: "weekly-company-payment",
                       balance:balance,
-                      trips:trips
+                      trips:tripList
                     });
   } catch (error) {
     console.error("Error retrieving balance:", error);
