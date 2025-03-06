@@ -1210,6 +1210,12 @@ exports.getDriverList = async (req, res) => {
                                       }
                                 );
 
+      // Sort so that items with isFavorite: true come first
+
+      if (result.length > 0) {
+        result.sort((a, b) => b.isFavorite - a.isFavorite);
+      }
+      
       return res.send({
                         code: constant.success_code,
                         message: "Driver list retrieved successfully",
