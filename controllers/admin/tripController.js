@@ -2194,6 +2194,19 @@ exports.check_trip_request = async (req, res) => {
           company: { $arrayElemAt: ["$company", 0] },
         },
       },
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "hotel_id",
+          foreignField: "user_id",
+          as: "hotel",
+        },
+      },
+      {
+        $addFields: {
+          hotel: { $arrayElemAt: ["$hotel", 0] },
+        },
+      },
     ]);
 
     if (find_trip.length > 0) {
@@ -2211,9 +2224,10 @@ exports.check_trip_request = async (req, res) => {
         let differenceInSeconds = differenceInMilliseconds / 1000;
 
         find_trip[index].left_minutes = Math.round(20 - differenceInSeconds);
+
         // find_trip[index].user_company_name = find_trip[index].company.company_agency.company_name;
-        find_trip[index].user_company_name =
-          find_trip[index].company?.company_name;
+        find_trip[index].user_company_name = find_trip[index].company?.company_name;
+        find_trip[index].user_hotel_name = find_trip[index].hotel?.company_name;
       }
       res.send({
         code: constant.success_code,
@@ -2280,11 +2294,8 @@ exports.alocate_driver = async (req, res) => {
       }
       let option = { new: true };
 
-      let update_trip = await TRIP.findOneAndUpdate(
-        criteria,
-        newValues,
-        option
-      );
+      let update_trip = await TRIP.findOneAndUpdate( criteria, newValues, option );
+
       if (!update_trip) {
         return res.send({
                           code: constant.error_code,
@@ -2333,6 +2344,13 @@ exports.alocate_driver = async (req, res) => {
 
           let user_agancy_data = await AGENCY.findOne({ user_id: req.user._id, });
 
+          let hotel_data;
+          
+          if (update_trip?.hotel_id) {
+            hotel_data = await AGENCY.findOne({ user_id: update_trip?.hotel_id, });
+          }
+          
+
           // Company name a nd phone added
           if (user_agancy_data) {
             req.user.user_company_name = user_agancy_data.company_name;
@@ -2340,6 +2358,7 @@ exports.alocate_driver = async (req, res) => {
 
             update_trip.user_company_name = user_agancy_data.company_name;
             update_trip.user_company_phone = user_agancy_data.phone;
+            update_trip.user_hotel_name = update_trip?.hotel_id ? hotel_data.company_name : "";
           }
 
           if ( check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {

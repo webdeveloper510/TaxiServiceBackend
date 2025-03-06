@@ -1685,7 +1685,19 @@ exports.get_active_drivers = async (req, res) => {
     startOfCurrentWeek.setDate(
       startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
     ); // Set to Monday of current week
-    let getDetail = await USER.findOne({ _id: req.userId });
+
+
+    console.log('req---' , req.user.role);
+    let getDetail;
+
+    if (req.user.role == constant.ROLES.COMPANY) {
+
+      getDetail = await USER.findOne({ _id: req.userId });
+    } else if(req.user.role == constant.ROLES.DRIVER){
+
+      getDetail = await DRIVER.findOne({ _id: req.userId });
+    }
+    ;
     
     let getDrivers = await DRIVER.aggregate([
       {
