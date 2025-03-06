@@ -121,6 +121,15 @@ module.exports = [
     per_min: 4.29,
   },
   {
+    name: "EV6",
+    fullName: "mini van",
+    otherName: "van",
+    seats: 0,
+    start_price: 30.49,
+    per_km: 7.49,
+    per_min: 4.29,
+  },
+  {
     name: "EQV",
     fullName: "normal sedan",
     otherName: "",
