@@ -67,7 +67,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           }
 
           // -------------------- Main Logic start
-
+          console.log('event.type-------up' , event.type)
           let logs_data = { api_name: 'subscription_webhook', payload: event.type, error_message: `webhook`, error_response: JSON.stringify(event) };
           const logEntry = new LOGS(logs_data);
           logEntry.save();

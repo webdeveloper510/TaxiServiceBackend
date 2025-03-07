@@ -1687,7 +1687,6 @@ exports.get_active_drivers = async (req, res) => {
     ); // Set to Monday of current week
 
 
-    console.log('req---' , req.user.role);
     let getDetail;
 
     if (req.user.role == constant.ROLES.COMPANY) {
