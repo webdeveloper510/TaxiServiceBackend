@@ -21,6 +21,7 @@ const { driverDetailsByToken,
         getPendingPayoutTripsBeforeWeek,
         transferToConnectedAccount,
         sendPayoutToBank,
+        notifyInsufficientBalance,
         checkPayouts
       } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
@@ -253,6 +254,11 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             handleInvoicePaymentFailure(invoice)
 
            
+          } else if (event.type === "payout.updated") {
+            const payout = event.data.object;
+
+            console.log('payout--------' , payout.status)
+            console.log('payout--------' , payout)
           }
 
           
@@ -318,32 +324,66 @@ app.get( "/weekly-company-payment", async (req, res) => {
   try {
    
     const balance = await stripe.balance.retrieve();
+    let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
 
-    if (balance?.available[0]?.amount && balance?.available[0]?.amount > 100) {
-        const amount = 5;
-        const connectedAccountId = `acct_1QxRoi4CiWWLkHIH`;
-        const tripId = `T-1051`
-        const payoutList = await checkPayouts(connectedAccountId);
-        // const transferDedtails = await transferToConnectedAccount(amount, connectedAccountId , tripId);
-        // const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
-        return res.send({
-                          code: 200,
-                          message: "weekly-company-payment",
-                          balance:balance,
-                          // transferDedtails,
-                          // payoutDetails
-                          payoutList
-                        });
+    if (availableBalance > 100) {
+       
+        // const connectedAccountId = `acct_1QxRoi4CiWWLkHIH`;
+        // const tripId = `T-1051`
+        // const payoutList = await checkPayouts(connectedAccountId);
+        
+        if (tripList.length > 0) {
+
+          for (let  trip of tripList) {
+
+            let amount = trip.companyPaymentAmount;
+            let connectedAccountId = trip?.companyDetails?.connectedAccountId;
+            let tripId = trip?.trip_id;
+
+            let stripBalance = await stripe.balance.retrieve();
+            let availableBalance = stripBalance?.available[0]?.amount || 0;
+            console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
+            if (availableBalance >=  Math.round(amount * 100) ) {
+              
+              const transferDedtails = await transferToConnectedAccount(amount, connectedAccountId , tripId);
+              
+              await trip_model.findOneAndUpdate(
+                                                { _id: trip?._id }, // Find by tripId
+                                                { $set: { company_trip_transfer_id: transferDedtails?.id } }, // Update fields
+                                                { new: true } // Return the updated document
+                                              );
+              const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
+              await trip_model.findOneAndUpdate(
+                { _id: trip?._id }, // Find by tripId
+                { 
+                  $set: { 
+                          company_trip_payout_id: payoutDetails?.id,
+                          company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.PENDING
+                        } 
+                }, 
+                { new: true } // Return the updated document
+              );
+
+              console.log('trip completed------' ,tripId)
+            } else {
+
+              console.log(`You dont have enough payment in your account to transfer the payment to the compmies.`)
+              await notifyInsufficientBalance()
+              break;
+            }
+          }
+        }
+        
+        
     } else {
-      
+      await notifyInsufficientBalance()
       console.log(`You dont have enough payment in your account.`)
     }
     return res.send({
                       code: 200,
                       message: "weekly-company-payment",
-                      balance:balance,
-                      trips:tripList
+                      tripList:tripList
                     });
   } catch (error) {
     console.error("Error retrieving balance:", error);

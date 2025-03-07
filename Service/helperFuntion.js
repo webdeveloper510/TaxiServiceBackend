@@ -995,43 +995,51 @@ exports.getUserCurrentActivePayedPlan = async (userInfo) => {
 // get the trip that has been completed before 1 week
 exports.getPendingPayoutTripsBeforeWeek = async () => {
   try {
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 2);
     const trips = await TRIP_MODEL.aggregate([
-                                                  {
-                                                    $lookup: {
-                                                      from: "users", 
-                                                      let: { companyId: "$created_by_company_id" }, // Use trip's `created_by_company_id`
-                                                      pipeline: [
-                                                        {
-                                                          $match: {
-                                                            $expr: { $eq: ["$_id", "$$companyId"] }, // Match `user._id` with `created_by_company_id`
-                                                            isAccountAttched: CONSTANT.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED, // Filter users where `isAccountAttched: true`
-                                                            connectedAccountId: { $ne: ""  }
-                                                          }
-                                                        }
-                                                      ],
-                                                      as: "companyDetails"
+                                              {
+                                                $match: { 
+                                                          is_paid: true,
+                                                          pickup_date_time: { $lt: sevenDaysAgo },
+                                                        } 
+                                              },
+                                              {
+                                                $lookup: {
+                                                  from: "users", 
+                                                  let: { companyId: "$created_by_company_id" }, // Use trip's `created_by_company_id`
+                                                  pipeline: [
+                                                    {
+                                                      $match: {
+                                                        $expr: { $eq: ["$_id", "$$companyId"] }, // Match `user._id` with `created_by_company_id`
+                                                        isAccountAttched: CONSTANT.CONNECTED_ACCOUNT.ACCOUNT_ATTACHED_STATUS.ACCOUNT_ATTACHED, // Filter users where `isAccountAttched: true`
+                                                        connectedAccountId: { $ne: ""  }
+                                                      }
                                                     }
-                                                  },
-                                                  { $unwind: "$companyDetails" }, // Remove trips without a matching company
-                                                  {
-                                                    $project: {
-                                                      _id: 1,
-                                                      created_by_company_id: 1,
-                                                      trip_id:1,
-                                                      pickup_date_time: 1,
-                                                      "companyDetails.connectedAccountId": 1,
-                                                      "companyDetails.email": 1,
-                                                    }
-                                                  }
-                                                ]);
+                                                  ],
+                                                  as: "companyDetails"
+                                                }
+                                              },
+                                              { $unwind: "$companyDetails" }, // Remove trips without a matching company
+                                              {
+                                                $project: {
+                                                  _id: 1,
+                                                  created_by_company_id: 1,
+                                                  trip_id:1,
+                                                  pickup_date_time: 1,
+                                                  is_company_paid:1,
+                                                  companyPaymentAmount:1,
+                                                  "companyDetails.connectedAccountId": 1,
+                                                  "companyDetails.email": 1,
+                                                }
+                                              }
+                                            ]);
 
     return trips
   } catch (error) {
     console.error("Error retrieving balance:", error);
-    return  res.send({
-                        code: constant.error_code,
-                        message: error.message,
-                    });
+    throw error;
   }
 }
 
@@ -1040,7 +1048,7 @@ exports.transferToConnectedAccount = async (amount, connectedAccountId , tripId)
   try {
 
     const transfer = await stripe.transfers.create({
-                                                    amount: amount * 100, // Amount in cents (e.g., $10 = 1000) 
+                                                    amount: Math.round(amount * 100), // Amount in cents (e.g., $10 = 1000) 
                                                     currency: "eur",
                                                     destination: connectedAccountId, // Connected account ID
                                                     transfer_group: tripId, // Optional: Group for tracking
@@ -1061,7 +1069,7 @@ exports.sendPayoutToBank = async (amount, connectedAccountId) => {
 
     const payout = await stripe.payouts.create(
                                                 {
-                                                  amount: amount * 100, // Amount in cents
+                                                  amount: Math.round(amount * 100), // Amount in cents
                                                   currency: "eur",
                                                 },
                                                 {
@@ -1096,6 +1104,43 @@ exports.checkPayouts = async (connectedAccountId) => {
     // failed	=> The payout failed (e.g., incorrect bank details).
 
     return payouts?.data;
+  } catch (error) {
+
+    console.error("Error checkPayouts status:",  error.message);
+    throw error;
+  }
+}
+
+exports.notifyInsufficientBalance = async () => {
+
+  try{
+
+    let emails = await user_model.find({ role: CONSTANT.ROLES.SUPER_ADMIN }).distinct("email"); // Returns an array of unique email addresses directly.
+    emails = emails.join(",");
+   
+    const subject = `Insufficient Balance Alert – Action Required`;
+   
+    const bodyHtml =  `
+                        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                            <h2>Dear <span  style="color: #333;">Admin </span>,</h2>
+                            <p>We hope this email finds you well.</p>
+                            <p>We attempted to process a payout, but it could not be completed due to <b>insufficient balance</b> in your account. Please ensure that you have sufficient funds available to proceed with the transaction.</p>
+                            <p>To avoid any service disruptions, please deposit the required amount and retry the transaction. If you need assistance, feel free to contact our support team.</p>
+                            <p>Best regards, <br><strong>Idispatch Mobility</strong></p>
+                        </div>
+                    `;
+    let template = ` ${bodyHtml}`
+  
+    var transporter = nodemailer.createTransport(emailConstant.credentials);
+    var mailOptions = {
+                        from: emailConstant.from_email,
+                        to: emails,
+                        subject: subject,
+                        html: template
+                      };
+    let sendEmail = await transporter.sendMail(mailOptions);
+    return sendEmail
+    
   } catch (error) {
 
     console.error("Error checkPayouts status:",  error.message);

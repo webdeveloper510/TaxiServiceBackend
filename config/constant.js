@@ -77,5 +77,12 @@ module.exports={
         MANUALLY: `MANUALLY`,
         ONLINE: `ONLINE`,
         PENDING: `PENDING`,
+    },
+    PAYOUT_TANSFER_STATUS: {
+        PENDING: `PENDING`,
+        IN_TRANSIT: `IN_TRANSIT`,
+        PAID: `PAID`,
+        FAILED: `FAILED`,
+        NOT_INITIATED: `NOT_INITIATED`,
     }
 }

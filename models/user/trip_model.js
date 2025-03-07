@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const CONSTANT = require("../../config/constant");
 const PAYMENT_COLLECT_ENUM = Object.values(CONSTANT.PAYMENT_COLLECTION_TYPE)
-
+const PAYOUT_TANSFER_ENUM = Object.values(CONSTANT.PAYOUT_TANSFER_STATUS)
 const trip = new Schema({
     driver_name:{
         type:mongoose.Schema.Types.ObjectId,ref:'driver',
@@ -194,6 +194,19 @@ const trip = new Schema({
     is_company_paid: {
         type: Boolean,
         default: false,
+    },
+    company_trip_transfer_id: {
+        type: String,
+        default: null,
+    },
+    company_trip_payout_id: {
+        type: String,
+        default: null,
+    },
+    company_trip_payout_status: { //  when payemt will be transafered from connected account to company bank acccount (Afetr transfer from paypal to connected account)
+        type: String,
+        enum: PAYOUT_TANSFER_ENUM,
+        default: CONSTANT.PAYOUT_TANSFER_STATUS.NOT_INITIATED,
     },
     fifteenMinuteNotification:{
         type: Boolean,
