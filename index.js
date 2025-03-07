@@ -46,7 +46,6 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
   const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
     try {
          
-        
         const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
           
           const sig = req.headers['stripe-signature'];
@@ -256,12 +255,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
             handleInvoicePaymentFailure(invoice)
 
            
-          } else if (event.type === "payout.updated") {
-            const payout = event.data.object;
-
-            console.log('payout--------' , payout.status)
-            console.log('payout--------' , payout)
-          }
+          } 
 
           
           // Log the webhook event
@@ -281,6 +275,55 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
       }
   }
 );
+
+app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
+
+  console.log('webhook triggered payout_webhook----------------')
+  const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
+    try {
+         
+        const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
+          
+          const sig = req.headers['stripe-signature'];
+          let event;
+
+          try {
+            event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+            console.log("Webhook received successfully----" , event.type);
+            // console.log("Webhook JSON.stringify----" , JSON.stringify(event));
+          } catch (err) {
+            console.log(`Webhook Error: ${err.message}`);
+
+            let logs_data = { api_name: 'subscription_webhook', payload: JSON.stringify(req.body),
+                              error_message: err.message, error_response: JSON.stringify(err)
+                            };
+
+            const logEntry = new LOGS(logs_data);
+            logEntry.save();
+            return res.status(200).send({ received: true , error_message: err.message , istTime:istTime});
+          }
+
+          // -------------------- Main Logic start
+          console.log('event.type-------up' , event.type)
+          let logs_data = { api_name: 'subscription_webhook', payload: event.type, error_message: `webhook`, error_response: JSON.stringify(event) };
+          const logEntry = new LOGS(logs_data);
+          return res.status(200).send({ received: true  , message: `Webhook received successfully`, istTime:istTime});
+          logEntry.save();
+        } catch (error) {
+          console.error("Error in webhook handler:", error.message);
+          let logs_data = {
+                            api_name: 'subscription_webhook error',
+                            payload: JSON.stringify(req.body),
+                            error_message: error.message,
+                            error_response: JSON.stringify(error)
+                          };
+          const logEntry = new LOGS(logs_data);
+          logEntry.save();
+          return res.status(200).send({ received: true , error_message: error.message , istTime:istTime});
+      }
+    }
+  )
+      
 
 
 app.use(logger("dev"));
