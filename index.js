@@ -305,7 +305,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
 
           // -------------------- Main Logic start
           console.log('event.type-------up' , event.type)
-          let logs_data = { api_name: 'subscription_webhook', payload: event.type, error_message: `webhook`, error_response: JSON.stringify(event) };
+          let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `webhook`, error_response: JSON.stringify(event) };
           const logEntry = new LOGS(logs_data);
           return res.status(200).send({ received: true  , message: `Webhook received successfully`, istTime:istTime});
           logEntry.save();
