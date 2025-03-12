@@ -390,7 +390,7 @@ exports.adminAddDriver = async (req, res) => {
 
 exports.remove_driver = async (req, res) => {
   try {
-    const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+    const driverId = req.userId; // Assuming you pass the driver ID as a URL parameter
 
     // You may want to add additional checks to ensure the driver exists or belongs to the agency user
     const removedDriver = await DRIVER.findOneAndUpdate(
@@ -784,7 +784,7 @@ exports.get_drivers_super = async (req, res) => {
     const query = { is_deleted: false, };
 
     
-
+    console.log({page , limit , skip})
     
     if (search.length > 0) {
       query.$or = [
@@ -831,7 +831,6 @@ exports.get_drivers_super = async (req, res) => {
       query.is_deleted = true;
     }
 
-    // const totalCount = await DRIVER.countDocuments(query);
     // Count the total documents matching the query
     let totalCount = await DRIVER.aggregate([
       {
@@ -857,11 +856,7 @@ exports.get_drivers_super = async (req, res) => {
     
     totalCount = totalCount[0]?.totalCount || 0;
     
-    // const drivers = await DRIVER.find(query).populate('company_agency_id')
-    //   .populate("defaultVehicle")
-    //   .sort({ createdAt: -1 })
-    //   .skip(skip)
-    //   .limit(limit);
+   
 
     // Aggregate pipeline to include company name
     const drivers = await DRIVER.aggregate([
@@ -930,7 +925,7 @@ exports.get_drivers_super = async (req, res) => {
         },
       },
       {
-        $sort: { createdAt: -1 }, // Sort by createdAt
+        $sort: { createdAt: -1, _id: -1 }, // Ensure stable sorting
       },
       {
         $skip: skip, // Pagination: Skip documents
@@ -939,7 +934,6 @@ exports.get_drivers_super = async (req, res) => {
         $limit: limit, // Pagination: Limit documents
       },
     ]);
-
 
     if (drivers) {
       res.send({
