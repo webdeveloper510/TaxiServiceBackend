@@ -391,15 +391,16 @@ exports.delete_vehicle = async (req, res) => {
             $set: {
                 is_deleted: true
             }
-        };
+        }; 
 
         
         let option = { new: true }
         let deleteOption = await VEHICLE.findOneAndUpdate(criteria, newValue, option)
         if(req.user.defaultVehicle.toString() == req.params.id)
         {
-            req.user.defaultVehicle = null
-            await req.user.save()
+            const driverInfo = await driver_model.findById(req.user._id);
+            driverInfo.defaultVehicle = null;
+            await driverInfo.save()
         }
         if (!deleteOption) {
             res.send({
