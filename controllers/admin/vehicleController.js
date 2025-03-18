@@ -436,7 +436,7 @@ exports.adminDeleteVehicle = async (req, res) => {
         let deleteOption = await VEHICLE.findOneAndUpdate(criteria, newValue, option)
         let driverInfo = await driver_model.findOne({ _id: deleteOption.agency_user_id });
         
-        if(driverInfo && driverInfo.defaultVehicle.toString() == req.params.id)
+        if(driverInfo && driverInfo?.defaultVehicle?.toString() == req.params.id)
         {
             let newValue = {
                 $set: {

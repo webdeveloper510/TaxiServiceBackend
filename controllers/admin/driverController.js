@@ -232,19 +232,16 @@ exports.adminAddDriver = async (req, res) => {
     if (checkEmailInDrivers) {
 
       if (checkEmailInDrivers.is_deleted == true) {
-        return res.send({
-          code: constant.error_code,
-          message: `This email (${data.email}) is associated with a previously deleted driver. You can restore the driver from the deleted list instead of creating a new one.`,
-          
-      })
+        return  res.send({
+                          code: constant.error_code,
+                          message: `This email (${data.email}) is associated with a previously deleted driver. You can restore the driver from the deleted list instead of creating a new one.`,
+                        });
       } else {
-        return res.send({
+        return  res.send({
                             code: constant.error_code,
-                            message: "Email Already exist",
-                            
-                        })
+                            message: "Email Already exist"
+                        });
       }
-      
     }
 
     
@@ -317,27 +314,27 @@ exports.adminAddDriver = async (req, res) => {
       }
 
       const companyInfo = await USER.aggregate([
-        {
-          $lookup: {
-            from: "agencies", 
-            localField: "_id", 
-            foreignField: "user_id", 
-            as: "agency_data",
-          },
-        },
-        {
-          $match: {
-            _id: new mongoose.Types.ObjectId(data?.driver_company_id),
-          },
-        },
-        {
-          $project: {
-            name: 1, // Include driver name
-            user_info: "$$ROOT",
-            companyDetails: { $arrayElemAt: ["$agency_data", 0] }, // Include the first matching company
-          },
-        },
-      ]);
+                                                {
+                                                  $lookup: {
+                                                    from: "agencies", 
+                                                    localField: "_id", 
+                                                    foreignField: "user_id", 
+                                                    as: "agency_data",
+                                                  },
+                                                },
+                                                {
+                                                  $match: {
+                                                    _id: new mongoose.Types.ObjectId(data?.driver_company_id),
+                                                  },
+                                                },
+                                                {
+                                                  $project: {
+                                                    name: 1, // Include driver name
+                                                    user_info: "$$ROOT",
+                                                    companyDetails: { $arrayElemAt: ["$agency_data", 0] }, // Include the first matching company
+                                                  },
+                                                },
+                                              ]);
       
       data.company_agency_id = companyInfo ? companyInfo[0].companyDetails._id : null;
     } else {
