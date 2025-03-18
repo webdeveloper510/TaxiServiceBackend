@@ -231,10 +231,20 @@ exports.adminAddDriver = async (req, res) => {
 
     if (checkEmailInDrivers) {
 
-      return res.send({
-                          code: constant.error_code,
-                          message: "Email Already exist"
-                      })
+      if (checkEmailInDrivers.is_deleted == true) {
+        return res.send({
+          code: constant.error_code,
+          message: `This email (${data.email}) is associated with a previously deleted driver. You can restore the driver from the deleted list instead of creating a new one.`,
+          
+      })
+      } else {
+        return res.send({
+                            code: constant.error_code,
+                            message: "Email Already exist",
+                            
+                        })
+      }
+      
     }
 
     
@@ -1324,6 +1334,70 @@ exports.update_driver = async (req, res) => {
   });
 };
 
+exports.restoreDriver = async (req, res) => {
+  try {
+
+    const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+    const existingDriver = await DRIVER.findById(driverId);
+
+    if (existingDriver) {
+
+      let isCompanyExist = await USER.aggregate([
+                                                  {
+                                                    $match: { email: existingDriver.email }
+                                                  },
+                                                  {
+                                                    $lookup: {
+                                                      from: 'agencies', // Name of the collection in MongoDB
+                                                      localField: '_id', // The field in the USER collection
+                                                      foreignField: 'user_id', // The field in the Agency collection
+                                                      as: 'agencyDetails' // Output field
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: { path: '$agencyDetails', preserveNullAndEmptyArrays: true } // Unwind if needed
+                                                  }
+                                                ]);
+      if (isCompanyExist) {
+        let updatedDriver = await DRIVER.findOneAndUpdate( 
+                                                              { _id: driverId }, 
+                                                              {
+                                                                is_deleted: false,
+                                                                isCompany: true,
+                                                                driver_company_id: isCompanyExist?._id,
+                                                                company_agency_id: isCompanyExist?.agencyDetails?.id,
+                                                              }, 
+                                                              { new: true }
+                                                            );
+      } else {
+        let updatedDriver = await DRIVER.findOneAndUpdate( 
+                                                            { _id: driverId }, 
+                                                            {
+                                                              is_deleted: false,
+                                                              isCompany: false,
+                                                            }, 
+                                                            { new: true }
+                                                          );
+      }
+      
+      return res.send({
+                        code: constant.success_code,
+                        message: 'Driver restored successfully',
+                      });
+    } else {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: `Driver doesn't exist`,
+                      });
+    }
+  } catch (err) {
+    return res.send({
+                    code: constant.error_code,
+                    message: err.message,
+                  });
+  }
+}
 exports.updateLocation = async (req, res) => {
   try {
     let data = req.body;
