@@ -435,6 +435,53 @@ exports.remove_driver = async (req, res) => {
   }
 };
 
+exports.adminDeleteDriver = async (req, res) => {
+  try {
+    const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+
+    // You may want to add additional checks to ensure the driver exists or belongs to the agency user
+    const removedDriver = await DRIVER.findOneAndUpdate(
+      { _id: driverId },
+      {
+        $set: {
+          is_deleted: true,
+        },
+      }
+    );
+
+    if (!removedDriver) {
+      res.send({
+        code: constant.error_code,
+        message: "Unable to delete the driver",
+      });
+    } else {
+      let companyData = await user_model.findOne({
+        email: removedDriver.email,
+        is_deleted: false,
+      });
+      if (!companyData) {
+        res.send({
+          code: constant.success_code,
+          message: "Deleted Successfully",
+        });
+      } else {
+        companyData.isDriver = false;
+        companyData.driverId = null;
+        await companyData.save();
+        res.send({
+          code: constant.success_code,
+          message: "Deleted Successfully",
+        });
+      }
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
 exports.get_driver_detail = async (req, res) => {
   try {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
