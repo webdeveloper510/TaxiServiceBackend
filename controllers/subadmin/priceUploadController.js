@@ -151,6 +151,28 @@ exports.getAllUploadedPrice = async (req, res) => {
     
 }
 
+
+exports.getAllUploadedPriceForHotel = async (req, res) => {
+
+    try {
+        const companyId = req.params.id;
+        let searchQuery = { user_id: companyId ,  status: true};
+
+        const allPriceList = await PRICE_MODEL.find(searchQuery);
+        return  res.send({
+                            code: constant.success_code,
+                            allPriceList: allPriceList,
+                        });
+    } catch (error) {
+        console.error('Error getUploadedPrice:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+    }
+    
+}
+
 exports.getAccessAllUploadedPrice = async (req, res) => {
 
     try {
