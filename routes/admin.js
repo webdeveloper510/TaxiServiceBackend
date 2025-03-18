@@ -106,6 +106,7 @@ router.get("/deleted_drivers",[verifyToken],driverController.get_deleted_drivers
 router.get("/get_driver_detail/:id",[verifyToken],driverController.get_driver_detail);
 router.put("/update_driver/:id", [verifyToken], driverController.update_driver);
 router.delete("/remove_driver/",[verifyToken], driverController.remove_driver);
+router.delete("/remove_driver/:id",[verifyToken], driverController.adminDeleteDriver);
 router.put("/updateLocation", [verifyToken], driverController.updateLocation);
 router.post("/updateVerification/:id",[verifyToken],driverController.updateVerification);
 router.post("/rejectVerification/:id",[verifyToken],driverController.rejectVerification
