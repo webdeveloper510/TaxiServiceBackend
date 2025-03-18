@@ -455,24 +455,20 @@ exports.add_trip_link = async (req, res) => {
   try {
     let data = req.body;
     data.created_by = data.created_by;
-    data.trip_id = randToken.generate(4, "1234567890abcdefghijklmnopqrstuvxyz");
-    let token_code = randToken.generate(
-      4,
-      "1234567890abcdefghijklmnopqrstuvxyz"
-    );
+    data.trip_id = await getNextSequenceValue();
+    let token_code = randToken.generate(4,"1234567890abcdefghijklmnopqrstuvxyz");
+
     let currentDate = moment().format("YYYY-MM-DD");
     let check_id = await TRIP.aggregate([
-      {
-        $match: {
-          createdAt: {
-            $gte: new Date(currentDate),
-            $lt: new Date(
-              new Date(currentDate).getTime() + 24 * 60 * 60 * 1000
-            ), // Add 1 day to include the entire day
-          },
-        },
-      },
-    ]);
+                                          {
+                                            $match: {
+                                              createdAt: {
+                                                $gte: new Date(currentDate),
+                                                $lt: new Date( new Date(currentDate).getTime() + 24 * 60 * 60 * 1000 ), // Add 1 day to include the entire day
+                                              },
+                                            },
+                                          },
+                                        ]);
     let series = Number(check_id.length) + 1;
     data.series_id = token_code + "-" + "000" + series;
 
