@@ -778,7 +778,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("cancelDriverTrip", async ({ tripId , cancellation_reason }) => {
+  socket.on("cancelDriverTrip", async ({ tripId }) => {
     if (!tripId) {
       return io.to(socket.id).emit("driverNotification", {
         code: 200,
@@ -788,12 +788,8 @@ io.on("connection", (socket) => {
 
     setTimeout(async () => {
       try {
-        let driverBySocketId = await driver_model.findOne({socketId: socket.id,});
-        driverBySocketId.cancellation_reason = cancellation_reason;
+        const driverBySocketId = await driver_model.findOne({socketId: socket.id,});
 
-        // Convert to plain object and send updated data
-        const driverData = driverBySocketId.toObject();
-        console.log('cancelDriverTrip-----' , cancellation_reason , driverData)
         if (driverBySocketId) {
           const trip = await trip_model.findById(tripId);
 
@@ -817,13 +813,13 @@ io.on("connection", (socket) => {
             let user = await user_model.findById(trip?.created_by_company_id);
             const companyAgencyData = await agency_model.findOne({user_id: trip.created_by_company_id})
             let driver_name = driverBySocketId.first_name + " " + driverBySocketId.last_name;
-            
+
             if (user.role == "COMPANY") {
               if (user?.socketId) {
                 // socket for app
                 io.to(user?.socketId).emit("tripCancelledBYDriver", {
                                                                       trip,
-                                                                      driver: driverData,
+                                                                      driver: driverBySocketId,
                                                                       message: `Trip canceled by the driver ${driver_name}`,
                                                                     }
                                           );
@@ -844,7 +840,7 @@ io.on("connection", (socket) => {
                                                       "tripCancelledBYDriver",
                                                       {
                                                         trip,
-                                                        driver: driverData,
+                                                        driver: driverBySocketId,
                                                         message: `Trip canceled by the driver ${driver_name}`,
                                                       },
                                                      );
@@ -891,7 +887,7 @@ io.on("connection", (socket) => {
                                                                       "tripCancelledBYDriver",
                                                                       {
                                                                         trip,
-                                                                        driver: driverData,
+                                                                        driver: driverBySocketId,
                                                                         message: `Trip canceled by the driver ${driver_name}`,
                                                                       },
                                                                     );
@@ -903,8 +899,7 @@ io.on("connection", (socket) => {
                                                                         "tripCancelledBYDriver",
                                                                         {
                                                                           trip,
-                                                                          driver: driverData,
-                                                                          
+                                                                          driver: driverBySocketId,
                                                                           message: `Trip canceled by the driver ${driver_name}`,
                                                                         },
                                                                       );
@@ -916,7 +911,7 @@ io.on("connection", (socket) => {
                                             driverCompanyAccess?.deviceToken,
                                             `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
                                             `Trip canceled ( Company Access:- ${companyAgencyData.company_name} )`,
-                                            driverData
+                                            driverBySocketId
                                           );
                   }
                 }
@@ -937,7 +932,7 @@ io.on("connection", (socket) => {
                   if (partnerAccount?.socketId) {
                     await io.to(partnerAccount?.socketId).emit("tripCancelledBYDriver", {
                                                                                           trip,
-                                                                                          driver: driverData,
+                                                                                          driver: driverBySocketId,
                                                                                           message: "Trip canceled successfully",
                                                                                         }
                                                               );
@@ -957,7 +952,7 @@ io.on("connection", (socket) => {
         
                   await io.to(partnerAccount?.webSocketId).emit("tripCancelledBYDriver", {
                                                                                         trip,
-                                                                                        driver: driverData,
+                                                                                        driver: driverBySocketId,
                                                                                         message: `Trip canceled by the driver ${driver_name}`,
                                                                                       }
                                                             );
@@ -977,7 +972,7 @@ io.on("connection", (socket) => {
                                             partnerAccount?.deviceToken,
                                             `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
                                             `Trip Accepted ( Partner Account Access:- ${companyAgencyData.company_name})`,
-                                            driverData
+                                            driverBySocketId
                                           );
                   } else if (partnerAccount.isCompany){
         
@@ -989,7 +984,7 @@ io.on("connection", (socket) => {
                                               companyData?.deviceToken,
                                               `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
                                               `Trip Accepted ( Partner Account Access:- ${companyAgencyData.company_name})`,
-                                              driverData
+                                              driverBySocketId
                                             );
                     }
                   }
