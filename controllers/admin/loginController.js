@@ -619,21 +619,40 @@ exports.get_token_detail = async (req, res) => {
                           as: "company_detail",
                         };
 
+    let agencyLookupData=  null
+
     if (req.user.role == constant.ROLES.HOTEL) {
       
       lookupData.from = 'users';
       lookupData.localField = 'created_by';
       lookupData.foreignField = '_id';
+
+      agencyLookupData = {
+                            from: "agencies",
+                            localField: "_id",
+                            foreignField: "user_id",
+                            as: "agency_detail",
+                        }
     } else {
 
     }
-    let getData = await USER.aggregate([
-      {
-        $match: { _id: new mongoose.Types.ObjectId(req.userId) },
-      },
-      {
-        $lookup: lookupData,
-      },
+
+    // Build aggregation pipeline
+    let pipeline = [
+      { $match: { _id: new mongoose.Types.ObjectId(req.userId) } },
+      { $lookup: lookupData },
+      { $unwind: { path: "$company_detail", preserveNullAndEmptyArrays: true } }, // Single object
+    ];
+
+    // Add agency lookup only if needed
+    if (agencyLookupData) {
+      pipeline.push(
+        { $lookup: agencyLookupData },
+        { $unwind: { path: "$agency_detail", preserveNullAndEmptyArrays: true } } // Ensure single object
+      );
+    }
+
+    pipeline.push(
       {
         $lookup: {
           from: "drivers",
@@ -642,12 +661,10 @@ exports.get_token_detail = async (req, res) => {
           as: "driver",
         },
       },
-      { $unwind: "$company_detail" },
-      // {
-      //   path: "driver",
-      //   preserveNullAndEmptyArrays: true
-      // }
-    ]);
+      { $unwind: { path: "$company_detail", preserveNullAndEmptyArrays: true } }
+    );
+
+    let getData = await USER.aggregate(pipeline);
 
     if (!userByID) {
       let get_data = await DRIVER.findOne({ _id: req.userId });
