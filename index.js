@@ -790,6 +790,8 @@ io.on("connection", (socket) => {
       try {
         const driverBySocketId = await driver_model.findOne({socketId: socket.id,});
         driverBySocketId.cancellation_reason = cancellation_reason;
+
+        console.log('cancelDriverTrip-----' , cancellation_reason , driverBySocketId)
         if (driverBySocketId) {
           const trip = await trip_model.findById(tripId);
 
