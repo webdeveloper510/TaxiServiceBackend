@@ -788,9 +788,9 @@ io.on("connection", (socket) => {
 
     setTimeout(async () => {
       try {
-        const driverBySocketId = await driver_model.findOne({socketId: socket.id,});
-
-        console.log('cancelDriverTrip-----' , cancellation_reason , driverBySocketId)
+        let driverBySocketId = await driver_model.findOne({socketId: socket.id,});
+        const driverData = { ...driverBySocketId.toObject(), cancellation_reason }
+        console.log('cancelDriverTrip-----' , cancellation_reason , driverData)
         if (driverBySocketId) {
           const trip = await trip_model.findById(tripId);
 
@@ -814,7 +814,7 @@ io.on("connection", (socket) => {
             let user = await user_model.findById(trip?.created_by_company_id);
             const companyAgencyData = await agency_model.findOne({user_id: trip.created_by_company_id})
             let driver_name = driverBySocketId.first_name + " " + driverBySocketId.last_name;
-            const driverData = { ...driverBySocketId.toObject(), cancellation_reason }
+            
             if (user.role == "COMPANY") {
               if (user?.socketId) {
                 // socket for app
