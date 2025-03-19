@@ -789,7 +789,10 @@ io.on("connection", (socket) => {
     setTimeout(async () => {
       try {
         let driverBySocketId = await driver_model.findOne({socketId: socket.id,});
-        const driverData = { ...driverBySocketId.toObject(), cancellation_reason }
+        driverBySocketId.cancellation_reason = cancellation_reason;
+
+        // Convert to plain object and send updated data
+        const driverData = driverBySocketId.toObject();
         console.log('cancelDriverTrip-----' , cancellation_reason , driverData)
         if (driverBySocketId) {
           const trip = await trip_model.findById(tripId);
@@ -842,7 +845,6 @@ io.on("connection", (socket) => {
                                                       {
                                                         trip,
                                                         driver: driverData,
-                                                        cancellation_reason:driverData?.cancellation_reason,
                                                         message: `Trip canceled by the driver ${driver_name}`,
                                                       },
                                                      );
@@ -902,7 +904,7 @@ io.on("connection", (socket) => {
                                                                         {
                                                                           trip,
                                                                           driver: driverData,
-
+                                                                          
                                                                           message: `Trip canceled by the driver ${driver_name}`,
                                                                         },
                                                                       );
