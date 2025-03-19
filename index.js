@@ -778,7 +778,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("cancelDriverTrip", async ({ tripId }) => {
+  socket.on("cancelDriverTrip", async ({ tripId , cancellation_reason }) => {
     if (!tripId) {
       return io.to(socket.id).emit("driverNotification", {
         code: 200,
@@ -789,7 +789,7 @@ io.on("connection", (socket) => {
     setTimeout(async () => {
       try {
         const driverBySocketId = await driver_model.findOne({socketId: socket.id,});
-
+        driverBySocketId.cancellation_reason = cancellation_reason;
         if (driverBySocketId) {
           const trip = await trip_model.findById(tripId);
 
