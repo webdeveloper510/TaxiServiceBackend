@@ -535,10 +535,10 @@ exports.blockUser = async (req, res) => {
                     await req.io.to(userInfo?.socketId).emit("accountTerminated", { userDetail: userInfo } )
                 }
 
-                console.log('webSocketId---------' , userInfo?.webSocketId)
+               
                 // logout from the web
                 if (userInfo?.webSocketId) {
-                    console.log('userInfo?.webSocketId----------------')
+                    
                     await req.io.to(userInfo?.webSocketId).emit("accountTerminated", { userDetail: userInfo } )
                 }
             } else {
@@ -548,7 +548,6 @@ exports.blockUser = async (req, res) => {
             return res.send({
                                 code: constant.success_code,
                                 message: data?.is_blocked == 'true' ? `The driver has been successfully blocked.` : `The driver has been successfully unblocked.`,
-                                userInfo
                                 
                             })
         }
