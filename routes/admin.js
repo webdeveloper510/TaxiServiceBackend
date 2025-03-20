@@ -80,7 +80,7 @@ router.post("/admin_add_vehicle/:driverId", [verifyToken], vehicleController.adm
 router.get("/get_vehicles", [verifyToken], vehicleController.get_vehicles);
 router.get( "/get_vehicles_by_driverid/:id", [verifyToken], vehicleController.get_vehicles_by_driverid);
 router.get( "/get_vehicles_with_type/:vehicle_type", [verifyToken], vehicleController.get_vehicles_with_type );
-router.post("/block_driver", [verifyToken , adminAuth], vehicleController.blockDriver);
+router.post("/block_user", [verifyToken , adminAuth], vehicleController.blockUser);
 router.post("/admin_get_all_vehicle", [verifyToken , adminAuth], vehicleController.adminGetAllVehicle);
 
 router.get(

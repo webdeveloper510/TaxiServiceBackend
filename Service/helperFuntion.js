@@ -992,6 +992,193 @@ exports.getUserCurrentActivePayedPlan = async (userInfo) => {
   return activePlan
 }
 
+exports.terminateSubscriptionForBlockedDriver = async (userinfo) => {
+
+  const currentActivePlan = await this.getUserCurrentActivePayedPlan(userinfo);
+
+  if (currentActivePlan) {
+    const subscriptionId = currentActivePlan?.subscriptionId;
+    const canceledSubscription = await stripe.subscriptions.cancel(currentActivePlan?.subscriptionId);
+
+    let option = { new: true };
+    let updatedData = {
+        active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+        cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.DRIVER_BLOACKED_BY_ADMIN
+    }
+    
+    await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+
+    await this.informUserSubscriptionCanceledDueToBlock(subscriptionId)
+  }
+  console.log('currentActivePlan---------' , currentActivePlan)
+}
+
+exports.informUserSubscriptionCanceledDueToBlock = async (subsctiptionId) => {
+
+  let subscriptionDetails = await SUBSCRIPTION_MODEL.findOne({subscriptionId: subsctiptionId}).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+  const planDetails = await PLANS_MODEL.findOne({planId:subscriptionDetails?.planId });
+  let toEmail = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? subscriptionDetails?.purchaseByCompanyId?.email : subscriptionDetails?.purchaseByDriverId?.email;
+  let UserName = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? `${subscriptionDetails?.purchaseByCompanyId?.first_name } ${subscriptionDetails?.purchaseByCompanyId?.last_name}` : `${subscriptionDetails?.purchaseByDriverId?.first_name } ${subscriptionDetails?.purchaseByDriverId?.last_name}`;
+  toEmail = 'vsingh@codenomad.net'
+  const now = new Date();
+  const formattedDateTime = now.toLocaleString("en-GB", { 
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false // Use 24-hour format
+  });
+  const subject = `Important Notice: Subscription Cancelled Due to Account Suspension`
+  const bodyHtml =  `
+                      <p>
+                          Dear ${UserName},
+                          <br><br>
+                          We regret to inform you that your subscription to Idispatch Mobility has been cancelled due to the suspension of your ${subscriptionDetails.role} account. This action was taken as part of our policy enforcement.
+                          
+                          <br><br>
+                          
+                          <span style="font-weight:bold;">Subscription Details:</span>
+                          
+                          <br><br>
+
+                          <ul>
+                            <li> <span style="font-weight:bold;">Subscription ID:</span> ${subsctiptionId}</li>
+                            <li> <span style="font-weight:bold;">Plan Name:</span> ${planDetails.name}</li>
+                            <li> <span style="font-weight:bold;">Cancellation  Date:</span> ${formattedDateTime}</li>
+                          </ul>
+
+                          <br><br>
+                          If you believe this action was taken in error or require further clarification, please contact our support team at ${process.env.SUPPORT_EMIAL}.
+                          <br><br>
+                          Best regards,
+                          Idispatch Mobility Team
+                      </p>
+                    `;
+  let template = ` ${bodyHtml}`
+
+  var transporter = nodemailer.createTransport(emailConstant.credentials);
+  var mailOptions = {
+                      from: emailConstant.from_email,
+                      to: toEmail,
+                      subject: subject,
+                      html: template,
+                    };
+  let sendEmail = await transporter.sendMail(mailOptions);
+  return sendEmail
+}
+
+exports.notifyUserAccountBlocked = async (userInfo) => {
+
+  let toEmail = userInfo?.email;
+  let UserName = `${userInfo?.first_name } ${userInfo?.last_name}`;
+  toEmail = 'vsingh@codenomad.net'
+  const now = new Date();
+  const formattedDateTime = now.toLocaleString("en-GB", { 
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false // Use 24-hour format
+  });
+  
+  const subject = `Important Notice: Your Account Has Been Blocked`
+  const bodyHtml =  `
+                      <p>
+                          Dear ${UserName},
+                          <br><br>
+                           We regret to inform you that your  <b>${ userInfo.role}</b> account with Idispatch Mobility has been blocked by the administration. This action has been taken as part of our compliance and security policies.
+                          
+                          <br><br>
+                          
+                          <span style="font-weight:bold;">Account Details:</span>
+                          
+                          <br><br>
+
+                          <ul>
+                             <li> <span style="font-weight:bold;">Role:</span> ${ userInfo.role} </li>
+                            <li> <span style="font-weight:bold;">Account Status:</span> Blocked</li>
+                            <li> <span style="font-weight:bold;">Effective Date:</span> ${formattedDateTime}</li>
+                          </ul>
+
+                          <br><br>
+                          If you believe this action was taken in error or require further clarification, please contact our support team at ${process.env.SUPPORT_EMIAL}.
+                          <br><br>
+                          Best regards,
+                          Idispatch Mobility Team
+                      </p>
+                    `;
+  let template = ` ${bodyHtml}`
+
+  var transporter = nodemailer.createTransport(emailConstant.credentials);
+  var mailOptions = {
+                      from: emailConstant.from_email,
+                      to: toEmail,
+                      subject: subject,
+                      html: template
+                    };
+  let sendEmail = await transporter.sendMail(mailOptions);
+  return sendEmail
+}
+
+exports.notifyUserAccountReactivated = async (userInfo) => {
+
+  let toEmail = userInfo?.email;
+  let UserName = `${userInfo?.first_name } ${userInfo?.last_name}`;
+  toEmail = 'vsingh@codenomad.net'
+  const now = new Date();
+  const formattedDateTime = now.toLocaleString("en-GB", { 
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false // Use 24-hour format
+  });
+  
+  const subject = `Your Account Has Been Reactivated`
+  const bodyHtml =  `
+                      <p>
+                          Dear ${UserName},
+                          <br><br>
+                           We are pleased to inform you that your <b>${ userInfo.role}</b> account on Idispatch Mobility has been successfully reactivated. You can now log in and resume using our platform’s services without any restrictions.
+                          
+                          <br><br>
+                          
+                          <span style="font-weight:bold;">Account Details:</span>
+                          
+                          <br><br>
+
+                          <ul>
+                             <li> <span style="font-weight:bold;">Role:</span> ${ userInfo.role} </li>
+                            <li> <span style="font-weight:bold;">Account Status:</span> Active</li>
+                            <li> <span style="font-weight:bold;">Effective Date:</span> ${formattedDateTime}</li>
+                          </ul>
+
+                          <br><br>
+                          If you believe this action was taken in error or require further clarification, please contact our support team at ${process.env.SUPPORT_EMIAL}.
+                          <br><br>
+                          Best regards,
+                          Idispatch Mobility Team
+                      </p>
+                    `;
+  let template = ` ${bodyHtml}`
+
+  var transporter = nodemailer.createTransport(emailConstant.credentials);
+  var mailOptions = {
+                      from: emailConstant.from_email,
+                      to: toEmail,
+                      subject: subject,
+                      html: template
+                    };
+  let sendEmail = await transporter.sendMail(mailOptions);
+  return sendEmail
+}
+
 // get the trip that has been completed before 1 week
 exports.getPendingPayoutTripsBeforeWeek = async () => {
   try {

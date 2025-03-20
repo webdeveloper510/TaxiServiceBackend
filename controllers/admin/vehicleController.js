@@ -9,7 +9,7 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require('../../models/user/driver_model')
 const imageStorage = require('../../config/awss3')
-
+const { terminateSubscriptionForBlockedDriver , notifyUserAccountBlocked , notifyUserAccountReactivated , getUserCurrentActivePayedPlan} = require("../../Service/helperFuntion");
 // const imageStorage = new CloudinaryStorage({
 //     cloudinary: cloudinary,
 //     params: {
@@ -467,25 +467,88 @@ exports.adminDeleteVehicle = async (req, res) => {
     }
 
 }
-exports.blockDriver = async (req, res) => {
+exports.blockUser = async (req, res) => {
     try {
         let data = req.body;
 
-        const criteria = { _id: data.driver_id };
+        const role = data?.role;
+        const criteria = { _id: data._id };
         const updateData = { is_blocked: data?.is_blocked };
-        const option = { new: true };
-        const updateDriver = await driver_model.findOneAndUpdate(criteria, updateData, option);
 
-        if (!updateDriver) {
-            res.send({
-                code: constant.error_code,
-                message: "Unable to update the driver"
-            })
+        if (data?.is_blocked == 'true') {
+
+            if (role == constant.ROLES.DRIVER) { 
+                updateData.is_available = false;
+                updateData.status = false; // Driver will be show as offline
+            }
+            
+            
+            updateData.is_special_plan_active = false; // no Special plan given
+            updateData.jwtTokenMobile = null; // Remove mobile token
+            updateData.jwtToken = null; // Reove webtoken
+            updateData.deviceToken = null; // Remove notification token    
+        }
+
+        const option = { new: true };
+        let userInfo;
+
+        if (role == constant.ROLES.COMPANY || role == constant.ROLES.HOTEL || role == constant.ROLES.ADMIN) {
+
+            userInfo = await USER.findOneAndUpdate(criteria, updateData, option).lean();
+        } else if (role == constant.ROLES.DRIVER) {
+
+            userInfo = await driver_model.findOneAndUpdate(criteria, updateData, option).lean();
         } else {
-            res.send({
-                code: constant.success_code,
-                message: "Data updated successfully",
-            })
+            return res.send({
+                                code: constant.error_code,
+                                message: `Role ${role} is not a valid enum value`
+                            })
+        }
+
+
+        if (!userInfo) {
+
+            return res.send({
+                                code: constant.error_code,
+                                message: "Unable to update the driver"
+                            })
+        } else {
+
+            if (role == constant.ROLES.DRIVER) {
+                userInfo.role = constant.ROLES.DRIVER;
+            }
+            
+            let driverCurrentActivePlan;
+            if (data?.is_blocked == 'true') {
+
+                driverCurrentActivePlan = await getUserCurrentActivePayedPlan(userInfo);// getting current active plan for driver
+
+                if (driverCurrentActivePlan) {
+                   
+                    terminateSubscriptionForBlockedDriver(userInfo); // terminate the susbcription and notify itvia email
+                }
+
+                notifyUserAccountBlocked(userInfo); // notify user via email regrarding block account
+
+                // Logout from the app
+                if (userInfo?.socketId) {
+                    await req.io.to(userInfo?.socketId).emit("accountTerminated", { userDetail: userInfo } )
+                }
+
+                // logout from the web
+                if (userInfo?.webSocketId) {
+                    await req.io.to(userInfo?.webSocketId).emit("accountTerminated", { userDetail: userInfo } )
+                }
+            } else {
+                notifyUserAccountReactivated(userInfo); // notify the user that acount has been reactivated 
+            }
+           
+            return res.send({
+                                code: constant.success_code,
+                                message: data?.is_blocked == 'true' ? `The driver has been successfully blocked.` : `The driver has been successfully unblocked.`,
+                               
+                                
+                            })
         }
     } catch (err) {
         res.send({

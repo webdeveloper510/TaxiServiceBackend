@@ -63,6 +63,7 @@ module.exports={
         INSUFFUCIENT_FUNDS: `insufficient_funds`,
         EXPIRED_CARD: `expired_card`,
         CARD_BLOCKED: `card_blocked`,
+        DRIVER_BLOACKED_BY_ADMIN: `driver_blocked_by_admin`,
         PROCESSING_ERROR: `processing_error`,
         UNKNOWN_ERROR: ` unknown_error`
     },
