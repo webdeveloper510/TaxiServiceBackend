@@ -2168,16 +2168,23 @@ exports.switchToDriver = async (req, res) => {
 
 
     let driverData = await DRIVER.findOne({
-      _id: driverId,
-      is_deleted: false,
-    });
+                                            _id: driverId,
+                                            is_deleted: false,
+                                          });
 
     if (!driverData) {
-      res.send({
-        code: constant.error_code,
-        message: "You do'nt have driver profile",
-      });
-    } else {
+      return res.send({
+                        code: constant.error_code,
+                        message: "You do'nt have driver profile",
+                      });
+    } else if (driverData?.is_blocked) {
+      return res.send({
+                        code: constant.error_code,
+                        message: `The driver has been blocked. If you believe this is an error, please contact the support team for assistance`,
+                      });
+    }else {
+
+    
       let jwtToken = jwt.sign(
                               { 
                                 userId: driverData._id,
@@ -2240,16 +2247,21 @@ exports.switchToCompany = async (req, res) => {
     let user = req.user;
 
     let companyData = await user_model.findOne({
-      email: driverData.email,
-      is_deleted: false,
-    });
+                                                email: driverData.email,
+                                                is_deleted: false,
+                                              });
 
     if (!companyData) {
       res.send({
         code: constant.error_code,
         message: "You don not have company profile",
       });
-    } else {
+    } else if (companyData?.is_blocked) {
+      return res.send({
+                        code: constant.error_code,
+                        message: `The company has been blocked. If you believe this is an error, please contact the support team for assistance`,
+                      });
+    }else {
       let jwtToken = jwt.sign(
         { 
           userId: companyData._id,
