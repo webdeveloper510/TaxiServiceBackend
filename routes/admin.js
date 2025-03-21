@@ -11,6 +11,7 @@ let paymentController = require("../controllers/admin/paymentController.js");
 let subscriptionController = require("../controllers/admin/subscriptionController.js");
 const { verifyToken } = require("../middleware/auth");
 const { adminAuth } = require("../middleware/adminAuth");
+const { companyAuth } = require("../middleware/companyAuth");
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
@@ -80,7 +81,7 @@ router.post("/admin_add_vehicle/:driverId", [verifyToken], vehicleController.adm
 router.get("/get_vehicles", [verifyToken], vehicleController.get_vehicles);
 router.get( "/get_vehicles_by_driverid/:id", [verifyToken], vehicleController.get_vehicles_by_driverid);
 router.get( "/get_vehicles_with_type/:vehicle_type", [verifyToken], vehicleController.get_vehicles_with_type );
-router.post("/block_user", [verifyToken , adminAuth], vehicleController.blockUser);
+router.post("/block_user", [verifyToken ], vehicleController.blockUser);
 router.post("/admin_get_all_vehicle", [verifyToken , adminAuth], vehicleController.adminGetAllVehicle);
 
 router.get(
