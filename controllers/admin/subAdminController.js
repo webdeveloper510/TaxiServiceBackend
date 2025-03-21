@@ -650,6 +650,7 @@ exports.admin_list = async (req, res) => {
         role: 1,
         is_deleted: 1,
         status: 1,
+        is_blocked: 1
       }
     );
     res.send({
@@ -1180,6 +1181,7 @@ exports.hotelListAdmin = async (req, res) => {
                   profile_image: 1,
                   role: 1,
                   totalBalance: 1,
+                  is_blocked:1,
                   status: 1,
                   land: { $arrayElemAt: ["$meta.land", 0] },
                   post_code: { $arrayElemAt: ["$meta.post_code", 0] },
