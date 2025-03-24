@@ -769,13 +769,20 @@ exports.send_otp = async (req, res) => {
         });
         return;
       }
+
+      if (check_driver.is_blocked) {
+        return res.send({
+                      code: constant.error_code,
+                      message: "You are blocked by administration. Please contact administration",
+                    });
+      }
       data.OTP = randToken.generate(4, "123456789");
       data.otp_expiry = moment().add("minutes", 1).format();
       let updateUser = await DRIVER.findOneAndUpdate(
-        { _id: check_driver._id },
-        data,
-        { new: true }
-      );
+                                                      { _id: check_driver._id },
+                                                      data,
+                                                      { new: true }
+                                                    );
       var transporter = nodemailer.createTransport(emailConstant.credentials);
       var mailOptions = {
         from: emailConstant.from_email,
@@ -938,6 +945,14 @@ There was a request to change your password!
         message: "OTP sent successfully",
       });
     } else {
+
+      if (check_email.is_blocked) {
+        return res.send({
+                      code: constant.error_code,
+                      message: "You are blocked by administration. Please contact administration",
+                    });
+      }
+
       data.OTP = randToken.generate(4, "123456789");
       data.otp_expiry = moment().add("minutes", 1).format();
       let updateUser = await USER.findOneAndUpdate(
