@@ -1496,7 +1496,7 @@ exports.companyRevenueDetails = async (req, res) => {
   // if (dateList.length > 0) {
 
   //   for(let value of dateList){
-  //     let newDateQuery = { pickup_time: { $gte: value.startDate, $lte: value.endDate } };
+  //     let newDateQuery = { pickup_date_time: { $gte: value.startDate, $lte: value.endDate } };
   //     const tripData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , newDateQuery); // completed with payment
   //     barCharData.push({ label : value.label , tripCount: tripData.tripCount})
   //   }
@@ -1618,7 +1618,7 @@ exports.driverRevenueDetails = async (req, res) => {
   // if (dateList.length > 0) {
 
   //   for(let value of dateList){
-  //     let newDateQuery = { pickup_time: { $gte: value.startDate, $lte: value.endDate } };
+  //     let newDateQuery = { pickup_date_time: { $gte: value.startDate, $lte: value.endDate } };
   //     const tripData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , newDateQuery); // completed with payment
   //     barCharData.push({ label : value.label , tripCount: tripData.tripCount})
   //   }
@@ -1733,7 +1733,7 @@ exports.hotelRevenueDetails = async (req, res) => {
   // if (dateList.length > 0) {
 
   //   for(let value of dateList){
-  //     let newDateQuery = { pickup_time: { $gte: value.startDate, $lte: value.endDate } };
+  //     let newDateQuery = { pickup_date_time: { $gte: value.startDate, $lte: value.endDate } };
   //     const tripData =  await getComapnyRevenueByStatus(companyId , constant.TRIP_STATUS.COMPLETED , true , newDateQuery); // completed with payment
   //     barCharData.push({ label : value.label , tripCount: tripData.tripCount})
   //   }
