@@ -1019,7 +1019,7 @@ exports.informUserSubscriptionCanceledDueToBlock = async (subsctiptionId) => {
   const planDetails = await PLANS_MODEL.findOne({planId:subscriptionDetails?.planId });
   let toEmail = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? subscriptionDetails?.purchaseByCompanyId?.email : subscriptionDetails?.purchaseByDriverId?.email;
   let UserName = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? `${subscriptionDetails?.purchaseByCompanyId?.first_name } ${subscriptionDetails?.purchaseByCompanyId?.last_name}` : `${subscriptionDetails?.purchaseByDriverId?.first_name } ${subscriptionDetails?.purchaseByDriverId?.last_name}`;
-  toEmail = 'vsingh@codenomad.net'
+  // toEmail = 'vsingh@codenomad.net'
   const now = new Date();
   const formattedDateTime = now.toLocaleString("en-GB", { 
     day: "2-digit",
@@ -1073,7 +1073,7 @@ exports.notifyUserAccountBlocked = async (userInfo) => {
 
   let toEmail = userInfo?.email;
   let UserName = `${userInfo?.first_name } ${userInfo?.last_name}`;
-  toEmail = 'vsingh@codenomad.net'
+  // toEmail = 'vsingh@codenomad.net'
   const now = new Date();
   const formattedDateTime = now.toLocaleString("en-GB", { 
     day: "2-digit",
@@ -1128,7 +1128,7 @@ exports.notifyUserAccountReactivated = async (userInfo) => {
 
   let toEmail = userInfo?.email;
   let UserName = `${userInfo?.first_name } ${userInfo?.last_name}`;
-  toEmail = 'vsingh@codenomad.net'
+  // toEmail = 'vsingh@codenomad.net'
   const now = new Date();
   const formattedDateTime = now.toLocaleString("en-GB", { 
     day: "2-digit",

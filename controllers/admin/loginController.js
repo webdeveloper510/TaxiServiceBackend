@@ -104,35 +104,45 @@ exports.login = async (req, res) => {
 
     let check_data;
     let userData = await USER.findOne({
-      $and: [
-        {
-          $or: [
-            { email: { $regex: data.email, $options: "i" } },
-            { phone: { $regex: data.email, $options: "i" } },
-          ],
-        },
-        {
-          is_deleted: false,
-        },
-      ],
-    }).populate("created_by driverId");
+                                        $and: [
+                                          {
+                                            $or: [
+                                              { email: { $regex: data.email, $options: "i" } },
+                                              { phone: { $regex: data.email, $options: "i" } },
+                                            ],
+                                          },
+                                          {
+                                            is_deleted: false,
+                                          },
+                                        ],
+                                      }).populate("created_by driverId");
 
     
 
     // If user is blocked by admin or super admin
 
-    if (userData && userData.role != "SUPER_ADMIN" && (userData?.is_blocked || userData?.created_by?.is_blocked) ) {
-      return res.send({
-                        code: constant.error_code,
-                        message:
-                          "You are blocked by administration. Please contact administration",
-                      });
+    if (userData && userData.role != "SUPER_ADMIN" && (userData?.is_blocked) ) {
+
+      if ( userData.role != constants.ROLES.COMPANY) {
+        return res.send({
+                          code: constant.error_code,
+                          message:
+                            "You are blocked by administration. Please contact administration",
+                        });
+      } else if (userData?.role == constants.ROLES.COMPANY && userData?.isDriver == false){
+        return res.send({
+                          code: constant.error_code,
+                          message:
+                            "You are blocked by administration. Please contact administration",
+                        });
+      } else {}
+      
     }
 
     
 
-    // If user is not a company , admin , super admin
-    if (!userData) {
+    // drver login code
+    if (!userData || (userData?.role == constants.ROLES.COMPANY &&  userData?.isDriver == true)) {
 
       
       let check_again = await DRIVER.findOne({
