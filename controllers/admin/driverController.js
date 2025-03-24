@@ -1444,89 +1444,89 @@ exports.updateVerification = async (req, res) => {
       to: updateDriver.email,
       subject: "Driver Verified Successfully",
       html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
-@import url(https://fonts.googleapis.com/css?family=Nunito);
+              "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+              <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
+              @import url(https://fonts.googleapis.com/css?family=Nunito);
 
-/* Take care of image borders and formatting */
+              /* Take care of image borders and formatting */
 
-img {
-  max-width: 600px;
-  outline: none;
-  text-decoration: none;
-  -ms-interpolation-mode: bicubic;
-}
-html{
-  margin: 0;
-  padding:0;
-}
+              img {
+                max-width: 600px;
+                outline: none;
+                text-decoration: none;
+                -ms-interpolation-mode: bicubic;
+              }
+              html{
+                margin: 0;
+                padding:0;
+              }
 
-a {
-  text-decoration: none;
-  border: 0;
-  outline: none;
-  color: #bbbbbb;
-}
+              a {
+                text-decoration: none;
+                border: 0;
+                outline: none;
+                color: #bbbbbb;
+              }
 
-a img {
-  border: none;
-}
+              a img {
+                border: none;
+              }
 
-/* General styling */
+              /* General styling */
 
-td, h1, h2, h3  {
-  font-family: Helvetica, Arial, sans-serif;
-  font-weight: 400;
-}
+              td, h1, h2, h3  {
+                font-family: Helvetica, Arial, sans-serif;
+                font-weight: 400;
+              }
 
-td {
-  text-align: center;
-}
+              td {
+                text-align: center;
+              }
 
-body {
-  -webkit-font-smoothing:antialiased;
-  -webkit-text-size-adjust:none;
-  width: 100%;
-  height: 100%;
-  color: #666;
-  background: #fff;
-  font-size: 16px;
-  width: 100%;
-  padding: 0px;
-  margin: 0px;
-}
+              body {
+                -webkit-font-smoothing:antialiased;
+                -webkit-text-size-adjust:none;
+                width: 100%;
+                height: 100%;
+                color: #666;
+                background: #fff;
+                font-size: 16px;
+                width: 100%;
+                padding: 0px;
+                margin: 0px;
+              }
 
- table {
-  border-collapse: collapse !important;
-}
+              table {
+                border-collapse: collapse !important;
+              }
 
-.headline {
-  color: #444;
-  font-size: 36px;
-      padding-top: 10px;
-}
+              .headline {
+                color: #444;
+                font-size: 36px;
+                    padding-top: 10px;
+              }
 
-.force-full-width {
-width: 100% !important;
-}
+              .force-full-width {
+              width: 100% !important;
+              }
 
 
-</style><style media="screen" type="text/css">
-    @media screen {
-      td, h1, h2, h3 {
-        font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
-      }
-    }
-</style><style media="only screen and (max-width: 480px)" type="text/css">
-  /* Mobile styles */
-  @media only screen and (max-width: 480px) {
+            </style><style media="screen" type="text/css">
+                @media screen {
+                  td, h1, h2, h3 {
+                    font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
+                  }
+                }
+            </style><style media="only screen and (max-width: 480px)" type="text/css">
+              /* Mobile styles */
+              @media only screen and (max-width: 480px) {
 
-    table[class="w320"] {
-      width: 320px !important;
-    }
-  }
-</style>
-<style type="text/css"></style>
+                table[class="w320"] {
+                  width: 320px !important;
+                }
+              }
+            </style>
+            <style type="text/css"></style>
 
 </head>
 <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
@@ -1546,7 +1546,7 @@ background:#ccc;
 <tbody style="margin-top: 5px;">
 <tr class="" style="border-bottom: 1px solid #cccccc38;">
 <td class="">
-<img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
+
 </td>
 </tr>
 <tr class=""><td class="headline"> iDispatch!</td></tr>
@@ -1725,7 +1725,7 @@ background:#ccc;
 <tbody style="margin-top: 5px;">
 <tr class="" style="border-bottom: 1px solid #cccccc38;">
 <td class="">
-<img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
+
 </td>
 </tr>
 <tr class=""><td class="headline"> iDispatch!</td></tr>

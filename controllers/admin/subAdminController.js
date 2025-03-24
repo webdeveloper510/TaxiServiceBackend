@@ -2690,7 +2690,7 @@ exports.send_request_trip = async (req, res) => {
                     <tbody style="margin-top: 5px;">
                       <tr class="" style="border-bottom: 1px solid #cccccc38;">
                     <td class="">
-                    <img alt="robot picture" class="welcom-logo" src="C:\Users\Richa\Desktop\taxi-app-images\login-logo.png" width="40%">
+                    
                     </td>
                     </tr>
                     <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
