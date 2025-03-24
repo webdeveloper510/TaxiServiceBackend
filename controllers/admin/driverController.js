@@ -1283,7 +1283,7 @@ exports.update_driver = async (req, res) => {
               <tr>
               <td class="">
               <div class="">
-              <a style="background-color:#ffcc54;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://idispatch.nl/login">Visit Account and Start Managing</a>
+              <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://idispatch.nl/login">Visit Account and Start Managing</a>
               </div>
                <br>
               </td>
@@ -2309,6 +2309,15 @@ exports.switchDriverToPartnerCompany = async (req, res) => {
   try {
 
     let currentDate = new Date();
+    const companyDetails = await USER.findById(_id.req.params.companyId);
+
+    if (companyDetails?.is_blocked) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: `This company has been blocked by administration.`
+                      });
+    }
     const companyId = new mongoose.Types.ObjectId(req.params.companyId);
     const driverId = new mongoose.Types.ObjectId(req.companyPartnerAccess ? req.CompanyPartnerDriverId : req.userId);
 
