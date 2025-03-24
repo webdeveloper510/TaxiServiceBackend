@@ -347,12 +347,7 @@ exports.add_sub_admin = async (req, res) => {
                     <tr>
                     <td class="" style="color:#444;
                                         ">
-                    <p>The password was auto-generated, however feel free to change it 
-                      
-                        <a href="" style="text-decoration: underline;">
-                          here</a>
-                      
-                      </p>
+                    
                       </td>
                     </tr>
                     </tbody></table></td>
@@ -605,12 +600,7 @@ exports.add_admin = async (req, res) => {
                     <tr>
                     <td class="" style="color:#444;
                                         ">
-                    <p>The password was auto-generated, however feel free to change it 
-                      
-                        <a href="" style="text-decoration: underline;">
-                          here</a>
-                      
-                      </p>
+                    
                       </td>
                     </tr>
                     </tbody></table></td>
@@ -2743,12 +2733,7 @@ exports.send_request_trip = async (req, res) => {
                     <tr>
                     <td class="" style="color:#444;
                                         ">
-                    <p>The password was auto-generated, however feel free to change it 
-                      
-                        <a href="" style="text-decoration: underline;">
-                          here</a>
-                      
-                      </p>
+                    
                       </td>
                     </tr>
                     </tbody></table></td>

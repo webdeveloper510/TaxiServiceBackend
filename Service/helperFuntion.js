@@ -898,12 +898,7 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
                   <tr>
                   <td class="" style="color:#444;
                                       ">
-                  <p>The password was auto-generated, however feel free to change it
-
-                      <a href="" style="text-decoration: underline;">
-                        here</a>
-
-                    </p>
+                  
                     </td>
                   </tr>
                   </tbody></table></td>
