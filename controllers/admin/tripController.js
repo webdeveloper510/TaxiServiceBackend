@@ -2267,6 +2267,13 @@ exports.alocate_driver = async (req, res) => {
     }
 
     let driver_full_info = await DRIVER.findOne({ _id: data.driver_name });
+
+    if (driver_full_info?.is_blocked) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "This driver has been bocked by the administration.",
+                      });
+    }
     if (data.status != "Canceled") {
 
       let check_driver = await DRIVER.findOne({ _id: data.driver_name });
