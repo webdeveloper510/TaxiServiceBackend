@@ -2309,7 +2309,7 @@ exports.switchDriverToPartnerCompany = async (req, res) => {
   try {
 
     let currentDate = new Date();
-    const companyDetails = await USER.findById(_id.req.params.companyId);
+    const companyDetails = await USER.findById(req.params.companyId);
 
     if (companyDetails?.is_blocked) {
 
