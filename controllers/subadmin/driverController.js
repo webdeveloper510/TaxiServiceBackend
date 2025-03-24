@@ -1114,7 +1114,7 @@ exports.company_access_list = async (req, res) => {
     } else {
       res.send({
         code: constant.error_code,
-        message: "You didn't have any access",
+        message: "You dont have any access",
       });
     }
   } catch (err) {

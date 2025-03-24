@@ -742,7 +742,7 @@ exports.companyGetTrip = async (req, res) => {
       startDate = startDate.toISOString();
       endDate = endDate.toISOString();
 
-      dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
     }
 
     const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
@@ -1054,7 +1054,7 @@ exports.driverGetTrip = async (req, res) => {
       startDate = startDate.toISOString();
       endDate = endDate.toISOString();
 
-      dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
     }
 
     // Pagination variables
@@ -1262,7 +1262,7 @@ exports.HotelGetTrip = async (req, res) => {
       startDate = startDate.toISOString();
       endDate = endDate.toISOString();
 
-      dateQuery = { pickup_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
     }
 
 
