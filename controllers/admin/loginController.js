@@ -269,6 +269,15 @@ exports.login = async (req, res) => {
                                                         { new: true }
                                                       );
 
+      if (updateLogin?.isCompany) {
+
+        let updateUserDeviceToken = await USER.findOneAndUpdate(
+                                                          { _id: updateLogin.driver_company_id },
+                                                          { $set: {deviceToken: deviceToken} },
+                                                          { new: true }
+                                                        );
+      }
+
       let check_data2 = updateLogin.toObject();
       check_data2.role = "DRIVER";
       check_data2.totalTrips = completedTrips;
