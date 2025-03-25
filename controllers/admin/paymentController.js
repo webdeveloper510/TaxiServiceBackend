@@ -11,6 +11,7 @@ const SETTING_MODEL = require("../../models/user/setting_model");
 const TRIP = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const { getUserActivePaidPlans} = require("../../Service/helperFuntion");
 
 exports.tripCommissionPayment = async (req, res) => {
   try {
@@ -155,7 +156,9 @@ exports.successTripPay = async (req, res) => {
         const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
         
         const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
-        const superAdminCommission = (commission * parseFloat(adminCommision.value)) / 100 || 0;
+
+        const myPlans = await getUserActivePaidPlans(companyData);
+        const superAdminCommission = (myPlans.length > 0 || companyData?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
 
         const companyTransaction = new transaction({
                                                       from: trip_by_id.driver_name,

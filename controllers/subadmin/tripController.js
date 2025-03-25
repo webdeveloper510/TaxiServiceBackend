@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
-const {partnerAccountRefreshTrip , noShowTrip} = require("../../Service/helperFuntion");
+const {partnerAccountRefreshTrip , noShowTrip , getUserActivePaidPlans} = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 
@@ -403,9 +403,12 @@ exports.edit_trip = async (req, res) => {
           commission = (data.price * data.commission.commission_value) / 100;
         }
 
+        const companyDetails = await USER.findById(trip_data?.created_by_company_id);
+        const myPlans = await getUserActivePaidPlans(companyDetails);
+
         const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
 
-        data.superAdminPaymentAmount = (commission * parseFloat(adminCommision?.value)) / 100 || 0;
+        data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision?.value)) / 100 || 0);
         data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
         data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
   
@@ -540,9 +543,11 @@ exports.access_edit_trip = async (req, res) => {
         commission = (data.price * data.commission.commission_value) / 100;
       }
 
+      const companyDetails = await USER.findById(trip_data?.created_by_company_id);
+      const myPlans = await getUserActivePaidPlans(companyDetails);
       const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
 
-      data.superAdminPaymentAmount = (commission * parseFloat(adminCommision.value)) / 100 || 0;
+      data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
       data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
       data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
 
