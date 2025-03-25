@@ -407,7 +407,7 @@ exports.edit_trip = async (req, res) => {
         const myPlans = await getUserActivePaidPlans(companyDetails);
 
         const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
-
+        
         data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision?.value)) / 100 || 0);
         data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
         data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
