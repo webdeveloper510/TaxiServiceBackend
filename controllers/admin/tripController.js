@@ -2289,6 +2289,7 @@ exports.alocate_driver = async (req, res) => {
                           driver_name: check_driver._id,
                           vehicle: check_driver.defaultVehicle,
                           trip_status: data.status,
+                          cancellation_reason: ""
                         },
                       };
 
@@ -2556,6 +2557,7 @@ exports.access_alocate_driver = async (req, res) => {
                           driver_name: check_driver._id,
                           vehicle: check_driver.defaultVehicle,
                           trip_status: data.status,
+                          cancellation_reason: ""
                         },
                       };
 
