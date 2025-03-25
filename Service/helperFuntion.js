@@ -1329,6 +1329,154 @@ exports.notifyInsufficientBalance = async () => {
     throw error;
   }
 }
+
+exports.transferTripToCompanyAccount = async (userInfo , io) => {
+
+  // Whe driver will be block all the trips will be reassigned to the company and company with their account access and partner access
+  try {
+
+    if (userInfo.role == constant.ROLES.DRIVER) {
+      // let driverTrips = await TRIP_MODEL.find({driver_name: userInfo._id , trip_status: { $ne: constant.TRIP_STATUS.COMPLETED }})
+      let companyIds = await TRIP_MODEL.distinct("created_by_company_id", {
+                                                                              driver_name: userInfo._id, 
+                                                                              // trip_status: { $ne: constant.TRIP_STATUS.COMPLETED }
+                                                                              trip_status: constant.TRIP_STATUS.BOOKED
+                                                                          }
+                                                );
+
+      const updateTrips = await TRIP_MODEL.updateMany(
+                                                          { driver_name: userInfo._id  , trip_status: constant.TRIP_STATUS.BOOKED},  // Find all trips assigned to the blocked driver
+                                                          { $set: { driver_name: null, trip_status: constant.TRIP_STATUS.PENDING } }  // Update fields
+                                                      );
+    
+      let driver_name = userInfo?.first_name + " " + userInfo?.last_name;
+
+      for (let companyId of companyIds) {
+
+        let companyDetail = await user_model.findById(companyId);
+        const companyAgencyData = await AGENCY_MODEL.findOne({user_id: companyId});
+        let companyMessage = `The driver (${driver_name}) assigned to your trips has been blocked. The affected trips have been returned to your account for reassignment.`;
+        let companyAccountAccessMessage =`The driver (${driver_name})assigned to trips from the following account access: ${companyAgencyData?.company_name} Company has been blocked. The affected trips have been returned to their respective company accounts for reassignment.`
+        let companyPartnerMessage =`The driver (${driver_name})assigned to trips from the following ${companyAgencyData?.company_name} Company (Your partner company) has been blocked. The affected trips have been returned to their respective company accounts for reassignment.`
+        
+        if (companyDetail?.socketId) {
+          // socket for app
+          await io.to(companyDetail?.socketId).emit("driverBlockTripReturned", { message: companyMessage  });
+
+          // for refresh trip
+          await io.to(companyDetail?.socketId).emit("refreshTrip",{ message: companyMessage  });
+        }
+
+        if (companyDetail?.webSocketId) {
+          // socket for app
+          await io.to(companyDetail?.webSocketId).emit("driverBlockTripReturned", { message: companyMessage  });
+
+          // for refresh trip
+          await io.to(companyDetail?.webSocketId).emit("refreshTrip",{ message: companyMessage  });
+        }
+
+        if (companyDetail?.deviceToken) {
+          await this.sendNotification( user?.deviceToken,companyMessage, `Driver Blocked – Affected Trips Returned to Your Account`, userInfo );
+        }
+
+
+        // For the driver who has company access
+          
+        const driverHasCompanyAccess = await driver_model.find({
+                                                                  _id: { $ne: userInfo._id}, //Notifications and pop-ups will exclude the driver currently assigned to the ride.
+                                                                  company_account_access  : { $elemMatch: { company_id: new mongoose.Types.ObjectId(companyId) } },
+                                                              });
+
+        if (driverHasCompanyAccess){
+
+          for (let driverCompanyAccess of driverHasCompanyAccess) {
+            
+            if (driverCompanyAccess?.socketId) {
+
+              await io.to(driverCompanyAccess?.socketId).emit("driverBlockTripReturned", { message: companyAccountAccessMessage, });
+            }
+
+            if (driverCompanyAccess?.webSocketId) {
+
+              await io.to(driverCompanyAccess?.webSocketId).emit("driverBlockTripReturned", { message: companyAccountAccessMessage, });
+            }
+
+            if (driverCompanyAccess?.deviceToken) {
+
+              await this.sendNotification(
+                                      driverCompanyAccess?.deviceToken,
+                                      companyAccountAccessMessage,
+                                      `Driver Blocked – Affected Trips Returned to Your Account ( Company Access:- ${companyAgencyData?.company_name} )`, 
+                                      userInfo 
+                                    );
+            }
+          }
+        }
+
+        // functionality for the drivers who have account access as partner
+        const driverHasCompanyPartnerAccess = await driver_model.find({
+                                                                        _id: { $ne: userInfo._id}, //Notifications and pop-ups will exclude the driver currently assigned to the ride.
+                                                                        parnter_account_access : {
+                                                                          $elemMatch: { company_id: new mongoose.Types.ObjectId(companyId) },
+                                                                        },
+                                                                      });
+
+        if (driverHasCompanyPartnerAccess){
+
+          for (let partnerAccount of driverHasCompanyPartnerAccess) {
+
+            // for partner app side
+            if (partnerAccount?.socketId) {
+              await io.to(partnerAccount?.socketId).emit("driverBlockTripReturned", { message: companyPartnerMessage, } );
+                
+              // for refresh trip
+              await io.to(partnerAccount?.socketId).emit( "refreshTrip",{ message: companyPartnerMessage, } );
+            }
+
+            // for partner Web side
+            if (partnerAccount?.webSocketId) {
+
+              await io.to(partnerAccount?.webSocketId).emit("driverBlockTripReturned", { message: companyPartnerMessage, } );
+
+              await io.to(partnerAccount?.webSocketId).emit("refreshTrip",  { message: companyPartnerMessage, } );
+            }
+
+            // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
+            if (partnerAccount?.deviceToken) {
+              // notification for driver
+
+              await this.sendNotification(
+                                      partnerAccount?.deviceToken, companyPartnerMessage,
+                                      `Driver Blocked – Affected Trips Returned to Your Account ( Company partner Access:- ${companyAgencyData?.company_name} )`, 
+                                      userInfo 
+                                    );
+            } else if (partnerAccount.isCompany){
+
+              const companyData = await user_model.findById(partnerAccount.driver_company_id);
+              if (companyData?.deviceToken) {
+                // notification for company
+
+                await this.sendNotification(
+                                        companyData?.deviceToken,
+                                        companyPartnerMessage,
+                                        `Driver Blocked – Affected Trips Returned to Your Account ( Company Partner Access:- ${companyAgencyData?.company_name} )`,
+                                        userInfo
+                                      );
+              }
+            }
+          }
+        }
+      }
+     
+    }
+
+    return "done"
+  } catch (error) {
+
+    console.error("Error checkPayouts status:",  error.message);
+    throw error;
+  }
+}
 //   try {
 //     const accessToken = await getAccessToken();
 

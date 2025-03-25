@@ -1978,27 +1978,57 @@ exports.logout = async (req, res) => {
     //   { new: true }
     // );
 
-    let driver = await DRIVER.findOne({ _id: data.driverId });
+    let driverInfo = await DRIVER.findOne({ _id: data.driverId });
     let user_info = await USER.findOne({ _id: data.driverId });
 
-    if (driver) {
+    if (driverInfo) {
       // if driver is logging out
-      let updateLogin1 = await DRIVER.findOneAndUpdate(
-        { _id: data.driverId },
-        {
-          $set: { is_login: false, deviceToken: null },
-        },
-        { new: true }
-      );
+      let driverUpdate = await DRIVER.findOneAndUpdate(
+                                                        { _id: data.driverId },
+                                                        {
+                                                          $set: { 
+                                                                  is_login: false, 
+                                                                  deviceToken: null, // driver will not recieve any notification in his device
+                                                                  status: false // driver will be offline
+                                                                 },
+                                                        },
+                                                        { new: true }
+                                                      );
+
+      if (driverInfo?.isCompany) { // if driver also a company
+
+        let companyUpdate = await USER.findOneAndUpdate(
+                                                          { _id: driverInfo?.driver_company_id },
+                                                          {
+                                                            $set: { deviceToken: null },
+                                                          },
+                                                          { new: true }
+                                                        );
+      }
     } else {
       // If company logging out
-      let updateLogin1 = await DRIVER.findOneAndUpdate(
-        { _id: user_info?.driverId },
-        {
-          $set: { is_login: false, deviceToken: null },
-        },
-        { new: true }
-      );
+      let companyUpdate = await USER.findOneAndUpdate(
+                                                      { _id: data.driverId },
+                                                      {
+                                                        $set: { deviceToken: null },
+                                                      },
+                                                      { new: true }
+                                                    );
+
+      if (user_info?.isDriver) { // if driver also a company
+
+        let companyUpdate = await DRIVER.findOneAndUpdate(
+                                                            { _id: user_info?.driverId },
+                                                            {
+                                                              $set: { 
+                                                                      is_login: false, 
+                                                                      deviceToken: null, // driver will not recieve any notification in his device
+                                                                      status: false // driver will be offline
+                                                                    },
+                                                            },
+                                                            { new: true }
+                                                          );
+      }
     }
 
     res.send({

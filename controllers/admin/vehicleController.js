@@ -9,7 +9,12 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require('../../models/user/driver_model')
 const imageStorage = require('../../config/awss3')
-const { terminateSubscriptionForBlockedDriver , notifyUserAccountBlocked , notifyUserAccountReactivated , getUserCurrentActivePayedPlan} = require("../../Service/helperFuntion");
+const { 
+        terminateSubscriptionForBlockedDriver , 
+        notifyUserAccountBlocked , 
+        notifyUserAccountReactivated , 
+        getUserCurrentActivePayedPlan , 
+        transferTripToCompanyAccount} = require("../../Service/helperFuntion");
 // const imageStorage = new CloudinaryStorage({
 //     cloudinary: cloudinary,
 //     params: {
@@ -470,7 +475,7 @@ exports.adminDeleteVehicle = async (req, res) => {
 exports.blockUser = async (req, res) => {
     try {
         let data = req.body;
-
+       
         const role = data?.role;
         const criteria = { _id: data._id };
         const updateData = { is_blocked: data?.is_blocked };
@@ -498,6 +503,10 @@ exports.blockUser = async (req, res) => {
         } else if (role == constant.ROLES.DRIVER) {
 
             userInfo = await driver_model.findOneAndUpdate(criteria, updateData, option).lean();
+
+            if(data?.is_blocked == 'true') {
+                await transferTripToCompanyAccount(userInfo , req.io);
+            }
         } else {
             return res.send({
                                 code: constant.error_code,
