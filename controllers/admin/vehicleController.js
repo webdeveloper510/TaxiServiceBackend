@@ -505,7 +505,7 @@ exports.blockUser = async (req, res) => {
             userInfo = await driver_model.findOneAndUpdate(criteria, updateData, option).lean();
 
             if(data?.is_blocked == 'true') {
-                await transferTripToCompanyAccount(userInfo , req.io);
+                transferTripToCompanyAccount(userInfo , req.io);
             }
         } else {
             return res.send({
