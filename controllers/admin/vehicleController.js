@@ -556,7 +556,7 @@ exports.blockUser = async (req, res) => {
            
             return res.send({
                                 code: constant.success_code,
-                                message: data?.is_blocked == 'true' ? `The ${userInfo.role} has been successfully blocked.` : `The ${userInfo.role} has been successfully unblocked.`,
+                                message: data?.is_blocked == 'true' ? `The ${userInfo.role.toLowerCase()} has been successfully blocked.` : `The ${userInfo.role.toLowerCase()} has been successfully unblocked.`,
                                 
                             })
         }
