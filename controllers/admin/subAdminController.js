@@ -3031,9 +3031,10 @@ exports.updatePartnerAccountAccess = async (req, res) => {
 exports.get_driver_list = async (req, res) => {
   try {
     const condition = {
-      is_deleted: false,
-      _id: { $ne: req.user?.driverId?._id },
-    };
+                        is_deleted: false,
+                        // _id: { $ne: req.user?.driverId?._id },
+                      };
+
     let driver_list = await DRIVER.find(condition);
 
     if (driver_list.length == 0) {
@@ -3046,19 +3047,19 @@ exports.get_driver_list = async (req, res) => {
     // let access_granted = driver_list.filter(driver =>  req.user.company_account_access.includes(driver._id));
 
     let access_granted = driver_list.filter((driver) =>
-      req.user.company_account_access.some(
-        (driver_ids) => driver_ids.driver_id.toString() == driver._id.toString()
-      )
-    );
+                                                req.user.company_account_access.some(
+                                                  (driver_ids) => driver_ids.driver_id.toString() == driver._id.toString()
+                                                )
+                                              );
 
     // Get drivers that do not have access
     let access_pending = driver_list.filter(
-      (driver) =>
-        !req.user.company_account_access.some(
-          (driver_ids) =>
-            driver_ids.driver_id.toString() == driver._id.toString()
-        )
-    );
+                                              (driver) =>
+                                                !req.user.company_account_access.some(
+                                                  (driver_ids) =>
+                                                    driver_ids.driver_id.toString() == driver._id.toString()
+                                                )
+                                            );
 
     return res.send({
       code: constant.success_code,
