@@ -140,9 +140,9 @@ exports.login = async (req, res) => {
     }
 
     
-
+    
     // drver login code
-    if (!userData || (userData?.role == constants.ROLES.COMPANY &&  userData?.isDriver == true)) {
+    if (!userData || (userData?.role == constants.ROLES.COMPANY &&  userData?.isDriver == true && userData?.is_blocked == true)) {
 
       
       let check_again = await DRIVER.findOne({

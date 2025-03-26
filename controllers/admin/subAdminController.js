@@ -2922,6 +2922,7 @@ exports.updatePartnerAccountAccess = async (req, res) => {
       return res.send({
                         code: constant.error_code,
                         message: `You are not permitted to assign partner account access to yourself.`,
+                        re:req.user
                       });
     }
 
@@ -3111,6 +3112,7 @@ exports.getPartnerDriverList = async (req, res) => {
 
       return res.send({
                         code: constant.success_code,
+                        req:req.user,
                         access_granted: driverHasCompanyPartnerAccess,
                         access_pending: driverNotHasCompanyPartnerAccess
                       });
