@@ -739,11 +739,51 @@ io.on("connection", (socket) => {
             io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
           }
 
+          if (partnerAccount?.webSocketId) {
+
+            // for refresh trip
+            io.to(partnerAccount?.webSocketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
+          }
+
           if (partnerAccount?.deviceToken) {
             sendNotification(
                                     partnerAccount?.deviceToken,
                                     `The trip ( ${ trip_details.trip_id } ) has been retrived by company, ${company_data?.company_name}`,
                                     `Trip retrieved (Partner Account Access:- ${company_data?.company_name})`,
+                                    trip
+                                  );
+          }
+        }
+      }
+
+      // For the driver who has company access
+        
+      const driverHasCompanyAccess = await driver_model.find({
+                                                                company_account_access  : {
+                                                                                              $elemMatch: { company_id: new mongoose.Types.ObjectId(trip_details?.created_by_company_id) },
+                                                                                            },
+                                                              });
+
+      if (driverHasCompanyAccess){
+
+        for (let driverCompanyAccess of driverHasCompanyAccess) {
+          if (driverCompanyAccess?.socketId) {
+
+            // for refresh trip
+            io.to(driverCompanyAccess?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
+          }
+
+          if (driverCompanyAccess?.webSocketId) {
+
+            // for refresh trip
+            io.to(driverCompanyAccess?.webSocketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
+          }
+
+          if (driverCompanyAccess?.deviceToken) {
+            sendNotification(
+              driverCompanyAccess?.deviceToken,
+                                    `The trip ( ${ trip_details.trip_id } ) has been retrived by company, ${company_data?.company_name}`,
+                                    `Trip retrieved (Company Account Access:- ${company_data?.company_name})`,
                                     trip
                                   );
           }
