@@ -1274,7 +1274,7 @@ io.on("connection", (socket) => {
           await driverBySocketId.save();
 
           setTimeout(() => {
-            OfflineDriver(driverBySocketId);
+            // OfflineDriver(driverBySocketId);
           }, 60 * 1000);
         }
       }, 3000);
