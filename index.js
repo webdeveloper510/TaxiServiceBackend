@@ -971,7 +971,7 @@ io.on("connection", (socket) => {
                     await sendNotification(
                                             partnerAccount?.deviceToken,
                                             `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
-                                            `Trip Accepted ( Partner Account Access:- ${companyAgencyData.company_name})`,
+                                            `Trip Cancelled ( Partner Account Access:- ${companyAgencyData.company_name})`,
                                             driverBySocketId
                                           );
                   } else if (partnerAccount.isCompany){
@@ -983,7 +983,7 @@ io.on("connection", (socket) => {
                       await sendNotification(
                                               companyData?.deviceToken,
                                               `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
-                                              `Trip Accepted ( Partner Account Access:- ${companyAgencyData.company_name})`,
+                                              `Trip Cancelled ( Partner Account Access:- ${companyAgencyData.company_name})`,
                                               driverBySocketId
                                             );
                     }
