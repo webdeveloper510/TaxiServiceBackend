@@ -743,7 +743,7 @@ io.on("connection", (socket) => {
             await sendNotification(
                                     partnerAccount?.deviceToken,
                                     `The trip ( ${ trip_details.trip_id } ) has been retrived by company, ${company_data?.company_name}`,
-                                    `Trip Accepted (Partner Account Access:- ${company_data?.company_name})`,
+                                    `Trip retrieved (Partner Account Access:- ${company_data?.company_name})`,
                                     trip
                                   );
           }
