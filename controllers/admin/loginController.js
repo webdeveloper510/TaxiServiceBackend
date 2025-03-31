@@ -17,6 +17,7 @@ const nodemailer = require("nodemailer");
 const stripe = require("stripe")(
   "sk_test_51OH1cSSIpj1PyQQaTWeLDPcDsiROliXqsb2ROV2SvHEXwIBbnM9doAQF4rIqWGTTFM7SK4kBxjMmSXMgcLcJTSVh00l0kUa708"
 );
+const { getUserActivePaidPlans , getUserCurrentActivePayedPlan , } = require("../../Service/helperFuntion");
 
 const mongoose = require("mongoose");
 const trip_model = require("../../models/user/trip_model");
@@ -630,7 +631,8 @@ exports.get_token_detail = async (req, res) => {
    
     let result1;
     const userByID = await USER.findOne({ _id: req.userId }).populate("driverId");
-
+    const userPurchasedPlans = await getUserActivePaidPlans(req.user);
+    
     let lookupData  =   {
                           from: "agencies",
                           localField: "_id",
@@ -657,11 +659,11 @@ exports.get_token_detail = async (req, res) => {
     }
 
     // Build aggregation pipeline
-    let pipeline = [
-      { $match: { _id: new mongoose.Types.ObjectId(req.userId) } },
-      { $lookup: lookupData },
-      { $unwind: { path: "$company_detail", preserveNullAndEmptyArrays: true } }, // Single object
-    ];
+    let pipeline =  [
+                      { $match: { _id: new mongoose.Types.ObjectId(req.userId) } },
+                      { $lookup: lookupData },
+                      { $unwind: { path: "$company_detail", preserveNullAndEmptyArrays: true } }, // Single object
+                    ];
 
     // Add agency lookup only if needed
     if (agencyLookupData) {
@@ -687,31 +689,36 @@ exports.get_token_detail = async (req, res) => {
 
     if (!userByID) {
       let get_data = await DRIVER.findOne({ _id: req.userId });
+
       if (!get_data) {
-        res.send({
-          code: constants.error_code,
-          message: "Unable to fetch the detail",
-        });
-        return;
+
+        return res.send({
+                          code: constants.error_code,
+                          message: "Unable to fetch the detail",
+                        });
+        
       }
-      const totalUnpaidTrips = await trip_model
-        .find({
-          driver_name: get_data._id,
-          trip_status: "Completed",
-          is_paid: false,
-          drop_time: {
-            $lte: startOfCurrentWeek,
-          },
-        })
-        .countDocuments();
+      const totalUnpaidTrips = await trip_model.find({
+                                                      driver_name: get_data._id,
+                                                      trip_status: "Completed",
+                                                      is_paid: false,
+                                                      drop_time: {
+                                                        $lte: startOfCurrentWeek,
+                                                      },
+                                                    })
+                                                    .countDocuments();
+
       let get_data2 = get_data.toObject();
       get_data2.totalUnpaidTrips = totalUnpaidTrips;
       get_data2.role = "DRIVER";
-      res.send({
-        code: constant.success_code,
-        message: "Success",
-        result: get_data2,
-      });
+      get_data2.plan_access_status = userPurchasedPlans.length > 0 ? true : false;
+      
+
+      return res.send({
+                        code: constant.success_code,
+                        message: "Success",
+                        result: get_data2,
+                      });
     } else {
       let dataResult = getData[0];
       // const dataModified = dataResult.toObject();
@@ -720,17 +727,24 @@ exports.get_token_detail = async (req, res) => {
       if (driverData) {
         dataResult.driver = driverData;
       }
-      res.send({
-        code: constant.success_code,
-        message: "Success",
-        result: dataResult ? dataResult : userByID,
-      });
+
+      if (dataResult) {
+        dataResult.plan_access_status = userPurchasedPlans.length > 0 ? true : false;
+      } else {
+        userByID.plan_access_status = userPurchasedPlans.length > 0 ? true : false;
+      }
+      
+      return res.send({
+                        code: constant.success_code,
+                        message: "Success",
+                        result: dataResult ? dataResult : userByID,
+                      });
     }
   } catch (err) {
-    res.send({
-      code: constants.error_code,
-      message: err.message,
-    });
+    return  res.send({
+                      code: constants.error_code,
+                      message: err.message,
+                    });
   }
 };
 

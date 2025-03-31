@@ -11,7 +11,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { sendEmailDriverCreation } = require("../../Service/helperFuntion");
+const { sendEmailDriverCreation , getUserActivePaidPlans } = require("../../Service/helperFuntion");
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -501,16 +501,17 @@ exports.get_driver_detail = async (req, res) => {
         message: "Unable to fetch the detail",
       });
     } else {
-      const completedTrips = await trip_model
-        .find({
-          driver_name: driverId,
-          trip_status: "Completed",
-          is_paid: true,
-        })
-        .countDocuments();
+      const completedTrips = await trip_model.find({
+                                                      driver_name: driverId,
+                                                      trip_status: "Completed",
+                                                      is_paid: true,
+                                                    })
+                                                    .countDocuments();
       const result = driver.toObject();
       result.totalTrips = completedTrips;
 
+      const userPurchasedPlans = await getUserActivePaidPlans(req.user);
+      result.plan_access_status = userPurchasedPlans.length > 0 ? true : false;
       // extra data
       let currentDate = new Date();
       let startOfCurrentWeek = new Date(currentDate);
@@ -518,38 +519,35 @@ exports.get_driver_detail = async (req, res) => {
       startOfCurrentWeek.setDate(
         startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
       );
-      const totalActiveTrips = await trip_model
-        .find({
-          driver_name: driverId,
-          trip_status: "Active",
-        })
-        .countDocuments();
-      const totalUnpaidTrips = await trip_model
-        .find({
-          driver_name: driverId,
-          trip_status: "Completed",
-          is_paid: false,
-          drop_time: {
-            $lte: startOfCurrentWeek,
-          },
-        })
-        .countDocuments();
+      const totalActiveTrips = await trip_model.find({
+                                                      driver_name: driverId,
+                                                      trip_status: "Active",
+                                                    })
+                                                    .countDocuments();
+      const totalUnpaidTrips = await trip_model.find({
+                                                      driver_name: driverId,
+                                                      trip_status: "Completed",
+                                                      is_paid: false,
+                                                      drop_time: {
+                                                        $lte: startOfCurrentWeek,
+                                                      },
+                                                    })
+                                                    .countDocuments();
 
-      const totalReachedTrip = await trip_model
-        .find({
-          driver_name: driverId,
-          trip_status: "Reached",
-          is_paid: false,
-        })
-        .countDocuments();
-      res.send({
-        code: constant.success_code,
-        message: "Success",
-        result,
-        totalActiveTrips,
-        totalUnpaidTrips,
-        totalReachedTrip,
-      });
+      const totalReachedTrip = await trip_model.find({
+                                                      driver_name: driverId,
+                                                      trip_status: "Reached",
+                                                      is_paid: false,
+                                                    })
+                                                    .countDocuments();
+      return res.send({
+                        code: constant.success_code,
+                        message: "Success",
+                        result,
+                        totalActiveTrips,
+                        totalUnpaidTrips,
+                        totalReachedTrip,
+                      });
     }
     // if (driver && driver.is_deleted === false) {
     //     res.send({
