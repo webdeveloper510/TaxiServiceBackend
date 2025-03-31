@@ -41,6 +41,68 @@ exports.priceUploadController = async (req, res) => {
             const sheet = workbook.Sheets[sheetName];
             const jsonData = xlsx.utils.sheet_to_json(sheet);
 
+            if (jsonData.length === 0) {
+                return res.send({
+                    code: constant.error_code,
+                    message: "Empty file or no data found.",
+                });
+            }
+
+           
+
+            const requiredColumns = [
+                "Departure place",
+                "Arrival place",
+                "Number of persons",
+                "Amount",
+                "Vehicle type"
+            ];
+
+            const requiredFields = [
+                "Departure place",
+                "Arrival place",
+                "Number of persons",
+                "Vehicle type"
+            ];
+
+            // Get column names from the sheet
+            const sheetColumns = Object.keys(jsonData[0]);
+            console.log('sheetColumns-------' , sheetColumns)
+            // Check for missing columns
+            const missingColumns = requiredColumns.filter(col => !sheetColumns.includes(col));
+
+            // Check for extra columns
+            const extraColumns = sheetColumns.filter(col => !requiredColumns.includes(col));
+
+            if (missingColumns.length > 0) {
+                return res.send({
+                    code: constant.error_code,
+                    message: `Missing required columns: ${missingColumns.join(", ")}`
+                });
+            }
+
+            if (extraColumns.length > 0) {
+                return res.send({
+                    code: constant.error_code,
+                    message: `Unexpected extra columns found: ${extraColumns.join(", ")}`
+                });
+            }
+
+
+            // Validate each row for empty values
+            for (let i = 0; i < jsonData.length; i++) {
+                const row = jsonData[i];
+
+                for (const field of requiredFields) {
+                    if (!row[field] || row[field].toString().trim() === "") {
+                        return res.send({
+                            code: constant.error_code,
+                            message: `Row ${i + 2} has an empty value for '${field}'.`
+                        });
+                    }
+                }
+            }
+
 
             const bulkOps = jsonData.map(value => {
                 const normalizeString = (str) => str?.trim().toLowerCase() || "";
@@ -48,7 +110,7 @@ exports.priceUploadController = async (req, res) => {
                 const departurePlace = normalizeString(value['Departure place']);
                 const arrivalPlace = normalizeString(value['Arrival place']);
                 const vehicleType = normalizeString(value['Vehicle type']);
-                console.log({departurePlace , arrivalPlace , vehicleType});
+                
                 return {
                     updateOne: {
                         filter: { 
