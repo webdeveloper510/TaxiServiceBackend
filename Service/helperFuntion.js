@@ -926,17 +926,17 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
 
 exports.canDriverOperate = async (driverId) => {
   try {
-      let driver_full_info = await DRIVER.findOne({ _id: data.driverId });
+      let driver_full_info = await driver_model.findOne({ _id: driverId });
 
       if (driver_full_info) {
 
-        if (driver_full_info?.is_blocked) {
+        if (!driver_full_info?.is_blocked) {
           
           if (driver_full_info?.defaultVehicle) {
 
             const userPurchasedPlans = await this.getUserActivePaidPlans(driver_full_info);
 
-            if (userPurchasedPlans.length > 0) {
+            if (userPurchasedPlans.length > 0 || driver_full_info?.is_special_plan_active) {
               return  {
                         isPassed: true,
                         message: `This driver has met all the conditions to receive a trip.`
