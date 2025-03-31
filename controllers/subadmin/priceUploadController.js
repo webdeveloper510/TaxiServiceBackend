@@ -101,6 +101,15 @@ exports.priceUploadController = async (req, res) => {
                         });
                     }
                 }
+
+
+                // Validate "Amount" field
+                if (!row["Amount"] || isNaN(row["Amount"])) {
+                    return res.send({
+                        code: constant.error_code,
+                        message: `Row ${i + 2} has an invalid 'Amount'. It must be a number (integer or decimal).`
+                    });
+                }
             }
 
 
