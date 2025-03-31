@@ -24,6 +24,7 @@ const client = twilio(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
+
 exports.driverDetailsByToken = async (token) => {
   const { userId } = jwt.verify(token, process.env.JWTSECRET);
 
@@ -921,6 +922,59 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
                     };
   let sendEmail = await transporter.sendMail(mailOptions);
   return sendEmail
+}
+
+exports.canDriverOperate = async (driverId) => {
+  try {
+      let driver_full_info = await DRIVER.findOne({ _id: data.driverId });
+
+      if (driver_full_info) {
+
+        if (driver_full_info?.is_blocked) {
+          
+          if (driver_full_info?.defaultVehicle) {
+
+            const userPurchasedPlans = await this.getUserActivePaidPlans(driver_full_info);
+
+            if (userPurchasedPlans.length > 0) {
+              return  {
+                        isPassed: true,
+                        message: `This driver has met all the conditions to receive a trip.`
+                      }
+              } else {
+                return  {
+                  isPassed: false,
+                  message: `The driver must have at least one subscription plan`
+                }
+              
+            }
+          } else {
+            return  {
+                      isPassed: false,
+                      message: `The driver must have at least one registered vehicle.`
+                    }
+          }
+        } else {
+          return  {
+                    isPassed: false,
+                    message: `This driver is currently blocked.`
+                  }
+        }
+      } else {
+        return {
+          isPassed: false,
+          message: `Driver doen't exist`
+        }
+      }
+  } catch (error) {
+    console.error("Error retrieving balance:", error);
+    // throw error;
+    return {
+      isPassed: false,
+      message: `Driver doen't exist`
+    }
+  }
+  
 }
 
 exports.getUserActivePaidPlans = async (userInfo) => {

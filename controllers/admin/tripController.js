@@ -16,7 +16,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const moment = require("moment");
 const { sendNotification } = require("../../Service/helperFuntion");
-const { isDriverHasCompanyAccess , getCompanyActivePaidPlans , getUserActivePaidPlans} = require("../../Service/helperFuntion");
+const { isDriverHasCompanyAccess , getCompanyActivePaidPlans , getUserActivePaidPlans , canDriverOperate} = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
@@ -2284,6 +2284,17 @@ exports.alocate_driver = async (req, res) => {
                         });
         
       }
+
+      const driverStatus = await canDriverOperate(check_driver._id);
+
+      if (driverStatus?.isPassed == false) {
+
+        return res.send({
+                          code: constant.error_code,
+                          message: driverStatus.message ,
+                        });
+      }
+
       let newValues = {
                         $set: {
                           driver_name: check_driver._id,
@@ -2550,6 +2561,17 @@ exports.access_alocate_driver = async (req, res) => {
                           message: "Driver not available",
                         });
         
+      }
+
+
+      const driverStatus = await canDriverOperate(check_driver._id);
+
+      if (driverStatus?.isPassed == false) {
+
+        return res.send({
+                          code: constant.error_code,
+                          message: driverStatus.message ,
+                        });
       }
 
       let newValues = {
