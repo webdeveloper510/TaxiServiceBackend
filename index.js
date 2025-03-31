@@ -678,6 +678,11 @@ io.on("connection", (socket) => {
   socket.on("companyCancelledTrip", async ({ driverId, trip }) => {
     try {
       const trip_details = await trip_model.findById(trip.result?._id);
+
+      if (trip_details) {
+        trip_details.driver_name = null;
+        await trip_details.save(); // Save the updated trip details
+      }
       
       const userData = await user_model.findOne({ _id: trip_details?.created_by_company_id, });
       const company_data = await agency_model.findOne({ user_id: trip_details?.created_by_company_id, });

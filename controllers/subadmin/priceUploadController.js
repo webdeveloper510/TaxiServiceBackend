@@ -42,28 +42,37 @@ exports.priceUploadController = async (req, res) => {
             const jsonData = xlsx.utils.sheet_to_json(sheet);
 
 
-            const bulkOps = jsonData.map(value => ({
-                updateOne: {
-                    filter: { 
-                        user_id: req.userId,
-                        departure_place: value['Departure place'],
-                        arrival_place: value['Arrival place'],
-                        number_of_person: value['Number of persons'],
-                        vehicle_type: value['Vehicle type'],
-                    },
-                    update: {
-                        $set: {
+            const bulkOps = jsonData.map(value => {
+                const normalizeString = (str) => str?.trim().toLowerCase() || "";
+
+                const departurePlace = normalizeString(value['Departure place']);
+                const arrivalPlace = normalizeString(value['Arrival place']);
+                const vehicleType = normalizeString(value['Vehicle type']);
+                console.log({departurePlace , arrivalPlace , vehicleType});
+                return {
+                    updateOne: {
+                        filter: { 
                             user_id: req.userId,
-                            departure_place: value['Departure place'],
-                            arrival_place: value['Arrival place'],
+                            departure_place: departurePlace,
+                            arrival_place: arrivalPlace,
                             number_of_person: value['Number of persons'],
-                            amount: value['Amount'],
-                            vehicle_type: value['Vehicle type'],
-                        }
-                    },
-                    upsert: true // Insert if not exists, update if exists
-                }
-            }));
+                            vehicle_type: vehicleType,
+                        },
+                        update: {
+                            $set: {
+                                user_id: req.userId,
+                                departure_place: departurePlace,
+                                arrival_place: arrivalPlace,
+                                number_of_person: value['Number of persons'],
+                                amount: value['Amount'],
+                                vehicle_type: vehicleType,
+                            }
+                        },
+                        upsert: true, // Insert if not exists, update if exists
+                        collation: { locale: "en", strength: 2 } // Case-insensitive matching
+                    }
+                };
+            });
             
             await PRICE_MODEL.bulkWrite(bulkOps);
            
