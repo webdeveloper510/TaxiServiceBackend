@@ -1161,7 +1161,7 @@ exports.update_driver = async (req, res) => {
       const isDriverOnRide = await TRIP.findOne({driver_name: driverId , trip_status: { $in: [ constant.TRIP_STATUS.REACHED , constant.TRIP_STATUS.ACTIVE] } });
       
       // If driver is on ride then he cant be  offline
-      if (isDriverOnRide && updates?.status == false) {
+      if (isDriverOnRide && updates?.status == "false") {
 
         return res.send({
                           code: constant.error_code,
