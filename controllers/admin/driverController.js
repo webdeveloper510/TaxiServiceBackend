@@ -1156,6 +1156,16 @@ exports.update_driver = async (req, res) => {
         delete updates.password
       }
 
+      const isDriverOnRide = await TRIP.findOne({driver_name: driverId , trip_status: { $in: [ constant.TRIP_STATUS.REACHED , constant.TRIP_STATUS.ACTIVE] } });
+      
+      if (isDriverOnRide && updates?.status == false) {
+
+        return res.send({
+                          code: constant.error_code,
+                          message: "You cannot go offline until you have completed your active trip.",
+                        });
+      }
+
 
       const updatedDriver = await DRIVER.findOneAndUpdate( { _id: driverId }, updates, { new: true });
 

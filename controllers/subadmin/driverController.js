@@ -179,7 +179,7 @@ exports.get_driver_detail = async (req, res) => {
       result.partnerCompanyAccess =  partnerCompanyAccess ? await AGENCY.find({user_id: { $in: partnerCompanyAccess }}) : []
       const driverPurchasedPlans = await getUserActivePaidPlans(req.user);
       result.plan_access_status = driverPurchasedPlans.length > 0 ? true : false;
-      
+
       res.send({
         code: constant.success_code,
         message: "Success",
@@ -249,30 +249,37 @@ exports.update_driver = async (req, res) => {
 
       if (!existingDriver || existingDriver.is_deleted) {
         return res.send({
-          code: constant.error_code,
-          message: "Driver not found",
-        });
+                          code: constant.error_code,
+                          message: "Driver not found",
+                        });
       }
-      updates.profile_image = req.file
-        ? req.file.filename
-        : existingDriver.profile_image;
-      const updatedDriver = await DRIVER.findOneAndUpdate(
-        { _id: driverId },
-        updates,
-        { new: true }
-      );
+
+      const isDriverOnRide = await TRIP.findOne({driver_name: driverId , trip_status: { $in: [ constant.TRIP_STATUS.REACHED , constant.TRIP_STATUS.ACTIVE] } });
+
+      if (isDriverOnRide && updates?.status == false) {
+
+        return res.send({
+                          code: constant.error_code,
+                          message: "You cannot go offline until you have completed your active trip.",
+                        });
+      }
+
+      updates.profile_image = req.file ? req.file.filename : existingDriver.profile_image;
+
+      const updatedDriver = await DRIVER.findOneAndUpdate( { _id: driverId }, updates, { new: true } );
+
       if (updatedDriver) {
-        res.send({
-          code: constant.success_code,
-          message: "Driver Updated successfully",
-          result: updatedDriver,
-        });
+        return res.send({
+                          code: constant.success_code,
+                          message: "Driver Updated successfully",
+                          result: updatedDriver,
+                        });
       }
     } catch (err) {
-      res.send({
-        code: constant.error_code,
-        message: err.message,
-      });
+      return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
     }
   });
 };

@@ -427,7 +427,9 @@ exports.edit_trip = async (req, res) => {
         message: "Unable to update the trip",
       });
     } else {
-      if ( data?.trip_status == "Pending" && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
+
+
+      if ( data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
 
         let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
 
@@ -454,6 +456,11 @@ exports.edit_trip = async (req, res) => {
           //     result: e
           // })
         }
+      }
+
+      if (update_trip?.trip_status == constant.TRIP_STATUS.ACTIVE || update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
+
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true}, option);
       }
 
       // refresh trip functionality for the drivers who have account access as partner
