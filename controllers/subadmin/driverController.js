@@ -177,8 +177,9 @@ exports.get_driver_detail = async (req, res) => {
       const partnerCompanyAccess = await result.parnter_account_access.map((data) =>  new mongoose.Types.ObjectId(data?.company_id?.toString()));
       
       result.partnerCompanyAccess =  partnerCompanyAccess ? await AGENCY.find({user_id: { $in: partnerCompanyAccess }}) : []
+      const driverPurchasedPlans = await getUserActivePaidPlans(req.user);
+      result.plan_access_status = driverPurchasedPlans.length > 0 ? true : false;
       
-
       res.send({
         code: constant.success_code,
         message: "Success",
