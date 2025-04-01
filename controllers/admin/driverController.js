@@ -834,7 +834,8 @@ exports.get_drivers_super = async (req, res) => {
     const limit = parseInt(data.limit) || 10; // Number of items per page, default to 10
     const skip = (page - 1) * limit;
     const query = { is_deleted: false, };
-
+    const searchText = data.search.trim();
+    const searchWords = searchText.split(/\s+/);
     
     console.log({page , limit , skip})
     
@@ -843,8 +844,29 @@ exports.get_drivers_super = async (req, res) => {
         { email: { $regex: search, $options: "i" } },
         { phone: { $regex: search, $options: "i" } },
         { driver_company_name: { $regex: search, $options: "i" } },
-        { first_name: { $regex: search, $options: "i" } },
-        { last_name: { $regex: search, $options: "i" } },
+        // { first_name: { $regex: search, $options: "i" } },
+        // { last_name: { $regex: search, $options: "i" } },
+        {
+          $expr: {
+            $regexMatch: {
+              input: { 
+                $concat: [
+                  { $arrayElemAt: ["$driver_info.first_name", 0] }, 
+                  " ", 
+                  { $arrayElemAt: ["$driver_info.last_name", 0] }
+                ] 
+              },
+              regex: searchText, // Allows "naruto uzu" to match "naruto uzumaki"
+              options: "i"
+            }
+          }
+        },
+        // Partial Matching on First and Last Name Separately
+        {
+          $and: searchWords.map((word, index) => ({
+            [index === 0 ? "first_name" : "last_name"]: { $regex: word, $options: "i" }
+          }))
+        },
         { nickName: { $regex: search, $options: "i" } },
         { address_1: { $regex: search, $options: "i" } },
       ];
