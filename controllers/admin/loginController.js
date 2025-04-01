@@ -118,11 +118,6 @@ exports.login = async (req, res) => {
                                         ],
                                       })
 
-    return res.send({
-      code: constant.error_code,
-      em:data.email,
-      message: userData
-    }); 
 
     // If user is blocked by admin or super admin
 
