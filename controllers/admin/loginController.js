@@ -761,8 +761,8 @@ exports.send_otp = async (req, res) => {
       $and: [
         {
           $or: [
-            { email: { $regex: data.email, $options: "i" } },
-            { phone: { $regex: data.email, $options: "i" } },
+            { email: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+            { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
           ],
         },
         {
@@ -778,12 +778,9 @@ exports.send_otp = async (req, res) => {
         $and: [
           {
             $or: [
-              { email: { $regex: data.email, $options: "i" } },
-              { phone: { $regex: data.email, $options: "i" } },
+              { email: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+              { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
             ],
-          },
-          {
-            status: true,
           },
           {
             is_deleted: false,
