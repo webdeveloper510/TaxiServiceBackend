@@ -2171,7 +2171,8 @@ exports.companyList = async (req, res) => {
     const page = parseInt(data.page) || 1; // Get the page number from the request (default to 1 if not provided)
     const limit =  parseInt(data.limit); // Number of items per page
     const skip = (page - 1) * limit;
-    const searchWords = req.body.name.trim().split(/\s+/);
+    const searchText = req.body.name.trim();
+    const searchWords = searchText.split(/\s+/);
     // Match criteria for filtering users
     const matchCriteria = {
       $and: [
@@ -2179,11 +2180,11 @@ exports.companyList = async (req, res) => {
         { is_deleted: false },
         {
           $or: [
-            { "meta.company_id": { $regex: req.body.name, $options: "i" } },
-            { "meta.company_name": { $regex: req.body.name, $options: "i" } },
-            { email: { $regex: req.body.name, $options: "i" } },
-            { phone: { $regex: req.body.name, $options: "i" } },
-            // Full Name Matching (Ensures both words match first_name and last_name)
+            { "meta.company_id": { $regex: searchText, $options: "i" } },
+            { "meta.company_name": { $regex: searchText, $options: "i" } },
+            { email: { $regex: searchText, $options: "i" } },
+            { phone: { $regex: searchText, $options: "i" } },
+            // Partial Matching on Full Name
             {
               $expr: {
                 $regexMatch: {
@@ -2194,16 +2195,16 @@ exports.companyList = async (req, res) => {
                       { $arrayElemAt: ["$driver_info.last_name", 0] }
                     ] 
                   },
-                  regex: `^${searchWords.join(" ")}$`, // Ensures full name match
+                  regex: searchText, // Allows "naruto uzu" to match "naruto uzumaki"
                   options: "i"
                 }
               }
             },
+            // Partial Matching on First and Last Name Separately
             {
-              $and: [
-                { first_name: { $regex: `^${searchWords[0]}$`, $options: "i" } },
-                { last_name: { $regex: `^${searchWords[1]}$`, $options: "i" } }
-              ]
+              $and: searchWords.map((word, index) => ({
+                [index === 0 ? "first_name" : "last_name"]: { $regex: word, $options: "i" }
+              }))
             }
           ]
         }
