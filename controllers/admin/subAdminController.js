@@ -2171,7 +2171,7 @@ exports.companyList = async (req, res) => {
     const page = parseInt(data.page) || 1; // Get the page number from the request (default to 1 if not provided)
     const limit =  parseInt(data.limit); // Number of items per page
     const skip = (page - 1) * limit;
-
+    const searchWords = req.body.name.trim().split(/\s+/);
     // Match criteria for filtering users
     const matchCriteria = {
       $and: [
@@ -2181,24 +2181,33 @@ exports.companyList = async (req, res) => {
           $or: [
             { "meta.company_id": { $regex: req.body.name, $options: "i" } },
             { "meta.company_name": { $regex: req.body.name, $options: "i" } },
+            { email: { $regex: req.body.name, $options: "i" } },
+            { phone: { $regex: req.body.name, $options: "i" } },
+            // Full Name Matching (Ensures both words match first_name and last_name)
             {
               $expr: {
                 $regexMatch: {
-                  input: { $concat: [{ $arrayElemAt: ["$driver_info.first_name", 0] },
-                  " ",
-                  { $arrayElemAt: ["$driver_info.last_name", 0] },] },
-                  regex: req.body.name,
-                  options: "i",
-                },
-              },
+                  input: { 
+                    $concat: [
+                      { $arrayElemAt: ["$driver_info.first_name", 0] }, 
+                      " ", 
+                      { $arrayElemAt: ["$driver_info.last_name", 0] }
+                    ] 
+                  },
+                  regex: `^${searchWords.join(" ")}$`, // Ensures full name match
+                  options: "i"
+                }
+              }
             },
-            { first_name: { $regex: req.body.name, $options: "i" } },
-            { last_name: { $regex: req.body.name, $options: "i" } },
-            { email: { $regex: req.body.name, $options: "i" } },
-            { phone: { $regex: req.body.name, $options: "i" } },
-          ],
-        },
-      ],
+            {
+              $and: [
+                { first_name: { $regex: `^${searchWords[0]}$`, $options: "i" } },
+                { last_name: { $regex: `^${searchWords[1]}$`, $options: "i" } }
+              ]
+            }
+          ]
+        }
+      ]
     };
 
     // Get the total count of matching documents

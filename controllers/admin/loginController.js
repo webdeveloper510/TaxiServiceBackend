@@ -743,7 +743,6 @@ exports.get_token_detail = async (req, res) => {
       return res.send({
                         code: constant.success_code,
                         message: "Success",
-                        d:req.user,
                         result: dataResult ? dataResult : userByID,
                       });
     }

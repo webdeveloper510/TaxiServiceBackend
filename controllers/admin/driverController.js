@@ -2341,9 +2341,10 @@ exports.switchDriverToPartnerCompany = async (req, res) => {
                         message: `This company has been blocked by administration.`
                       });
     }
+
     const companyId = new mongoose.Types.ObjectId(req.params.companyId);
     const driverId = new mongoose.Types.ObjectId(req.companyPartnerAccess ? req.CompanyPartnerDriverId : req.userId);
-
+    console.log('req.companyPartnerAccess--', driverId)
     const driverHasCompanyPartnerAccess = await DRIVER.findOne({
                                                                 _id: driverId,
                                                                 parnter_account_access : {
@@ -2409,6 +2410,9 @@ exports.switchDriverToPartnerCompany = async (req, res) => {
       driverData.currently_active_company = companyId;
       let result = driverData.toObject();
       await driverData.save();
+
+      let companyPurchasedPlans = await getUserActivePaidPlans(result);
+      result.plan_access_status = companyPurchasedPlans.length > 0 ? true : false;
       
       result.role = "COMPANY_PARTNER";
 
