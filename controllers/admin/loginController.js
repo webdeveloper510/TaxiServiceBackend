@@ -633,12 +633,12 @@ exports.get_token_detail = async (req, res) => {
     const userByID = await USER.findOne({ _id: req.userId }).populate("driverId");
     const userPurchasedPlans = await getUserActivePaidPlans(req.user);
     
-    let lookupData  =   {
-                          from: "agencies",
-                          localField: "_id",
-                          foreignField: "user_id",
-                          as: "company_detail",
-                        };
+    let lookupData  = {
+                        from: "agencies",
+                        localField: "_id",
+                        foreignField: "user_id",
+                        as: "company_detail",
+                      };
 
     let agencyLookupData=  null
 
@@ -730,13 +730,20 @@ exports.get_token_detail = async (req, res) => {
 
       if (dataResult) {
         dataResult.plan_access_status = userPurchasedPlans.length > 0 ? true : false;
+        let driverPurchasedPlans = await getUserActivePaidPlans(dataResult?.driver);
+        dataResult.driver.plan_access_status = driverPurchasedPlans.length > 0 ? true : false;
+
       } else {
+
         userByID.plan_access_status = userPurchasedPlans.length > 0 ? true : false;
+        let driverPurchasedPlans = await getUserActivePaidPlans(dataResult?.driverId);
+        userByID.driverId.plan_access_status = driverPurchasedPlans.length > 0 ? true : false;
       }
       
       return res.send({
                         code: constant.success_code,
                         message: "Success",
+                        d:req.user,
                         result: dataResult ? dataResult : userByID,
                       });
     }
