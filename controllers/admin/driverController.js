@@ -3,6 +3,7 @@ const constant = require("../../config/constant");
 const DRIVER = require("../../models/user/driver_model"); // Import the Driver model
 const USER = require("../../models/user/user_model"); // Import the Driver model
 const LOGS = require("../../models/user/logs_model"); // Import the Driver model
+const TRIP = require("../../models/user/trip_model"); // Import the Driver model
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const path = require("path");
