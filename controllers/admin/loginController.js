@@ -108,17 +108,21 @@ exports.login = async (req, res) => {
                                         $and: [
                                           {
                                             $or: [
-                                              { email: { $regex: data.email, $options: "i" } },
-                                              { phone: { $regex: data.email, $options: "i" } },
+                                              { email: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+                                              { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
                                             ],
                                           },
                                           {
                                             is_deleted: false,
                                           },
                                         ],
-                                      }).populate("created_by driverId");
+                                      })
 
-    
+    return res.send({
+      code: constant.error_code,
+      em:data.email,
+      message: userData
+    }); 
 
     // If user is blocked by admin or super admin
 
@@ -296,6 +300,7 @@ exports.login = async (req, res) => {
       check_data = userData;
 
       
+        
 
       // If user blocked by Super admin or admin
       if (check_data?.is_blocked) {
