@@ -57,12 +57,12 @@ exports.add_sub_admin = async (req, res) => {
 
     // Cheked Email in driver table if comapany already rigestered as a driver then match email except the driver that is already created. 
     let checkDriverEmail = await DRIVER.findOne({
-                                            email: { $regex: new RegExp(`^${data.email}$`, 'i') }, // Case-insensitive match
-                                            is_deleted: false,
-                                            ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
-                                              ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
-                                              : {}), 
-                                          });
+                                                  email: { $regex: new RegExp(`^${data.email}$`, 'i') }, // Case-insensitive match
+                                                  is_deleted: false,
+                                                  ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
+                                                    ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
+                                                    : {}), 
+                                                });
 
    
     if (checkDriverEmail) {
