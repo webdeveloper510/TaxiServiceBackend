@@ -92,6 +92,7 @@ exports.create_super_admin = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+
   try {
     let currentDate = new Date();
     let startOfCurrentWeek = new Date(currentDate);
@@ -307,10 +308,7 @@ exports.login = async (req, res) => {
       }
 
       // compare the password
-      let checkPassword = await bcrypt.compare(
-        data.password,
-        check_data.password
-      );
+      let checkPassword = await bcrypt.compare( data.password, check_data.password );
 
       if (!checkPassword) {
         return res.send({
@@ -362,19 +360,19 @@ exports.login = async (req, res) => {
       // Update token
       if (deviceToken) {
         await Promise.all([
-          driver_model.updateMany({ deviceToken }, { deviceToken: null }),
-          user_model.updateMany({ deviceToken }, { deviceToken: null }),
-        ]);
+                            driver_model.updateMany({ deviceToken }, { deviceToken: null }),
+                            user_model.updateMany({ deviceToken }, { deviceToken: null }),
+                          ]);
       }
 
       let jwtToken = jwt.sign(
-        { 
-          userId: check_data._id,
-          companyPartnerAccess: false
-        },
-        process.env.JWTSECRET,
-        { expiresIn: "365d" }
-      );
+                              { 
+                                userId: check_data._id,
+                                companyPartnerAccess: false
+                              },
+                              process.env.JWTSECRET,
+                              { expiresIn: "365d" }
+                            );
 
       if (mobile) {
         check_data.jwtTokenMobile = jwtToken;
@@ -390,9 +388,15 @@ exports.login = async (req, res) => {
 
       if (check_data.isDriver) {
 
+        let updateDriverdata = {deviceToken: deviceToken}
+        if (mobile) {
+          updateDriverdata.jwtTokenMobile = null
+        } else {
+          updateDriverdata.jwtToken = null
+        }
         await DRIVER.findOneAndUpdate(
                                         {_id: check_data.driverId},
-                                        {deviceToken: deviceToken},
+                                        updateDriverdata,
                                         { 
                                           new: true,     // Return the updated document
                                           upsert: false, // Do not create a new document if none is found
