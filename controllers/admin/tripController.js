@@ -2450,6 +2450,8 @@ exports.alocate_driver = async (req, res) => {
  
           }
 
+          
+
 
           // functionality For assigned driver by company
 
@@ -2460,6 +2462,7 @@ exports.alocate_driver = async (req, res) => {
                                                                                         },
                                                           });
 
+                                                         
         if (driverHasCompanyAccess){
 
           for (let driverCompanyAccess of driverHasCompanyAccess) {
@@ -2478,7 +2481,7 @@ exports.alocate_driver = async (req, res) => {
                           }
                         );
               }
-              req.io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
+              req.io.to(driverCompanyAccess?.socketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
             }
 
             if (driverCompanyAccess?.webSocketId) {
@@ -2495,7 +2498,7 @@ exports.alocate_driver = async (req, res) => {
                           );
               }
 
-              req.io.to(partnerAccount?.webSocketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
+              req.io.to(driverCompanyAccess?.webSocketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
             }
 
             if (driverCompanyAccess?.deviceToken) {
@@ -2929,7 +2932,7 @@ exports.access_alocate_driver = async (req, res) => {
                                                               }
                                                             );
                 }
-                req.io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
+                req.io.to(driverCompanyAccess?.socketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
               }
 
               if (driverCompanyAccess?.webSocketId) {
@@ -2946,7 +2949,7 @@ exports.access_alocate_driver = async (req, res) => {
                                                               );
                 }
                 
-                req.io.to(partnerAccount?.webSocketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
+                req.io.to(driverCompanyAccess?.webSocketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
               }
 
               if (driverCompanyAccess?.deviceToken) {
