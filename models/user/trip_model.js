@@ -220,6 +220,19 @@ const trip = new Schema({
         type:String,
         default: ""
     },
+    susbscriptionPlanName:{
+        type:String,
+        default: ""
+    },
+    susbscriptionId:{
+        type:mongoose.Schema.Types.ObjectId,ref:'subscriptions', 
+        default: null,
+    },
+    planId:{
+        type:mongoose.Schema.Types.ObjectId,ref:'plans', 
+        default: null,
+    },
+
 },{timestamps:true})
 
 module.exports = mongoose.model('trip',trip)

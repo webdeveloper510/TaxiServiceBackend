@@ -1030,6 +1030,9 @@ exports.willCompanyPayCommissionOnTrip =  async (userInfo) => {
                                                             },
                                                             {
                                                                 $unwind: { path: "$purchaseByDriverId", preserveNullAndEmptyArrays: true }
+                                                            },
+                                                            {
+                                                              $sort: { _id: -1 }  // Sorting in descending order by _id (newest first)
                                                             }
                                                         ]);
 
@@ -1043,7 +1046,8 @@ exports.willCompanyPayCommissionOnTrip =  async (userInfo) => {
                     commision: false,
                     paidPlan: true,
                     planName: CONSTANT.SUBSCRIPTION_PLAN_NAMES.PRO,
-                    specialPlan: false
+                    specialPlan: false,
+                    subscriptionDetail: isProPlan[0]
                   }
         } else {
 
@@ -1051,7 +1055,8 @@ exports.willCompanyPayCommissionOnTrip =  async (userInfo) => {
             commision: true,
             paidPlan: true,
             planName: CONSTANT.SUBSCRIPTION_PLAN_NAMES.PREMIUM,
-            specialPlan: false
+            specialPlan: false,
+            subscriptionDetail: subscriptions[0]
           }
         }
 
@@ -1064,7 +1069,8 @@ exports.willCompanyPayCommissionOnTrip =  async (userInfo) => {
             commision: true,
             paidPlan: false,
             planName: CONSTANT.SUBSCRIPTION_PLAN_NAMES.SPECIAL,
-            specialPlan: true
+            specialPlan: true,
+            subscriptionDetail: null
           }
         } else {
 
@@ -1072,7 +1078,8 @@ exports.willCompanyPayCommissionOnTrip =  async (userInfo) => {
             commision: true,
             paidPlan: false,
             planName: "",
-            specialPlan: false
+            specialPlan: false,
+            subscriptionDetail: null
           }
         }
        

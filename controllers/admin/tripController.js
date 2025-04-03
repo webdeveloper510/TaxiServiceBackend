@@ -305,13 +305,20 @@ exports.add_trip = async (req, res) => {
       // const myPlans = await getUserActivePaidPlans(req.user);
       const isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
 
-
+      
       if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan){
 
         return res.send({
                           code: constant.error_code,
                           result: `You can't create the trip because you didn't have any plan`,
                         });
+      }
+      
+      if (isCommisionPay?.paidPlan) {
+
+        data.susbscriptionPlanName  = isCommisionPay?.subscriptionDetail?.planDetails?.name;
+        data.susbscriptionId        = isCommisionPay?.subscriptionDetail?._id;
+        data.susbscriptionIdPlanId  = isCommisionPay?.subscriptionDetail?.planDetails?.name;
       }
       
       
@@ -435,6 +442,13 @@ exports.access_add_trip = async (req, res) => {
                             code: constant.error_code,
                             result: `You can't create the trip because you didn't have any plan`,
                           });
+        }
+
+        if (isCommisionPay?.paidPlan) {
+
+          data.susbscriptionPlanName  = isCommisionPay?.subscriptionDetail?.planDetails?.name;
+          data.susbscriptionId        = isCommisionPay?.subscriptionDetail?._id;
+          data.susbscriptionIdPlanId  = isCommisionPay?.subscriptionDetail?.planDetails?.name;
         }
 
         const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
