@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
-const {partnerAccountRefreshTrip , noShowTrip , getUserActivePaidPlans} = require("../../Service/helperFuntion");
+const {partnerAccountRefreshTrip , noShowTrip , willCompanyPayCommissionOnTrip} = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 
@@ -404,11 +404,21 @@ exports.edit_trip = async (req, res) => {
         }
 
         const companyDetails = await USER.findById(trip_data?.created_by_company_id);
-        const myPlans = await getUserActivePaidPlans(companyDetails);
+        const isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
+
+
+        if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan){
+
+          return res.send({
+                            code: constant.error_code,
+                            result: `You can't create the trip because you didn't have any plan`,
+                          });
+        }
 
         const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
         
-        data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision?.value)) / 100 || 0);
+        data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
+        // data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision?.value)) / 100 || 0);
         data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
         data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
   
@@ -551,10 +561,17 @@ exports.access_edit_trip = async (req, res) => {
       }
 
       const companyDetails = await USER.findById(trip_data?.created_by_company_id);
-      const myPlans = await getUserActivePaidPlans(companyDetails);
+      if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan){
+
+        return res.send({
+                          code: constant.error_code,
+                          result: `You can't create the trip because you didn't have any plan`,
+                        });
+      }
       const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
 
-      data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
+      data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
+      // data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
       data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
       data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
 

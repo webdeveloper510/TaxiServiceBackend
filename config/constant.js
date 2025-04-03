@@ -85,5 +85,12 @@ module.exports={
         PAID: `PAID`,
         FAILED: `FAILED`,
         NOT_INITIATED: `NOT_INITIATED`,
+    },
+    SUBSCRIPTION_PLAN_NAMES: {
+        PRO: "Pro",
+        PREMIUM: "Premium",
+        BASIC: "Basic",
+        TEST: "test daily",
+        SPECIAL: "Special" // no need to take susbcription. admin will allow this plan only for any user
     }
 }

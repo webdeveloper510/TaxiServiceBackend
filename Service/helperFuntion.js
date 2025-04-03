@@ -977,6 +977,111 @@ exports.canDriverOperate = async (driverId) => {
   
 }
 
+exports.willCompanyPayCommissionOnTrip =  async (userInfo) => {
+
+  // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 
+  const currentDate = new Date();
+  let conditions = {
+                      role: userInfo.role == CONSTANT.ROLES.COMPANY ? CONSTANT.ROLES.COMPANY : CONSTANT.ROLES.DRIVER,
+                      paid: CONSTANT.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                      endPeriod: { $gt: currentDate }, // Ensure endPeriod is greater than the current date
+                  }
+
+  if (userInfo.role == CONSTANT.ROLES.COMPANY) {
+    
+    conditions.purchaseByCompanyId = userInfo._id;
+  } else {
+    conditions.purchaseByDriverId = userInfo._id;
+  }
+  
+  const subscriptions = await SUBSCRIPTION_MODEL.aggregate([
+                                                            { 
+                                                                $match: conditions 
+                                                            },
+                                                            {
+                                                                $lookup: {
+                                                                    from: "plans",  // The name of the Plan collection
+                                                                    localField: "planId",
+                                                                    foreignField: "planId",
+                                                                    as: "planDetails"
+                                                                }
+                                                            },
+                                                            {
+                                                                $unwind: { path: "$planDetails", preserveNullAndEmptyArrays: true } 
+                                                            },
+                                                            {
+                                                                $lookup: {
+                                                                    from: "users",  // Adjust if your company collection has a different name
+                                                                    localField: "purchaseByCompanyId",
+                                                                    foreignField: "_id",
+                                                                    as: "purchaseByCompanyId"
+                                                                }
+                                                            },
+                                                            {
+                                                                $unwind: { path: "$purchaseByCompanyId", preserveNullAndEmptyArrays: true }
+                                                            },
+                                                            {
+                                                                $lookup: {
+                                                                    from: "drivers",  // Adjust if your driver collection has a different name
+                                                                    localField: "purchaseByDriverId",
+                                                                    foreignField: "_id",
+                                                                    as: "purchaseByDriverId"
+                                                                }
+                                                            },
+                                                            {
+                                                                $unwind: { path: "$purchaseByDriverId", preserveNullAndEmptyArrays: true }
+                                                            }
+                                                        ]);
+
+    
+      if (subscriptions.length > 0) {
+
+        const isProPlan = await subscriptions.filter( (plan) => plan?.planDetails?.name == CONSTANT.SUBSCRIPTION_PLAN_NAMES.PRO);
+
+        if (isProPlan.length > 0) {
+          return  {
+                    commision: false,
+                    paidPlan: true,
+                    planName: CONSTANT.SUBSCRIPTION_PLAN_NAMES.PRO,
+                    specialPlan: false
+                  }
+        } else {
+
+          return  {
+            commision: true,
+            paidPlan: true,
+            planName: CONSTANT.SUBSCRIPTION_PLAN_NAMES.PREMIUM,
+            specialPlan: false
+          }
+        }
+
+      } else {
+
+        
+        if (userInfo.is_special_plan_active) {
+
+          return {
+            commision: true,
+            paidPlan: false,
+            planName: CONSTANT.SUBSCRIPTION_PLAN_NAMES.SPECIAL,
+            specialPlan: true
+          }
+        } else {
+
+          return {
+            commision: true,
+            paidPlan: false,
+            planName: "",
+            specialPlan: false
+          }
+        }
+       
+      }
+
+    return subscriptions;
+
+}
+
 exports.getUserActivePaidPlans = async (userInfo) => {
 
   // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 

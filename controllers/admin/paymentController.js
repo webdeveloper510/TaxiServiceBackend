@@ -467,7 +467,7 @@ const getTotalPayment = async (startDate = null) => {
     matchCriteria.pickup_date_time= { $gte: startDate};
   }
 
-  
+  console.log('matchCriteria---------' , matchCriteria)
   const totalPayment = await TRIP.aggregate([
     {
         $match: matchCriteria
