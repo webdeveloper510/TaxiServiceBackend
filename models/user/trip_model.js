@@ -228,7 +228,7 @@ const trip = new Schema({
         type:mongoose.Schema.Types.ObjectId,ref:'subscriptions', 
         default: null,
     },
-    planId:{
+    susbscriptionPlanId:{
         type:mongoose.Schema.Types.ObjectId,ref:'plans', 
         default: null,
     },

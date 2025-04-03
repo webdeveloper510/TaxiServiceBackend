@@ -318,7 +318,7 @@ exports.add_trip = async (req, res) => {
 
         data.susbscriptionPlanName  = isCommisionPay?.subscriptionDetail?.planDetails?.name;
         data.susbscriptionId        = isCommisionPay?.subscriptionDetail?._id;
-        data.susbscriptionIdPlanId  = isCommisionPay?.subscriptionDetail?.planDetails?._id;
+        data.susbscriptionPlanId  = isCommisionPay?.subscriptionDetail?.planDetails?._id;
       }
       
       
@@ -448,7 +448,7 @@ exports.access_add_trip = async (req, res) => {
 
           data.susbscriptionPlanName  = isCommisionPay?.subscriptionDetail?.planDetails?.name;
           data.susbscriptionId        = isCommisionPay?.subscriptionDetail?._id;
-          data.susbscriptionIdPlanId  = isCommisionPay?.subscriptionDetail?.planDetails?._id;
+          data.susbscriptionPlanId  = isCommisionPay?.subscriptionDetail?.planDetails?._id;
         }
 
         const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
