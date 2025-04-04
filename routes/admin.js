@@ -169,7 +169,7 @@ router.post("/pay_trip_commission/:id",[verifyToken],paymentController.tripCommi
 router.post("/failed_trip_commission/:id",[verifyToken],paymentController.failedTripPay);
 router.post("/success_trip_commission/:id",[verifyToken],paymentController.successTripPay);
 router.get("/transactions",[verifyToken],paymentController.getCommissionTrans);
-router.get("/admin_transaction",[verifyToken , adminAuth],paymentController.adminTransaction);
+router.post("/admin_transaction",[verifyToken , adminAuth],paymentController.adminTransaction);
 router.post("/payCompany", [verifyToken], paymentController.payCompany);
 router.get("/admin_update_payment/:id", [verifyToken , adminAuth], paymentController.adminUpdatePayment);
 

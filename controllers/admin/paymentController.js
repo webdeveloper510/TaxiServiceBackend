@@ -416,31 +416,92 @@ exports.getCommissionTrans = async (req, res) => {
 exports.adminTransaction = async (req, res) => {
   try {
 
-    const allPayment = await getTotalPayment();
+    let data = req.body;
+    let dateFilter = data.dateFilter; // Corrected variable name
+    if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
+      dateFilter = "all";
+    }
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7); 
-    sevenDaysAgo.setUTCHours(0, 0, 1, 0)// Subtract 7 days from today
-    const sevenDaysAgoPayment = await getTotalPayment(sevenDaysAgo);
+    // Update the query based on the date filter
+    let dateQuery = {};
 
-    const now = new Date();
+    if (dateFilter !== "all") {
+      let startDate, endDate;
+      const today = new Date();
+      switch (dateFilter) {
+        case "this_week":
+          const todayDay = today.getDay();
+          startDate = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate() - todayDay
+          );
+          endDate = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate() + (6 - todayDay)
+          );
+          break;
+        case "this_month":
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          break;
+        case "this_year":
+          startDate = new Date(today.getFullYear(), 0, 1);
+          endDate = new Date(today.getFullYear(), 11, 31);
+          break;
+        case "dateRange":
+          startDate = new Date(req.body.startDate);
+          endDate = new Date(req.body.endDate);
 
-    // Get the start of the current month
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfMonthPayment = await getTotalPayment(startOfMonth);
+          // Modify the Date object with setHours
+          
+        default:
+          break;
+      }
 
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const startOfYearPayment = await getTotalPayment(startOfYear);
+      startDate.setUTCHours(0, 0, 1, 0);
+      endDate.setUTCHours(23, 59, 59, 999);
+
+      // Convert the Date objects to ISO 8601 strings
+      startDate = startDate.toISOString();
+      endDate = endDate.toISOString();
+
+      dateQuery = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+    }
+
+    const adminCommision = await getTotalPayment(dateQuery , null , `superAdminPaymentAmount`);
+    const paidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: true} , `companyPaymentAmount`);
+    const willPaidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: false} , `companyPaymentAmount`);
+
+    // const allPayment = await getTotalPayment();
+
+    // const sevenDaysAgo = new Date();
+    // sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7); 
+    // sevenDaysAgo.setUTCHours(0, 0, 1, 0)// Subtract 7 days from today
+    // const sevenDaysAgoPayment = await getTotalPayment(sevenDaysAgo);
+
+    // const now = new Date();
+
+    // // Get the start of the current month
+    // const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    // const startOfMonthPayment = await getTotalPayment(startOfMonth);
+
+    // const startOfYear = new Date(now.getFullYear(), 0, 1);
+    // const startOfYearPayment = await getTotalPayment(startOfYear);
 
     const totalAmountPurchasedPlan = await getTotalPurchasedSubscriptionAmount();
 
     res.send({
       code: constant.success_code,
-      totalEarning: allPayment,
-      totalEarningLastSevenDays: sevenDaysAgoPayment,
-      totalEarningFromMonth: startOfMonthPayment,
-      totalEarningFromYear: startOfYearPayment,
-      totalAmountPurchasedPlan
+      // totalEarning: allPayment,
+      // totalEarningLastSevenDays: sevenDaysAgoPayment,
+      // totalEarningFromMonth: startOfMonthPayment,
+      // totalEarningFromYear: startOfYearPayment,
+      totalAmountPurchasedPlan,
+      adminCommision,
+      paidCompanyCommision,
+      willPaidCompanyCommision
     });
 
   } catch (err) {
@@ -487,21 +548,19 @@ const getTotalPurchasedSubscriptionAmount = async () => {
   }
 }
 
-const getTotalPayment = async (startDate = null) => {
+const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'superAdminPaymentAmount') => {
 
   let matchCriteria = {
       status: true,
       trip_status: constant.TRIP_STATUS.COMPLETED,
       is_deleted: false,
       is_paid: true,
+      ...(dateQuery || {}),
+      ...(type || {}),
   }
   
+  console.log('amountKey--------' , amountKey , matchCriteria);
 
-  if (startDate) {
-    matchCriteria.pickup_date_time= { $gte: startDate};
-  }
-
-  console.log('matchCriteria---------' , matchCriteria)
   const totalPayment = await TRIP.aggregate([
     {
         $match: matchCriteria
@@ -509,7 +568,7 @@ const getTotalPayment = async (startDate = null) => {
     {
         $group: {
             _id: null, // No grouping key; calculate total sum for all matching documents
-            totalAmount: { $sum: "$superAdminPaymentAmount" } // Sum the column
+            totalAmount: { $sum: `$${amountKey}` } // Sum the column
         }
     }
   ]);
