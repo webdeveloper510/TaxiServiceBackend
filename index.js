@@ -1307,9 +1307,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", async (reason) => {
     try {
       setTimeout(async () => {
-        const driverBySocketId = await driver_model.findOne({
-          socketId: socket.id,
-        });
+        const driverBySocketId = await driver_model.findOne({ socketId: socket.id});
 
         if (driverBySocketId) {
           
@@ -1318,9 +1316,10 @@ io.on("connection", (socket) => {
 
           await driverBySocketId.save();
 
+          // If driver kill the app (or internet is not working)  and driver will not open (or connect to the internet) in 2 minutes then server will show the driver as oofline 
           setTimeout(() => {
-            // OfflineDriver(driverBySocketId);
-          }, 60 * 1000);
+            OfflineDriver(driverBySocketId);
+          }, 120 * 1000);
         }
       }, 3000);
     } catch (error) {
@@ -1332,17 +1331,12 @@ io.on("connection", (socket) => {
 const OfflineDriver = async (driverInfo) => {
   // console.log("🚀 ~ OfflineDriver ~ :--------------", driverInfo._id);
   try {
-    const driverData = await driver_model.findOne({
-      _id: driverInfo._id,
-    });
+    const driverData = await driver_model.findOne({ _id: driverInfo._id});
+
 
     if (driverData?.socketId === null) {
       driverData.status = false; // when driver will kill the app then it will not be available to take the trips. driver have to manually change the online / Offline
       await driverData.save();
-
-     
-    } else {
-      
     }
   } catch (err) {
     console.log("🚀 ~ tripIsBooked ~ err:", err);

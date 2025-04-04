@@ -7,6 +7,7 @@ const constant = require("../../config/constant");
 const agency_model = require("../../models/user/agency_model");
 const transaction = require("../../models/user/transaction");
 const SETTING_MODEL = require("../../models/user/setting_model");
+const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 // const transaction = require("../../models/user/transaction");
 const TRIP = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
@@ -431,12 +432,15 @@ exports.adminTransaction = async (req, res) => {
     const startOfYear = new Date(now.getFullYear(), 0, 1);
     const startOfYearPayment = await getTotalPayment(startOfYear);
 
+    const totalAmountPurchasedPlan = await getTotalPurchasedSubscriptionAmount();
+
     res.send({
       code: constant.success_code,
       totalEarning: allPayment,
       totalEarningLastSevenDays: sevenDaysAgoPayment,
       totalEarningFromMonth: startOfMonthPayment,
-      totalEarningFromYear: startOfYearPayment
+      totalEarningFromYear: startOfYearPayment,
+      totalAmountPurchasedPlan
     });
 
   } catch (err) {
@@ -451,6 +455,36 @@ exports.adminTransaction = async (req, res) => {
     });
   }
 
+}
+
+const getTotalPurchasedSubscriptionAmount = async () => {
+  try {
+
+    const totalAmount  = await SUBSCRIPTION_MODEL.aggregate([
+                                                                {
+                                                                    $match: { paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID }
+                                                                },
+                                                                {
+                                                                    $group: {
+                                                                        _id: null,
+                                                                        totalAmount: { $sum: "$amount" }
+                                                                    }
+                                                                }
+                                                            ]);
+
+    const total = totalAmount.length > 0 ? totalAmount[0].totalAmount.toFixed(2) : 0;
+    return total
+  } catch (err) {
+    console.log(
+      "🚀 ~ function: fetchTotalAmountPurchasedPlans ~ err:",
+      err
+    );
+
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
 }
 
 const getTotalPayment = async (startDate = null) => {
@@ -480,7 +514,7 @@ const getTotalPayment = async (startDate = null) => {
     }
   ]);
 
-  return totalPayment.length > 0 ? totalPayment[0].totalAmount : 0;
+  return totalPayment.length > 0 ? totalPayment[0].totalAmount.toFixed(2) : 0;
 };
 
 exports.adminUpdatePayment = async (req, res) => {
