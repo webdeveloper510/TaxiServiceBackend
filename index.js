@@ -1319,7 +1319,7 @@ io.on("connection", (socket) => {
           // If driver kill the app (or internet is not working)  and driver will not open (or connect to the internet) in 2 minutes then server will show the driver as oofline 
           setTimeout(() => {
             OfflineDriver(driverBySocketId);
-          }, 120 * 1000);
+          }, 30 * 1000);
         }
       }, 3000);
     } catch (error) {
