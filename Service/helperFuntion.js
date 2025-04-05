@@ -1345,7 +1345,9 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
   try {
 
     const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 2);
+    // sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 2);
+
+    //  get the trips who have account attached with stripe then we can also transfer into his account
     const trips = await TRIP_MODEL.aggregate([
                                               {
                                                 $match: { 
@@ -1383,7 +1385,7 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
                                                 }
                                               }
                                             ]);
-
+console.log('trips-----------' , trips)
     return trips
   } catch (error) {
     console.error("Error retrieving balance:", error);

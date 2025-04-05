@@ -289,12 +289,13 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
 
           try {
             event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-            console.log("Webhook received successfully----" , event.type);
+            console.log("payout webhook received successfully----" , event.type);
             // console.log("Webhook JSON.stringify----" , JSON.stringify(event));
           } catch (err) {
             console.log(`Webhook Error: ${err.message}`);
 
-            let logs_data = { api_name: 'subscription_webhook', payload: JSON.stringify(req.body),
+            let logs_data = { 
+                              api_name: 'payout_webhook', payload: JSON.stringify(req.body),
                               error_message: err.message, error_response: JSON.stringify(err)
                             };
 
@@ -432,6 +433,14 @@ app.get( "/weekly-company-payment", async (req, res) => {
       await notifyInsufficientBalance()
       console.log(`You dont have enough payment in your account.`)
     }
+
+    return res.send({
+        code: 200,
+        message: "weekly-company-payment",
+        // tripList:tripList,
+        balance,
+        tripList
+      });
     return res.send({
                       code: 200,
                       message: "weekly-company-payment",
