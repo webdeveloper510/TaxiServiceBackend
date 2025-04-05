@@ -282,7 +282,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
   const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
     try {
          
-        const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
+        const endpointSecret = process.env.STRIPE_PAYOUT_SECRET;
           
           const sig = req.headers['stripe-signature'];
           let event;
@@ -372,13 +372,13 @@ app.get( "/weekly-company-payment", async (req, res) => {
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
-    return res.send({
-      code: 200,
-      message: "weekly-company-payment",
-      // tripList:tripList,
-      balance,
-      tripList
-    });
+    // return res.send({
+    //   code: 200,
+    //   message: "weekly-company-payment",
+    //   // tripList:tripList,
+    //   balance,
+    //   tripList
+    // });
 
     if (availableBalance > 100) {
        
