@@ -570,24 +570,27 @@ exports.adminUpdatePayment = async (req, res) => {
 
     const tripInfo = await TRIP.findById(tripId);
 
-    if (tripInfo?.is_paid) {
+    if (tripInfo?.is_paid && req.user.role == constant.ROLES.ADMIN) {
 
       return res.send({
                         code: constant.error_code,
                         message: `This trip already paid`,
+                        role: req.user.role
                       });
     } else {
 
       let criteria = { _id: tripId };
       let newValue = {
                         $set: {
-                          is_paid : true,
+                          is_paid : !tripInfo?.is_paid,
                           "stripe_payment.payment_status" : "Paid",
                           payment_completed_date : new Date(),
                           payment_collcted : constant.PAYMENT_COLLECTION_TYPE.MANUALLY,
-                          payment_upadted_by_admin: req.userId
+                          payment_upadted_by_admin: tripInfo?.is_paid ? null : req.userId,
                         },
                       };
+
+                     
       let option = { new: true };
       let trip = await TRIP.findByIdAndUpdate(criteria, newValue, option);
 
@@ -596,6 +599,7 @@ exports.adminUpdatePayment = async (req, res) => {
         return res.send({
                           code: constant.success_code,
                           data: trip,
+                          newValue: newValue
                         });
       } else {
         return res.send({
