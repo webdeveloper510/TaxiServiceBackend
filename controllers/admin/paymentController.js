@@ -575,7 +575,7 @@ exports.adminUpdatePayment = async (req, res) => {
       return res.send({
                         code: constant.error_code,
                         message: `This trip already paid`,
-                        role: req.user.role
+                        
                       });
     } else {
 
@@ -599,6 +599,7 @@ exports.adminUpdatePayment = async (req, res) => {
         return res.send({
                           code: constant.success_code,
                           data: trip,
+                          message: `This trip payment status has been updated`,
                         });
       } else {
         return res.send({
