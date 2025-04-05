@@ -599,7 +599,6 @@ exports.adminUpdatePayment = async (req, res) => {
         return res.send({
                           code: constant.success_code,
                           data: trip,
-                          newValue: newValue
                         });
       } else {
         return res.send({
