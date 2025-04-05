@@ -470,50 +470,36 @@ exports.adminTransaction = async (req, res) => {
       dateQuery = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
     }
 
-    const adminCommision = await getTotalPayment(dateQuery , null , `superAdminPaymentAmount`);
-    const paidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: true} , `companyPaymentAmount`);
-    const willPaidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: false} , `companyPaymentAmount`);
-
-    // const allPayment = await getTotalPayment();
-
-    // const sevenDaysAgo = new Date();
-    // sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7); 
-    // sevenDaysAgo.setUTCHours(0, 0, 1, 0)// Subtract 7 days from today
-    // const sevenDaysAgoPayment = await getTotalPayment(sevenDaysAgo);
-
-    // const now = new Date();
-
-    // // Get the start of the current month
-    // const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    // const startOfMonthPayment = await getTotalPayment(startOfMonth);
-
-    // const startOfYear = new Date(now.getFullYear(), 0, 1);
-    // const startOfYearPayment = await getTotalPayment(startOfYear);
-
+    const adminCommision = await getTotalPayment(dateQuery , {is_paid: true} , `superAdminPaymentAmount`);
+    const paidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: true , is_paid: true} , `companyPaymentAmount`);
+    const willPaidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: false , is_paid: true} , `companyPaymentAmount`);
+    const getTotalAmountOfUnpaidDrivers = await getTotalPayment(dateQuery , {is_company_paid: false , is_paid: false} , `driverPaymentAmount`);
+    const getTotalAmountOfPaidDrivers = await getTotalPayment(dateQuery , {is_company_paid: false , is_paid: true} , `driverPaymentAmount`);
     const totalAmountPurchasedPlan = await getTotalPurchasedSubscriptionAmount();
 
+    const getTotalNumberOfUnpaidDrivers  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false});
+    const getTotalNumberOfPaidDrivers  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true});
+
+
+
     res.send({
-      code: constant.success_code,
-      // totalEarning: allPayment,
-      // totalEarningLastSevenDays: sevenDaysAgoPayment,
-      // totalEarningFromMonth: startOfMonthPayment,
-      // totalEarningFromYear: startOfYearPayment,
-      totalAmountPurchasedPlan,
-      adminCommision,
-      paidCompanyCommision,
-      willPaidCompanyCommision
-    });
+              code: constant.success_code,
+              totalAmountPurchasedPlan,
+              adminCommision,
+              paidCompanyCommision,
+              willPaidCompanyCommision,
+              getTotalNumberOfUnpaidDrivers,
+              getTotalNumberOfPaidDrivers,
+              getTotalAmountOfUnpaidDrivers,
+              getTotalAmountOfPaidDrivers
+            });
 
   } catch (err) {
-    console.log(
-      "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",
-      err
-    );
-
+    console.log( "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:", err );
     res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+              code: constant.error_code,
+              message: err.message,
+            });
   }
 
 }
@@ -554,7 +540,6 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
       status: true,
       trip_status: constant.TRIP_STATUS.COMPLETED,
       is_deleted: false,
-      is_paid: true,
       ...(dateQuery || {}),
       ...(type || {}),
   }
