@@ -2177,7 +2177,7 @@ exports.companyList = async (req, res) => {
     const matchCriteria = {
       $and: [
         { role: "COMPANY" },
-        { is_deleted: false },
+        { is_deleted: data?.is_deleted },
         {
           $or: [
             { "meta.company_id": { $regex: searchText, $options: "i" } },

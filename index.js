@@ -396,6 +396,7 @@ app.get( "/weekly-company-payment", async (req, res) => {
 
             let stripBalance = await stripe.balance.retrieve();
             let availableBalance = stripBalance?.available[0]?.amount || 0;
+            availableBalance = 2
             console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
             if (availableBalance >=  Math.round(amount * 100) ) {
               
@@ -1363,8 +1364,8 @@ async function checkTripsAndSendNotifications() {
     let thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
 
     const { startDateTime, endDateTime  , currentDateTime} = get20thMinuteRangeUTC();
-    fifteenMinutesBefore = new Date(endDateTime);
-    thirteenMinutesBefore = new Date(startDateTime);
+    // fifteenMinutesBefore = new Date(endDateTime);
+    // thirteenMinutesBefore = new Date(startDateTime);
 
     const trips = await trip_model.find({
                                           pickup_date_time: {$gte: (startDateTime), $lte: endDateTime },
@@ -1372,11 +1373,14 @@ async function checkTripsAndSendNotifications() {
                                           fifteenMinuteNotification: false,
                                           driver_name: { $ne: null }
                                         })
-                                        .populate([{ path: "driver_name" }, { path: "created_by_company_id" }]);
+                                        .populate([
+                                                    { path: "driver_name" }, 
+                                                    { path: "created_by_company_id" }
+                                                  ]);
     
-    // console.log('currentDateTime----' , currentDateTime)
-    // console.log('thirteenMinutesBefore----' , thirteenMinutesBefore)
-    // console.log('fifteenMinutesBefore----' , fifteenMinutesBefore)                                
+    console.log('currentDateTime----' , currentDateTime)
+    console.log('thirteenMinutesBefore----' , thirteenMinutesBefore)
+    console.log('fifteenMinutesBefore----' , fifteenMinutesBefore)                                
     // console.log('trip-----' , trips)
 
     const notifications = [];
@@ -1392,6 +1396,8 @@ async function checkTripsAndSendNotifications() {
       const driverPartnerAccountNotificationTitleMessage = `Company (partner account - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
       const driverCompanyAccountNotificationMessage = `Your (company access - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
       const driverCompanyAccountNotificationTitleMessage = `Company (company access - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
+      
+      console.log('this trip is eligible for 20 minute notification -----------' , trip)
       // send to trip's driver
       if (trip?.driver_name?.deviceToken) {
           
