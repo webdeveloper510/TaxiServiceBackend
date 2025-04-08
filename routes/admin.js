@@ -73,6 +73,7 @@ router.put("/edit_sub_admin/:id",[verifyToken],subAdminController.edit_sub_admin
 router.put("/edit_hotel_admin/:id",[verifyToken],subAdminController.editHotel);
 router.post("/hotel_list_admin",[verifyToken],subAdminController.hotelListAdmin);
 router.delete("/delete_sub_admin/:id",[verifyToken],subAdminController.delete_sub_admin);
+router.put("/restore_sub_admin/:id",[verifyToken],subAdminController.restoreSubAdmin);
 
 // vehicle api's
 router.get("/get_vehicle_types", vehicleController.get_vehicle_types);

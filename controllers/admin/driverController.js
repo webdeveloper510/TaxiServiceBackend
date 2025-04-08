@@ -449,44 +449,48 @@ exports.adminDeleteDriver = async (req, res) => {
 
     // You may want to add additional checks to ensure the driver exists or belongs to the agency user
     const removedDriver = await DRIVER.findOneAndUpdate(
-      { _id: driverId },
-      {
-        $set: {
-          is_deleted: true,
-        },
-      }
-    );
+                                                          { _id: driverId },
+                                                          {
+                                                            $set: {
+                                                              is_deleted: true,
+                                                              jwtToken: null,
+                                                              jwtTokenMobile: null,
+                                                              webSocketId: null,
+                                                              socketId: null
+                                                            },
+                                                          }
+                                                        );
 
     if (!removedDriver) {
       res.send({
-        code: constant.error_code,
-        message: "Unable to delete the driver",
-      });
+                code: constant.error_code,
+                message: "Unable to delete the driver",
+              });
     } else {
       let companyData = await user_model.findOne({
-        email: removedDriver.email,
-        is_deleted: false,
-      });
+                                                  email: removedDriver.email,
+                                                  is_deleted: false,
+                                                });
       if (!companyData) {
         res.send({
-          code: constant.success_code,
-          message: "Deleted Successfully",
-        });
+                  code: constant.success_code,
+                  message: "Deleted Successfully",
+                });
       } else {
-        companyData.isDriver = false;
-        companyData.driverId = null;
-        await companyData.save();
+        // companyData.isDriver = false;
+        // companyData.driverId = null;
+        // await companyData.save();
         res.send({
-          code: constant.success_code,
-          message: "Deleted Successfully",
-        });
+                  code: constant.success_code,
+                  message: "Deleted Successfully",
+                });
       }
     }
   } catch (err) {
     res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+              code: constant.error_code,
+              message: err.message,
+            });
   }
 };
 
@@ -1384,6 +1388,9 @@ exports.restoreDriver = async (req, res) => {
                                                   }
                                                 ]);
       if (isCompanyExist) {
+
+        // driver's company id will be updated in driver account when driver will be restored
+
         let updatedDriver = await DRIVER.findOneAndUpdate( 
                                                               { _id: driverId }, 
                                                               {

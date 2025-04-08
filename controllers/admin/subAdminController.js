@@ -1236,31 +1236,33 @@ exports.delete_sub_admin = async (req, res) => {
     let data = req.body;
     let criteria = { _id: req.params.id };
     let option = { new: true };
-    let newValue = {
-      $set: {
-        is_deleted: true,
-        deleted_by_id: req.userId,
-      },
-    };
-    let deleteSubAdmin = await USER.findOneAndUpdate(
-      criteria,
-      newValue,
-      option
-    );
+    let newValue =  {
+                      $set: {
+                        is_deleted: true,
+                        deleted_by_id: req.userId,
+                        jwtToken: null,
+                        jwtTokenMobile: null,
+                        webSocketId: null,
+                        socketId: null
+                      },
+                    };
+
+
+    let deleteSubAdmin = await USER.findOneAndUpdate( criteria, newValue, option);
     if (!deleteSubAdmin) {
       res.send({
         code: constant.error_code,
         message: "Unable to delete the sub admin",
       });
     } else {
-      let deleteDriver = await driver_model.findOneAndUpdate(
-        { email: deleteSubAdmin.email },
-        {
-          $set: {
-            is_deleted: true,
-          },
-        }
-      );
+      // let deleteDriver = await driver_model.findOneAndUpdate(
+      //   { email: deleteSubAdmin.email },
+      //   {
+      //     $set: {
+      //       is_deleted: true,
+      //     },
+      //   }
+      // );
 
       res.send({
         code: constant.success_code,
@@ -1274,6 +1276,40 @@ exports.delete_sub_admin = async (req, res) => {
     });
   }
 };
+
+exports.restoreSubAdmin = async (req, res) => {
+  try {
+
+    let data = req.body;
+    let criteria = { _id: req.params.id };
+    let option = { new: true };
+    let newValue =  {
+                      $set: {
+                        is_deleted: false,
+                      },
+                    };
+
+
+    let updateSubAdmin = await USER.findOneAndUpdate( criteria, newValue, option);
+
+    if (!updateSubAdmin) {
+      res.send({
+        code: constant.error_code,
+        message: "Unable to delete the sub admin",
+      });
+    } else {
+      res.send({
+        code: constant.success_code,
+        message: "Account restored successfully",
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
 
 // exports.add_vehicle_type = async(req,res)=>{
 //     try{
