@@ -482,7 +482,7 @@ exports.adminDeleteDriver = async (req, res) => {
         // companyData.driverId = null;
         // await companyData.save();
 
-        await sendAccountDeactivationEmail(removedDriver)
+        sendAccountDeactivationEmail(removedDriver)
         res.send({
                   code: constant.success_code,
                   message: "Deleted Successfully",
@@ -1415,7 +1415,7 @@ exports.restoreDriver = async (req, res) => {
                                                           );
       }
       
-      await sendAccountReactivationEmail(existingDriver)
+      sendAccountReactivationEmail(existingDriver)
       return res.send({
                         code: constant.success_code,
                         message: 'Driver restored successfully',

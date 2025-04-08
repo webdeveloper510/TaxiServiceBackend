@@ -1264,7 +1264,7 @@ exports.delete_sub_admin = async (req, res) => {
       //   }
       // );
 
-      await sendAccountDeactivationEmail(deleteSubAdmin)
+      sendAccountDeactivationEmail(deleteSubAdmin)
 
       res.send({
         code: constant.success_code,
@@ -1301,7 +1301,7 @@ exports.restoreSubAdmin = async (req, res) => {
       });
     } else {
 
-      await sendAccountReactivationEmail(updateSubAdmin);
+      sendAccountReactivationEmail(updateSubAdmin);
 
       res.send({
         code: constant.success_code,
