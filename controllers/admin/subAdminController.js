@@ -2276,6 +2276,7 @@ exports.companyList = async (req, res) => {
           totalBalance: 1,
           is_special_plan_active:1,
           status: 1,
+          is_deleted:1,
           isDriver:1,
           is_blocked:1,
           land: { $arrayElemAt: ["$meta.land", 0] },

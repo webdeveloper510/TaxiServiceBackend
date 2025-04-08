@@ -121,13 +121,13 @@ exports.get_driver_detail = async (req, res) => {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
     const driver = await DRIVER.findOne({
-      $and: [
-        {
-          $or: [{ _id: req.userId }],
-        },
-        { is_deleted: false },
-      ],
-    });
+                                          $and: [
+                                            {
+                                              $or: [{ _id: req.userId }],
+                                            },
+                                            { is_deleted: false },
+                                          ],
+                                        });
     if (!driver) {
       res.send({
         code: constant.error_code,
@@ -171,8 +171,15 @@ exports.get_driver_detail = async (req, res) => {
                                                     .countDocuments();
 
       
+     
 
       const result = driver.toObject();
+
+      if (result?.driver_company_id) {
+        const companyDetail = await USER.findById(result?.driver_company_id);
+        result.companyDetail = companyDetail
+      }
+      
       result.totalTrips = completedTrips;
       const partnerCompanyAccess = await result.parnter_account_access.map((data) =>  new mongoose.Types.ObjectId(data?.company_id?.toString()));
       
