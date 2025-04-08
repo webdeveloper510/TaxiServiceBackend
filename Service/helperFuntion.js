@@ -1558,6 +1558,7 @@ exports.sendAccountReactivationEmail = async (userInfo) => {
    
     const bodyHtml =  `
                         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                          <h2>Dear <span  style="color: #333;">${userDetail?.first_name} ${userDetail?.last_name} </span>,</h2>
                           <p>We wanted to let you know that your ${userDetail?.role} account has been successfully reactivated by our admin team.</p>
                           <p>You can now log in and continue using our services as usual.</p>
                           <br>
