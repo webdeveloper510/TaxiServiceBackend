@@ -1363,7 +1363,7 @@ async function checkTripsAndSendNotifications() {
     let fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
     let thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
 
-    const { startDateTime, endDateTime  , currentDateTime} = get20thMinuteRangeUTC();
+    const { startDateTime, endDateTime  , currentDateTime} = await get20thMinuteRangeUTC();
     // fifteenMinutesBefore = new Date(endDateTime);
     // thirteenMinutesBefore = new Date(startDateTime);
 
@@ -1496,6 +1496,7 @@ const get20thMinuteRangeUTC = async () => {
   let currentTime = new Date();
 
   let currentDateTime = new Date();
+  
   currentDateTime.setUTCHours(currentDateTime.getUTCHours());
   currentDateTime.setUTCMinutes(currentDateTime.getUTCMinutes());
 
@@ -1522,7 +1523,7 @@ const get20thMinuteRangeUTC = async () => {
   endDateTime.setUTCMilliseconds(999); // End at the 999th millisecond
                       
   endDateTime = endDateTime.toISOString();
-
+  
   return { startDateTime, endDateTime , currentDateTime};
 };
 
