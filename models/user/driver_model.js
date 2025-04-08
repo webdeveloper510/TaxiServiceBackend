@@ -105,6 +105,10 @@ const driver = new Schema(
       type: String,
       default: "a0",
     },
+    role: {
+      type: String,
+      default: "DRIVER",
+    },
     gender: {
       type: String,
       default: "",

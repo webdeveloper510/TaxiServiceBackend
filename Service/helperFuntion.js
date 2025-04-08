@@ -665,7 +665,7 @@ exports.sendPaymentFailEmail = async (subsctiptionId , reseon) => {
                             </span>
                             <br><br>
                             <span>
-                              If you have any questions or require assistance during this process, please do not hesitate to reach out to our support team at ${emailConstant.from_email}. We are here to help!
+                              If you have any questions or require assistance during this process, please do not hesitate to reach out to our support team at  <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>. We are here to help!
                             </span>
                             <br><br>
 
@@ -1211,7 +1211,7 @@ exports.informUserSubscriptionCanceledDueToBlock = async (subsctiptionId) => {
                           </ul>
 
                           <br><br>
-                          If you believe this action was taken in error or require further clarification, please contact our support team at ${process.env.SUPPORT_EMIAL}.
+                          If you believe this action was taken in error or require further clarification, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.
                           <br><br>
                           Best regards,
                           Idispatch Mobility Team
@@ -1266,7 +1266,7 @@ exports.notifyUserAccountBlocked = async (userInfo) => {
                           </ul>
 
                           <br><br>
-                          If you believe this action was taken in error or require further clarification, please contact our support team at ${process.env.SUPPORT_EMIAL}.
+                          If you believe this action was taken in error or require further clarification, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.
                           <br><br>
                           Best regards,
                           Idispatch Mobility Team
@@ -1321,7 +1321,7 @@ exports.notifyUserAccountReactivated = async (userInfo) => {
                           </ul>
 
                           <br><br>
-                          If you believe this action was taken in error or require further clarification, please contact our support team at ${process.env.SUPPORT_EMIAL}.
+                          If you believe this action was taken in error or require further clarification, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.
                           <br><br>
                           Best regards,
                           Idispatch Mobility Team
@@ -1475,7 +1475,7 @@ exports.notifyInsufficientBalance = async () => {
                             <h2>Dear <span  style="color: #333;">Admin </span>,</h2>
                             <p>We hope this email finds you well.</p>
                             <p>We attempted to process a payout, but it could not be completed due to <b>insufficient balance</b> in your account. Please ensure that you have sufficient funds available to proceed with the transaction.</p>
-                            <p>To avoid any service disruptions, please deposit the required amount and retry the transaction. If you need assistance, feel free to contact our support team.</p>
+                            <p>To avoid any service disruptions, please deposit the required amount and retry the transaction. If you need assistance, feel free to contact our support team <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.</p>
                             <p>Best regards, <br><strong>Idispatch Mobility</strong></p>
                         </div>
                     `;
@@ -1485,6 +1485,94 @@ exports.notifyInsufficientBalance = async () => {
     var mailOptions = {
                         from: emailConstant.from_email,
                         to: emails,
+                        subject: subject,
+                        html: template
+                      };
+    let sendEmail = await transporter.sendMail(mailOptions);
+    return sendEmail
+    
+  } catch (error) {
+
+    console.error("Error checkPayouts status:",  error.message);
+    throw error;
+  }
+}
+
+// when admin will delete the account of the user
+exports.sendAccountDeactivationEmail = async (userInfo) => {
+
+  try{
+
+    let userDetail;
+
+    if (userInfo?.role != constant.ROLES.DRIVER) {
+      userDetail = await user_model.findById(userInfo?._id); 
+    } else {
+      userDetail = await driver_model.findById(userInfo?._id); 
+    }
+    
+   
+    const subject = `Important Notice Regarding Your Account`;
+   
+    const bodyHtml =  `
+                        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                          <h2>Dear <span  style="color: #333;">${userDetail?.first_name} ${userDetail?.last_name} </span>,</h2>
+                          <p>We would like to inform you that administrative action has been taken on your ${userDetail?.role} account ( <b>${userDetail?.email} </b>), and access has been disabled by an authorized administrator.</p>
+                          <p>If you have any questions regarding this change or believe this was done in error, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.</p>
+                          <p>We appreciate your understanding.</p><p>Best regards, <br><strong>Idispatch Mobility</strong></p>
+                        </div>
+                    `;
+    let template = ` ${bodyHtml}`
+  
+    var transporter = nodemailer.createTransport(emailConstant.credentials);
+    var mailOptions = {
+                        from: emailConstant.from_email,
+                        to: userDetail?.email,
+                        subject: subject,
+                        html: template
+                      };
+    let sendEmail = await transporter.sendMail(mailOptions);
+    return sendEmail
+    
+  } catch (error) {
+
+    console.error("Error checkPayouts status:",  error.message);
+    throw error;
+  }
+}
+
+// when admin will delete the account of the user
+exports.sendAccountReactivationEmail = async (userInfo) => {
+
+  try{
+
+    let userDetail;
+
+    if (userInfo?.role != constant.ROLES.DRIVER) {
+      userDetail = await user_model.findById(userInfo?._id); 
+    } else {
+      userDetail = await driver_model.findById(userInfo?._id); 
+    }
+   
+    const subject = `Your Account Has Been Reactivated`;
+   
+    const bodyHtml =  `
+                        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                          <p>We wanted to let you know that your ${userDetail?.role} account has been successfully reactivated by our admin team.</p>
+                          <p>You can now log in and continue using our services as usual.</p>
+                          <br>
+                          <p>If you have any questions, feel free to reach out to our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.</p>
+                          <p>Best regards, 
+                          <br>
+                          <strong>Idispatch Mobility</strong></p>
+                        </div>
+                    `;
+    let template = ` ${bodyHtml}`
+  
+    var transporter = nodemailer.createTransport(emailConstant.credentials);
+    var mailOptions = {
+                        from: emailConstant.from_email,
+                        to: userDetail?.email,
                         subject: subject,
                         html: template
                       };

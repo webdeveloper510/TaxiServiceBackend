@@ -12,7 +12,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { sendEmailDriverCreation , getUserActivePaidPlans } = require("../../Service/helperFuntion");
+const { sendEmailDriverCreation , getUserActivePaidPlans  , sendAccountDeactivationEmail} = require("../../Service/helperFuntion");
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -458,7 +458,8 @@ exports.adminDeleteDriver = async (req, res) => {
                                                               webSocketId: null,
                                                               socketId: null
                                                             },
-                                                          }
+                                                          },
+                                                          { new: true }
                                                         );
 
     if (!removedDriver) {
@@ -480,6 +481,8 @@ exports.adminDeleteDriver = async (req, res) => {
         // companyData.isDriver = false;
         // companyData.driverId = null;
         // await companyData.save();
+
+        await sendAccountDeactivationEmail(removedDriver)
         res.send({
                   code: constant.success_code,
                   message: "Deleted Successfully",
@@ -1412,6 +1415,7 @@ exports.restoreDriver = async (req, res) => {
                                                           );
       }
       
+      await sendAccountReactivationEmail(existingDriver)
       return res.send({
                         code: constant.success_code,
                         message: 'Driver restored successfully',

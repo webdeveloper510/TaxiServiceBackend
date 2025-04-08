@@ -15,7 +15,7 @@ require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
 const { sendNotification } = require("../../Service/helperFuntion");
-const { isDriverHasCompanyAccess , createConnectedAccount , attachBankAccount , createCustomAccount} = require("../../Service/helperFuntion");
+const { isDriverHasCompanyAccess , createConnectedAccount , attachBankAccount , createCustomAccount , sendAccountDeactivationEmail} = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require("../../models/user/driver_model");
@@ -1264,6 +1264,8 @@ exports.delete_sub_admin = async (req, res) => {
       //   }
       // );
 
+      await sendAccountDeactivationEmail(deleteSubAdmin)
+
       res.send({
         code: constant.success_code,
         message: "Deleted",
@@ -1298,6 +1300,9 @@ exports.restoreSubAdmin = async (req, res) => {
         message: "Unable to delete the sub admin",
       });
     } else {
+
+      await sendAccountReactivationEmail(updateSubAdmin);
+      
       res.send({
         code: constant.success_code,
         message: "Account restored successfully",
