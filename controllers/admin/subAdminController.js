@@ -15,7 +15,7 @@ require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
 const { sendNotification } = require("../../Service/helperFuntion");
-const { isDriverHasCompanyAccess , createConnectedAccount , attachBankAccount , createCustomAccount , sendAccountDeactivationEmail} = require("../../Service/helperFuntion");
+const { isDriverHasCompanyAccess , createConnectedAccount , attachBankAccount , createCustomAccount , sendAccountDeactivationEmail , sendAccountReactivationEmail} = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require("../../models/user/driver_model");
@@ -1302,7 +1302,7 @@ exports.restoreSubAdmin = async (req, res) => {
     } else {
 
       await sendAccountReactivationEmail(updateSubAdmin);
-      
+
       res.send({
         code: constant.success_code,
         message: "Account restored successfully",
