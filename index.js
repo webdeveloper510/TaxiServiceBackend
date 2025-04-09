@@ -812,16 +812,34 @@ io.on("connection", (socket) => {
 
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
     try {
+
+      console.log('getting from the App------' ,{ longitude, latitude })
       const driverBySocketId = await driver_model.findOne({ socketId: socket.id, });
 
       if (driverBySocketId) {
-        driverBySocketId.location = {
-                                      type: "Point",
-                                      coordinates: [longitude, latitude],
-                                    };
-        driverBySocketId.locationUpdatedAt = new Date();
+        // driverBySocketId.location = {
+        //                               type: "Point",
+        //                               coordinates: [longitude, latitude],
+        //                             };
+        // driverBySocketId.locationUpdatedAt = new Date();
 
-        await driverBySocketId.save();
+        // await driverBySocketId.save();
+
+        const updatedDriver = await driver_model.findOneAndUpdate(
+                                                                    { socketId: socket.id },
+                                                                    {
+                                                                      $set: {
+                                                                        location: {
+                                                                          type: "Point",
+                                                                          coordinates: [longitude, latitude],
+                                                                        },
+                                                                        locationUpdatedAt: new Date(),
+                                                                      },
+                                                                    },
+                                                                    { new: true } // Return the updated document
+                                                                  );
+
+        console.log('updatedDriverData------' ,updatedDriver?.location.coordinates)
         io.to(socket.id).emit("UpdateLocationDriver", {
           code: 200,
           message: "location Updated successfully",
