@@ -813,7 +813,7 @@ io.on("connection", (socket) => {
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
     try {
 
-      console.log('getting from the App------' ,{ longitude, latitude })
+      console.log('getting from the App------' , driverBySocketId , '---driverBySocketId--', { longitude, latitude })
       const driverBySocketId = await driver_model.findOne({ socketId: socket.id, });
 
       if (driverBySocketId) {
