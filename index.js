@@ -812,15 +812,13 @@ io.on("connection", (socket) => {
 
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
     try {
-      const driverBySocketId = await driver_model.findOne({
-        socketId: socket.id,
-      });
+      const driverBySocketId = await driver_model.findOne({ socketId: socket.id, });
 
       if (driverBySocketId) {
         driverBySocketId.location = {
-          type: "Point",
-          coordinates: [longitude, latitude],
-        };
+                                      type: "Point",
+                                      coordinates: [longitude, latitude],
+                                    };
         driverBySocketId.locationUpdatedAt = new Date();
 
         await driverBySocketId.save();

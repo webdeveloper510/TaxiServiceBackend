@@ -395,16 +395,21 @@ exports.add_admin = async (req, res) => {
   try {
     let data = req.body;
     data.email = data.email.toLowerCase();
-    let checkEmail = await USER.findOne({
-      email: data.email,
-      is_deleted: false,
-    });
+    let checkEmail = await USER.findOne({ email: data.email });
+
+    if (checkEmail && checkEmail?.is_deleted) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: "This email is already associated with an inactive account (Deleted User)",
+                      });
+    }
     if (checkEmail) {
-      res.send({
-        code: constant.error_code,
-        message: "Email is already registered",
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message: "Email is already registered",
+                      });
+      
     }
     let checkDEmail = await DRIVER.findOne({
       email: data.email,
