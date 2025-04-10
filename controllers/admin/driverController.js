@@ -402,13 +402,13 @@ exports.remove_driver = async (req, res) => {
 
     // You may want to add additional checks to ensure the driver exists or belongs to the agency user
     const removedDriver = await DRIVER.findOneAndUpdate(
-      { _id: driverId },
-      {
-        $set: {
-          is_deleted: true,
-        },
-      }
-    );
+                                                          { _id: driverId },
+                                                          {
+                                                            $set: {
+                                                              is_deleted: true,
+                                                            },
+                                                          }
+                                                        );
 
     if (!removedDriver) {
       res.send({
@@ -416,24 +416,21 @@ exports.remove_driver = async (req, res) => {
         message: "Unable to delete the driver",
       });
     } else {
-      let companyData = await user_model.findOne({
-        email: removedDriver.email,
-        is_deleted: false,
-      });
-      if (!companyData) {
-        res.send({
-          code: constant.success_code,
-          message: "Deleted Successfully",
-        });
-      } else {
-        companyData.isDriver = false;
-        companyData.driverId = null;
-        await companyData.save();
-        res.send({
-          code: constant.success_code,
-          message: "Deleted Successfully",
-        });
-      }
+
+      let updateCompany = await user_model.findOneAndUpdate(
+                                                              { email: removedDriver.email },
+                                                              {
+                                                                $set: {
+                                                                        isDriverDeleted: true,
+                                                                      },
+                                                              }
+                                                            );
+      
+      return res.send({
+                        code: constant.success_code,
+                        message: "Deleted Successfully",
+                      });
+      
     }
   } catch (err) {
     res.send({
@@ -468,26 +465,24 @@ exports.adminDeleteDriver = async (req, res) => {
                 message: "Unable to delete the driver",
               });
     } else {
-      let companyData = await user_model.findOne({
-                                                  email: removedDriver.email,
-                                                  is_deleted: false,
-                                                });
-      if (!companyData) {
-        res.send({
-                  code: constant.success_code,
-                  message: "Deleted Successfully",
-                });
-      } else {
-        // companyData.isDriver = false;
-        // companyData.driverId = null;
-        // await companyData.save();
+      
 
-        sendAccountDeactivationEmail(removedDriver)
-        res.send({
-                  code: constant.success_code,
-                  message: "Deleted Successfully",
-                });
-      }
+      // update copmany detail when admin will delete its driver
+      let updateCompany = await USER.findOneAndUpdate(
+                                                        { email: removedDriver.email },
+                                                        {
+                                                          $set: {
+                                                                  isDriverDeleted: true,
+                                                                },
+                                                        }
+                                                      );
+
+      sendAccountDeactivationEmail(removedDriver);
+      res.send({
+                code: constant.success_code,
+                message: "Deleted Successfully",
+              });
+      
     }
   } catch (err) {
     res.send({
@@ -1374,46 +1369,54 @@ exports.restoreDriver = async (req, res) => {
 
     if (existingDriver) {
 
-      let isCompanyExist = await USER.aggregate([
-                                                  {
-                                                    $match: { email: existingDriver.email }
-                                                  },
-                                                  {
-                                                    $lookup: {
-                                                      from: 'agencies', // Name of the collection in MongoDB
-                                                      localField: '_id', // The field in the USER collection
-                                                      foreignField: 'user_id', // The field in the Agency collection
-                                                      as: 'agencyDetails' // Output field
-                                                    }
-                                                  },
-                                                  {
-                                                    $unwind: { path: '$agencyDetails', preserveNullAndEmptyArrays: true } // Unwind if needed
-                                                  }
-                                                ]);
-      if (isCompanyExist) {
+      // let isCompanyExist = await USER.aggregate([
+      //                                             {
+      //                                               $match: { email: existingDriver.email }
+      //                                             },
+      //                                             {
+      //                                               $lookup: {
+      //                                                 from: 'agencies', // Name of the collection in MongoDB
+      //                                                 localField: '_id', // The field in the USER collection
+      //                                                 foreignField: 'user_id', // The field in the Agency collection
+      //                                                 as: 'agencyDetails' // Output field
+      //                                               }
+      //                                             },
+      //                                             {
+      //                                               $unwind: { path: '$agencyDetails', preserveNullAndEmptyArrays: true } // Unwind if needed
+      //                                             }
+      //                                           ]);
+      // if (isCompanyExist) {
 
-        // driver's company id will be updated in driver account when driver will be restored
+      //   // driver's company id will be updated in driver account when driver will be restored
 
-        let updatedDriver = await DRIVER.findOneAndUpdate( 
-                                                              { _id: driverId }, 
-                                                              {
-                                                                is_deleted: false,
-                                                                isCompany: true,
-                                                                driver_company_id: isCompanyExist?._id,
-                                                                company_agency_id: isCompanyExist?.agencyDetails?.id,
-                                                              }, 
-                                                              { new: true }
-                                                            );
-      } else {
+      //   let updatedDriver = await DRIVER.findOneAndUpdate( 
+      //                                                         { _id: driverId }, 
+      //                                                         {
+      //                                                           is_deleted: false,
+      //                                                           isCompany: true,
+      //                                                           driver_company_id: isCompanyExist?._id,
+      //                                                           company_agency_id: isCompanyExist?.agencyDetails?.id,
+      //                                                         }, 
+      //                                                         { new: true }
+      //                                                       );
+      // } else {
         let updatedDriver = await DRIVER.findOneAndUpdate( 
                                                             { _id: driverId }, 
                                                             {
                                                               is_deleted: false,
-                                                              isCompany: false,
                                                             }, 
                                                             { new: true }
                                                           );
-      }
+
+        let updateCompany = await USER.findOneAndUpdate(
+                                                          { email: existingDriver.email },
+                                                          {
+                                                            $set: {
+                                                                    isDriverDeleted: false,
+                                                                  },
+                                                          }
+                                                        );
+      // }
       
       sendAccountReactivationEmail(existingDriver)
       return res.send({
