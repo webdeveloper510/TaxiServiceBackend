@@ -152,6 +152,10 @@ const user = new Schema(
       type: Boolean,
       default: false,
     },
+    isDriverDeleted: {
+      type: Boolean,
+      default: false,
+    },
     driverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "driver",

@@ -1260,14 +1260,16 @@ exports.delete_sub_admin = async (req, res) => {
         message: "Unable to delete the sub admin",
       });
     } else {
-      // let deleteDriver = await driver_model.findOneAndUpdate(
-      //   { email: deleteSubAdmin.email },
-      //   {
-      //     $set: {
-      //       is_deleted: true,
-      //     },
-      //   }
-      // );
+
+      // Update its driver as its company deleted by admin
+      let updateDriver = await driver_model.findOneAndUpdate(
+                                                              { email: deleteSubAdmin.email },
+                                                              {
+                                                                $set: {
+                                                                        isCompanyDeleted: true,
+                                                                      },
+                                                              }
+                                                            );
 
       sendAccountDeactivationEmail(deleteSubAdmin)
 
@@ -1305,6 +1307,16 @@ exports.restoreSubAdmin = async (req, res) => {
         message: "Unable to delete the sub admin",
       });
     } else {
+
+      // Update its driver as its company rstore by admin
+      let updateDriver = await driver_model.findOneAndUpdate(
+                                                              { email: deleteSubAdmin.email },
+                                                              {
+                                                                $set: {
+                                                                        isCompanyDeleted: false,
+                                                                      },
+                                                              }
+                                                            );
 
       sendAccountReactivationEmail(updateSubAdmin);
 
