@@ -12,7 +12,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { sendEmailDriverCreation , getUserActivePaidPlans  , sendAccountDeactivationEmail} = require("../../Service/helperFuntion");
+const { sendEmailDriverCreation , getUserActivePaidPlans  , sendAccountDeactivationEmail , sendAccountReactivationEmail} = require("../../Service/helperFuntion");
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -425,7 +425,7 @@ exports.remove_driver = async (req, res) => {
                                                                       },
                                                               }
                                                             );
-      
+      sendAccountDeactivationEmail(removedDriver);
       return res.send({
                         code: constant.success_code,
                         message: "Deleted Successfully",
