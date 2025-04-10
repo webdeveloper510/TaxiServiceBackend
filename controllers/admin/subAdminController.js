@@ -1310,7 +1310,7 @@ exports.restoreSubAdmin = async (req, res) => {
 
       // Update its driver as its company rstore by admin
       let updateDriver = await driver_model.findOneAndUpdate(
-                                                              { email: deleteSubAdmin.email },
+                                                              { email: updateSubAdmin.email },
                                                               {
                                                                 $set: {
                                                                         isCompanyDeleted: false,
