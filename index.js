@@ -517,14 +517,14 @@ io.on("connection", (socket) => {
   socket.on("addNewDriver", async ({ token, longitude, latitude ,socketId }) => {
     try {
       await driver_model.updateMany(
-        { socketId: socket.id },
-        {
-          $set: {
-            isSocketConnected: false,
-            socketId: null,
-          },
-        }
-      );
+                                    { socketId: socket.id },
+                                    {
+                                      $set: {
+                                        isSocketConnected: false,
+                                        socketId: null,
+                                      },
+                                    }
+                                  );
       const driverByToken = await driverDetailsByToken(token);
 
       if (driverByToken) {
@@ -537,6 +537,18 @@ io.on("connection", (socket) => {
         driverByToken.isSocketConnected = true;
         driverByToken.socketId = socketId;
         await driverByToken.save();
+
+        // If compaany has driver account then socket will be updated in driver document
+        const updatedDriver = await user_model.findOneAndUpdate(
+                                                                    { email: driverByToken?.email },
+                                                                    {
+                                                                      $set: {
+                                                                        isSocketConnected: true,
+                                                                        socketId: socketId,
+                                                                      },
+                                                                    },
+                                                                    { new: true } // Return the updated document
+                                                                  );
 
         await io.to(socketId).emit("driverNotification", {
                                                             code: 200,
