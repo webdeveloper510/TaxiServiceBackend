@@ -815,7 +815,7 @@ io.on("connection", (socket) => {
 
       console.log('getting from the App------' , socket.id , '---driverBySocketId--', { longitude, latitude })
       const driverBySocketId = await driver_model.findOne({ socketId: socket.id, });
-
+      console.log('getting from the App------' , socket.id , '---driverBySocketId--',  driverBySocketId_id , driverBySocketId?.email, { longitude, latitude })
       if (driverBySocketId) {
         // driverBySocketId.location = {
         //                               type: "Point",
@@ -1394,9 +1394,9 @@ async function checkTripsAndSendNotifications() {
                                                     { path: "created_by_company_id" }
                                                   ]);
     
-    console.log('currentDateTime----' , currentDateTime)
-    console.log('thirteenMinutesBefore----' , thirteenMinutesBefore)
-    console.log('fifteenMinutesBefore----' , fifteenMinutesBefore)                                
+    // console.log('currentDateTime----' , currentDateTime)
+    // console.log('thirteenMinutesBefore----' , thirteenMinutesBefore)
+    // console.log('fifteenMinutesBefore----' , fifteenMinutesBefore)                                
     // console.log('trip-----' , trips)
 
     const notifications = [];
