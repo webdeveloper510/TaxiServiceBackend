@@ -813,10 +813,11 @@ io.on("connection", (socket) => {
   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
     try {
 
-      console.log('getting from the App------' , socket.id , '---driverBySocketId--', { longitude, latitude })
+      // console.log('getting from the App------' , socket.id , '---driverBySocketId--', { longitude, latitude })
       const driverBySocketId = await driver_model.findOne({ socketId: socket.id, });
-      console.log('getting from the App------' , socket.id , '---driverBySocketId--',  driverBySocketId?._id , driverBySocketId?.email, { longitude, latitude })
+      conosle.log('--------------------------------------------------')
       if (driverBySocketId) {
+      console.log('getting from the App------' , socket.id , '---driverBySocketId--',  driverBySocketId?._id , driverBySocketId?.email, { longitude, latitude })
         // driverBySocketId.location = {
         //                               type: "Point",
         //                               coordinates: [longitude, latitude],
