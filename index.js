@@ -262,7 +262,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           console.log("Webhook received successfully");
           return res.status(200).send({ received: true  , message: `Webhook received successfully`, istTime:istTime});
       } catch (error) {
-          console.error("Error in webhook handler:", error.message);
+          console.error(" subscription webhook:", error.message);
           let logs_data = {
                             api_name: 'subscription_webhook error',
                             payload: JSON.stringify(req.body),
@@ -311,7 +311,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           return res.status(200).send({ received: true  , message: `Webhook received successfully`, istTime:istTime});
           logEntry.save();
         } catch (error) {
-          console.error("Error in webhook handler:", error.message);
+          console.error("Error in webhook handler payout_webhook():", error.message);
           let logs_data = {
                             api_name: 'subscription_webhook error',
                             payload: JSON.stringify(req.body),
@@ -863,7 +863,7 @@ io.on("connection", (socket) => {
                                                                     { new: true } // Return the updated document
                                                                   );
 
-        console.log('updatedDriverData------' ,updatedDriver?.location.coordinates)
+        console.log('----------------------------------------')
         io.to(socket.id).emit("UpdateLocationDriver", {
           code: 200,
           message: "location Updated successfully",
@@ -1647,7 +1647,7 @@ const handleInvoicePaymentFailure = async (invoice) => {
             break;
     }
   } catch (error) {
-    console.error("Error in webhook handler:", error.message);
+    console.error("Error in webhook handler handleInvoicePaymentFailure():", error.message);
     let logs_data = {
                       api_name: 'subscription_webhook',
                       payload: JSON.stringify(req.body),
@@ -1733,7 +1733,7 @@ const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
     return true;
     
    } catch (error) {
-    console.error("Error in webhook handler:", error.message);
+    console.error("Error in webhook handler idealPaymentSubscription ():", error.message);
     let logs_data = {
                       api_name: 'subscription_webhook ideal payment',
                       payload: JSON.stringify(req.body),
