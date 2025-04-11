@@ -838,7 +838,7 @@ io.on("connection", (socket) => {
 
       // console.log('getting from the App------' , socket.id , '---driverBySocketId--', { longitude, latitude })
       const driverBySocketId = await driver_model.findOne({ socketId: socket.id, });
-      console.log('--------------------------------------------------',socket.id)
+      // console.log('--------------------------------------------------',socket.id)
       if (driverBySocketId) {
       console.log('getting from the App------' , socket.id , '---driverBySocketId--',  driverBySocketId?._id , driverBySocketId?.email, { longitude, latitude })
         // driverBySocketId.location = {
