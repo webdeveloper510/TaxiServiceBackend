@@ -671,6 +671,17 @@ io.on("connection", (socket) => {
           user.socketId = socketId;
           await user.save();
 
+          // If compaany has driver account then socket will be updated in driver document
+          const updatedDriver = await driver_model.findOneAndUpdate(
+                                                                    { email: user?.email },
+                                                                    {
+                                                                      $set: {
+                                                                        isSocketConnected: true,
+                                                                        socketId: socketId,
+                                                                      },
+                                                                    },
+                                                                    { new: true } // Return the updated document
+                                                                  );
           io.to(socketId).emit("userConnection",  {
                                                     code: 200,
                                                     message: "connected successfully with user id: " + id,
