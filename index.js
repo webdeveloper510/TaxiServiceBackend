@@ -313,7 +313,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
         } catch (error) {
           console.error("Error in webhook handler payout_webhook():", error.message);
           let logs_data = {
-                            api_name: 'subscription_webhook error',
+                            api_name: 'payout_webhook error',
                             payload: JSON.stringify(req.body),
                             error_message: error.message,
                             error_response: JSON.stringify(error)
