@@ -31,6 +31,11 @@ const plans = new Schema({
         type:String,
         required: false,
     },
+    forRoles: {
+        type:String,
+        required: false,
+        default: 'DRIVER'
+    },
     features:{
         type:[ ]
     }

@@ -132,13 +132,15 @@ exports.getProducts = async (req, res) => {
         let activePayedPlan = [];
         let activePlan;
 
+        console.log('req.user--------------', req.user)
+
         if (req.user) {
 
             activePayedPlan = await getUserActivePaidPlans(req.user);
             activePlan = await getUserCurrentActivePayedPlan(req.user);
         }
        
-        let plans = await PLANS_MODEL.find({status: true}).lean();  // Use lean to get plain objects
+        let plans = await PLANS_MODEL.find({status: true , forRoles: req?.user?.role}).lean();  // Use lean to get plain objects
 
         if (plans) {
 
