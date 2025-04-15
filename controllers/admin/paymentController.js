@@ -471,8 +471,8 @@ exports.adminTransaction = async (req, res) => {
     }
 
     const adminCommision = await getTotalPayment(dateQuery , {is_paid: true} , `superAdminPaymentAmount`);
-    const paidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: true , is_paid: true} , `companyPaymentAmount`);
-    const willPaidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: false , is_paid: true} , `companyPaymentAmount`);
+    const paidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: true } , `companyPaymentAmount`);
+    const willPaidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: false } , `companyPaymentAmount`);
     const getTotalAmountOfUnpaidDrivers = await getTotalPayment(dateQuery , {is_company_paid: false , is_paid: false} , `driverPaymentAmount`);
     const getTotalAmountOfPaidDrivers = await getTotalPayment(dateQuery , {is_company_paid: false , is_paid: true} , `driverPaymentAmount`);
     const totalAmountPurchasedPlan = await getTotalPurchasedSubscriptionAmount();

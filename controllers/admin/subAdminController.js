@@ -2232,6 +2232,7 @@ exports.companyList = async (req, res) => {
     const searchText = req.body.name.trim();
     const searchWords = searchText.split(/\s+/);
     // Match criteria for filtering users
+    
     const matchCriteria = {
       $and: [
         { role: "COMPANY" },
@@ -2317,7 +2318,24 @@ exports.companyList = async (req, res) => {
         },
       },
       {
-        $match: matchCriteria,
+        $lookup: {
+          from: "trips",
+          localField: "_id",
+          foreignField: "created_by_company_id",
+          as: "trip_data"
+        }
+      },
+      {
+        $match: {
+          ...matchCriteria,
+          "trip_data": {
+            $not: {
+              $elemMatch: {
+                payment_status: { $ne: "PAID" }
+              }
+            }
+          }
+        }
       },
       {
         $project: {
@@ -2388,7 +2406,249 @@ exports.companyList = async (req, res) => {
         totalCount: totalCount,
         totalDocuments:totalDocuments,
         totalPages:totalPages,
-        result: searchUser
+        result: searchUser,
+        matchCriteria
+        
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
+
+exports.companyListBYRevenue = async (req, res) => {
+  try {
+    let data = req.body;
+    let query = req.query.role ? req.query.role : "COMPANY";
+    const page = parseInt(data.page) || 1; // Get the page number from the request (default to 1 if not provided)
+    const limit =  parseInt(data.limit); // Number of items per page
+    const skip = (page - 1) * limit;
+    let dateFilter = data.dateFilter; 
+    const searchText = req.body.name.trim();
+    const searchWords = searchText.split(/\s+/);
+    const tripPaidStatus = req.body?.commision_paid;
+
+    let dateQuery = {};
+
+    if (dateFilter !== "all") {
+      let startDate, endDate;
+      const today = new Date();
+      switch (dateFilter) {
+        case "this_week":
+          const todayDay = today.getDay();
+          startDate = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate() - todayDay
+          );
+          endDate = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate() + (6 - todayDay)
+          );
+          break;
+        case "this_month":
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          break;
+        case "this_year":
+          startDate = new Date(today.getFullYear(), 0, 1);
+          endDate = new Date(today.getFullYear(), 11, 31);
+          break;
+        case "dateRange":
+          startDate = new Date(req.body.startDate);
+          endDate = new Date(req.body.endDate);
+
+          // Modify the Date object with setHours
+          
+        default:
+          break;
+      }
+
+      startDate.setUTCHours(0, 0, 1, 0);
+      endDate.setUTCHours(23, 59, 59, 999);
+
+      // Convert the Date objects to ISO 8601 strings
+      startDate = startDate.toISOString();
+      endDate = endDate.toISOString();
+
+      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+    }
+
+    
+    // Match criteria for filtering users
+    
+    const matchCriteria = {
+      $and: [
+        { role: "COMPANY" },
+        {
+          "trip_data": {
+            $elemMatch: {
+              trip_status: constant.TRIP_STATUS.COMPLETED,
+              is_company_paid: tripPaidStatus,
+              ...(dateQuery?.pickup_date_time ? { // Add date range condition if startDate and endDate are provided
+                dateQuery
+              } : {})
+            }
+          }
+        },
+      ]
+    };
+
+    // Total Count with filters
+    const totalCount = await USER.aggregate([
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "_id",
+          foreignField: "user_id",
+          as: "meta"
+        }
+      },
+      {
+        $lookup: {
+          from: "drivers",
+          localField: "driverId",
+          foreignField: "_id",
+          as: "driver_info"
+        }
+      },
+      {
+        $lookup: {
+          from: "trips",
+          localField: "_id",
+          foreignField: "created_by_company_id",
+          as: "trip_data"
+        }
+      },
+      { $match: matchCriteria },
+      { $count: "total" }
+    ]);
+
+    // Calculate total pages
+    const totalDocuments = totalCount[0]?.total || 0;
+    const totalPages = Math.ceil(totalDocuments / limit);
+
+    // Paginated data with total_paid_trip_amount
+    const searchUser = await USER.aggregate([
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "_id",
+          foreignField: "user_id",
+          as: "meta"
+        }
+      },
+      {
+        $lookup: {
+          from: "drivers",
+          localField: "driverId",
+          foreignField: "_id",
+          as: "driver_info"
+        }
+      },
+      {
+        $lookup: {
+          from: "trips",
+          localField: "_id",
+          foreignField: "created_by_company_id",
+          as: "trip_data"
+        }
+      },
+      { $match: matchCriteria },
+      {
+        $addFields: {
+          total_paid_trip_amount: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$trip_data",
+                    as: "trip",
+                    cond: {
+                      $and: [
+                        { $eq: ["$$trip.trip_status", constant.TRIP_STATUS.COMPLETED] },
+                        { $eq: ["$$trip.is_company_paid", tripPaidStatus] }
+                      ]
+                    }
+                  }
+                },
+                as: "trip",
+                in: "$$trip.companyPaymentAmount" // Change this field if needed
+              }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          first_name: 1,
+          last_name: 1,
+          email: 1,
+          phone: 1,
+          createdAt: 1,
+          profile_image: 1,
+          role: 1,
+          totalBalance: 1,
+          is_special_plan_active: 1,
+          status: 1,
+          is_deleted: 1,
+          isDriver: 1,
+          is_blocked: 1,
+          total_paid_trip_amount: 1,
+
+          land: { $arrayElemAt: ["$meta.land", 0] },
+          post_code: { $arrayElemAt: ["$meta.post_code", 0] },
+          house_number: { $arrayElemAt: ["$meta.house_number", 0] },
+          description: { $arrayElemAt: ["$meta.description", 0] },
+          affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
+          p_number: { $arrayElemAt: ["$meta.p_number", 0] },
+          number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
+          chamber_of_commerce_number: {
+            $arrayElemAt: ["$meta.chamber_of_commerce_number", 0]
+          },
+          vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
+          website: { $arrayElemAt: ["$meta.website", 0] },
+          tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+          saluation: { $arrayElemAt: ["$meta.saluation", 0] },
+          company_name: { $arrayElemAt: ["$meta.company_name", 0] },
+          company_id: { $arrayElemAt: ["$meta.company_id", 0] },
+          commision: { $arrayElemAt: ["$meta.commision", 0] },
+          hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
+          location: { $arrayElemAt: ["$meta.location", 0] },
+
+          driver_name: {
+            $concat: [
+              { $arrayElemAt: ["$driver_info.first_name", 0] },
+              " ",
+              { $arrayElemAt: ["$driver_info.last_name", 0] }
+            ]
+          }
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ]);
+    if (!searchUser) {
+      res.send({
+        code: constant.error_code,
+        message: "Unable to search the user",
+      });
+    } else {
+      res.send({
+        code: constant.success_code,
+        message: "Success",
+        totalCount: totalCount,
+        totalDocuments:totalDocuments,
+        totalPages:totalPages,
+        result: searchUser,
+        matchCriteria
         
       });
     }
