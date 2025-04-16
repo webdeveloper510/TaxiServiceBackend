@@ -286,13 +286,15 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           
           const sig = req.headers['stripe-signature'];
           let event;
+          console.log('endpointSecret--------' , endpointSecret);
+
 
           try {
             event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
             console.log("payout webhook received successfully----" , event.type);
-            // console.log("Webhook JSON.stringify----" , JSON.stringify(event));
+            
           } catch (err) {
-            console.log(`Webhook Error: ${err.message}`);
+            console.log(`payout_webhook Error: ${err.message}`);
 
             let logs_data = { 
                               api_name: 'payout_webhook', payload: JSON.stringify(req.body),
@@ -305,8 +307,8 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           }
 
           // -------------------- Main Logic start
-          console.log('event.type-------up' , event.type)
-          let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `webhook`, error_response: JSON.stringify(event) };
+          console.log('payout_webhook event.type-------up' , event.type)
+          let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `payout_webhook`, error_response: JSON.stringify(event) };
           const logEntry = new LOGS(logs_data);
           return res.status(200).send({ received: true  , message: `Webhook received successfully`, istTime:istTime});
           logEntry.save();
@@ -372,13 +374,13 @@ app.get( "/weekly-company-payment", async (req, res) => {
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
-    // return res.send({
-    //   code: 200,
-    //   message: "weekly-company-payment",
-    //   // tripList:tripList,
-    //   balance,
-    //   tripList
-    // });
+    return res.send({
+      code: 200,
+      message: "weekly-company-payment",
+      // tripList:tripList,
+      balance,
+      // tripList
+    });
 
     if (availableBalance > 100) {
        
