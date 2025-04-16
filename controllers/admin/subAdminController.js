@@ -2326,16 +2326,7 @@ exports.companyList = async (req, res) => {
         }
       },
       {
-        $match: {
-          ...matchCriteria,
-          "trip_data": {
-            $not: {
-              $elemMatch: {
-                payment_status: { $ne: "PAID" }
-              }
-            }
-          }
-        }
+        $match: matchCriteria,
       },
       {
         $project: {

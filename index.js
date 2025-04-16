@@ -379,7 +379,7 @@ app.get( "/weekly-company-payment", async (req, res) => {
       message: "weekly-company-payment",
       // tripList:tripList,
       balance,
-      // tripList
+      tripList
     });
 
     if (availableBalance > 100) {
