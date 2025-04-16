@@ -3046,11 +3046,11 @@ exports.tipListByRevenue = async (req, res) => {
             ],
           },
           vehicle: {
-            $concat: [
-              { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
-              " ",
-              { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
-            ],
+            $concat:  [
+                        { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+                        " ",
+                        { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
+                      ],
           },
           trip_id: 1,
         },

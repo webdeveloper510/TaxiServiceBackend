@@ -544,7 +544,6 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
       ...(type || {}),
   }
   
-  console.log('amountKey--------' , amountKey , matchCriteria);
 
   const totalPayment = await TRIP.aggregate([
     {
