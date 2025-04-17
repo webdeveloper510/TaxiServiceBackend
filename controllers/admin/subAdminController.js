@@ -2637,7 +2637,7 @@ exports.companyListByRevenue = async (req, res) => {
         totalDocuments:totalDocuments,
         totalPages:totalPages,
         result: searchUser,
-        matchCriteria
+        // matchCriteria
         
       });
     }
