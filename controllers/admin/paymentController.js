@@ -471,8 +471,8 @@ exports.adminTransaction = async (req, res) => {
     }
 
     const totalAmountPurchasedPlan = await getTotalPurchasedSubscriptionAmount();
-    const paidTripCommisionOfadmin = await getTotalPayment(dateQuery , {is_paid: true} , `superAdminPaymentAmount` , false);
-    const DuesTripCommisionOfadmin = await getTotalPayment(dateQuery , {is_paid: false} , `superAdminPaymentAmount` , false);
+    const paidTripCommisionOfAdmin = await getTotalPayment(dateQuery , {is_paid: true} , `superAdminPaymentAmount` , false);
+    const DuesTripCommisionOfAdmin = await getTotalPayment(dateQuery , {is_paid: false} , `superAdminPaymentAmount` , false);
     const commisionPaidToCompany = await getTotalPayment(dateQuery , {is_paid: true , is_company_paid: true } , `companyPaymentAmount` , false);
     const companyCommisionToBePaid = await getTotalPayment(dateQuery , { is_company_paid: false } , `companyPaymentAmount` , false);
 
@@ -491,8 +491,8 @@ exports.adminTransaction = async (req, res) => {
               code: constant.success_code,
 
               totalAmountPurchasedPlan,
-              paidTripCommisionOfadmin,
-              DuesTripCommisionOfadmin,
+              paidTripCommisionOfAdmin,
+              DuesTripCommisionOfAdmin,
               commisionPaidToCompany,
               companyCommisionToBePaid,
               dueCommisionFromDrivers,
