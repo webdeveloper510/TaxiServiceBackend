@@ -2795,7 +2795,9 @@ exports.driverListByRevenue = async (req, res) => {
                   }
                 },
                 as: "trip",
-                in: "$$trip.driverPaymentAmount" // Change this field if needed
+                in: {
+                  $subtract: ["$$trip.price", "$$trip.driverPaymentAmount"]
+                }
               }
             }
           }
