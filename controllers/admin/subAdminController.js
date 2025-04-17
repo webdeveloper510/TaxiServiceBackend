@@ -2888,7 +2888,7 @@ exports.tipListByRevenue = async (req, res) => {
     let dateFilter = data.dateFilter; 
     const searchText = data.name.trim();
     // const searchWords = searchText.split(/\s+/);
-    // const isPaid = req.body?.commision_paid;
+    const isPaid = req.body?.commision_paid;
 
     let dateQuery = {};
 
@@ -2943,7 +2943,7 @@ exports.tipListByRevenue = async (req, res) => {
                     $and: [
                             {
                               trip_status : constant.TRIP_STATUS.COMPLETED,
-                              is_paid: true, // driver paid the commission
+                              is_paid: isPaid, // driver paid the commission
                               ...(dateQuery?.pickup_date_time ? dateQuery : {}),
                               ...(search_value
                                 ? {
