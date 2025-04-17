@@ -470,28 +470,37 @@ exports.adminTransaction = async (req, res) => {
       dateQuery = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
     }
 
-    const adminCommision = await getTotalPayment(dateQuery , {is_paid: true} , `superAdminPaymentAmount`);
-    const paidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: true } , `companyPaymentAmount`);
-    const willPaidCompanyCommision = await getTotalPayment(dateQuery , {is_company_paid: false } , `companyPaymentAmount`);
-    const getTotalAmountOfUnpaidDrivers = await getTotalPayment(dateQuery , {is_company_paid: false , is_paid: false} , `driverPaymentAmount`);
-    const getTotalAmountOfPaidDrivers = await getTotalPayment(dateQuery , {is_company_paid: false , is_paid: true} , `driverPaymentAmount`);
     const totalAmountPurchasedPlan = await getTotalPurchasedSubscriptionAmount();
+    const paidTripCommisionOfadmin = await getTotalPayment(dateQuery , {is_paid: true} , `superAdminPaymentAmount` , false);
+    const DuesTripCommisionOfadmin = await getTotalPayment(dateQuery , {is_paid: false} , `superAdminPaymentAmount` , false);
+    const commisionPaidToCompany = await getTotalPayment(dateQuery , {is_paid: true , is_company_paid: true } , `companyPaymentAmount` , false);
+    const companyCommisionToBePaid = await getTotalPayment(dateQuery , {is_paid: true , is_company_paid: false } , `companyPaymentAmount` , false);
 
-    const getTotalNumberOfUnpaidDrivers  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false});
-    const getTotalNumberOfPaidDrivers  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true});
+    const dueCommisionFromDrivers = await getTotalPayment(dateQuery , { is_paid: false } , `driverPaymentAmount` , true);
+    const recieveCommisionFromDrivers = await getTotalPayment(dateQuery , { is_paid: true} , `driverPaymentAmount` , true);
+
+    const driversNetEarning = await getTotalPayment(dateQuery , { is_paid: true} , `driverPaymentAmount` , false);
+    
+    
+    const countDriversWithPendingDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false});
+    const countDriversWithPaidDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true});
 
 
 
     res.send({
               code: constant.success_code,
+
               totalAmountPurchasedPlan,
-              adminCommision,
-              paidCompanyCommision,
-              willPaidCompanyCommision,
-              getTotalNumberOfUnpaidDrivers,
-              getTotalNumberOfPaidDrivers,
-              getTotalAmountOfUnpaidDrivers,
-              getTotalAmountOfPaidDrivers
+              paidTripCommisionOfadmin,
+              DuesTripCommisionOfadmin,
+              commisionPaidToCompany,
+              companyCommisionToBePaid,
+              dueCommisionFromDrivers,
+              recieveCommisionFromDrivers,
+              countDriversWithPendingDues,
+              countDriversWithPaidDues,
+              driversNetEarning
+
             });
 
   } catch (err) {
@@ -534,7 +543,7 @@ const getTotalPurchasedSubscriptionAmount = async () => {
   }
 }
 
-const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'superAdminPaymentAmount') => {
+const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'superAdminPaymentAmount' , revenueOnly = false) => {
 
   let matchCriteria = {
       status: true,
@@ -543,18 +552,36 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
       ...(dateQuery || {}),
       ...(type || {}),
   }
-  
 
+  let groupStage ;
+
+  if (revenueOnly) {
+    groupStage = {
+      $group: {
+        _id: null,
+        totalAmount: {
+          $sum: {
+            $subtract: ['$price', '$driverPaymentAmount']
+          }
+        }
+      }
+    };
+  } else {
+    groupStage = {
+      $group: {
+        _id: null,
+        totalAmount: {
+          $sum: `$${amountKey}`
+        }
+      }
+    };
+  }
+  
   const totalPayment = await TRIP.aggregate([
     {
         $match: matchCriteria
     },
-    {
-        $group: {
-            _id: null, // No grouping key; calculate total sum for all matching documents
-            totalAmount: { $sum: `$${amountKey}` } // Sum the column
-        }
-    }
+    groupStage
   ]);
 
   return totalPayment.length > 0 ? totalPayment[0].totalAmount.toFixed(2) : 0;
