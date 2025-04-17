@@ -2818,7 +2818,7 @@ exports.driverListByRevenue = async (req, res) => {
           isCompany: 1,
           is_blocked: 1,
           total_paid_trip_amount: 1,
-
+          driver_id:{ $arrayElemAt: ["$driver_info._id", 0] },
           // land: { $arrayElemAt: ["$meta.land", 0] },
           // post_code: { $arrayElemAt: ["$meta.post_code", 0] },
           // house_number: { $arrayElemAt: ["$meta.house_number", 0] },
