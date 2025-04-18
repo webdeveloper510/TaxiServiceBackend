@@ -40,242 +40,241 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 // view engine setup
 
 // Apply raw body parser specifically for Stripe webhook
+app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
 
-// app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
-
-//   console.log('webhook triggered----------------')
-//   const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
-//     try {
+  console.log('webhook triggered----------------')
+  const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
+    try {
          
-//         const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
+        const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_ENDPOINT_SECRET;
           
-//           const sig = req.headers['stripe-signature'];
-//           let event;
+          const sig = req.headers['stripe-signature'];
+          let event;
 
-//           try {
-//             event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-//             console.log("Webhook received successfully----" , event.type);
-//             // console.log("Webhook JSON.stringify----" , JSON.stringify(event));
-//           } catch (err) {
-//             console.log(`Webhook Error: ${err.message}`);
+          try {
+            event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+            console.log("Webhook received successfully----" , event.type);
+            // console.log("Webhook JSON.stringify----" , JSON.stringify(event));
+          } catch (err) {
+            console.log(`Webhook Error: ${err.message}`);
 
-//             let logs_data = { api_name: 'subscription_webhook', payload: JSON.stringify(req.body),
-//                               error_message: err.message, error_response: JSON.stringify(err)
-//                             };
+            let logs_data = { api_name: 'subscription_webhook', payload: JSON.stringify(req.body),
+                              error_message: err.message, error_response: JSON.stringify(err)
+                            };
 
-//             const logEntry = new LOGS(logs_data);
-//             logEntry.save();
-//             return res.status(200).send({ received: true , error_message: err.message , istTime:istTime});
-//           }
+            const logEntry = new LOGS(logs_data);
+            logEntry.save();
+            return res.status(200).send({ received: true , error_message: err.message , istTime:istTime});
+          }
 
-//           // -------------------- Main Logic start
-//           console.log('event.type-------up' , event.type)
-//           let logs_data = { api_name: 'subscription_webhook', payload: event.type, error_message: `webhook`, error_response: JSON.stringify(event) };
-//           const logEntry = new LOGS(logs_data);
-//           logEntry.save();
+          // -------------------- Main Logic start
+          console.log('event.type-------up' , event.type)
+          let logs_data = { api_name: 'subscription_webhook', payload: event.type, error_message: `webhook`, error_response: JSON.stringify(event) };
+          const logEntry = new LOGS(logs_data);
+          logEntry.save();
 
-//           if (event.type === 'invoice.payment_succeeded') {
-//             const invoice = event.data.object;
-//             let updateData;
+          if (event.type === 'invoice.payment_succeeded') {
+            const invoice = event.data.object;
+            let updateData;
 
-//             if (invoice.billing_reason === "subscription_create") {
+            if (invoice.billing_reason === "subscription_create") {
 
-//               // Extract relevant information
-//               const subscriptionId = invoice.subscription; // Subscription ID
+              // Extract relevant information
+              const subscriptionId = invoice.subscription; // Subscription ID
 
-//               let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
+              let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
               
 
               
 
-//               let paymentIntentId = invoice.payment_intent;
+              let paymentIntentId = invoice.payment_intent;
 
-//               const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+              const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-//               const paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
+              const paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
 
-//               if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
-//                 console.log('This subscription was created using iDEAL.' , paymentMethod.type);
+              if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
+                console.log('This subscription was created using iDEAL.' , paymentMethod.type);
 
-//                 // Store this info in your database if needed
-//                 await idealPaymentSubscription(req , invoice , paymentMethod.type);
-//               } else {
+                // Store this info in your database if needed
+                await idealPaymentSubscription(req , invoice , paymentMethod.type);
+              } else {
 
-//                 updateData =  {
-//                   chargeId: invoice.charge,
-//                   paymentIntentId: invoice.payment_intent,
-//                   invoiceId: invoice.id,
-//                   paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-//                   active: constant.SUBSCRIPTION_STATUS.ACTIVE,
-//                   invoicePdfUrl: invoice.invoice_pdf,
-//                   invoiceUrl: invoice.hosted_invoice_url,
-//                   billing_reason: `subscription_create`
-//                 }
+                updateData =  {
+                  chargeId: invoice.charge,
+                  paymentIntentId: invoice.payment_intent,
+                  invoiceId: invoice.id,
+                  paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                  active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                  invoicePdfUrl: invoice.invoice_pdf,
+                  invoiceUrl: invoice.hosted_invoice_url,
+                  billing_reason: `subscription_create`
+                }
 
-//                 const result = await SUBSCRIPTION_MODEL.updateOne(
-//                                                                       { _id: new mongoose.Types.ObjectId(subscriptionExist._id) }, // filter
-//                                                                       { $set: updateData } // update operation
-//                                                                   );
+                const result = await SUBSCRIPTION_MODEL.updateOne(
+                                                                      { _id: new mongoose.Types.ObjectId(subscriptionExist._id) }, // filter
+                                                                      { $set: updateData } // update operation
+                                                                  );
 
-//                 let logs_data = {
-//                                   api_name: 'subscription_webhook',
-//                                   payload: event.type,
-//                                   error_message: `billing_reason - subscription_create`,
-//                                   error_response: JSON.stringify(event)
-//                                 };
+                let logs_data = {
+                                  api_name: 'subscription_webhook',
+                                  payload: event.type,
+                                  error_message: `billing_reason - subscription_create`,
+                                  error_response: JSON.stringify(event)
+                                };
 
-//                 const logEntry = new LOGS(logs_data);
-//                 logEntry.save();
+                const logEntry = new LOGS(logs_data);
+                logEntry.save();
 
-//                 // Send subscription email to user
-//                 sendEmailSubscribeSubcription(subscriptionId);
-//               }
+                // Send subscription email to user
+                sendEmailSubscribeSubcription(subscriptionId);
+              }
 
-//             } else if (invoice.billing_reason === "subscription_cycle") {
+            } else if (invoice.billing_reason === "subscription_cycle") {
 
-//               // Extract relevant information
-//               const subscriptionId = invoice.subscription; // Subscription ID
+              // Extract relevant information
+              const subscriptionId = invoice.subscription; // Subscription ID
 
-//               let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId})
+              let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId})
 
-//               const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
-//               // Convert UNIX timestamps to JavaScript Date objects
-//               const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
-//               const endPeriod = new Date(subscriptionLine.period.end * 1000);
+              const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
+              // Convert UNIX timestamps to JavaScript Date objects
+              const startPeriod = new Date(subscriptionLine.period.start * 1000); // Convert to milliseconds
+              const endPeriod = new Date(subscriptionLine.period.end * 1000);
 
               
-//               let option = { new: true };
+              let option = { new: true };
 
-//               // Set inactive to old entry related to this subscription ID because new Entry will start
-//               SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
+              // Set inactive to old entry related to this subscription ID because new Entry will start
+              SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
 
-//               updateData =  {
-//                               subscriptionId:invoice.subscription,
-//                               planId: subscriptionExist.planId,
-//                               productPriceId: subscriptionExist.priceId,
-//                               customerId: subscriptionExist.customerId,
-//                               role: subscriptionExist.role,
-//                               purchaseBy: subscriptionExist.purchaseBy,
-//                               amount: subscriptionExist.amount,
-//                               billing_reason: `subscription_cycle`,
-//                               startPeriod: startPeriod,
-//                               endPeriod: endPeriod,
-//                               chargeId: invoice.charge,
-//                               paymentIntentId: invoice.payment_intent,
-//                               invoiceId: invoice.id,
-//                               paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-//                               active: constant.SUBSCRIPTION_STATUS.ACTIVE,
-//                               invoicePdfUrl: invoice.invoice_pdf,
-//                               invoiceUrl: invoice.hosted_invoice_url,
-//                             };
+              updateData =  {
+                              subscriptionId:invoice.subscription,
+                              planId: subscriptionExist.planId,
+                              productPriceId: subscriptionExist.priceId,
+                              customerId: subscriptionExist.customerId,
+                              role: subscriptionExist.role,
+                              purchaseBy: subscriptionExist.purchaseBy,
+                              amount: subscriptionExist.amount,
+                              billing_reason: `subscription_cycle`,
+                              startPeriod: startPeriod,
+                              endPeriod: endPeriod,
+                              chargeId: invoice.charge,
+                              paymentIntentId: invoice.payment_intent,
+                              invoiceId: invoice.id,
+                              paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                              active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                              invoicePdfUrl: invoice.invoice_pdf,
+                              invoiceUrl: invoice.hosted_invoice_url,
+                            };
 
-//               const subscriptionRenewal = new SUBSCRIPTION_MODEL(updateData);
-//               subscriptionRenewal.save();
+              const subscriptionRenewal = new SUBSCRIPTION_MODEL(updateData);
+              subscriptionRenewal.save();
 
-//               let logs_data = {
-//                 api_name: 'subscription_webhook',
-//                 payload: event.type,
-//                 error_message: `billing_reason - subscription_cycle`,
-//                 error_response: JSON.stringify(event)
-//               };
-//               const logEntry = new LOGS(logs_data);
-//               logEntry.save();
+              let logs_data = {
+                api_name: 'subscription_webhook',
+                payload: event.type,
+                error_message: `billing_reason - subscription_cycle`,
+                error_response: JSON.stringify(event)
+              };
+              const logEntry = new LOGS(logs_data);
+              logEntry.save();
 
-//             } else if (invoice.billing_reason === "checkout" || invoice.billing_reason === "manual") {
-//               console.log("💳 This invoice is for a **One-Time Payment**");
+            } else if (invoice.billing_reason === "checkout" || invoice.billing_reason === "manual") {
+              console.log("💳 This invoice is for a **One-Time Payment**");
 
-//               const checkoutSessions = await stripe.checkout.sessions.list({
-//                                                                             payment_intent: invoice.payment_intent, // Find session with this invoice
-//                                                                             limit: 1,
-//                                                                           });
+              const checkoutSessions = await stripe.checkout.sessions.list({
+                                                                            payment_intent: invoice.payment_intent, // Find session with this invoice
+                                                                            limit: 1,
+                                                                          });
 
-//               if (checkoutSessions.data.length > 0) {
+              if (checkoutSessions.data.length > 0) {
 
-//                 const checkoutSessionsId = checkoutSessions.data[0].id;
-//                 console.log("🔗 This invoice belongs to Checkout Session:", checkoutSessionsId);
+                const checkoutSessionsId = checkoutSessions.data[0].id;
+                console.log("🔗 This invoice belongs to Checkout Session:", checkoutSessionsId);
 
-//                 const condition = { "stripe_payment.payment_intent_id": checkoutSessionsId };
-//                 const invoiceUpdateData = { 
-//                                             $set: {
-//                                               hosted_invoice_url: invoice?.hosted_invoice_url,
-//                                               invoice_pdf: invoice?.invoice_pdf,
-//                                             } 
-//                                           };
-//                 const option = { new: true } 
-//                 //  Update invoice URL into our system
-//                 const updatedTrip = await trip_model.findOneAndUpdate(
-//                                                                         condition, // Find condition
-//                                                                         invoiceUpdateData, 
-//                                                                         option // Returns the updated document
-//                                                                       );
-//                 console.log('cheikng find update-----------')
-//                 console.log('cheikng find update' , updatedTrip)
-//               } else {
-//                 console.log("⚠️ No matching Checkout Session found.");
-//               }
-//             } else {
-//               console.log("⚠️ Unknown billing reason:", invoice.billing_reason);
-//             }
+                const condition = { "stripe_payment.payment_intent_id": checkoutSessionsId };
+                const invoiceUpdateData = { 
+                                            $set: {
+                                              hosted_invoice_url: invoice?.hosted_invoice_url,
+                                              invoice_pdf: invoice?.invoice_pdf,
+                                            } 
+                                          };
+                const option = { new: true } 
+                //  Update invoice URL into our system
+                const updatedTrip = await trip_model.findOneAndUpdate(
+                                                                        condition, // Find condition
+                                                                        invoiceUpdateData, 
+                                                                        option // Returns the updated document
+                                                                      );
+                console.log('cheikng find update-----------')
+                console.log('cheikng find update' , updatedTrip)
+              } else {
+                console.log("⚠️ No matching Checkout Session found.");
+              }
+            } else {
+              console.log("⚠️ Unknown billing reason:", invoice.billing_reason);
+            }
 
 
-//           } else if (event.type ===`invoice.payment_failed`) { // when Payment will be failed
+          } else if (event.type ===`invoice.payment_failed`) { // when Payment will be failed
 
-//             const invoice = event.data.object;
+            const invoice = event.data.object;
 
-//             let logs_data = {
-//               api_name: 'subscription_webhook',
-//               payload: JSON.stringify(event),
-//               error_message: `Retry payment`,
-//               error_response: JSON.stringify(event)
-//             };
-//             const logEntry = new LOGS(logs_data);
-//             logEntry.save();
+            let logs_data = {
+              api_name: 'subscription_webhook',
+              payload: JSON.stringify(event),
+              error_message: `Retry payment`,
+              error_response: JSON.stringify(event)
+            };
+            const logEntry = new LOGS(logs_data);
+            logEntry.save();
 
-//             // Retry payment (optional)
-//             // const retryInvoice = await stripe.invoices.pay(invoice.id, {
-//             //   off_session: true, // Try charging without user interaction
-//             // });
+            // Retry payment (optional)
+            // const retryInvoice = await stripe.invoices.pay(invoice.id, {
+            //   off_session: true, // Try charging without user interaction
+            // });
 
-//             // if (retryInvoice.status === "paid") {
-//             //   console.log("Retried payment successful");
-//             //   let logs_data = {
-//             //     api_name: 'subscription_webhook',
-//             //     payload: JSON.stringify(event),
-//             //     error_message: `Retry payment`,
-//             //     error_response: JSON.stringify(event)
-//             //   };
-//             //   const logEntry = new LOGS(logs_data);
-//             //   await logEntry.save();
-//             // } else {
+            // if (retryInvoice.status === "paid") {
+            //   console.log("Retried payment successful");
+            //   let logs_data = {
+            //     api_name: 'subscription_webhook',
+            //     payload: JSON.stringify(event),
+            //     error_message: `Retry payment`,
+            //     error_response: JSON.stringify(event)
+            //   };
+            //   const logEntry = new LOGS(logs_data);
+            //   await logEntry.save();
+            // } else {
 
-//             //   console.log("Retry failed, sending email to user...");
-//             //   // Notify the user to update their payment method
-//             //   await handleInvoicePaymentFailure(invoice)
-//             // }
+            //   console.log("Retry failed, sending email to user...");
+            //   // Notify the user to update their payment method
+            //   await handleInvoicePaymentFailure(invoice)
+            // }
 
-//             handleInvoicePaymentFailure(invoice)
+            handleInvoicePaymentFailure(invoice)
 
            
-//           } 
+          } 
 
           
-//           // Log the webhook event
-//           console.log("Webhook received successfully");
-//           return res.status(200).send({ received: true  , message: `Webhook received successfully for subscription webhook`, istTime:istTime});
-//       } catch (error) {
-//           console.error(" subscription webhook:", error.message);
-//           let logs_data = {
-//                             api_name: 'subscription_webhook error',
-//                             payload: JSON.stringify(req.body),
-//                             error_message: error.message,
-//                             error_response: JSON.stringify(error)
-//                           };
-//           const logEntry = new LOGS(logs_data);
-//           logEntry.save();
-//           return res.status(200).send({ received: true , error_message: error.message , istTime:istTime});
-//       }
-//   }
-// );
+          // Log the webhook event
+          console.log("Webhook received successfully");
+          return res.status(200).send({ received: true  , message: `Webhook received successfully for subscription webhook`, istTime:istTime});
+      } catch (error) {
+          console.error(" subscription webhook:", error.message);
+          let logs_data = {
+                            api_name: 'subscription_webhook error',
+                            payload: JSON.stringify(req.body),
+                            error_message: error.message,
+                            error_response: JSON.stringify(error)
+                          };
+          const logEntry = new LOGS(logs_data);
+          logEntry.save();
+          return res.status(200).send({ received: true , error_message: error.message , istTime:istTime});
+      }
+  }
+);
 
 app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
 
@@ -284,11 +283,9 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
     try {
          
         const endpointSecret = process.env.STRIPE_PAYOUT_SECRET;
-        // const endpointSecret = `whsec_kuJznOovYpOqqnjXWaFA7rPUfaxlwXTS`;
           
           const sig = req.headers['stripe-signature'];
           let event;
-          console.log('env ---endpoit--------' , process.env.STRIPE_PAYOUT_SECRET);
           console.log('endpointSecret--------' , endpointSecret);
 
 
@@ -299,17 +296,33 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           } catch (err) {
             console.log(`payout_webhook Error: ${err.message}`);
 
+            let logs_data = { 
+                              api_name: 'payout_webhook', payload: JSON.stringify(req.body),
+                              error_message: err.message, error_response: JSON.stringify(err)
+                            };
+
+            const logEntry = new LOGS(logs_data);
+            logEntry.save();
             return res.status(200).send({ received: true , error_message: err.message , istTime:istTime});
           }
 
           // -------------------- Main Logic start
           console.log('payout_webhook event.type-------up' , event.type)
-          
+          console.log('payout_webhook event-------up' , event)
+          let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `payout_webhook`, error_response: JSON.stringify(event) };
+          const logEntry = new LOGS(logs_data);
           return res.status(200).send({ received: true  , message: `payout_webhook received successfully`, istTime:istTime});
-         
+          logEntry.save();
         } catch (error) {
           console.error("Error in webhook handler payout_webhook():", error.message);
-         
+          let logs_data = {
+                            api_name: 'payout_webhook error',
+                            payload: JSON.stringify(req.body),
+                            error_message: error.message,
+                            error_response: JSON.stringify(error)
+                          };
+          const logEntry = new LOGS(logs_data);
+          logEntry.save();
           return res.status(200).send({ received: true , error_message: error.message , istTime:istTime});
       }
     }
