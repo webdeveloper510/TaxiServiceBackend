@@ -288,6 +288,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           
           const sig = req.headers['stripe-signature'];
           let event;
+          console.log('env ---endpointSecret--------' , process.env.STRIPE_PAYOUT_SECRET);
           console.log('endpointSecret--------' , endpointSecret);
 
 
