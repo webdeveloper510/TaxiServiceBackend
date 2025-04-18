@@ -417,15 +417,15 @@ exports.edit_trip = async (req, res) => {
 
         const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
         
-        data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
+        data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0).toFixed(2);
         // data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision?.value)) / 100 || 0);
-        data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
-        data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
+        data.companyPaymentAmount = (commission - data.superAdminPaymentAmount).toFixed(2);
+        data.driverPaymentAmount = (data.price - data.companyPaymentAmount - data.superAdminPaymentAmount).toFixed(2);
   
       } else {
         data.superAdminPaymentAmount = 0;
         data.companyPaymentAmount = 0;
-        data.driverPaymentAmount = data.price
+        data.driverPaymentAmount = data.price.toFixed(2)
       }
     }
     
@@ -570,15 +570,15 @@ exports.access_edit_trip = async (req, res) => {
       }
       const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
 
-      data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
+      data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0).toFixed(2);
       // data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
-      data.companyPaymentAmount = commission - data.superAdminPaymentAmount;
-      data.driverPaymentAmount = data.price - data.companyPaymentAmount - data.superAdminPaymentAmount;
+      data.companyPaymentAmount = (commission - data.superAdminPaymentAmount).toFixed(2);
+      data.driverPaymentAmount = (data.price - data.companyPaymentAmount - data.superAdminPaymentAmount).toFixed(2);
 
     } else {
       data.superAdminPaymentAmount = 0;
       data.companyPaymentAmount = 0;
-      data.driverPaymentAmount = data.price
+      data.driverPaymentAmount = data.price.toFixed(2)
     }
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
     if (!update_trip) {
