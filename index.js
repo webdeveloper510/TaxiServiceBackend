@@ -840,7 +840,7 @@ io.on("connection", (socket) => {
     try {
 
       const driverBySocketId = await driver_model.findOne({ socketId: socket.id, });
-      // console.log('--------------------------------------------------',socket.id)
+     
       if (driverBySocketId) {
       
         // driverBySocketId.location = {
@@ -865,7 +865,7 @@ io.on("connection", (socket) => {
                                                                     { new: true } // Return the updated document
                                                                   );
 
-        console.log('----------------------------------------')
+        
         io.to(socket.id).emit("UpdateLocationDriver", {
           code: 200,
           message: "location Updated successfully",
