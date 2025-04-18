@@ -260,7 +260,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           
           // Log the webhook event
           console.log("Webhook received successfully");
-          return res.status(200).send({ received: true  , message: `Webhook received successfully`, istTime:istTime});
+          return res.status(200).send({ received: true  , message: `Webhook received successfully for subscription webhook`, istTime:istTime});
       } catch (error) {
           console.error(" subscription webhook:", error.message);
           let logs_data = {
@@ -310,7 +310,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           console.log('payout_webhook event.type-------up' , event.type)
           let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `payout_webhook`, error_response: JSON.stringify(event) };
           const logEntry = new LOGS(logs_data);
-          return res.status(200).send({ received: true  , message: `Webhook received successfully`, istTime:istTime});
+          return res.status(200).send({ received: true  , message: `payout_webhook received successfully`, istTime:istTime});
           logEntry.save();
         } catch (error) {
           console.error("Error in webhook handler payout_webhook():", error.message);
@@ -398,7 +398,7 @@ app.get( "/weekly-company-payment", async (req, res) => {
 
             let stripBalance = await stripe.balance.retrieve();
             let availableBalance = stripBalance?.available[0]?.amount || 0;
-            availableBalance = 2
+            
             console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
             if (availableBalance >=  Math.round(amount * 100) ) {
               amount = 5;
