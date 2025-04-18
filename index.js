@@ -283,8 +283,8 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
   const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
     try {
          
-        // const endpointSecret = process.env.STRIPE_PAYOUT_SECRET;
-        const endpointSecret = `whsec_kuJznOovYpOqqnjXWaFA7rPUfaxlwXTS`;
+        const endpointSecret = process.env.STRIPE_PAYOUT_SECRET;
+        // const endpointSecret = `whsec_kuJznOovYpOqqnjXWaFA7rPUfaxlwXTS`;
           
           const sig = req.headers['stripe-signature'];
           let event;
