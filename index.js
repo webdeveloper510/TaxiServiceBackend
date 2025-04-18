@@ -374,13 +374,13 @@ app.get( "/weekly-company-payment", async (req, res) => {
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
-    return res.send({
-      code: 200,
-      message: "weekly-company-payment",
-      // tripList:tripList,
-      balance,
-      tripList
-    });
+    // return res.send({
+    //   code: 200,
+    //   message: "weekly-company-payment",
+    //   // tripList:tripList,
+    //   balance,
+    //   tripList
+    // });
 
     if (availableBalance > 100) {
        
@@ -401,7 +401,7 @@ app.get( "/weekly-company-payment", async (req, res) => {
             availableBalance = 2
             console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
             if (availableBalance >=  Math.round(amount * 100) ) {
-              
+              amount = 5;
               const transferDedtails = await transferToConnectedAccount(amount, connectedAccountId , tripId);
               
               await trip_model.findOneAndUpdate(
