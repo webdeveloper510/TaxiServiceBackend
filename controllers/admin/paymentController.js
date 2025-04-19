@@ -473,7 +473,7 @@ exports.companyTransaction = async (req, res) => {
     console.log('req.userId---' , req.userId);
     const totalCommisionFromCompletedTrips = await getTotalPayment(dateQuery , {created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
     const dueCommisionFromCompletedTrips = await getTotalPayment(dateQuery , { is_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
-    const paidCommisionsFromCompletedTrips = await getTotalPayment(dateQuery , { is_paid: true , is_company_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
+    const recieveCommisionsFromCompletedTrips = await getTotalPayment(dateQuery , { is_paid: true , is_company_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
     
     const totalTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , ...dateQuery});
     const totalBookedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.BOOKED , ...dateQuery});
@@ -482,21 +482,18 @@ exports.companyTransaction = async (req, res) => {
     const totalCompletedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.COMPLETED , ...dateQuery});
     const totalActivePickupTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.REACHED , ...dateQuery});
 
-
-
-    res.send({
-              code: constant.success_code,
-              dateQuery: {created_by_company_id: new mongoose.Types.ObjectId(req.userId) , ...dateQuery},
-              totalCommisionFromCompletedTrips,
-              dueCommisionFromCompletedTrips,
-              paidCommisionsFromCompletedTrips,
-              totalTrips,
-              totalBookedTrips,
-              totalPendingTrips,
-              totalActiveTrips,
-              totalCompletedTrips,
-              totalActivePickupTrips
-            });
+    return res.send({
+                      code: constant.success_code,
+                      totalCommisionFromCompletedTrips,
+                      dueCommisionFromCompletedTrips,
+                      recieveCommisionsFromCompletedTrips,
+                      totalTrips,
+                      totalBookedTrips,
+                      totalPendingTrips,
+                      totalActiveTrips,
+                      totalCompletedTrips,
+                      totalActivePickupTrips
+                    });
 
   } catch (err) {
     console.log( "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:", err );
