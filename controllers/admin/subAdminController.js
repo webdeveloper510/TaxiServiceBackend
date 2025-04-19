@@ -2788,6 +2788,173 @@ exports.tipListByRevenue = async (req, res) => {
   }
 };
 
+exports.companyTripListRevenue = async (req, res) => {
+  try {
+    let data = req.body;
+    let search_value = data.name ? data.name : "";
+
+    let page = parseInt(data.page) || 1; // Current page number, default to 1
+    let limit = parseInt(data.limit) || 10; // Number of results per page, default to 10
+    let skip = (page - 1) * limit;
+
+    const searchText = data.name.trim();
+    // const searchWords = searchText.split(/\s+/);
+    const is_company_paid = req.body?.is_company_paid;
+
+    let dateQuery = await dateFilter(data );
+    
+    let criteria = {
+                    $and: [
+                            {
+                              trip_status : constant.TRIP_STATUS.COMPLETED,
+                              is_company_paid: is_company_paid, // driver paid the commission
+                              created_by_company_id: new mongoose.Types.ObjectId(req.userId),
+                              ...(dateQuery?.pickup_date_time ? dateQuery : {}),
+                              ...(search_value
+                                ? {
+                                    $or: [
+                                      { comment: { $regex: search_value, $options: "i" } },
+                                      { "trip_to.address": { $regex: search_value, $options: "i" } },
+                                      { "trip_from.address": { $regex: search_value, $options: "i" } },
+                                      { company_name: { $regex: search_value, $options: "i" } },
+                                      { series_id: { $regex: search_value, $options: "i" } },
+                                    ],
+                                  }
+                                : {}),
+                            },
+                          ]
+                }
+
+          
+    let get_trip = await TRIP.aggregate([
+      {
+        $match: {
+          is_deleted: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "drivers",
+          localField: "driver_name",
+          foreignField: "_id",
+          as: "driver",
+        },
+      },
+      {
+        $lookup: {
+          from: "vehicles",
+          localField: "vehicle",
+          foreignField: "_id",
+          as: "vehicle",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "created_by_company_id",
+          foreignField: "_id",
+          as: "userData",
+          pipeline: [
+            {
+              $lookup: {
+                from: "agencies",
+                localField: "_id",
+                foreignField: "user_id",
+                as: "agency",
+              },
+            },
+            {
+              $project: {
+                company_name: { $arrayElemAt: ["$agency.company_name", 0] },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          trip_from: 1,
+          trip_to: 1,
+          pickup_date_time: 1,
+          trip_status: 1,
+          createdAt: 1,
+          created_by: 1,
+          series_id: 1,
+          status: 1,
+          passenger_detail: 1,
+          vehicle_type: 1,
+          comment: 1,
+          commission: 1,
+          pay_option: 1,
+          customerDetails: 1,
+          passengerCount: 1,
+          hosted_invoice_url:1,
+          payment_collcted:1,
+          invoice_pdf:1,
+          is_paid:1,
+          is_company_paid:1,
+          created_by_company_id:1,
+          superAdminPaymentAmount:1,
+          company_name: { $arrayElemAt: ["$userData.company_name", 0] },
+          driver_id: { $arrayElemAt: ["$driver._id", 0] },
+          driver_name: {
+            $concat: [
+              { $arrayElemAt: ["$driver.first_name", 0] },
+              " ",
+              { $arrayElemAt: ["$driver.last_name", 0] },
+            ],
+          },
+          vehicle: {
+            $concat:  [
+                        { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+                        " ",
+                        { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
+                      ],
+          },
+          trip_id: 1,
+        },
+      },
+      {
+        $match: criteria
+      },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+        },
+      },
+    ]);
+
+    let results = get_trip[0]?.data;
+
+    if (!results) {
+      res.send({
+        code: constant.error_code,
+        message: "Unable to get the trips",
+      });
+    } else {
+      res.send({
+        code: constant.success_code,
+        message: "Success",
+        totalCount :  get_trip[0]?.metadata[0]?.total | 0,
+        result: results,
+        criteria
+        
+      });
+    }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
 exports.companyHotelList = async (req, res) => {
   try {
     let data = req.body;

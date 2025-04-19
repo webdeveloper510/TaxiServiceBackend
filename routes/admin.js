@@ -65,6 +65,7 @@ router.post( "/all_company_list", [verifyToken], subAdminController.companyList)
 router.post( "/company_list_by_revenue", [verifyToken], subAdminController.companyListByRevenue);
 router.post( "/driver_list_by_revenue", [verifyToken], subAdminController.driverListByRevenue);
 router.post( "/trip_list_by_revenue", [verifyToken], subAdminController.tipListByRevenue);
+router.post( "/company_trip_list_revenue", [verifyToken ,companyAuth], subAdminController.companyTripListRevenue);
 
 router.post( "/company_revenue_details/:company_id", [verifyToken], subAdminController.companyRevenueDetails);
 router.post( "/driver_revenue_details/:driver_id", [verifyToken], subAdminController.driverRevenueDetails);
