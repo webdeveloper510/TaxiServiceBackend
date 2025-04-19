@@ -12,7 +12,7 @@ const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const TRIP = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getUserActivePaidPlans} = require("../../Service/helperFuntion");
+const { getUserActivePaidPlans , dateFilter} = require("../../Service/helperFuntion");
 
 exports.tripCommissionPayment = async (req, res) => {
   try {
@@ -502,6 +502,48 @@ exports.adminTransaction = async (req, res) => {
               countDriversWithPaidDues,
               driversNetEarning
 
+            });
+
+  } catch (err) {
+    console.log( "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:", err );
+    res.send({
+              code: constant.error_code,
+              message: err.message,
+            });
+  }
+
+}
+
+exports.companyTransaction = async (req, res) => {
+  try {
+
+    let data = req.body;
+
+    // Update the query based on the date filter
+    let dateQuery = await dateFilter(data );
+    console.log('req.userId---' , req.userId);
+    const totalCommisionFromCompletedTrips = await getTotalPayment(dateQuery , {created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
+    const dueCommisionFromCompletedTrips = await getTotalPayment(dateQuery , { is_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
+    const paidCommisionsFromCompletedTrips = await getTotalPayment(dateQuery , { is_paid: true , is_company_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
+    
+    const totalTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId)});
+    const totalBookedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.BOOKED});
+    const totalPendingTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.PENDING});
+    const totalActiveTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.ACTIVE});
+    const totalCompletedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.COMPLETED});
+
+
+
+    res.send({
+              code: constant.success_code,
+              totalCommisionFromCompletedTrips,
+              dueCommisionFromCompletedTrips,
+              paidCommisionsFromCompletedTrips,
+              totalTrips,
+              totalBookedTrips,
+              totalPendingTrips,
+              totalActiveTrips,
+              totalCompletedTrips
             });
 
   } catch (err) {

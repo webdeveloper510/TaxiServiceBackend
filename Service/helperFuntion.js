@@ -1436,6 +1436,66 @@ exports.sendPayoutToBank = async (amount, connectedAccountId) => {
   }
 }
 
+exports.dateFilter = async ( postData ) => {
+  try {
+    
+    let dateFilter = postData.dateFilter; // Corrected variable name
+    if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
+      dateFilter = "all";
+    }
+    let dateQuery = {};
+    if (dateFilter !== "all") {
+      let startDate, endDate;
+      const today = new Date();
+      switch (dateFilter) {
+        case "this_week":
+          const todayDay = today.getDay();
+          startDate = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate() - todayDay
+          );
+          endDate = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate() + (6 - todayDay)
+          );
+          break;
+        case "this_month":
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+          break;
+        case "this_year":
+          startDate = new Date(today.getFullYear(), 0, 1);
+          endDate = new Date(today.getFullYear(), 11, 31);
+          break;
+        case "dateRange":
+          startDate = new Date(req.body.startDate);
+          endDate = new Date(req.body.endDate);
+
+          // Modify the Date object with setHours
+          
+        default:
+          break;
+      }
+
+      startDate.setUTCHours(0, 0, 1, 0);
+      endDate.setUTCHours(23, 59, 59, 999);
+
+      // Convert the Date objects to ISO 8601 strings
+      startDate = startDate.toISOString();
+      endDate = endDate.toISOString();
+
+      dateQuery = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+    }
+
+    return dateQuery;
+  } catch (error) {
+    console.error("Error in date filter:", error.message);
+    throw error;
+  }
+}
+
 
 exports.checkPayouts = async (connectedAccountId) => {
 
