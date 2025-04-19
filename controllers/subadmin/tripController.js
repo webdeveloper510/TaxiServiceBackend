@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
-const {partnerAccountRefreshTrip , noShowTrip , willCompanyPayCommissionOnTrip} = require("../../Service/helperFuntion");
+const {partnerAccountRefreshTrip , noShowTrip , willCompanyPayCommissionOnTrip , dateFilter} = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 
@@ -69,33 +69,7 @@ exports.get_trip = async (req, res) => {
     let mid = new mongoose.Types.ObjectId(req.userId);
     let query;
     let search_value = data.comment ? data.comment : "";
-    let dateFilter = data.dateFilter; // Corrected variable name
-    if (!["all", "this_week", "this_month", "this_year"].includes(dateFilter)) {
-      dateFilter = "all";
-    }
-
-    // Update the query based on the date filter
-    let dateQuery = {};
-    if (dateFilter !== "all") {
-      let startDate, endDate;
-      switch (dateFilter) {
-        case "this_week":
-          startDate = moment().startOf("week");
-          endDate = moment().endOf("week");
-          break;
-        case "this_month":
-          startDate = moment().startOf("month");
-          endDate = moment().endOf("month");
-          break;
-        case "this_year":
-          startDate = moment().startOf("year");
-          endDate = moment().endOf("year");
-          break;
-        default:
-          break;
-      }
-      dateQuery = { createdAt: { $gte: startDate, $lte: endDate } };
-    }
+    let dateQuery = await dateFilter(data );
 
     if (req.params.status == "Pending") {
       query = [

@@ -16,7 +16,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const moment = require("moment");
 const { sendNotification } = require("../../Service/helperFuntion");
-const { isDriverHasCompanyAccess , getCompanyActivePaidPlans , getUserActivePaidPlans , canDriverOperate , willCompanyPayCommissionOnTrip} = require("../../Service/helperFuntion");
+const { isDriverHasCompanyAccess , getCompanyActivePaidPlans , dateFilter , canDriverOperate , willCompanyPayCommissionOnTrip} = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
@@ -546,43 +546,7 @@ exports.  get_trip = async (req, res) => {
     for (let i of getIds) {
       ids.push(i._id);
     }
-    let dateFilter = data.dateFilter; // Corrected variable name
-    if (!["all", "this_week", "this_month", "this_year"].includes(dateFilter)) {
-      dateFilter = "all";
-    }
-
-    // Update the query based on the date filter
-    let dateQuery = {};
-    if (dateFilter !== "all") {
-      let startDate, endDate;
-      const today = new Date();
-      switch (dateFilter) {
-        case "this_week":
-          const todayDay = today.getDay();
-          startDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - todayDay
-          );
-          endDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() + (6 - todayDay)
-          );
-          break;
-        case "this_month":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          break;
-        case "this_year":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today.getFullYear(), 11, 31);
-          break;
-        default:
-          break;
-      }
-      dateQuery = { createdAt: { $gte: startDate, $lte: endDate } };
-    }
+    let dateQuery = await dateFilter(data );
 
     const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
@@ -734,57 +698,8 @@ exports.companyGetTrip = async (req, res) => {
     for (let i of getIds) {
       ids.push(i._id);
     }
-    let dateFilter = data.dateFilter; // Corrected variable name
-    if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
-      dateFilter = "all";
-    }
 
-    // Update the query based on the date filter
-    let dateQuery = {};
-    if (dateFilter !== "all") {
-      let startDate, endDate;
-      const today = new Date();
-      switch (dateFilter) {
-        case "this_week":
-          const todayDay = today.getDay();
-          startDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - todayDay
-          );
-          endDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() + (6 - todayDay)
-          );
-          break;
-        case "this_month":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          break;
-        case "this_year":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today.getFullYear(), 11, 31);
-          break;
-        case "dateRange":
-          startDate = new Date(req.body.startDate);
-          endDate = new Date(req.body.endDate);
-
-          // Modify the Date object with setHours
-          
-        default:
-          break;
-      }
-
-      startDate.setUTCHours(0, 0, 1, 0);
-      endDate.setUTCHours(23, 59, 59, 999);
-
-      // Convert the Date objects to ISO 8601 strings
-      startDate = startDate.toISOString();
-      endDate = endDate.toISOString();
-
-      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-    }
+    let dateQuery = await dateFilter(data );
 
     const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
@@ -1046,57 +961,7 @@ exports.driverGetTrip = async (req, res) => {
 
     let search_value = data.comment ? data.comment : "";
     
-    let dateFilter = data.dateFilter; // Corrected variable name
-    if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
-      dateFilter = "all";
-    }
-
-    // Update the query based on the date filter
-    let dateQuery = {};
-    if (dateFilter !== "all") {
-      let startDate, endDate;
-      const today = new Date();
-      switch (dateFilter) {
-        case "this_week":
-          const todayDay = today.getDay();
-          startDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - todayDay
-          );
-          endDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() + (6 - todayDay)
-          );
-          break;
-        case "this_month":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          break;
-        case "this_year":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today.getFullYear(), 11, 31);
-          break;
-        case "dateRange":
-          startDate = new Date(req.body.startDate);
-          endDate = new Date(req.body.endDate);
-
-          // Modify the Date object with setHours
-          
-        default:
-          break;
-      }
-
-      startDate.setUTCHours(0, 0, 1, 0);
-      endDate.setUTCHours(23, 59, 59, 999);
-
-      // Convert the Date objects to ISO 8601 strings
-      startDate = startDate.toISOString();
-      endDate = endDate.toISOString();
-
-      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-    }
+    let dateQuery = await dateFilter(data );
 
     // Pagination variables
     const page = parseInt(data.page) || 1; // Current page, default is 1
@@ -1254,57 +1119,7 @@ exports.HotelGetTrip = async (req, res) => {
 
     let search_value = data.comment ? data.comment : "";
    
-    let dateFilter = data.dateFilter; // Corrected variable name
-    if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
-      dateFilter = "all";
-    }
-
-    // Update the query based on the date filter
-    let dateQuery = {};
-    if (dateFilter !== "all") {
-      let startDate, endDate;
-      const today = new Date();
-      switch (dateFilter) {
-        case "this_week":
-          const todayDay = today.getDay();
-          startDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - todayDay
-          );
-          endDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() + (6 - todayDay)
-          );
-          break;
-        case "this_month":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          break;
-        case "this_year":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today.getFullYear(), 11, 31);
-          break;
-        case "dateRange":
-          startDate = new Date(req.body.startDate);
-          endDate = new Date(req.body.endDate);
-
-          // Modify the Date object with setHours
-          
-        default:
-          break;
-      }
-
-      startDate.setUTCHours(0, 0, 1, 0);
-      endDate.setUTCHours(23, 59, 59, 999);
-
-      // Convert the Date objects to ISO 8601 strings
-      startDate = startDate.toISOString();
-      endDate = endDate.toISOString();
-
-      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-    }
+    let dateQuery = await dateFilter(data );
 
 
     // Pagination variables

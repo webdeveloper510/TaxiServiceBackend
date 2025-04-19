@@ -15,7 +15,7 @@ require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
 const { sendNotification } = require("../../Service/helperFuntion");
-const { isDriverHasCompanyAccess , createConnectedAccount , attachBankAccount , createCustomAccount , sendAccountDeactivationEmail , sendAccountReactivationEmail} = require("../../Service/helperFuntion");
+const { isDriverHasCompanyAccess , dateFilter , createCustomAccount , sendAccountDeactivationEmail , sendAccountReactivationEmail} = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
 const driver_model = require("../../models/user/driver_model");
@@ -1469,64 +1469,7 @@ exports.companyRevenueDetails = async (req, res) => {
     });
   }
   
-  let dateFilter = data.dateFilter; // Corrected variable name
-  if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
-    dateFilter = "all";
-  }
-
-  // Update the query based on the date filter
-  let startDate, endDate;
-  let dateQuery = {};
-  if (dateFilter !== "all") {
-    
-    const today = new Date();
-    switch (dateFilter) {
-      case "this_week":
-        const todayDay = today.getDay();
-        startDate = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate() - todayDay
-        );
-        endDate = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate() + (6 - todayDay)
-        );
-        break;
-      case "this_month":
-        startDate = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 1));
-        endDate = new Date(Date.UTC(today.getFullYear(), today.getMonth() + 1, 0));
-        break;
-      case "this_year":
-        
-
-        startDate = new Date(Date.UTC(today.getFullYear(), 0, 1));
-        endDate = new Date(Date.UTC(today.getFullYear(), 11, 31));
-        break;
-      case "dateRange":
-        startDate = new Date(req.body.startDate);
-        endDate = new Date(req.body.endDate);
-
-        // Modify the Date object with setHours
-        
-      default:
-        break;
-    }
-
-    if (startDate && endDate) { 
-
-      startDate.setUTCHours(0, 0, 1, 0);
-      endDate.setUTCHours(23, 59, 59, 999);
-      
-      // Convert the Date objects to ISO 8601 strings
-      // startDate = startDate.toISOString();
-      // endDate = endDate.toISOString();
-
-      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-    }
-    
-  }
+  let dateQuery = await dateFilter(data );
 
   console.log(dateQuery)
   // Revenue and tripCount calculations Start
@@ -1591,64 +1534,7 @@ exports.driverRevenueDetails = async (req, res) => {
     });
   }
   
-  let dateFilter = data.dateFilter; // Corrected variable name
-  if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
-    dateFilter = "all";
-  }
-
-  // Update the query based on the date filter
-  let startDate, endDate;
-  let dateQuery = {};
-  if (dateFilter !== "all") {
-    
-    const today = new Date();
-    switch (dateFilter) {
-      case "this_week":
-        const todayDay = today.getDay();
-        startDate = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate() - todayDay
-        );
-        endDate = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate() + (6 - todayDay)
-        );
-        break;
-      case "this_month":
-        startDate = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 1));
-        endDate = new Date(Date.UTC(today.getFullYear(), today.getMonth() + 1, 0));
-        break;
-      case "this_year":
-        
-
-        startDate = new Date(Date.UTC(today.getFullYear(), 0, 1));
-        endDate = new Date(Date.UTC(today.getFullYear(), 11, 31));
-        break;
-      case "dateRange":
-        startDate = new Date(req.body.startDate);
-        endDate = new Date(req.body.endDate);
-
-        // Modify the Date object with setHours
-        
-      default:
-        break;
-    }
-
-    if (startDate && endDate) { 
-
-      startDate.setUTCHours(0, 0, 1, 0);
-      endDate.setUTCHours(23, 59, 59, 999);
-      
-      // Convert the Date objects to ISO 8601 strings
-      // startDate = startDate.toISOString();
-      // endDate = endDate.toISOString();
-
-      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-    }
-    
-  }
+  let dateQuery = await dateFilter(data );
 
   console.log(dateQuery)
   // Revenue and tripCount calculations Start
@@ -1714,57 +1600,7 @@ exports.hotelRevenueDetails = async (req, res) => {
     });
   }
   
-  let dateFilter = data.dateFilter; // Corrected variable name
-  if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
-    dateFilter = "all";
-  }
-
-  // Update the query based on the date filter
-  let dateQuery = {};
-  if (dateFilter !== "all") {
-    let startDate, endDate;
-    const today = new Date();
-    switch (dateFilter) {
-      case "this_week":
-        const todayDay = today.getDay();
-        startDate = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate() - todayDay
-        );
-        endDate = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate() + (6 - todayDay)
-        );
-        break;
-      case "this_month":
-        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-        break;
-      case "this_year":
-        startDate = new Date(today.getFullYear(), 0, 1);
-        endDate = new Date(today.getFullYear(), 11, 31);
-        break;
-      case "dateRange":
-        startDate = new Date(req.body.startDate);
-        endDate = new Date(req.body.endDate);
-
-        // Modify the Date object with setHours
-        
-      default:
-        break;
-    }
-
-    startDate.setUTCHours(0, 0, 1, 0);
-    endDate.setUTCHours(23, 59, 59, 999);
-    
-    // Convert the Date objects to ISO 8601 strings
-    startDate = startDate.toISOString();
-    endDate = endDate.toISOString();
-
-    dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-  }
+  let dateQuery = await dateFilter(data );
 
   // Revenue and tripCount calculations Start
   const companyTripPendingData =  await getHotelRevenueByStatus(hotelId , constant.TRIP_STATUS.PENDING , false , dateQuery); // pending trip
@@ -2423,52 +2259,7 @@ exports.companyListByRevenue = async (req, res) => {
     const searchWords = searchText.split(/\s+/);
     const isCompanyPaid = req.body?.commision_paid;
 
-    let dateQuery = {};
-
-    if (dateFilter !== "all") {
-      let startDate, endDate;
-      const today = new Date();
-      switch (dateFilter) {
-        case "this_week":
-          const todayDay = today.getDay();
-          startDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - todayDay
-          );
-          endDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() + (6 - todayDay)
-          );
-          break;
-        case "this_month":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          break;
-        case "this_year":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today.getFullYear(), 11, 31);
-          break;
-        case "dateRange":
-          startDate = new Date(req.body.startDate);
-          endDate = new Date(req.body.endDate);
-
-          // Modify the Date object with setHours
-          
-        default:
-          break;
-      }
-
-      startDate.setUTCHours(0, 0, 1, 0);
-      endDate.setUTCHours(23, 59, 59, 999);
-
-      // Convert the Date objects to ISO 8601 strings
-      startDate = startDate.toISOString();
-      endDate = endDate.toISOString();
-
-      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-    }
+    let dateQuery = await dateFilter(data );
 
     
     // Match criteria for filtering users
@@ -2660,52 +2451,7 @@ exports.driverListByRevenue = async (req, res) => {
     const searchWords = searchText.split(/\s+/);
     const isPaid = req.body?.commision_paid;
 
-    let dateQuery = {};
-
-    if (dateFilter !== "all") {
-      let startDate, endDate;
-      const today = new Date();
-      switch (dateFilter) {
-        case "this_week":
-          const todayDay = today.getDay();
-          startDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - todayDay
-          );
-          endDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() + (6 - todayDay)
-          );
-          break;
-        case "this_month":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          break;
-        case "this_year":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today.getFullYear(), 11, 31);
-          break;
-        case "dateRange":
-          startDate = new Date(req.body.startDate);
-          endDate = new Date(req.body.endDate);
-
-          // Modify the Date object with setHours
-          
-        default:
-          break;
-      }
-
-      startDate.setUTCHours(0, 0, 1, 0);
-      endDate.setUTCHours(23, 59, 59, 999);
-
-      // Convert the Date objects to ISO 8601 strings
-      startDate = startDate.toISOString();
-      endDate = endDate.toISOString();
-
-      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-    }
+    let dateQuery = await dateFilter(data );
 
     
     // Match criteria for filtering users
@@ -2892,54 +2638,7 @@ exports.tipListByRevenue = async (req, res) => {
     // const searchWords = searchText.split(/\s+/);
     const isPaid = req.body?.commision_paid;
 
-    let dateQuery = {};
-
-    if (dateFilter !== "all") {
-      let startDate, endDate;
-      const today = new Date();
-      switch (dateFilter) {
-        case "this_week":
-          const todayDay = today.getDay();
-          startDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - todayDay
-          );
-          endDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() + (6 - todayDay)
-          );
-          break;
-        case "this_month":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          break;
-        case "this_year":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today.getFullYear(), 11, 31);
-          break;
-        case "dateRange":
-          startDate = new Date(req.body.startDate);
-          endDate = new Date(req.body.endDate);
-
-          // Modify the Date object with setHours
-          
-        default:
-          break;
-      }
-
-      startDate.setUTCHours(0, 0, 1, 0);
-      endDate.setUTCHours(23, 59, 59, 999);
-
-      // Convert the Date objects to ISO 8601 strings
-      startDate = startDate.toISOString();
-      endDate = endDate.toISOString();
-
-      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-    }
-    
-    
+    let dateQuery = await dateFilter(data );
     
     let criteria = {
                     $and: [
