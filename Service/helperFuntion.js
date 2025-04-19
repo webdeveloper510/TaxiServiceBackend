@@ -1470,8 +1470,8 @@ exports.dateFilter = async ( postData ) => {
           endDate = new Date(today.getFullYear(), 11, 31);
           break;
         case "dateRange":
-          startDate = new Date(req.body.startDate);
-          endDate = new Date(req.body.endDate);
+          startDate = new Date(postData.startDate);
+          endDate = new Date(postData.endDate);
 
           // Modify the Date object with setHours
           
@@ -1486,7 +1486,7 @@ exports.dateFilter = async ( postData ) => {
       startDate = startDate.toISOString();
       endDate = endDate.toISOString();
 
-      dateQuery = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+      dateQuery = { pickup_date_time: { $gte: new Date(startDate), $lte: new Date(endDate) } };
     }
 
     return dateQuery;

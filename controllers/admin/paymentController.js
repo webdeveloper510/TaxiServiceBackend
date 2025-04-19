@@ -417,58 +417,7 @@ exports.adminTransaction = async (req, res) => {
   try {
 
     let data = req.body;
-    let dateFilter = data.dateFilter; // Corrected variable name
-    if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
-      dateFilter = "all";
-    }
-
-    // Update the query based on the date filter
-    let dateQuery = {};
-
-    if (dateFilter !== "all") {
-      let startDate, endDate;
-      const today = new Date();
-      switch (dateFilter) {
-        case "this_week":
-          const todayDay = today.getDay();
-          startDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() - todayDay
-          );
-          endDate = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            today.getDate() + (6 - todayDay)
-          );
-          break;
-        case "this_month":
-          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-          endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          break;
-        case "this_year":
-          startDate = new Date(today.getFullYear(), 0, 1);
-          endDate = new Date(today.getFullYear(), 11, 31);
-          break;
-        case "dateRange":
-          startDate = new Date(req.body.startDate);
-          endDate = new Date(req.body.endDate);
-
-          // Modify the Date object with setHours
-          
-        default:
-          break;
-      }
-
-      startDate.setUTCHours(0, 0, 1, 0);
-      endDate.setUTCHours(23, 59, 59, 999);
-
-      // Convert the Date objects to ISO 8601 strings
-      startDate = startDate.toISOString();
-      endDate = endDate.toISOString();
-
-      dateQuery = { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } };
-    }
+    let dateQuery = await dateFilter(data );
 
     const totalAmountPurchasedPlan = await getTotalPurchasedSubscriptionAmount();
     const paidTripCommisionOfAdmin = await getTotalPayment(dateQuery , {is_paid: true} , `superAdminPaymentAmount` , false);
@@ -483,8 +432,8 @@ exports.adminTransaction = async (req, res) => {
     const driversNetEarning = await getTotalPayment(dateQuery , { is_paid: true} , `driverPaymentAmount` , false);
     
     
-    const countDriversWithPendingDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false});
-    const countDriversWithPaidDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true});
+    const countDriversWithPendingDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false , ...dateQuery});
+    const countDriversWithPaidDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true , ...dateQuery});
 
 
 
@@ -526,17 +475,18 @@ exports.companyTransaction = async (req, res) => {
     const dueCommisionFromCompletedTrips = await getTotalPayment(dateQuery , { is_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
     const paidCommisionsFromCompletedTrips = await getTotalPayment(dateQuery , { is_paid: true , is_company_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
     
-    const totalTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId)});
-    const totalBookedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.BOOKED});
-    const totalPendingTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.PENDING});
-    const totalActiveTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.ACTIVE});
-    const totalCompletedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.COMPLETED});
-    const totalActivePickupTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.REACHED});
+    const totalTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , ...dateQuery});
+    const totalBookedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.BOOKED , ...dateQuery});
+    const totalPendingTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.PENDING , ...dateQuery});
+    const totalActiveTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.ACTIVE , ...dateQuery});
+    const totalCompletedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.COMPLETED , ...dateQuery});
+    const totalActivePickupTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.REACHED , ...dateQuery});
 
 
 
     res.send({
               code: constant.success_code,
+              dateQuery: {created_by_company_id: new mongoose.Types.ObjectId(req.userId) , ...dateQuery},
               totalCommisionFromCompletedTrips,
               dueCommisionFromCompletedTrips,
               paidCommisionsFromCompletedTrips,
