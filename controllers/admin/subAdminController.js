@@ -2896,6 +2896,7 @@ exports.companyTripListRevenue = async (req, res) => {
           is_company_paid:1,
           created_by_company_id:1,
           superAdminPaymentAmount:1,
+          companyPaymentAmount:1,
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
           driver_id: { $arrayElemAt: ["$driver._id", 0] },
           driver_name: {
