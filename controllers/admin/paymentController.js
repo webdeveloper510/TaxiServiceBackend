@@ -531,6 +531,7 @@ exports.companyTransaction = async (req, res) => {
     const totalPendingTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.PENDING});
     const totalActiveTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.ACTIVE});
     const totalCompletedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.COMPLETED});
+    const totalActivePickupTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.REACHED});
 
 
 
@@ -543,7 +544,8 @@ exports.companyTransaction = async (req, res) => {
               totalBookedTrips,
               totalPendingTrips,
               totalActiveTrips,
-              totalCompletedTrips
+              totalCompletedTrips,
+              totalActivePickupTrips
             });
 
   } catch (err) {
