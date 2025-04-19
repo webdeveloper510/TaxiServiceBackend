@@ -2254,7 +2254,7 @@ exports.companyListByRevenue = async (req, res) => {
     const page = parseInt(data.page) || 1; // Get the page number from the request (default to 1 if not provided)
     const limit =  parseInt(data.limit); // Number of items per page
     const skip = (page - 1) * limit;
-    let dateFilter = data.dateFilter; 
+    
     const searchText = req.body.name.trim();
     const searchWords = searchText.split(/\s+/);
     const isCompanyPaid = req.body?.commision_paid;
@@ -2446,7 +2446,7 @@ exports.driverListByRevenue = async (req, res) => {
     const page = parseInt(data.page) || 1; // Get the page number from the request (default to 1 if not provided)
     const limit =  parseInt(data.limit); // Number of items per page
     const skip = (page - 1) * limit;
-    let dateFilter = data.dateFilter; 
+    
     const searchText = req.body.name.trim();
     const searchWords = searchText.split(/\s+/);
     const isPaid = req.body?.commision_paid;
@@ -2633,7 +2633,6 @@ exports.tipListByRevenue = async (req, res) => {
     let limit = parseInt(data.limit) || 10; // Number of results per page, default to 10
     let skip = (page - 1) * limit;
 
-    let dateFilter = data.dateFilter; 
     const searchText = data.name.trim();
     // const searchWords = searchText.split(/\s+/);
     const isPaid = req.body?.commision_paid;
