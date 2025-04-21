@@ -310,13 +310,13 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           }
 
           // -------------------- Main Logic start
-          console.log('payout_webhook event.type-------up' , event.type)
+        
           console.log('payout_webhook event-------up' , event)
 
           const tripDetails = await trip_model.findOne({ company_trip_payout_id: event?.data?.object?.id });
           if (tripDetails) {
 
-            const userDetails = await user_model.findOne({ _id: checkTripDetails?.created_by_company_id });
+            const userDetails = await user_model.findOne({ _id: tripDetails?.created_by_company_id });
             if (event.type === 'payout.paid' ) {
               const payout = event.data.object;
               
