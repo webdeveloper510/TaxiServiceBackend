@@ -424,6 +424,18 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
+app.post( "/send-notification", async (req, res) => {
+  let data = req.body
+  const userDetails = await user_model.findOne({ email: data.email });
+  const noti = sendNotification( userDetails?.deviceToken, `checking notification`, `this is body of the notification`, userDetails );
+  return res.send({
+    code: 200,
+    message: "send-notification",
+   
+    noti,
+    userDetails
+  });
+})
 
 app.get( "/weekly-company-payment", async (req, res) => {
 
