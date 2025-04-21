@@ -22,7 +22,9 @@ const { driverDetailsByToken,
         transferToConnectedAccount,
         sendPayoutToBank,
         notifyInsufficientBalance,
-        checkPayouts
+        checkPayouts,
+        notifyPayoutPaid,
+        notifyPayoutFailure
       } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
@@ -311,37 +313,59 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           console.log('payout_webhook event.type-------up' , event.type)
           console.log('payout_webhook event-------up' , event)
 
-          if (event.type === 'payout.paid' ) {
-            const payout = event.data.object;
-           
-            // Handle successful payout here
-            // For example, update your database or notify the user
+          const tripDetails = await trip_model.findOne({ company_trip_payout_id: event?.data?.object?.id });
+          if (tripDetails) {
 
-            const chek = await trip_model.findOneAndUpdate(
-                                                          { company_trip_payout_id: payout?.id }, // Find by tripId
-                                                          { $set: { 
-                                                            company_trip_payout_completed_date: payout. status == 'paid'?? new Date().toISOString(), 
-                                                                    company_trip_payout_status: payout. status == 'paid'?? constant.PAYOUT_TANSFER_STATUS.PAID,
-                                                                    company_trip_payout_failure_code: payout.failure_code ,
-                                                                    company_trip_payout_failure_message: payout.failure_message,
-                                                                  } 
-                                                          }, // Update fields
-                                                          { new: true } // Return the updated document
-                                                        );
+            const userDetails = await user_model.findOne({ _id: checkTripDetails?.created_by_company_id });
+            if (event.type === 'payout.paid' ) {
+              const payout = event.data.object;
+              
+              // Handle successful payout here
+              // For example, update your database or notify the user
+              
+              const chek = await trip_model.findOneAndUpdate(
+                                                            { company_trip_payout_id: payout?.id }, // Find by tripId
+                                                            { $set: { 
+                                                                      company_trip_payout_completed_date: payout. status == 'paid'?? new Date().toISOString(), 
+                                                                      company_trip_payout_status: payout. status == 'paid'?? constant.PAYOUT_TANSFER_STATUS.PAID,
+                                                                      company_trip_payout_failure_code: payout.failure_code ,
+                                                                      company_trip_payout_failure_message: payout.failure_message,
+                                                                      is_company_paid: true,
+                                                                    } 
+                                                            }, // Update fields
+                                                            { new: true } // Return the updated document
+                                                          );
 
-          } else if (event.type === 'payout.failed') {
+             
+              notifyPayoutPaid(userDetails , tripDetails , payout);
+                                                          
+            } else if (event.type === 'payout.failed') {
+  
+              const chek = await trip_model.findOneAndUpdate(
+                                                            { company_trip_payout_id: payout?.id }, // Find by tripId
+                                                            { $set: { 
+                                                                      company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.FAILED,
+                                                                      company_trip_payout_failure_code: payout.failure_code ,
+                                                                      company_trip_payout_failure_message: payout.failure_message,
+                                                                    } 
+                                                            }, // Update fields
+                                                            { new: true } // Return the updated document
+                                                          );
 
-            const chek = await trip_model.findOneAndUpdate(
-                                                          { company_trip_payout_id: payout?.id }, // Find by tripId
-                                                          { $set: { 
-                                                                    company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.FAILED,
-                                                                    company_trip_payout_failure_code: payout.failure_code ,
-                                                                    company_trip_payout_failure_message: payout.failure_message,
-                                                                  } 
-                                                          }, // Update fields
-                                                          { new: true } // Return the updated document
-                                                        );
+              notifyPayoutFailure(userDetails , tripDetails , payout);
+            }
+          } else {
+            console.log('trip not found based on this payout-------up' , event)
+            let logs_data = { api_name: 'payout_webhook', payload: JSON.stringify(req.body),
+                              error_message: `trip not found based on this payout`, error_response: JSON.stringify(event)
+                            };
+
+            const logEntry = new LOGS(logs_data);
+            logEntry.save();
+            return res.status(200).send({ received: true , error_message: `payout_webhook event not found` , istTime:istTime});
           }
+
+          
           let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `payout_webhook`, error_response: JSON.stringify(event) };
           const logEntry = new LOGS(logs_data);
           return res.status(200).send({ received: true  , message: `payout_webhook received successfully`, istTime:istTime});

@@ -926,6 +926,114 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
   return sendEmail
 }
 
+exports.notifyPayoutPaid = async (userInfo , tripDetails , payoutDetails) => {
+
+  
+  let toEmail = userInfo?.email;
+  toEmail = `vsingh@codenomad.net`;
+  let UserName = `${userInfo?.first_name } ${userInfo?.last_name } `;
+ 
+  const currentDate = new Date();
+
+  // Get day, month, and year
+  const day = String(currentDate.getDate()).padStart(2, '0'); // Add leading zero if needed
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based, add 1 and pad
+  const year = String(currentDate.getFullYear()); // Get last two digits of the year
+
+  // Format date as dd mm yy
+  const formattedDate = `${day}-${month}-${year}`;
+  const subject = `Your Payout Has Been Successfully Processed`
+  const bodyHtml =  `
+                      <p>
+                          Dear ${UserName},
+                          <br><br>
+                          We are pleased to inform you that your recent payout has been successfully processed.
+                          
+                          <br><br>
+                          
+
+                          <ul>
+                            <li> <span style="font-weight:bold;">Payout ID:</span> ${payoutDetails?.id}</li>
+                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.id / 100)}</li>
+                            <li> <span style="font-weight:bold;">Date:</span> ${new Date().toISOString()}</li>
+                          </ul>
+
+                          <br><br>
+                          The funds should now be available in your bank account, depending on your bank’s processing times.
+                          <br><br>
+                          If you have any questions or need further assistance, feel free to contact our support team.
+
+                          Best regards,
+                          Idispatch Mobility Team
+                      </p>
+                    `;
+  let template = ` ${bodyHtml}`
+
+  var transporter = nodemailer.createTransport(emailConstant.credentials);
+  var mailOptions = {
+                      from: emailConstant.from_email,
+                      to: toEmail,
+                      subject: subject,
+                      html: template
+                    };
+  let sendEmail = await transporter.sendMail(mailOptions);
+  return sendEmail
+}
+
+exports.notifyPayoutFailure = async (userInfo , tripDetails , payoutDetails) => {
+
+  
+  let toEmail = userInfo?.email;
+  toEmail = `vsingh@codenomad.net`;
+  let UserName = `${userInfo?.first_name } ${userInfo?.last_name } `;
+ 
+  const currentDate = new Date();
+
+  // Get day, month, and year
+  const day = String(currentDate.getDate()).padStart(2, '0'); // Add leading zero if needed
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based, add 1 and pad
+  const year = String(currentDate.getFullYear()); // Get last two digits of the year
+
+  // Format date as dd mm yy
+  const formattedDate = `${day}-${month}-${year}`;
+  const subject = `Your Payout Could Not Be Processed`
+  const bodyHtml =  `
+                      <p>
+                          Dear ${UserName},
+                          <br><br>
+                          We regret to inform you that your recent payout attempt could not be processed.
+                          
+                          <br><br>
+                          
+
+                          <ul>
+                            <li> <span style="font-weight:bold;">Payout ID:</span> ${payoutDetails?.id}</li>
+                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.id / 100)}</li>
+                            <li> <span style="font-weight:bold;">Failure Reason:</span> ${payoutDetails?.failure_message}</li>
+                          </ul>
+
+                          <br><br>
+                          Please ensure that your bank account details are accurate and up to date. If the issue persists or if you need any help resolving it, don’t hesitate to contact our support team.
+                          <br><br>
+                          We’re here to assist you at every step.
+
+                          Best regards,
+                          Idispatch Mobility Team
+                      </p>
+                    `;
+  let template = ` ${bodyHtml}`
+
+  var transporter = nodemailer.createTransport(emailConstant.credentials);
+  var mailOptions = {
+                      from: emailConstant.from_email,
+                      to: toEmail,
+                      subject: subject,
+                      html: template
+                    };
+  let sendEmail = await transporter.sendMail(mailOptions);
+  return sendEmail
+}
+
 exports.canDriverOperate = async (driverId) => {
   try {
       let driver_full_info = await driver_model.findOne({ _id: driverId });
