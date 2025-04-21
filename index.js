@@ -296,6 +296,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           } catch (err) {
             console.log(`payout_webhook Error: ${err.message}`);
 
+
             let logs_data = { 
                               api_name: 'payout_webhook', payload: JSON.stringify(req.body),
                               error_message: err.message, error_response: JSON.stringify(err)
@@ -309,6 +310,38 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           // -------------------- Main Logic start
           console.log('payout_webhook event.type-------up' , event.type)
           console.log('payout_webhook event-------up' , event)
+
+          if (event.type === 'payout.paid' ) {
+            const payout = event.data.object;
+           
+            // Handle successful payout here
+            // For example, update your database or notify the user
+
+            const chek = await trip_model.findOneAndUpdate(
+                                                          { company_trip_payout_id: payout?.id }, // Find by tripId
+                                                          { $set: { 
+                                                            company_trip_payout_completed_date: payout. status == 'paid'?? new Date().toISOString(), 
+                                                                    company_trip_payout_status: payout. status == 'paid'?? constant.PAYOUT_TANSFER_STATUS.PAID,
+                                                                    company_trip_payout_failure_code: payout.failure_code ,
+                                                                    company_trip_payout_failure_message: payout.failure_message,
+                                                                  } 
+                                                          }, // Update fields
+                                                          { new: true } // Return the updated document
+                                                        );
+
+          } else if (event.type === 'payout.failed') {
+
+            const chek = await trip_model.findOneAndUpdate(
+                                                          { company_trip_payout_id: payout?.id }, // Find by tripId
+                                                          { $set: { 
+                                                                    company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.FAILED,
+                                                                    company_trip_payout_failure_code: payout.failure_code ,
+                                                                    company_trip_payout_failure_message: payout.failure_message,
+                                                                  } 
+                                                          }, // Update fields
+                                                          { new: true } // Return the updated document
+                                                        );
+          }
           let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `payout_webhook`, error_response: JSON.stringify(event) };
           const logEntry = new LOGS(logs_data);
           return res.status(200).send({ received: true  , message: `payout_webhook received successfully`, istTime:istTime});
@@ -375,13 +408,19 @@ app.get( "/weekly-company-payment", async (req, res) => {
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
-    // return res.send({
-    //   code: 200,
-    //   message: "weekly-company-payment",
-    //   // tripList:tripList,
-    //   balance,
-    //   tripList
-    // });
+    const chek = await trip_model.findOneAndUpdate(
+      { _id: tripList[0]?._id }, // Find by tripId
+      { $set: { company_trip_transfer_id: `tr_1RFBBYKNzdNk7dDQNUZUzhI6` , company_trip_payout_id: `po_1RFBBa4IiITuaa8x16pX1bwH` , company_trip_payout_initiated_date: new Date(), company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.PENDING } }, // Update fields
+      { new: true } // Return the updated document
+    );
+    return res.send({
+      code: 200,
+      message: "weekly-company-payment",
+      // tripList:tripList,
+      // balance,
+      tripList,
+      chek
+    });
 
     if (availableBalance > 100) {
        
@@ -405,18 +444,21 @@ app.get( "/weekly-company-payment", async (req, res) => {
               amount = 5;
               const transferDedtails = await transferToConnectedAccount(amount, connectedAccountId , tripId);
               
-              await trip_model.findOneAndUpdate(
+              const chek = await trip_model.findOneAndUpdate(
                                                 { _id: trip?._id }, // Find by tripId
                                                 { $set: { company_trip_transfer_id: transferDedtails?.id } }, // Update fields
                                                 { new: true } // Return the updated document
                                               );
+
+              console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
               const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
               await trip_model.findOneAndUpdate(
                 { _id: trip?._id }, // Find by tripId
                 { 
                   $set: { 
                           company_trip_payout_id: payoutDetails?.id,
-                          company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.PENDING
+                          company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.PENDING,
+                          company_trip_payout_initiated_date: new Date().toISOString(),
                         } 
                 }, 
                 { new: true } // Return the updated document

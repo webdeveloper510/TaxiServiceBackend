@@ -208,6 +208,22 @@ const trip = new Schema({
         enum: PAYOUT_TANSFER_ENUM,
         default: CONSTANT.PAYOUT_TANSFER_STATUS.NOT_INITIATED,
     },
+    company_trip_payout_initiated_date: {
+        type: String,
+        default: null,
+    },
+    company_trip_payout_completed_date: {
+        type: String,
+        default: null,
+    },
+    company_trip_payout_failure_code: {
+        type: String,
+        default: null,
+    },
+    company_trip_payout_failure_message: {
+        type: String,
+        default: null,
+    },
     fifteenMinuteNotification:{
         type: Boolean,
         default: false,

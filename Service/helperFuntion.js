@@ -465,13 +465,15 @@ exports.sendNotification = async (to, message, title, data) => {
       },
       android: {
         notification: {
-          sound: "default", // Play default notification sound on Android
+          // sound: "default", // Play default notification sound on Android
+          sound: "car_horn", // Play default notification sound on Android
         },
       },
       apns: {
         payload: {
           aps: {
-            sound: "default", // Play default notification sound on iOS
+            // sound: "default", // Play default notification sound on iOS
+            sound: "car_horn.wav",
           },
         },
       },
