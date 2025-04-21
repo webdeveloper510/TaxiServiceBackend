@@ -464,6 +464,7 @@ exports.sendNotification = async (to, message, title, data) => {
         body: message, // Notification body
       },
       android: {
+        priority: "high",
         notification: {
           // sound: "default", // Play default notification sound on Android
           sound: "car_horn", // Play default notification sound on Android

@@ -431,7 +431,7 @@ app.post( "/send-notification", async (req, res) => {
   return res.send({
     code: 200,
     message: "send-notification",
-   
+    deviceToken: userDetails?.deviceToken,
     noti,
     userDetails
   });
