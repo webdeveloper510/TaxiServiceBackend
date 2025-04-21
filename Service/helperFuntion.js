@@ -1008,7 +1008,7 @@ exports.notifyPayoutFailure = async (userInfo , tripDetails , payoutDetails) => 
 
                           <ul>
                             <li> <span style="font-weight:bold;">Payout ID:</span> ${payoutDetails?.id}</li>
-                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.id / 100)}</li>
+                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.amount / 100)}</li>
                             <li> <span style="font-weight:bold;">Failure Reason:</span> ${payoutDetails?.failure_message}</li>
                           </ul>
 
