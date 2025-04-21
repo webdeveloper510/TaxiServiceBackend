@@ -17,7 +17,7 @@ module.exports={
     },
     OTP_CODE:205 ,
     TRIP_STATUS: {
-        APPROVED: 'Approved', // When trip goes to the driver for 20 seconds for accepting the ride
+        APPROVED: 'Accepted', // When trip goes to the driver for 20 seconds for accepting the ride
         BOOKED: 'Booked', // When Driver has been accepted the trip
         REACHED: 'Reached', // When Driver went to the point from from where driver will pick the customer
         ACTIVE: 'Active', // When driver is going on customer destination

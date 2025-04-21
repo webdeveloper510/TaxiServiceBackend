@@ -2019,7 +2019,7 @@ exports.check_trip_request = async (req, res) => {
   // const uniqueNumber = await getNextSequenceValue();
 
   if (req.params.id !== null || req.params.id != "") {
-    let beforeTwentySeconds = new Date(new Date().getTime() - 20000);
+    let beforeTwentySeconds = new Date(new Date().getTime() - ( process.env.TRIP_POP_UP_SHOW_TIME * 1000));
     // beforeTwentySeconds = "2024-09-16T07:46:28.408Z";
     let find_trip = await TRIP.aggregate([
       {
@@ -2027,7 +2027,7 @@ exports.check_trip_request = async (req, res) => {
           $and: [
             {
               driver_name: new mongoose.Types.ObjectId(req.params.id),
-              trip_status: "Accepted",
+              trip_status: constant.TRIP_STATUS.APPROVED,
               send_request_date_time: { $gte: beforeTwentySeconds },
             },
           ],
@@ -2075,7 +2075,7 @@ exports.check_trip_request = async (req, res) => {
         // Convert milliseconds to seconds
         let differenceInSeconds = differenceInMilliseconds / 1000;
 
-        find_trip[index].left_minutes = Math.round(20 - differenceInSeconds);
+        find_trip[index].left_minutes = Math.round(process.env.TRIP_POP_UP_SHOW_TIME - differenceInSeconds);
 
         // find_trip[index].user_company_name = find_trip[index].company.company_agency.company_name;
         find_trip[index].user_company_name = find_trip[index].company?.company_name;
@@ -2248,7 +2248,7 @@ exports.alocate_driver = async (req, res) => {
                             );
 
         // Trip will be back in old state (Pending) if driver will not accept the trip
-        setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, 20 * 1000);
+        setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, process.env.TRIP_POP_UP_SHOW_TIME * 1000);
 
         // Functionality for update the trips who has access of company along with company
         let created_by_company = await user_model.findById( update_trip?.created_by_company_id );
@@ -2702,7 +2702,7 @@ exports.access_alocate_driver = async (req, res) => {
                               { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
                             );
 
-        setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, 20 * 1000);
+        setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, process.env.TRIP_POP_UP_SHOW_TIME * 1000);
 
         let created_by_company = await user_model.findById( update_trip?.created_by_company_id );
 
