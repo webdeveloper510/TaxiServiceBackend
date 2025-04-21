@@ -91,10 +91,17 @@ exports.add_driver = async (req, res) => {
     data.created_by = superAdmin; // Assuming you have user authentication
     let check_other1 = await DRIVER.findOne({ email: { $regex: data.email, $options: "i" }, is_deleted: false, });
 
-    let check_other2 = await DRIVER.findOne({ phone: data.phone, is_deleted: false, });
+    let checkNickName = await DRIVER.findOne({ nickName: data.nickName});
 
     let check_other3 = await user_model.findOne({ email: { $regex: data.email, $options: "i" }, is_deleted: false, });
     let check_other4 = await user_model.findOne({ phone: data.phone, is_deleted: false, });
+
+    if (checkNickName) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "Unfortunately, this nickname is taken. Please use a different nickname.",
+                      });
+    }
     if (check_other1) {
       return res.send({
                         code: constant.error_code,
@@ -134,11 +141,7 @@ exports.add_driver = async (req, res) => {
     data.driverCounterId = `D-`+ await getDriverNextSequenceValue();
 
     let save_driver = await DRIVER(data).save();
-    let jwtToken = jwt.sign(
-      { userId: save_driver._id },
-      process.env.JWTSECRET,
-      { expiresIn: "365d" }
-    );
+    let jwtToken = jwt.sign({ userId: save_driver._id },  process.env.JWTSECRET, { expiresIn: "365d" } );
 
     save_driver.jwtTokenMobile = jwtToken;
     save_driver.lastUsedTokenMobile = new Date();
@@ -262,7 +265,10 @@ exports.adminAddDriver = async (req, res) => {
                                                       // is_deleted: false,
                                                       ...(data?.isCompany == 'true' ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driver_company_id) } } : {}),
                                                     });
+    
+    let checkNickName = await DRIVER.findOne({ nickName: data.nickName});
 
+    
                                                     
     if (checkEmailInDrivers) {
       return res.send({
@@ -296,6 +302,13 @@ exports.adminAddDriver = async (req, res) => {
                         "This Phone Number is already registered as a Company. Sign in to register as a driver.",
                     });
       
+    }
+
+    if (checkNickName) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "Unfortunately, this nickname is taken. Please use a different nickname.",
+                      });
     }
 
    
