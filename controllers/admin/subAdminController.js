@@ -3011,7 +3011,8 @@ exports.companyHotelList = async (req, res) => {
       {
         $facet: {
           data: [
-            { $sort: { createdAt: -1 } }, // Sort by creation date
+            // { $sort: { createdAt: -1 } }, // Sort by creation date
+            { $sort: { company_id: 1 } }, // Sort by company_id ASC
             { $skip: skip }, // Skip to the correct page
             { $limit: limit },
             {
