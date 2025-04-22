@@ -1435,7 +1435,7 @@ exports.search_company = async (req, res) => {
           location: { $arrayElemAt: ["$meta.location", 0] },
         },
       },
-    ]).sort({ company_id: 1 });
+    ]).sort({ company_name: 1 });
     if (!searchUser) {
       res.send({
         code: constant.error_code,
@@ -3009,14 +3009,14 @@ exports.companyHotelList = async (req, res) => {
       },
       {
         $addFields: {
-          sort_company_id: { $toLower: { $arrayElemAt: ["$meta.company_id", 0] } }
+          sort_company_name: { $toLower: { $arrayElemAt: ["$meta.company_name", 0] } }
         }
       },
       {
         $facet: {
           data: [
             // { $sort: { createdAt: -1 } }, // Sort by creation date
-            { $sort: { sort_company_id: 1 } },
+            { $sort: { sort_company_name: 1 } },
             { $skip: skip }, // Skip to the correct page
             { $limit: limit },
             {
@@ -3167,7 +3167,7 @@ exports.access_search_company = async (req, res) => {
           location: { $arrayElemAt: ["$meta.location", 0] },
         },
       },
-    ]).sort({ company_id: 1 });
+    ]).sort({ company_name: 1 });
     if (!searchUser) {
       res.send({
         code: constant.error_code,
