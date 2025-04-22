@@ -3167,7 +3167,7 @@ exports.access_search_company = async (req, res) => {
           location: { $arrayElemAt: ["$meta.location", 0] },
         },
       },
-    ]).sort({ createdAt: -1 });
+    ]).sort({ company_id: 1 });
     if (!searchUser) {
       res.send({
         code: constant.error_code,
