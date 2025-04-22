@@ -15,6 +15,10 @@ const driver = new Schema(
       type: String,
       default: "",
     },
+    VatNumber: {
+      type: String,
+      default: "",
+    },
     companyName: {
       type: String,
       default: "",
