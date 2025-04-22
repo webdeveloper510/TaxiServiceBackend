@@ -647,7 +647,7 @@ exports.admin_list = async (req, res) => {
         status: 1,
         is_blocked: 1
       }
-    );
+    ).sort({ first_name: 1 }).collation({ locale: 'en', strength: 1 });
     res.send({
       code: constant.success_code,
       data: admin_list,
@@ -1156,11 +1156,17 @@ exports.hotelListAdmin = async (req, res) => {
             ],
           },
         },
+        {
+          // Add a lowercase field for case-insensitive sorting
+          $addFields: {
+            company_name_lower: { $toLower: { $arrayElemAt: ["$meta.company_name", 0] } }
+          }
+        },
   
         {
           $facet: {
             data: [
-              { $sort: { createdAt: -1 } }, // Sort by creation date
+              { $sort: { company_name_lower: 1 } }, // Sort by creation date
               { $skip: skip }, // Skip to the correct page
               { $limit: limit },
               {
@@ -1398,6 +1404,18 @@ exports.search_company = async (req, res) => {
           ],
         },
       },
+      {// for sorting with comapny name wit case insensitive
+        $addFields: {
+          company_name_lower: {
+            $toLower: { $arrayElemAt: ["$meta.company_name", 0] }
+          }
+        }
+      },
+      {
+        $sort: {
+          company_name_lower: 1
+        }
+      },
       {
         $project: {
           _id: 1,
@@ -1435,7 +1453,7 @@ exports.search_company = async (req, res) => {
           location: { $arrayElemAt: ["$meta.location", 0] },
         },
       },
-    ]).sort({ company_name: 1 });
+    ]);
     if (!searchUser) {
       res.send({
         code: constant.error_code,
@@ -2212,7 +2230,13 @@ exports.companyList = async (req, res) => {
         },
       },
       {
-        $sort: { createdAt: -1 }, // Sort by creation date in descending order
+        // Add lowercase version of company_name for case-insensitive sorting
+        $addFields: {
+          company_name_lower: { $toLower: "$company_name" },
+        },
+      },
+      {
+        $sort: { company_name_lower: 1 }, // Sort by creation date in descending order
       },
       {
         $skip: skip, // Skip items for previous pages

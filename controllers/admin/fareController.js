@@ -66,7 +66,7 @@ exports.get_fares = async (req, res) => {
         },
         { is_deleted: false },
       ],
-    }).sort({ createdAt: -1 });
+    }).sort({ vehicle_type: 1 });
     if (!getData) {
       res.send({
         code: constant.error_code,

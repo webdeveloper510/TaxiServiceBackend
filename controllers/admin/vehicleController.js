@@ -597,7 +597,7 @@ exports.adminGetAllVehicle = async (req, res) => {
         
         const totalCount = await VEHICLE.countDocuments(query);
 
-        let get_vehicle = await VEHICLE.find(query).sort({ 'createdAt': -1 }).skip(skip).limit(limit).populate({
+        let get_vehicle = await VEHICLE.find(query).sort({ 'vehicle_number': 1 }).skip(skip).limit(limit).populate({
             path: "agency_user_id", // The field to populate
             select: "first_name last_name email phone" // Select fields from the users collection
         });

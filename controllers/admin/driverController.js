@@ -1015,7 +1015,13 @@ exports.get_drivers_super = async (req, res) => {
         },
       },
       {
-        $sort: { createdAt: -1, _id: -1 }, // Ensure stable sorting
+        // Add lowercase version of company_name for case-insensitive sorting
+        $addFields: {
+          first_name_lower: { $toLower: "$first_name" },
+        },
+      },
+      {
+        $sort: { first_name_lower: 1, _id: -1 }, // Ensure stable sorting
       },
       {
         $skip: skip, // Pagination: Skip documents
