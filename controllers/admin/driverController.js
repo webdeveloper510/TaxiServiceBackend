@@ -92,7 +92,7 @@ exports.add_driver = async (req, res) => {
     let check_other1 = await DRIVER.findOne({ email: { $regex: data.email, $options: "i" }, is_deleted: false, });
 
     let checkNickName = await DRIVER.findOne({ nickName: data.nickName});
-
+    let check_other2 = await DRIVER.findOne({ phone: data.phone, is_deleted: false, });
     let check_other3 = await user_model.findOne({ email: { $regex: data.email, $options: "i" }, is_deleted: false, });
     let check_other4 = await user_model.findOne({ phone: data.phone, is_deleted: false, });
 
