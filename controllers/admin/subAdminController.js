@@ -3007,12 +3007,16 @@ exports.companyHotelList = async (req, res) => {
           ],
         },
       },
-
+      {
+        $addFields: {
+          sort_company_id: { $toLower: { $arrayElemAt: ["$meta.company_id", 0] } }
+        }
+      },
       {
         $facet: {
           data: [
             // { $sort: { createdAt: -1 } }, // Sort by creation date
-            { $sort: { company_id: 1 } }, // Sort by company_id ASC
+            { $sort: { sort_company_id: 1 } },
             { $skip: skip }, // Skip to the correct page
             { $limit: limit },
             {
@@ -3020,36 +3024,36 @@ exports.companyHotelList = async (req, res) => {
                 _id: 1,
                 first_name: 1,
                 last_name: 1,
-                email: 1,
-                // company_id:1,
-                // company_name:1,
-                phone: 1,
-                createdAt: -1,
-                profile_image: 1,
-                role: 1,
-                totalBalance: 1,
-                stored_password:1,
-                status: 1,
-                land: { $arrayElemAt: ["$meta.land", 0] },
-                post_code: { $arrayElemAt: ["$meta.post_code", 0] },
-                house_number: { $arrayElemAt: ["$meta.house_number", 0] },
-                description: { $arrayElemAt: ["$meta.description", 0] },
-                affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
-                p_number: { $arrayElemAt: ["$meta.p_number", 0] },
-                number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
-                chamber_of_commerce_number: {
-                  $arrayElemAt: ["$meta.chamber_of_commerce_number", 0],
-                },
-                vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
-                website: { $arrayElemAt: ["$meta.website", 0] },
-                tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
-                saluation: { $arrayElemAt: ["$meta.saluation", 0] },
-                company_name: { $arrayElemAt: ["$meta.company_name", 0] },
+                // email: 1,
+                // // company_id:1,
+                // // company_name:1,
+                // phone: 1,
+                // createdAt: -1,
+                // profile_image: 1,
+                // role: 1,
+                // totalBalance: 1,
+                // stored_password:1,
+                // status: 1,
+                // land: { $arrayElemAt: ["$meta.land", 0] },
+                // post_code: { $arrayElemAt: ["$meta.post_code", 0] },
+                // house_number: { $arrayElemAt: ["$meta.house_number", 0] },
+                // description: { $arrayElemAt: ["$meta.description", 0] },
+                // affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
+                // p_number: { $arrayElemAt: ["$meta.p_number", 0] },
+                // number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
+                // chamber_of_commerce_number: {
+                //   $arrayElemAt: ["$meta.chamber_of_commerce_number", 0],
+                // },
+                // vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
+                // website: { $arrayElemAt: ["$meta.website", 0] },
+                // tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+                // saluation: { $arrayElemAt: ["$meta.saluation", 0] },
+                // company_name: { $arrayElemAt: ["$meta.company_name", 0] },
                 company_id: { $arrayElemAt: ["$meta.company_id", 0] },
-                commision: { $arrayElemAt: ["$meta.commision", 0] },
-                hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
+                // commision: { $arrayElemAt: ["$meta.commision", 0] },
+                // hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
 
-                location: { $arrayElemAt: ["$meta.location", 0] },
+                // location: { $arrayElemAt: ["$meta.location", 0] },
               },
             },
           ],
