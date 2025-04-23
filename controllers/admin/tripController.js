@@ -251,6 +251,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
 exports.add_trip = async (req, res) => {
   try {
     let data = req.body;
+ 
     data.created_by = data.created_by ? data.created_by : req.userId;
     // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
     data.trip_id    = await getNextSequenceValue();
@@ -329,9 +330,12 @@ exports.add_trip = async (req, res) => {
 
 
     } else {
-      data.superAdminPaymentAmount = 0;
       data.companyPaymentAmount = 0;
-      data.driverPaymentAmount = data.price.toFixed(2)
+      if(data.price){
+          data.driverPaymentAmount = Number(data.price).toFixed(2)
+      }   
+      data.superAdminPaymentAmount = 0;
+   
     }
 
     let add_trip = await TRIP(data).save();
