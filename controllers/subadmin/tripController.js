@@ -374,7 +374,7 @@ exports.edit_trip = async (req, res) => {
       
         let commission = data.commission.commission_value;
         if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
-          commission = (data.price * data.commission.commission_value) / 100;
+          commission = (Number(data.price) * data.commission.commission_value) / 100;
         }
 
         const companyDetails = await USER.findById(trip_data?.created_by_company_id);
@@ -394,12 +394,12 @@ exports.edit_trip = async (req, res) => {
         data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0).toFixed(2);
         // data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision?.value)) / 100 || 0);
         data.companyPaymentAmount = (commission - data.superAdminPaymentAmount).toFixed(2);
-        data.driverPaymentAmount = (data.price - data.companyPaymentAmount - data.superAdminPaymentAmount).toFixed(2);
+        data.driverPaymentAmount = (Number(data.price) - data.companyPaymentAmount - data.superAdminPaymentAmount).toFixed(2);
   
       } else {
         data.superAdminPaymentAmount = 0;
         data.companyPaymentAmount = 0;
-        data.driverPaymentAmount = data.price.toFixed(2)
+        data.driverPaymentAmount = Number(data.price).toFixed(2)
       }
     }
     
