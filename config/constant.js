@@ -78,6 +78,7 @@ module.exports={
         MANUALLY: `MANUALLY`,
         ONLINE: `ONLINE`,
         PENDING: `PENDING`,
+        NOT_REQUIRED: 'NOT_REQUIRED' // or 'ZERO_DUE' or 'EXEMPTED' when driver will not pay any commision
     },
     PAYOUT_TANSFER_STATUS: {
         PENDING: `PENDING`,

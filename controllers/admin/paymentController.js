@@ -146,7 +146,7 @@ exports.successTripPay = async (req, res) => {
 
         if ( trip_by_id.commission.commission_type === "Percentage" && trip_by_id.commission.commission_value > 0 ) {
 
-          commission = (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
+          commission = (Number(trip_by_id.price) * Number(trip_by_id.commission.commission_value)) / 100;
         }
 
         const customer = await user_model.findOne({ _id: trip_by_id.created_by, });
@@ -177,14 +177,14 @@ exports.successTripPay = async (req, res) => {
                                                     type: "credit",
                                                   });
         await superTransaction.save();
-        const companyBalance = companyData.totalBalance + commission - superAdminCommission;
+        const companyBalance = Number(companyData.totalBalance) + Number(commission) - Number(superAdminCommission);
 
         const updateCompanyWallet = await user_model.updateOne(
-                                                                  { _id: companyData._id },
-                                                                  { $set: { totalBalance: companyBalance } }
-                                                                );
+                                                                { _id: companyData._id },
+                                                                { $set: { totalBalance: companyBalance } }
+                                                              );
 
-        const superBalance = superAdmin.totalBalance + superAdminCommission;
+        const superBalance = Number(superAdmin.totalBalance) + Number(superAdminCommission);
 
         const updateSuperWallet = await user_model.updateOne(
                                                               { _id: superAdmin._id },
