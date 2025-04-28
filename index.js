@@ -24,7 +24,9 @@ const { driverDetailsByToken,
         notifyInsufficientBalance,
         checkPayouts,
         notifyPayoutPaid,
-        notifyPayoutFailure
+        notifyPayoutFailure,
+        sendBookingConfirmationEmail,
+        sendBookingCancelledEmail
       } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
@@ -440,7 +442,7 @@ app.post( "/send-notification", async (req, res) => {
 app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
-   
+    
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
@@ -909,6 +911,8 @@ io.on("connection", (socket) => {
           }
         }
       }
+
+      sendBookingCancelledEmail(trip_details)
     } catch (err) {
       console.log("🚀 ~ socket.on companyCancelledTrip ~ err:", err);
     }
@@ -1173,6 +1177,8 @@ io.on("connection", (socket) => {
                                                           message: "Trip canceled successfully",
                                                         });
           }
+
+          sendBookingCancelledEmail(trip)
         }
       } catch (error) {
         console.log("🚀 ~ socket.on cancelDriverTrip ~ error:", error);
@@ -1374,6 +1380,8 @@ io.on("connection", (socket) => {
             }
           }
         }
+
+        sendBookingConfirmationEmail(trip)
 
         io.to(socket.id).emit("driverNotification", {
                                                       code: 200,

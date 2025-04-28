@@ -1906,6 +1906,297 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
     throw error;
   }
 }
+
+exports.sendBookingConfirmationEmail = async (tripDetail) => { 
+
+  try {
+
+    const companyDetails = await user_model.findOne({ _id: tripDetail?.created_by_company_id });
+    const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: tripDetail?.created_by_company_id });
+    let email = tripDetail?.customerDetails?.email;
+   
+    const subject = `Your order confirmation # ${tripDetail?.trip_id}`;
+
+    const dateString = tripDetail?.pickup_date_time;
+    const date = new Date(dateString);
+
+    const options = {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Europe/Amsterdam'
+    };
+
+    const formatted = date.toLocaleString('en-GB', options);
+
+    // Remove " at " and split properly
+    const formattedClean = formatted.replace(' at ', ' - ');
+
+    const pickUpTime = `${formattedClean} hour`;
+   
+    const bodyHtml =  `
+                       <style>
+                        body {
+                          font-family: Arial, sans-serif;
+                          color: #333;
+                          padding: 20px;
+                        }
+                        .container {
+                          max-width: 600px;
+                          margin: auto;
+                          border: 1px solid #ddd;
+                          padding: 20px;
+                          border-radius: 8px;
+                        }
+                        h2 {
+                          color: #007BFF;
+                        }
+                        table {
+                          width: 100%;
+                          margin-top: 20px;
+                          border-collapse: collapse;
+                        }
+                        td {
+                          padding: 8px 0;
+                        }
+                        .footer {
+                          margin-top: 30px;
+                          font-size: 14px;
+                          color: #555;
+                        }
+                      </style>
+                      <div class="container">
+                        <h2>Your Order Confirmation: # ${tripDetail?.trip_id}</h2>
+
+                        <p>Dear Sir/Madam <strong>${tripDetail?.customerDetails?.name}</strong>,</p>
+
+                        <p>Your taxi request has been received with the following information:</p>
+
+                        <table>
+                          <tr>
+                            <td><strong>Pick up time:</strong></td>
+                            <td>${pickUpTime}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Departure location:</strong></td>
+                            <td>${tripDetail?.trip_from?.address}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Arrival location:</strong></td>
+                            <td>${tripDetail?.trip_to?.address}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Type of car:</strong></td>
+                            <td>Car - ${tripDetail?.passengerCount} passengers</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Your taxi fare:</strong></td>
+                            <td>€ ${tripDetail?.price}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Payment method:</strong></td>
+                            <td>${tripDetail?.pay_option}</td>
+                          </tr>
+                          
+                          <tr>
+                            <td><strong>Name client:</strong></td>
+                            <td>${tripDetail?.customerDetails?.name}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Phone number:</strong></td>
+                            <td>${tripDetail?.customerDetails?.phone}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>${tripDetail?.customerDetails?.email}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Remark for driver:</strong></td>
+                            <td>${tripDetail?.customerDetails?.name}</td>
+                          </tr>
+                        </table>
+
+                        <p class="footer">
+                          This request has been registered with number <strong>${tripDetail?.customerDetails?.phone}</strong>. <br>
+                          If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
+                        </p>
+
+                        <p class="footer">
+                          Kind regards,<br>
+                          <strong>${companyAgencyDetails?.company_name}</strong>
+                        </p>
+                      </div>
+
+
+                    `;
+    let template = ` ${bodyHtml}`
+  
+    var transporter = nodemailer.createTransport(emailConstant.credentials);
+    var mailOptions = {
+                        from: emailConstant.from_email,
+                        to: email,
+                        subject: subject,
+                        html: template
+                      };
+    let sendEmail = await transporter.sendMail(mailOptions);
+    return sendEmail
+
+  } catch (error) {
+
+    console.error("Error checkPayouts status:",  error.message);
+    throw error;
+  }
+}
+
+exports.sendBookingCancelledEmail = async (tripDetail) => { 
+
+  try {
+
+    const companyDetails = await user_model.findOne({ _id: tripDetail?.created_by_company_id });
+    const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: tripDetail?.created_by_company_id });
+    let email = tripDetail?.customerDetails?.email;
+   
+    const subject = `Your ride has been canceled # ${tripDetail?.trip_id}`;
+
+    const dateString = tripDetail?.pickup_date_time;
+    const date = new Date(dateString);
+
+    const options = {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Europe/Amsterdam'
+    };
+
+    const formatted = date.toLocaleString('en-GB', options);
+
+    // Remove " at " and split properly
+    const formattedClean = formatted.replace(' at ', ' - ');
+
+    const pickUpTime = `${formattedClean} hour`;
+   
+    const bodyHtml =  `
+                       <style>
+                        body {
+                          font-family: Arial, sans-serif;
+                          color: #333;
+                          padding: 20px;
+                        }
+                        .container {
+                          max-width: 600px;
+                          margin: auto;
+                          border: 1px solid #ddd;
+                          padding: 20px;
+                          border-radius: 8px;
+                        }
+                        h2 {
+                          color: #007BFF;
+                        }
+                        table {
+                          width: 100%;
+                          margin-top: 20px;
+                          border-collapse: collapse;
+                        }
+                        td {
+                          padding: 8px 0;
+                        }
+                        .footer {
+                          margin-top: 30px;
+                          font-size: 14px;
+                          color: #555;
+                        }
+                      </style>
+                      <div class="container">
+                        <h2>Your ride has been canceled: # ${tripDetail?.trip_id}</h2>
+
+                        <p>Dear Sir/Madam <strong>${tripDetail?.customerDetails?.name}</strong>,</p>
+
+                        <p>
+                          Your ride request has just been canceled. If you have a double order, check the ride numbers in your confirmation emails. If it is not clear, please contact us via 
+                          <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or you can call to: ${companyDetails?.phone} .
+                        </p>
+
+                        <table>
+                          <tr>
+                            <td><strong>Pick up time:</strong></td>
+                            <td>${pickUpTime}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Departure location:</strong></td>
+                            <td>${tripDetail?.trip_from?.address}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Arrival location:</strong></td>
+                            <td>${tripDetail?.trip_to?.address}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Type of car:</strong></td>
+                            <td>Car - ${tripDetail?.passengerCount} passengers</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Your taxi fare:</strong></td>
+                            <td>€ ${tripDetail?.price}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Payment method:</strong></td>
+                            <td>${tripDetail?.pay_option}</td>
+                          </tr>
+                          
+                          <tr>
+                            <td><strong>Name client:</strong></td>
+                            <td>${tripDetail?.customerDetails?.name}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Phone number:</strong></td>
+                            <td>${tripDetail?.customerDetails?.phone}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>${tripDetail?.customerDetails?.email}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Remark for driver:</strong></td>
+                            <td>${tripDetail?.customerDetails?.name}</td>
+                          </tr>
+                        </table>
+
+                        <p class="footer">
+                          This request has been registered with number <strong>${tripDetail?.customerDetails?.phone}</strong>. <br>
+                          If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
+                        </p>
+
+                        <p class="footer">
+                          Kind regards,<br>
+                          <strong>${companyAgencyDetails?.company_name}</strong>
+                        </p>
+                      </div>
+
+
+                    `;
+    let template = ` ${bodyHtml}`
+  
+    var transporter = nodemailer.createTransport(emailConstant.credentials);
+    var mailOptions = {
+                        from: emailConstant.from_email,
+                        to: email,
+                        subject: subject,
+                        html: template
+                      };
+    let sendEmail = await transporter.sendMail(mailOptions);
+    return sendEmail
+
+  } catch (error) {
+
+    console.error("Error checkPayouts status:",  error.message);
+    throw error;
+  }
+}
 //   try {
 //     const accessToken = await getAccessToken();
 
