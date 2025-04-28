@@ -561,7 +561,7 @@ exports.  get_trip = async (req, res) => {
         $match: {
           $and: [
             {
-              $or: [{ created_by: { $in: objectIds } }, { created_by: mid }],
+              $or: [{ created_by: { $in: objectIds } }, { created_by: mid }, { created_by_company_id: mid }],
             },
             { status: true },
             { trip_status: req.params.status },
