@@ -523,7 +523,7 @@ exports.add_trip_link = async (req, res) => {
     data.driverPaymentAmount = data?.price ? data.price : 0;
     data.companyPaymentAmount = 0;
     data.superAdminPaymentAmount = 0;
-    
+
     let add_trip = await TRIP(data).save();
     if (!add_trip) {
       res.send({
@@ -552,6 +552,12 @@ exports.  get_trip = async (req, res) => {
     let getIds = await USER.find({ role: "HOTEL", created_by: req.userId });
     let pay_option = data.pay_option ? JSON.parse(data.pay_option) : []
     let search_value = data.comment ? data.comment : "";
+
+    // Pagination values
+    let page = parseInt(data?.page) || 1;
+    let limit = parseInt(data?.limit) || 10;
+    let skip = (page - 1) * limit;
+
     let ids = [];
     for (let i of getIds) {
       ids.push(i._id);
@@ -560,26 +566,95 @@ exports.  get_trip = async (req, res) => {
 
     const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
-    let get_trip = await TRIP.aggregate([
+    let matchConditions = {
+      $and: [
+        {
+          $or: [{ created_by: { $in: objectIds } }, { created_by: mid }, { created_by_company_id: mid }],
+        },
+        { status: true },
+        { trip_status: req.params.status },
+        { is_deleted: false },
+        ...(pay_option.length > 0
+          ? [{
+              $or: pay_option.map((option) => ({
+                pay_option: { $regex: `^${option}$`, $options: "i" },
+              })),
+            }]
+          : []),
+        dateQuery,
+      ],
+    };
+
+    // First: Get total count (without skip/limit)
+    let totalTrips = await TRIP.aggregate([
+      { $match: matchConditions },
+      {
+        $lookup: {
+          from: "drivers",
+          localField: "driver_name",
+          foreignField: "_id",
+          as: "driver",
+        },
+      },
+      {
+        $lookup: {
+          from: "vehicles",
+          localField: "vehicle",
+          foreignField: "_id",
+          as: "vehicle",
+        },
+      },
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "created_by_company_id",
+          foreignField: "user_id",
+          as: "userData",
+        },
+      },
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "hotel_id",
+          foreignField: "user_id",
+          as: "hotelData",
+        },
+      },
+      {
+        $project: {
+          driver_name: {
+            $concat: [
+              { $arrayElemAt: ["$driver.first_name", 0] },
+              " ",
+              { $arrayElemAt: ["$driver.last_name", 0] },
+            ],
+          },
+          trip_id: 1,
+          comment: 1,
+          trip_from: 1,
+          trip_to: 1,
+          company_name: { $arrayElemAt: ["$userData.company_name", 0] },
+        },
+      },
       {
         $match: {
-          $and: [
-            {
-              $or: [{ created_by: { $in: objectIds } }, { created_by: mid }, { created_by_company_id: mid }],
-            },
-            { status: true },
-            { trip_status: req.params.status },
-            { is_deleted: false },
-            pay_option.length > 0 ? { 
-              $or: pay_option.map((option) => ({
-                                                 pay_option: { $regex: `^${option}$`, $options: "i" },
-                                              })
-                                  ), 
-            } : {},
-            dateQuery,
+          $or: [
+            { comment: { $regex: search_value, $options: "i" } },
+            { trip_id: { $regex: search_value, $options: "i" } },
+            { driver_name: { $regex: search_value, $options: "i" } },
+            { "trip_from.address": { $regex: search_value, $options: "i" } },
+            { "trip_to.address": { $regex: search_value, $options: "i" } },
+            { company_name: { $regex: search_value, $options: "i" } },
           ],
         },
       },
+      { $count: "total" }
+    ]);
+
+    let total = totalTrips.length > 0 ? totalTrips[0].total : 0;
+
+    let get_trip = await TRIP.aggregate([
+      { $match: matchConditions },
       {
         $lookup: {
           from: "drivers",
@@ -664,7 +739,10 @@ exports.  get_trip = async (req, res) => {
           ],
         },
       },
-    ]).sort({ createdAt: -1 });
+      { $sort: { createdAt: -1 } },  // sort by latest
+      { $skip: skip },               // skip documents
+      { $limit: limit },
+    ])
 
     if (!get_trip) {
       res.send({
@@ -675,7 +753,12 @@ exports.  get_trip = async (req, res) => {
       res.send({
         code: constant.success_code,
         message: "Success",
+        total: total,
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(total / limit),
         result: get_trip,
+        
       });
     }
   } catch (err) {
