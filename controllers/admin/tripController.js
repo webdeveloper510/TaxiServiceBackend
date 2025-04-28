@@ -520,6 +520,10 @@ exports.add_trip_link = async (req, res) => {
     data.series_id = token_code + "-" + "000" + series;
 
     data.trip_id = "T" + "-" + data.trip_id;
+    data.driverPaymentAmount = data?.price ? data.price : 0;
+    data.companyPaymentAmount = 0;
+    data.superAdminPaymentAmount = 0;
+    
     let add_trip = await TRIP(data).save();
     if (!add_trip) {
       res.send({
