@@ -932,7 +932,7 @@ exports.notifyPayoutPaid = async (userInfo , tripDetails , payoutDetails) => {
 
   
   let toEmail = userInfo?.email;
-  toEmail = `vsingh@codenomad.net`;
+  
   let UserName = `${userInfo?.first_name } ${userInfo?.last_name } `;
  
   const currentDate = new Date();
