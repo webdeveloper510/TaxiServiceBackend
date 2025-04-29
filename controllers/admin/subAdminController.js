@@ -2631,7 +2631,7 @@ exports.driverListByRevenue = async (req, res) => {
           foreignField: "driver_name",
           as: "trips",
           pipeline:[
-            {$match:{is_paid:true,trip_status:"Completed"}}
+            {$match:{is_paid:isPaid , trip_status:constant.TRIP_STATUS.COMPLETED}}
           ]
         }
       },
