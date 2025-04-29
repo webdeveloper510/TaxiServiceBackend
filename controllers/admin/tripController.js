@@ -707,6 +707,7 @@ exports.  get_trip = async (req, res) => {
           price: 1,
           passengerCount: 1,
           is_paid:1,
+          company_trip_payout_status:1,
           hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
           driver_name: {
@@ -1970,6 +1971,7 @@ exports.get_recent_trip_super = async (req, res) => {
           payment_collcted:1,
           invoice_pdf:1,
           is_paid:1,
+          company_trip_payout_status:1,
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
           driver_name: {
             $concat: [
