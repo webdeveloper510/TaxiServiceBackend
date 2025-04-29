@@ -2723,7 +2723,10 @@ exports.driverListByRevenue = async (req, res) => {
             ]
           }
         }
-      }
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit }
     ]);
 
     if (!searchUser) {
@@ -2733,23 +2736,17 @@ exports.driverListByRevenue = async (req, res) => {
       });
     } else {
 
+      
       res.send({
         code: constant.success_code,
         message: "Success",
-        searchUser: searchUser,
-        matchCriteria:matchCriteria
+        totalCount: totalCount,
+        totalDocuments:totalDocuments,
+        totalPages:totalPages,
+        result: searchUser,
+        matchCriteria
         
       });
-      // res.send({
-      //   code: constant.success_code,
-      //   message: "Success",
-      //   totalCount: totalCount,
-      //   totalDocuments:totalDocuments,
-      //   totalPages:totalPages,
-      //   result: searchUser,
-      //   matchCriteria
-        
-      // });
     }
   } catch (err) {
     res.send({
