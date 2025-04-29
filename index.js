@@ -1656,7 +1656,7 @@ const get20thMinuteRangeUTC = async () => {
 };
 
 
-// Schedule the task using cron
+// Schedule the task using cron for every minute
 cron.schedule("* * * * *", () => {
 
   // console.log('running evry minute' , new Date())
@@ -1665,6 +1665,104 @@ cron.schedule("* * * * *", () => {
   checkTripsAndSendNotifications();
   // logoutDriverAfterThreeHour()
 });
+
+// Schedule the task using cron for every minute
+cron.schedule("*/5 * * * *", () => {
+
+  // console.log('running evry minute' , new Date())
+
+  // Send push notification to driver and company when trip will start in 20 minutes
+  initiateWeeklyCompanyPayouts();
+  // logoutDriverAfterThreeHour()
+});
+
+const initiateWeeklyCompanyPayouts = async (invoice) => {
+  try {
+    
+    const balance = await stripe.balance.retrieve();
+    let availableBalance = balance?.available[0]?.amount || 0;
+    const tripList = await getPendingPayoutTripsBeforeWeek();
+    
+
+    if (availableBalance > 100) {
+       
+        // const connectedAccountId = `acct_1QxRoi4CiWWLkHIH`;
+        // const tripId = `T-1051`
+        // const payoutList = await checkPayouts(connectedAccountId);
+        
+        if (tripList.length > 0) {
+
+          for (let  trip of tripList) {
+
+            let amount = trip.companyPaymentAmount;
+            let connectedAccountId = trip?.companyDetails?.connectedAccountId;
+            let tripId = trip?.trip_id;
+
+            let stripBalance = await stripe.balance.retrieve();
+            let availableBalance = stripBalance?.available[0]?.amount || 0;
+            
+            console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
+            if (availableBalance >=  Math.round(amount * 100) ) {
+              // amount = 5;
+              const transferDedtails = await transferToConnectedAccount(amount, connectedAccountId , tripId);
+              
+              const chek = await trip_model.findOneAndUpdate(
+                                                              { _id: trip?._id }, // Find by tripId
+                                                              { $set: { company_trip_transfer_id: transferDedtails?.id } }, // Update fields
+                                                              { new: true } // Return the updated document
+                                                            );
+
+              console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
+              const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
+              await trip_model.findOneAndUpdate(
+                                                  { _id: trip?._id }, // Find by tripId
+                                                  { 
+                                                    $set: { 
+                                                            company_trip_payout_id: payoutDetails?.id,
+                                                            company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.PENDING,
+                                                            company_trip_payout_initiated_date: new Date().toISOString(),
+                                                          } 
+                                                  }, 
+                                                  { new: true } // Return the updated document
+                                                );
+
+              console.log('trip completed------' ,tripId)
+            } else {
+
+              console.log(`You dont have enough payment in your account to transfer the payment to the compmies.`)
+              await notifyInsufficientBalance()
+              break;
+            }
+          }
+        }
+        
+        
+    } else {
+      await notifyInsufficientBalance()
+      console.log(`You dont have enough payment in your account.`)
+    }
+
+    return res.send({
+        code: 200,
+        message: "weekly-company-payment",
+        // tripList:tripList,
+        balance,
+        tripList
+      });
+    return res.send({
+                      code: 200,
+                      message: "weekly-company-payment",
+                      tripList:tripList,
+                      balance
+                    });
+  } catch (error) {
+    console.error("Error retrieving balance:", error);
+    return  res.send({
+                        code: constant.error_code,
+                        message: error.message,
+                    });
+  }
+}
 
 const handleInvoicePaymentFailure = async (invoice) => {
 
