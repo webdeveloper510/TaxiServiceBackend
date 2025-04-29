@@ -2521,32 +2521,125 @@ exports.driverListByRevenue = async (req, res) => {
     const totalPages = Math.ceil(totalDocuments / limit);
 
     // Paginated data with total_paid_trip_amount
-    const searchUser = await USER.aggregate([
-      {
-        $lookup: {
-          from: "users",
-          localField: "driver_company_id",
-          foreignField: "_id",
-          as: "meta"
-        }
-      },
-      {
-        $lookup: {
-          from: "drivers",
-          localField: "driverId",
-          foreignField: "_id",
-          as: "driver_info"
-        }
-      },
+    // const searchUser = await USER.aggregate([
+    //   {
+    //     $lookup: {
+    //       from: "users",
+    //       localField: "driver_company_id",
+    //       foreignField: "_id",
+    //       as: "meta"
+    //     }
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "drivers",
+    //       localField: "driverId",
+    //       foreignField: "_id",
+    //       as: "driver_info"
+    //     }
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "trips",
+    //       localField: "_id",
+    //       foreignField: "created_by_company_id",
+    //       as: "trip_data"
+    //     }
+    //   },
+    //   { $match: matchCriteria },
+    //   {
+    //     $addFields: {
+    //       total_paid_trip_amount: {
+    //         $sum: {
+    //           $map: {
+    //             input: {
+    //               $filter: {
+    //                 input: "$trip_data",
+    //                 as: "trip",
+    //                 cond: {
+    //                   $and: [
+    //                     { $eq: ["$$trip.trip_status", constant.TRIP_STATUS.COMPLETED] },
+    //                     { $eq: ["$$trip.is_paid", isPaid] }
+    //                   ]
+    //                 }
+    //               }
+    //             },
+    //             as: "trip",
+    //             in: {
+    //               $subtract: ["$$trip.price", "$$trip.driverPaymentAmount"]
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 1,
+    //       first_name: 1,
+    //       last_name: 1,
+    //       email: 1,
+    //       phone: 1,
+    //       createdAt: 1,
+    //       profile_image: 1,
+    //       is_special_plan_active: 1,
+    //       status: 1,
+    //       is_deleted: 1,
+    //       isCompany: 1,
+    //       is_blocked: 1,
+    //       total_paid_trip_amount: 1,
+    //       driver_id:{ $arrayElemAt: ["$driver_info._id", 0] },
+    //       // land: { $arrayElemAt: ["$meta.land", 0] },
+    //       // post_code: { $arrayElemAt: ["$meta.post_code", 0] },
+    //       // house_number: { $arrayElemAt: ["$meta.house_number", 0] },
+    //       // description: { $arrayElemAt: ["$meta.description", 0] },
+    //       // affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
+    //       // p_number: { $arrayElemAt: ["$meta.p_number", 0] },
+    //       // number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
+    //       // chamber_of_commerce_number: {
+    //       //   $arrayElemAt: ["$meta.chamber_of_commerce_number", 0]
+    //       // },
+    //       // vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
+    //       // website: { $arrayElemAt: ["$meta.website", 0] },
+    //       // tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+    //       // saluation: { $arrayElemAt: ["$meta.saluation", 0] },
+    //       // company_name: { $arrayElemAt: ["$meta.company_name", 0] },
+    //       // company_id: { $arrayElemAt: ["$meta.company_id", 0] },
+    //       // commision: { $arrayElemAt: ["$meta.commision", 0] },
+    //       // hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
+    //       // location: { $arrayElemAt: ["$meta.location", 0] },
+
+    //       // driver_name: {
+    //       //   $concat: [
+    //       //     { $arrayElemAt: ["$driver_info.first_name", 0] },
+    //       //     " ",
+    //       //     { $arrayElemAt: ["$driver_info.last_name", 0] }
+    //       //   ]
+    //       // }
+    //     }
+    //   },
+    //   { $sort: { createdAt: -1 } },
+    //   { $skip: skip },
+    //   { $limit: limit }
+    // ]);
+
+    const searchUser = await DRIVER.aggregate([
       {
         $lookup: {
           from: "trips",
           localField: "_id",
-          foreignField: "created_by_company_id",
-          as: "trip_data"
+          foreignField: "driver_name",
+          as: "trips",
+          pipeline:[
+            {$match:{is_paid:true,trip_status:"Completed"}}
+          ]
         }
       },
-      { $match: matchCriteria },
+      {
+        $match: {
+         trips:{"$elemMatch":{"__v":0}}
+        }
+      },
       {
         $addFields: {
           total_paid_trip_amount: {
@@ -2554,7 +2647,7 @@ exports.driverListByRevenue = async (req, res) => {
               $map: {
                 input: {
                   $filter: {
-                    input: "$trip_data",
+                    input: "$trips",
                     as: "trip",
                     cond: {
                       $and: [
@@ -2574,6 +2667,19 @@ exports.driverListByRevenue = async (req, res) => {
         }
       },
       {
+        $lookup: {
+          from: "users",
+          localField: "driver_company_id",
+          foreignField: "_id",
+          as: "meta"
+        }
+      },
+      {
+        $addFields: {
+          driver_id: "$_id"
+        }
+      },
+      {
         $project: {
           _id: 1,
           first_name: 1,
@@ -2588,56 +2694,62 @@ exports.driverListByRevenue = async (req, res) => {
           isCompany: 1,
           is_blocked: 1,
           total_paid_trip_amount: 1,
-          driver_id:{ $arrayElemAt: ["$driver_info._id", 0] },
-          // land: { $arrayElemAt: ["$meta.land", 0] },
-          // post_code: { $arrayElemAt: ["$meta.post_code", 0] },
-          // house_number: { $arrayElemAt: ["$meta.house_number", 0] },
-          // description: { $arrayElemAt: ["$meta.description", 0] },
-          // affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
-          // p_number: { $arrayElemAt: ["$meta.p_number", 0] },
-          // number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
-          // chamber_of_commerce_number: {
-          //   $arrayElemAt: ["$meta.chamber_of_commerce_number", 0]
-          // },
-          // vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
-          // website: { $arrayElemAt: ["$meta.website", 0] },
-          // tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
-          // saluation: { $arrayElemAt: ["$meta.saluation", 0] },
-          // company_name: { $arrayElemAt: ["$meta.company_name", 0] },
-          // company_id: { $arrayElemAt: ["$meta.company_id", 0] },
-          // commision: { $arrayElemAt: ["$meta.commision", 0] },
-          // hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
-          // location: { $arrayElemAt: ["$meta.location", 0] },
+          driver_id:1,
+          land: { $arrayElemAt: ["$meta.land", 0] },
+          post_code: { $arrayElemAt: ["$meta.post_code", 0] },
+          house_number: { $arrayElemAt: ["$meta.house_number", 0] },
+          description: { $arrayElemAt: ["$meta.description", 0] },
+          affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
+          p_number: { $arrayElemAt: ["$meta.p_number", 0] },
+          number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
+          chamber_of_commerce_number: {
+            $arrayElemAt: ["$meta.chamber_of_commerce_number", 0]
+          },
+          vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
+          website: { $arrayElemAt: ["$meta.website", 0] },
+          tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+          saluation: { $arrayElemAt: ["$meta.saluation", 0] },
+          company_name: { $arrayElemAt: ["$meta.company_name", 0] },
+          company_id: { $arrayElemAt: ["$meta.company_id", 0] },
+          commision: { $arrayElemAt: ["$meta.commision", 0] },
+          hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
+          location: { $arrayElemAt: ["$meta.location", 0] },
 
-          // driver_name: {
-          //   $concat: [
-          //     { $arrayElemAt: ["$driver_info.first_name", 0] },
-          //     " ",
-          //     { $arrayElemAt: ["$driver_info.last_name", 0] }
-          //   ]
-          // }
+          driver_name: {
+            $concat: [
+              { $arrayElemAt: ["$driver_info.first_name", 0] },
+              " ",
+              { $arrayElemAt: ["$driver_info.last_name", 0] }
+            ]
+          }
         }
-      },
-      { $sort: { createdAt: -1 } },
-      { $skip: skip },
-      { $limit: limit }
+      }
     ]);
+
     if (!searchUser) {
       res.send({
         code: constant.error_code,
         message: "Unable to search the user",
       });
     } else {
+
       res.send({
         code: constant.success_code,
         message: "Success",
-        totalCount: totalCount,
-        totalDocuments:totalDocuments,
-        totalPages:totalPages,
-        result: searchUser,
-        matchCriteria
+        searchUser: searchUser,
+        matchCriteria:matchCriteria
         
       });
+      // res.send({
+      //   code: constant.success_code,
+      //   message: "Success",
+      //   totalCount: totalCount,
+      //   totalDocuments:totalDocuments,
+      //   totalPages:totalPages,
+      //   result: searchUser,
+      //   matchCriteria
+        
+      // });
     }
   } catch (err) {
     res.send({
