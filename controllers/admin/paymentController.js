@@ -429,7 +429,7 @@ exports.adminTransaction = async (req, res) => {
     const dueCommisionFromDrivers = await getTotalPayment(dateQuery , { is_paid: false } , `driverPaymentAmount` , true);
     const recieveCommisionFromDrivers = await getTotalPayment(dateQuery , { is_paid: true} , `driverPaymentAmount` , true);
 
-    const driversNetEarning = await getTotalPayment(dateQuery , { is_paid: true} , `driverPaymentAmount` , false);
+    const driversNetEarning = await getTotalPayment(dateQuery , {} , `driverPaymentAmount` , false);
     
     
     const countDriversWithPendingDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false , ...dateQuery});
