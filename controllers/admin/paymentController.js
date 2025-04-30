@@ -470,10 +470,11 @@ exports.companyTransaction = async (req, res) => {
 
     // Update the query based on the date filter
     let dateQuery = await dateFilter(data );
-    console.log('req.userId---' , req.userId);
+    // console.log('req.userId---' , req.userId);
+    // for is_paid = true---- company will get the payment if driver paid or not afetr completed trip
     const totalCommisionFromCompletedTrips = await getTotalPayment(dateQuery , {created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
-    const dueCommisionFromCompletedTrips = await getTotalPayment(dateQuery , { is_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
-    const recieveCommisionsFromCompletedTrips = await getTotalPayment(dateQuery , { is_paid: true , is_company_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
+    const dueCommisionFromCompletedTrips = await getTotalPayment(dateQuery , { is_company_paid: false ,  created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
+    const recieveCommisionsFromCompletedTrips = await getTotalPayment(dateQuery , { is_company_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
     
     const totalTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , ...dateQuery});
     const totalBookedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.BOOKED , ...dateQuery});
