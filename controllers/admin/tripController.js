@@ -2270,6 +2270,8 @@ exports.alocate_driver = async (req, res) => {
 
       } else {
         try {
+
+          // when user is not alocating the trip to self
           if ( check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
 
             let driver_c_data = await USER.findOne({ _id: check_driver.created_by });
@@ -2352,10 +2354,16 @@ exports.alocate_driver = async (req, res) => {
           
           if ( created_by_company?.socketId ) {
 
-            // when will assign the trip to itself
-            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
+            console.log('check_driver._id.toString()--------' , check_driver._id.toString())
+            console.log('req?.user?.driverId?.toString()--------' , req?.user?.driverId?._id.toString())
+            console.log('update_trip.trip_status--------' , update_trip.trip_status)
+            console.log('req.companyPartnerAccess--------' , req.companyPartnerAccess)
+            console.log('req.CompanyPartnerDriverId--------' , req.CompanyPartnerDriverId)
 
-                
+            // when user will assign the trip to itself then no pop-up will show
+            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && check_driver._id.toString() != req?.user?.driverId?._id.toString()) {
+
+                console.log('inner into aocate trip company')
               req.io.to(created_by_company?.socketId).emit("tripAcceptedBYDriver",
                                                           {
                                                             update_trip,
@@ -2376,8 +2384,8 @@ exports.alocate_driver = async (req, res) => {
           if ( created_by_company?.webSocketId) {
             //  If Socket id  is exist
 
-            // when will assign the trip to itself
-            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
+            // when user will assign the trip to itself then no pop-up will show
+            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && check_driver._id.toString() != req?.user?.driverId?._id.toString()) {
 
               req.io.to(created_by_company?.webSocketId).emit("tripAcceptedBYDriver",
                                                           {

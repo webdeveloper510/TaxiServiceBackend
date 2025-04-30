@@ -1499,7 +1499,7 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
                                                 }
                                               }
                                             ]);
-console.log('trips-----------' , trips)
+
     return trips
   } catch (error) {
     console.error("Error retrieving balance:", error);
