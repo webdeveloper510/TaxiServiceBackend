@@ -2758,6 +2758,9 @@ exports.tipListByRevenue = async (req, res) => {
           invoice_pdf:1,
           is_paid:1,
           superAdminPaymentAmount:1,
+          companyPaymentAmount:1,
+          driverPaymentAmount:1,
+          price:1,
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
           driver_id: { $arrayElemAt: ["$driver._id", 0] },
           driver_name: {
