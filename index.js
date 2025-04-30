@@ -1682,7 +1682,7 @@ cron.schedule("* * * * *", () => {
 const initiateWeeklyCompanyPayouts = async () => {
   try {
 
-    return
+   
     console.log('initiateWeeklyCompanyPayouts-----')
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;

@@ -1464,6 +1464,7 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
                                               {
                                                 $match: { 
                                                           is_paid: true,
+                                                          is_company_paid: false,
                                                           pickup_date_time: { $lt: sevenDaysAgo },
                                                         } 
                                               },
