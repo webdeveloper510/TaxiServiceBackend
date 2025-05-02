@@ -412,6 +412,9 @@ exports.edit_trip = async (req, res) => {
       });
     } else {
 
+      if (data?.trip_status == constant.TRIP_STATUS.APPROVED) {
+        console.log('before accepting')
+      }
 
       if ( data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
 
