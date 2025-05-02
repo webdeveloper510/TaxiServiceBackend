@@ -415,6 +415,8 @@ exports.edit_trip = async (req, res) => {
       // when company send the trip to the driver for accepting and company want to cancel in between before acceping the driver
       if (data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data?.trip_status == constant.TRIP_STATUS.APPROVED) {
         console.log('before accepting')
+
+         
       }
 
       if ( data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
