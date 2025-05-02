@@ -807,7 +807,7 @@ io.on("connection", (socket) => {
         await trip_details.save(); // Save the updated trip details
       }
       
-      console.log('company cancel trip-------' , trip)
+      
       const userData = await user_model.findOne({ _id: trip_details?.created_by_company_id, });
       const company_data = await agency_model.findOne({ user_id: trip_details?.created_by_company_id, });
 

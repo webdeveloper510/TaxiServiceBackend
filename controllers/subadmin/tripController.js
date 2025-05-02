@@ -411,8 +411,9 @@ exports.edit_trip = async (req, res) => {
         message: "Unable to update the trip",
       });
     } else {
-
-      if (data?.trip_status == constant.TRIP_STATUS.APPROVED) {
+        
+      // when company send the trip to the driver for accepting and company want to cancel in between before acceping the driver
+      if (data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data?.trip_status == constant.TRIP_STATUS.APPROVED) {
         console.log('before accepting')
       }
 
