@@ -58,6 +58,11 @@ const trip = new Schema({
         type:Date,
         default:Date.now()
     },
+    navigation_mode:{
+        type:String,
+        enum:['google_maps','direct', ''],
+        default: ''
+    },
     drop_time:{
         type:Date,
         default:Date.now()
