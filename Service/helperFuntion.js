@@ -1667,7 +1667,7 @@ exports.notifyInsufficientBalance = async () => {
     
   } catch (error) {
 
-    console.error("Error checkPayouts status:",  error.message);
+    console.error("Error notifyInsufficientBalance:",  error.message);
     throw error;
   }
 }
@@ -1710,7 +1710,7 @@ exports.sendAccountDeactivationEmail = async (userInfo) => {
     
   } catch (error) {
 
-    console.error("Error checkPayouts status:",  error.message);
+    console.error("Error sending account deactivation email:",  error.message);
     throw error;
   }
 }
@@ -1756,7 +1756,7 @@ exports.sendAccountReactivationEmail = async (userInfo) => {
     
   } catch (error) {
 
-    console.error("Error checkPayouts status:",  error.message);
+    console.error("Error sending account reactivation:",  error.message);
     throw error;
   }
 }
@@ -1904,7 +1904,7 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
     return "done"
   } catch (error) {
 
-    console.error("Error checkPayouts status:",  error.message);
+    console.error("Error transferTripToCompanyAccount:",  error.message);
     throw error;
   }
 }
@@ -2048,7 +2048,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
 
   } catch (error) {
 
-    console.error("Error checkPayouts status:",  error.message);
+    console.error("Error sendBookingConfirmationEmail:",  error.message);
     throw error;
   }
 }
@@ -2195,7 +2195,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
 
   } catch (error) {
 
-    console.error("Error checkPayouts status:",  error.message);
+    console.error("Error sendBookingCancelledEmail:",  error.message);
     throw error;
   }
 }

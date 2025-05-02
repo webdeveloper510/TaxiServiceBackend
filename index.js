@@ -290,7 +290,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           
           const sig = req.headers['stripe-signature'];
           let event;
-          console.log('endpointSecret--------' , endpointSecret);
+         
 
 
           try {
@@ -318,6 +318,8 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           const tripDetails = await trip_model.findOne({ company_trip_payout_id: event?.data?.object?.id });
           if (tripDetails) {
 
+            console.log('payout tripDetails------', tripDetails)
+
             const userDetails = await user_model.findOne({ _id: tripDetails?.created_by_company_id });
             if (event.type === 'payout.paid' ) {
               const payout = event.data.object;
@@ -338,7 +340,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
                                                             { new: true } // Return the updated document
                                                           );
 
-             
+              console.log('payout done------')
               notifyPayoutPaid(userDetails , tripDetails , payout);
                                                           
             } else if (event.type === 'payout.failed') {
@@ -355,6 +357,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
                                                           );
 
               notifyPayoutFailure(userDetails , tripDetails , payout);
+              console.log('payout failed------')
             }
           } else {
             console.log('trip not found based on this payout-------up' , event)
@@ -804,6 +807,7 @@ io.on("connection", (socket) => {
         await trip_details.save(); // Save the updated trip details
       }
       
+      console.log('company cancel trip-------' , trip)
       const userData = await user_model.findOne({ _id: trip_details?.created_by_company_id, });
       const company_data = await agency_model.findOne({ user_id: trip_details?.created_by_company_id, });
 
@@ -812,9 +816,9 @@ io.on("connection", (socket) => {
       if (driverById?.socketId) {
 
         io.to(driverById.socketId).emit("retrivedTrip", {
-                                                                message: `Your trip has been retrived by company, ${company_data?.company_name}`,
-                                                                trip: trip,
-                                                              }
+                                                          message: `Your trip has been retrived by company, ${company_data?.company_name}`,
+                                                          trip: trip,
+                                                        }
                                               );
 
         io.to(driverById?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
@@ -915,7 +919,10 @@ io.on("connection", (socket) => {
         }
       }
 
-      sendBookingCancelledEmail(trip_details)
+      if (trip_details?.customerDetails?.email) {
+        sendBookingCancelledEmail(trip_details);
+      }
+      
     } catch (err) {
       console.log("🚀 ~ socket.on companyCancelledTrip ~ err:", err);
     }
@@ -1384,7 +1391,10 @@ io.on("connection", (socket) => {
           }
         }
 
-        sendBookingConfirmationEmail(trip)
+        if (trip?.customerDetails?.email) {
+          sendBookingConfirmationEmail(trip)
+        }
+        
 
         io.to(socket.id).emit("driverNotification", {
                                                       code: 200,
@@ -1696,7 +1706,7 @@ console.log('tripList---------' , tripList)
         // const payoutList = await checkPayouts(connectedAccountId);
         
         if (tripList.length > 0) {
-
+          console.log('paybale trip------')
           for (let  trip of tripList) {
 
             let amount = trip.companyPaymentAmount;
@@ -1731,7 +1741,7 @@ console.log('tripList---------' , tripList)
                                                   { new: true } // Return the updated document
                                                 );
 
-              console.log('trip completed------' ,tripId)
+              console.log('constant.PAYOUT_TANSFER_STATUS.PENDING------', constant.PAYOUT_TANSFER_STATUS.PENDING ,tripId)
             } else {
 
               console.log(`You dont have enough payment in your account to transfer the payment to the compmies.`)
