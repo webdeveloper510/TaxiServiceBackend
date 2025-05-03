@@ -523,6 +523,7 @@ exports.add_trip_link = async (req, res) => {
     data.driverPaymentAmount = data?.price ? data.price : 0;
     data.companyPaymentAmount = 0;
     data.superAdminPaymentAmount = 0;
+    console.log('data------' , data);
 
     let add_trip = await TRIP(data).save();
     if (!add_trip) {
@@ -3375,6 +3376,44 @@ exports.access_get_trip_detail = async (req, res) => {
     });
   }
 };
+
+exports.getDistanceAndTime = async (req, res) => {
+  try {
+
+    let data = req.body;
+    console.log('getDistanceAndTime--' , data?.locationFrom , data?.locationTo)
+    const locationFrom = data?.locationFrom || '';
+    const locationTo = data?.locationTo || '';
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${locationFrom}&destinations=${locationTo}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
+
+    const response = await axios.get(url);
+    console.log('getDistanceAndTime--' ,url)
+    const element = response.data.rows[0].elements[0];
+    
+    if (element.status === 'OK') {
+      
+
+      return res.send({
+        code: constant.success_code,
+        distanceText: element.distance.text,       // e.g., "25.4 km"
+        distanceMeters: element.distance.value,    // e.g., 25400
+        durationText: element.duration.text,       // e.g., "32 mins"
+        durationSeconds: element.duration.value
+      });
+    } else {
+      // throw new Error(`Google Maps API error: ${element.status}`);
+      return res.send({
+        code: constant.error_code,
+        message: element.status,
+      });
+    }
+  } catch (err) {
+    return res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
 
 exports.get_counts_dashboard = async (req, res) => {
   try {

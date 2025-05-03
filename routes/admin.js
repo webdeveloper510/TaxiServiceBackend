@@ -163,6 +163,10 @@ router.put("/access_alocate_driver/:id", [verifyToken], tripController.access_al
 router.get("/check_trip_request/:id", tripController.check_trip_request);
 router.get("/get_counts_dashboard",[verifyToken],tripController.get_counts_dashboard);
 
+router.post("/get_distance_and_time_of_trip",tripController.getDistanceAndTime);
+
+
+
 // trip payment
 router.post("/pay_trip_commission/:id",[verifyToken],paymentController.tripCommissionPayment);
 router.post("/failed_trip_commission/:id",[verifyToken],paymentController.failedTripPay);

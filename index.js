@@ -1757,13 +1757,13 @@ const initiateWeeklyCompanyPayouts = async () => {
       console.log(`You dont have enough payment in your account.`)
     }
 
-    console.log({
-        code: 200,
-        message: "weekly-company-payment",
-        // tripList:tripList,
-        balance,
-        tripList
-      });
+    // console.log({
+    //     code: 200,
+    //     message: "weekly-company-payment",
+    //     // tripList:tripList,
+    //     balance,
+    //     tripList
+    //   });
     
   } catch (error) {
     console.error("Error retrieving balance:", error);
