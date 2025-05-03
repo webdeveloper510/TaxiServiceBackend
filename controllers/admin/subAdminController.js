@@ -886,6 +886,7 @@ exports.get_sub_admin_detail = async (req, res) => {
           status: 1,
           logo: 1,
           background_color: 1,
+          color:1,
           stored_password:1,
           totalBalance: 1,
           land: { $arrayElemAt: ["$meta.land", 0] },
