@@ -3384,7 +3384,7 @@ exports.getDistanceAndTime = async (req, res) => {
     console.log('getDistanceAndTime--' , data?.locationFrom , data?.locationTo)
     const locationFrom = data?.locationFrom || '';
     const locationTo = data?.locationTo || '';
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${locationFrom}&destinations=${locationTo}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${locationFrom}&destinations=${locationTo}&mode=driving&departure_time=now&key=${process.env.GOOGLE_MAP_KEY}`;
 
     const response = await axios.get(url);
     console.log('getDistanceAndTime--' ,url)
