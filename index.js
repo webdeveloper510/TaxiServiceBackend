@@ -1693,12 +1693,12 @@ const initiateWeeklyCompanyPayouts = async () => {
   try {
 
    
-    console.log('initiateWeeklyCompanyPayouts-----')
+    // console.log('initiateWeeklyCompanyPayouts-----')
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
     
-console.log('tripList---------' , tripList)
+// console.log('tripList---------' , tripList)
     if (availableBalance > 100) {
        
         // const connectedAccountId = `acct_1QxRoi4CiWWLkHIH`;
@@ -1706,7 +1706,7 @@ console.log('tripList---------' , tripList)
         // const payoutList = await checkPayouts(connectedAccountId);
         
         if (tripList.length > 0) {
-          console.log('paybale trip------')
+          // console.log('paybale trip------')
           for (let  trip of tripList) {
 
             let amount = trip.companyPaymentAmount;
@@ -1716,7 +1716,7 @@ console.log('tripList---------' , tripList)
             let stripBalance = await stripe.balance.retrieve();
             let availableBalance = stripBalance?.available[0]?.amount || 0;
             
-            console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
+            // console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
             if (availableBalance >=  Math.round(amount * 100) ) {
               // amount = 5;
               const transferDedtails = await transferToConnectedAccount(amount, connectedAccountId , tripId);
@@ -1727,7 +1727,7 @@ console.log('tripList---------' , tripList)
                                                               { new: true } // Return the updated document
                                                             );
 
-              console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
+              // console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
               const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
               await trip_model.findOneAndUpdate(
                                                   { _id: trip?._id }, // Find by tripId

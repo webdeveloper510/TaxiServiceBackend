@@ -415,8 +415,8 @@ exports.edit_trip = async (req, res) => {
       // when company send the trip to the driver for accepting and company want to cancel in between before acceping the driver
       if (data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data?.trip_status == constant.TRIP_STATUS.APPROVED) {
         console.log('before accepting')
-
-         
+        let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
+        req.io.to(driver_data.socketId).emit("popUpClose", { message: `Your trip request has been retrived by company`})
       }
 
       if ( data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {

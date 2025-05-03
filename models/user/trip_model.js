@@ -137,6 +137,15 @@ const trip = new Schema({
             },
             address: {
                 type:String,
+            },
+            childSeat: {
+                type:String,
+            },
+            luggage: {
+                type:String,
+            },
+            flightNumber: {
+                type:String,
             }
         }
     },
