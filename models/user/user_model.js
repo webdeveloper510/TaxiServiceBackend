@@ -77,7 +77,11 @@ const user = new Schema(
     },
     background_color: {
       type: String,
-      default: "#fff",
+      default: "#808080",
+    },
+    color: {
+      type: String,
+      default: "#00ffff",
     },
     logo: {
       type: String,
