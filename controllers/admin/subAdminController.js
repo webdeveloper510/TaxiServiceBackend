@@ -995,7 +995,7 @@ exports.edit_sub_admin = async (req, res) => {
         delete data.password;
       }
       
-      if (data?.settings) {
+      if (data?.settings) { // when company booking settings will be saved
        
         data.settings = JSON.parse(data?.settings)
 
