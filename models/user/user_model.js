@@ -79,6 +79,38 @@ const user = new Schema(
       type: String,
       default: "#808080",
     },
+    settings: {
+      
+      color_settings: {
+                        title_color: { type:String, default: "27c9cc", },
+                        text_color: { type:String,  default: "01151a", },
+                        background_color: { type:String, default: "ffffff",},
+                        font_titles: { type:String, default: "ffffff", },
+                      },
+      payment_options: {
+                        cash: { // when customer will pay in cash 
+                          enabled: { type: Boolean, default: false },
+                          fee: { type: Number, default: 0 },
+                          percentage: { type: Number, default: 0 }
+                        },
+                        debit_card: { // when customer will pay through the debit card
+                          enabled: { type: Boolean, default: false },
+                          fee: { type: Number, default: 0 },
+                          percentage: { type: Number, default: 0 }
+                        },
+                        credit_card: { // when customer will pay through the credit card
+                          enabled: { type: Boolean, default: false },
+                          fee: { type: Number, default: 0 },
+                          percentage: { type: Number, default: 0 }
+                        }
+        },
+        show_upload_price_to_hotel: {
+          type: Boolean,
+          default: false
+        },
+       
+      default: {}
+    },
     color: {
       type: String,
       default: "#00ffff",

@@ -121,7 +121,6 @@ exports.login = async (req, res) => {
 
 
     // If user is blocked by admin or super admin
-
     if (userData && userData.role != "SUPER_ADMIN" && (userData?.is_blocked) ) {
 
       if ( userData.role != constants.ROLES.COMPANY) {
@@ -295,9 +294,6 @@ exports.login = async (req, res) => {
 
       check_data = userData;
 
-      
-        
-
       // If user blocked by Super admin or admin
       if (check_data?.is_blocked) {
         return res.send({
@@ -317,8 +313,6 @@ exports.login = async (req, res) => {
                         });
         
       }
-
-      
 
       //  OTP will send during the login for ADMIN AND SUPER_ADMIN
       if ( check_data.role == constant.ROLES.ADMIN || check_data.role == constant.ROLES.SUPER_ADMIN ) {
@@ -384,8 +378,14 @@ exports.login = async (req, res) => {
       if (deviceToken) {
         check_data.deviceToken = deviceToken;
       }
+
+
+
+
+
       await check_data.save();
 
+      // Update device token imn driver profile if compmany has driver account also
       if (check_data.isDriver) {
 
         let updateDriverdata = {deviceToken: deviceToken}
@@ -403,8 +403,6 @@ exports.login = async (req, res) => {
                                         }
                                       )
       }
-      
-
       
       let getData;
       if (check_data.role == constant.ROLES.HOTEL) {
