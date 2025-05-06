@@ -204,4 +204,7 @@ router.get("/get-my-paid-plans",[verifyToken] ,subscriptionController.getMyPaidP
 router.get("/user-onboard-on-stripe/:id" , subscriptionController.userOnboardOnStripe); // user will submit all the details to attach the bank account detail to strripe connected account
 router.get("/get-connected-account-details/:id" , subscriptionController.getConnectedAccountDetails);
 
+
+// SMS buy functionality
+// router.post("/create-ideal-checkout-session",[verifyToken] ,subscriptionController.createIdealCheckoutSession);// IDEAL  functionality
 module.exports = router;

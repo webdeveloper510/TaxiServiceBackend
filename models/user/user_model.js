@@ -82,10 +82,10 @@ const user = new Schema(
     settings: {
       
       color_settings: {
-                        title_color: { type:String, default: "27c9cc", },
-                        text_color: { type:String,  default: "01151a", },
-                        background_color: { type:String, default: "ffffff",},
-                        font_titles: { type:String, default: "ffffff", },
+                        title_color: { type:String, default: "#27c9cc", },
+                        text_color: { type:String,  default: "#01151a", },
+                        background_color: { type:String, default: "#ffffff",},
+                        font_titles: { type:String, default: "#ffffff", },
                       },
       payment_options: {
                         cash: { // when customer will pay in cash 
