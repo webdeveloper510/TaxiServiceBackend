@@ -108,9 +108,20 @@ const user = new Schema(
           type: Boolean,
           default: false
         },
-       
+        sms_options :{
+          ride_request :{ // when ride will create
+            enabled: { type: Boolean, default: false },
+          },
+          activation_request: { // when driver will be on the way for pickup the customer
+            enabled: { type: Boolean, default: false },
+          },
+          changing_pickup_time_request: { // when trip's date and time will be change
+            enabled: { type: Boolean, default: false },
+          },
+        },
       default: {}
     },
+    sms_balance: { type: Number, default: 0 }, // in cents (e.g., 100 = €1.00)
     color: {
       type: String,
       default: "#00ffff",

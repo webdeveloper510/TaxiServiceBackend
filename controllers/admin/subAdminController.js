@@ -1004,6 +1004,10 @@ exports.edit_sub_admin = async (req, res) => {
         option
       );
 
+      if (data?.settings) {
+        data?.settings = JSON.parse(data?.settings)
+      }
+
       // Update his driver info as well like email , phone and password 
       if (checkSubAdmin?.isDriver == true) {
 
