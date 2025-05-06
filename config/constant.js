@@ -93,5 +93,10 @@ module.exports={
         BASIC: "Basic",
         TEST: "test daily",
         SPECIAL: "Special" // no need to take susbcription. admin will allow this plan only for any user
+    },
+    SMS_EVENTS: {
+        TRIP_CREATE: "TRIP_CREATE",
+        DRIVER_ON_THE_WAY: "DRIVER_ON_THE_WAY",
+        CHANGE_PICKUP_DATE_TIME: "CHANGE_PICKUP_DATE_TIME",
     }
 }

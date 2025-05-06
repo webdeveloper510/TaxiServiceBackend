@@ -102,6 +102,11 @@ const user = new Schema(
                           enabled: { type: Boolean, default: false },
                           fee: { type: Number, default: 0 },
                           percentage: { type: Number, default: 0 }
+                        },
+                        on_account: { // when customer will pay through the credit card
+                          enabled: { type: Boolean, default: false },
+                          fee: { type: Number, default: 0 },
+                          percentage: { type: Number, default: 0 }
                         }
         },
         show_upload_price_to_hotel: {
@@ -109,10 +114,10 @@ const user = new Schema(
           default: false
         },
         sms_options :{
-          ride_request :{ // when ride will create
+          trip_ceate_request :{ // when ride will create
             enabled: { type: Boolean, default: false },
           },
-          activation_request: { // when driver will be on the way for pickup the customer
+          driver_on_the_way_request: { // when driver will be on the way for pickup the customer
             enabled: { type: Boolean, default: false },
           },
           changing_pickup_time_request: { // when trip's date and time will be change

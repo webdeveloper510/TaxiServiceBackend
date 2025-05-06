@@ -1,6 +1,5 @@
-// const SmsTransactionSchema = new mongoose.Schema({
-    
-//   });
+const CONSTANT = require("../../config/constant");
+const SMS_EVENTS = Object.values(CONSTANT.SMS_EVENTS)
   const mongoose = require('mongoose')
   const Schema = mongoose.Schema
   
@@ -16,9 +15,8 @@
     phone_number: { type: String, required: true },
     message_type:{
             type:String,
-            // enum: PAYMENT_COLLECT_ENUM,
-            // default: CONSTANT.PAYMENT_COLLECTION_TYPE.PENDING,
-            default:""
+            enum: SMS_EVENTS,
+            default: CONSTANT.SMS_EVENTS.TRIP_CREATE,
     },
     message: { type: String, required: true },
     cost_in_cents: { type: Number, default: 10 }, // 10 cents per SMS
