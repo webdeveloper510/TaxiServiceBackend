@@ -98,5 +98,15 @@ module.exports={
         TRIP_CREATE: "TRIP_CREATE",
         DRIVER_ON_THE_WAY: "DRIVER_ON_THE_WAY",
         CHANGE_PICKUP_DATE_TIME: "CHANGE_PICKUP_DATE_TIME",
-    }
+    },
+    SMS_STATUS: {
+        SENT: "SENT",
+        FAILED: "FAILED",
+    },
+    SMS_RECHARGE_STATUS: {
+        PENDING: "PENDING",
+        SUCCESSFUL: "SUCCESSFUL",
+        FAILED: "FAILED",
+    },
+    CHARGE_FEE_PER_SMS: 15 // in cents
 }
