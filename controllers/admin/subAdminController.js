@@ -995,8 +995,16 @@ exports.edit_sub_admin = async (req, res) => {
         delete data.password;
       }
       
+      if (data?.settings) {
+       
+        data.settings = JSON.parse(data?.settings)
+
+        console.log(";indie" , data.settings)
+      }
 
       let update_data = await USER.findOneAndUpdate(criteria, data, option);
+
+      console.log('update_data---' , update_data)
       let criteria2 = { user_id: update_data._id };
       let update_data_meta = await AGENCY.findOneAndUpdate(
         criteria2,
@@ -1004,9 +1012,7 @@ exports.edit_sub_admin = async (req, res) => {
         option
       );
 
-      if (data?.settings) {
-        data.settings = JSON.parse(data?.settings)
-      }
+      
 
       // Update his driver info as well like email , phone and password 
       if (checkSubAdmin?.isDriver == true) {
