@@ -206,5 +206,5 @@ router.get("/get-connected-account-details/:id" , subscriptionController.getConn
 
 
 // SMS buy functionality
-// router.post("/create-ideal-checkout-session",[verifyToken] ,subscriptionController.createIdealCheckoutSession);// IDEAL  functionality
+router.post("/sms-buy-create-ideal-checkout-session",[verifyToken] ,subscriptionController.smsBuyCreateIdealCheckoutSession);// IDEAL  functionality
 module.exports = router;

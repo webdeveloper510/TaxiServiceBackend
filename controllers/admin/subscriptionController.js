@@ -333,6 +333,51 @@ exports.createIdealCheckoutSession = async (req, res) => {
     }
 }
 
+exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
+
+    try {
+
+    
+        const smsPrice  = req.body.smsPrice;
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['ideal'],
+            mode: 'payment',  //isSubscription ? "subscription" : "payment",
+            success_url: `${process.env.FRONTEND_URL}/sms-payment-success?session_id={CHECKOUT_SESSION_ID}`, // Redirect after payment success
+            cancel_url: `${process.env.FRONTEND_URL}/sms-payment-fail`, // Redirect if the user cancels
+            // customer_email: req.body.email, // Optional
+            
+            line_items: [
+                            {
+                            price_data: {
+                                currency: 'eur', // or 'usd', etc.
+                                unit_amount: Number(smsPrice) * 100, // in cents: €2.00 = 200 cents
+                                product_data: {
+                                name: 'SMS Top-up (100 Credits)',
+                                description: 'Top-up credits for SMS feature'
+                                },
+                            },
+                            quantity: 1,
+                            tax_rates: [process.env.STRIPE_VAT_TAX_ID],
+                            }
+                        ],
+            
+        });
+
+        return res.json({ 
+            code: constant.success_code,
+            url: session.url 
+        });
+    } catch (error) {
+
+        console.error('Error smsBuyCreateIdealCheckoutSession error:', error.message);
+        return  res.send({
+                    code: constant.error_code,
+                    message: error.message,
+                });
+    }
+}
+
 exports.createSubscription = async (req, res) => {
 
     try {
