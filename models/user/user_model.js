@@ -75,10 +75,6 @@ const user = new Schema(
       type: String,
       default: "",
     },
-    background_color: {
-      type: String,
-      default: "#808080",
-    },
     settings: {
       
       color_settings: {
@@ -131,10 +127,7 @@ const user = new Schema(
       default: {}
     },
     sms_balance: { type: Number, default: 0 }, // in cents (e.g., 100 = €1.00)
-    color: {
-      type: String,
-      default: "#00ffff",
-    },
+    
     logo: {
       type: String,
       default:
