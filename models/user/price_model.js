@@ -26,6 +26,10 @@ const prices = new Schema({
         type:String,
         default:'0'
     },
+    visible_to_hotel:{
+        type:Boolean,
+        default:false
+    },
     status:{
         type:Boolean,
         default:true

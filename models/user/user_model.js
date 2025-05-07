@@ -89,7 +89,7 @@ const user = new Schema(
                       },
       payment_options: {
                         cash: { // when customer will pay in cash 
-                          enabled: { type: Boolean, default: false },
+                          enabled: { type: Boolean, default: true },
                           fee: { type: Number, default: 0 },
                           percentage: { type: Number, default: 0 }
                         },
