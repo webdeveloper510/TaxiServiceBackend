@@ -14,10 +14,14 @@ const SMS_RECHARGE_STATUS = Object.values(CONSTANT.SMS_RECHARGE_STATUS)
         type: String, 
         required: true 
     },
+    price: { 
+      type: Number, 
+      required: true 
+  },
     status: { type: String, enum: SMS_RECHARGE_STATUS, default: CONSTANT.SMS_RECHARGE_STATUS.PENDING },
-    transaction_id: { type: String }, // from payment gateway
+    checkoutSessionId: { type: String }, // from payment gateway checkout session
     created_at: { type: Date, default: Date.now }
   
   },{timestamps:true})
   
-  module.exports = mongoose.model('sms_transactions',sms_recharges)
+  module.exports = mongoose.model('smsRecharges',sms_recharges)

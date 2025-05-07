@@ -41,9 +41,10 @@ module.exports={
     },
     PAY_OPTION: {
         CASH: 'Cash',
-        HOTEL_ACCOUNT: 'Hotel Account',
-        CARD: 'Card',
-        ON_ACCOUNT: 'ON ACCOUNT'
+        // HOTEL_ACCOUNT: 'Hotel Account',
+        DEBIT_CARD: 'Debit Card',
+        CREDIT_CARD: 'Credit Card',
+        ON_ACCOUNT: 'On Account'
     },
     ADMIN_SETTINGS: {
         COMMISION: 'commision',
@@ -105,7 +106,7 @@ module.exports={
     },
     SMS_RECHARGE_STATUS: {
         PENDING: "PENDING",
-        SUCCESSFUL: "SUCCESSFUL",
+        PAID: "PAID",
         FAILED: "FAILED",
     },
     CHARGE_FEE_PER_SMS: 15 // in cents

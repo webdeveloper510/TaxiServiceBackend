@@ -3,6 +3,7 @@ const Schema = mongoose.Schema
 const CONSTANT = require("../../config/constant");
 const PAYMENT_COLLECT_ENUM = Object.values(CONSTANT.PAYMENT_COLLECTION_TYPE)
 const PAYOUT_TANSFER_ENUM = Object.values(CONSTANT.PAYOUT_TANSFER_STATUS)
+const PAYMENT_OPTION_ENUM = Object.values(CONSTANT.PAY_OPTION)
 const trip = new Schema({
     driver_name:{
         type:mongoose.Schema.Types.ObjectId,ref:'driver',
@@ -48,7 +49,7 @@ const trip = new Schema({
     },
     pay_option:{
         type:String,
-        enum:['Cash','Hotel Account',"Card", "ON ACCOUNT"]
+        enum:PAYMENT_OPTION_ENUM
     },
     price:{
         type:Number,

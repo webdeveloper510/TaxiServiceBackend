@@ -49,4 +49,4 @@ const SMS_STATUS = Object.values(CONSTANT.SMS_STATUS)
   
   },{timestamps:true})
   
-  module.exports = mongoose.model('sms_transactions',sms_transactions)
+  module.exports = mongoose.model('smsTransactions',sms_transactions)

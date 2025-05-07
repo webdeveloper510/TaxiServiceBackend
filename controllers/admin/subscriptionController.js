@@ -2,6 +2,7 @@ const { default: mongoose } = require("mongoose");
 const { initiateStripePayment, checkPaymentStatus,} = require("../../Service/Stripe");
 const constant = require("../../config/constant");
 const USER_MODEL = require("../../models/user/user_model");
+const SMS_RECHARGE_MODEL = require("../../models/user/sms_recharge_model");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
@@ -364,6 +365,17 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
             
         });
 
+        let rechargeData = {
+            checkoutSessionId: session.id,
+            user_id: req.userId,
+            payment_method: "IDEAL",
+            price: smsPrice,
+            status: constant.SMS_RECHARGE_STATUS.PENDING,
+        }
+
+        const smsRecharge = new SMS_RECHARGE_MODEL(rechargeData);
+        await smsRecharge.save();
+
         return res.json({ 
             code: constant.success_code,
             url: session
@@ -371,6 +383,57 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
     } catch (error) {
 
         console.error('Error smsBuyCreateIdealCheckoutSession error:', error.message);
+        return  res.send({
+                    code: constant.error_code,
+                    message: error.message,
+                });
+    }
+}
+
+exports.smsPaymentValidateSession = async (req, res) => {
+    try{
+
+        const checkoutSessionId = req.body.session_id;
+        const smsRechargeDetail = await SMS_RECHARGE_MODEL.findOne({checkoutSessionId:checkoutSessionId});
+
+        if(!smsRechargeDetail) {
+            return res.json({ 
+                code: constant.error_code,
+                message: `Invalid session id`
+            });
+        }
+
+        const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+        const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
+        const receiptUrl = paymentIntent.charges.data[0].receipt_url;
+        console.log('receiptUrl----------' , receiptUrl)
+        if (session.payment_status == 'paid') {
+
+            let option = { new: true };
+            let updatedData =   {
+                                    status: constant.SMS_RECHARGE_STATUS.PAID,
+                                    
+                                };
+            await SMS_RECHARGE_MODEL.findOneAndUpdate({checkoutSessionId :checkoutSessionId } , updatedData , option);
+            return res.json({ 
+                code: constant.success_code,
+                message: `Your payment has been successfully completed.`,
+                smsRechargeDetail: smsRechargeDetail,
+                session:session
+            });
+        } else {
+            
+            return res.json({ 
+                code: constant.error_code,
+                message: `Your payment was not completed. Please try again.`,
+                
+            });
+        }
+        
+        
+    } catch (error) {
+
+        console.error('Error createPaymentIntent error:', error.message);
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
