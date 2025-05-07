@@ -91,22 +91,26 @@ const user = new Schema(
                         cash: { // when customer will pay in cash 
                           enabled: { type: Boolean, default: true },
                           fee: { type: Number, default: 0 },
-                          percentage: { type: Number, default: 0 }
+                          percentage: { type: Number, default: 0 },
+                          text:"Cash"
                         },
                         debit_card: { // when customer will pay through the debit card
                           enabled: { type: Boolean, default: false },
                           fee: { type: Number, default: 0 },
-                          percentage: { type: Number, default: 0 }
+                          percentage: { type: Number, default: 0 },
+                          text:"Debit Card"
                         },
                         credit_card: { // when customer will pay through the credit card
                           enabled: { type: Boolean, default: false },
                           fee: { type: Number, default: 0 },
-                          percentage: { type: Number, default: 0 }
+                          percentage: { type: Number, default: 0 },
+                          text:"Credit Card"
                         },
                         on_account: { // when customer will pay through the credit card
                           enabled: { type: Boolean, default: false },
                           fee: { type: Number, default: 0 },
-                          percentage: { type: Number, default: 0 }
+                          percentage: { type: Number, default: 0 },
+                          text:"On Account"
                         }
         },
         show_upload_price_to_hotel: {
