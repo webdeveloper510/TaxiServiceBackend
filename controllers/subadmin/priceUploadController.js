@@ -291,6 +291,8 @@ exports.upateUploadedPrice = async (req, res) => {
                 if (data?.amount) updateData.amount = data?.amount;
 
                 if (data?.status) updateData.status = data?.status;
+
+                if (data?.visible_to_hotel) updateData.visible_to_hotel = data?.visible_to_hotel;
                 
                 
                 const isUpdateData = await PRICE_MODEL.updateOne(

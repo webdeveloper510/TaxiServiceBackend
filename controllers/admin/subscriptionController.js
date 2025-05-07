@@ -366,7 +366,7 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
 
         return res.json({ 
             code: constant.success_code,
-            url: session.url 
+            url: session
         });
     } catch (error) {
 
