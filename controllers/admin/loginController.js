@@ -292,6 +292,7 @@ exports.login = async (req, res) => {
               });
     } else {
 
+      
       check_data = userData;
 
       // If user blocked by Super admin or admin
@@ -381,10 +382,16 @@ exports.login = async (req, res) => {
 
 
 
+      // return res.send({
+      //   code: constants.error_code,
+      //   message: "Invalid Credentials",
+      //   check_data
+      // });
 
+      // delete check_data.settings
 
       await check_data.save();
-
+      
       // Update device token imn driver profile if compmany has driver account also
       if (check_data.isDriver) {
 

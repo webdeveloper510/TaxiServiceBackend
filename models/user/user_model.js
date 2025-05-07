@@ -79,53 +79,53 @@ const user = new Schema(
       type: String,
       default: "#808080",
     },
-    settings: {
+    // settings: {
       
-      color_settings: {
-                        title_color: { type:String, default: "#27c9cc", },
-                        text_color: { type:String,  default: "#01151a", },
-                        background_color: { type:String, default: "#ffffff",},
-                        font_titles: { type:String, default: "#ffffff", },
-                      },
-      payment_options: {
-                        cash: { // when customer will pay in cash 
-                          enabled: { type: Boolean, default: false },
-                          fee: { type: Number, default: 0 },
-                          percentage: { type: Number, default: 0 }
-                        },
-                        debit_card: { // when customer will pay through the debit card
-                          enabled: { type: Boolean, default: false },
-                          fee: { type: Number, default: 0 },
-                          percentage: { type: Number, default: 0 }
-                        },
-                        credit_card: { // when customer will pay through the credit card
-                          enabled: { type: Boolean, default: false },
-                          fee: { type: Number, default: 0 },
-                          percentage: { type: Number, default: 0 }
-                        },
-                        on_account: { // when customer will pay through the credit card
-                          enabled: { type: Boolean, default: false },
-                          fee: { type: Number, default: 0 },
-                          percentage: { type: Number, default: 0 }
-                        }
-        },
-        show_upload_price_to_hotel: {
-          type: Boolean,
-          default: false
-        },
-        sms_options :{
-          trip_ceate_request :{ // when ride will create
-            enabled: { type: Boolean, default: false },
-          },
-          driver_on_the_way_request: { // when driver will be on the way for pickup the customer
-            enabled: { type: Boolean, default: false },
-          },
-          changing_pickup_time_request: { // when trip's date and time will be change
-            enabled: { type: Boolean, default: false },
-          },
-        },
-      default: {}
-    },
+    //   color_settings: {
+    //                     title_color: { type:String, default: "#27c9cc", },
+    //                     text_color: { type:String,  default: "#01151a", },
+    //                     background_color: { type:String, default: "#ffffff",},
+    //                     font_titles: { type:String, default: "#ffffff", },
+    //                   },
+    //   payment_options: {
+    //                     cash: { // when customer will pay in cash 
+    //                       enabled: { type: Boolean, default: false },
+    //                       fee: { type: Number, default: 0 },
+    //                       percentage: { type: Number, default: 0 }
+    //                     },
+    //                     debit_card: { // when customer will pay through the debit card
+    //                       enabled: { type: Boolean, default: false },
+    //                       fee: { type: Number, default: 0 },
+    //                       percentage: { type: Number, default: 0 }
+    //                     },
+    //                     credit_card: { // when customer will pay through the credit card
+    //                       enabled: { type: Boolean, default: false },
+    //                       fee: { type: Number, default: 0 },
+    //                       percentage: { type: Number, default: 0 }
+    //                     },
+    //                     on_account: { // when customer will pay through the credit card
+    //                       enabled: { type: Boolean, default: false },
+    //                       fee: { type: Number, default: 0 },
+    //                       percentage: { type: Number, default: 0 }
+    //                     }
+    //     },
+    //     show_upload_price_to_hotel: {
+    //       type: Boolean,
+    //       default: false
+    //     },
+    //     sms_options :{
+    //       trip_ceate_request :{ // when ride will create
+    //         enabled: { type: Boolean, default: false },
+    //       },
+    //       driver_on_the_way_request: { // when driver will be on the way for pickup the customer
+    //         enabled: { type: Boolean, default: false },
+    //       },
+    //       changing_pickup_time_request: { // when trip's date and time will be change
+    //         enabled: { type: Boolean, default: false },
+    //       },
+    //     },
+    //   default: {}
+    // },
     sms_balance: { type: Number, default: 0 }, // in cents (e.g., 100 = €1.00)
     color: {
       type: String,
