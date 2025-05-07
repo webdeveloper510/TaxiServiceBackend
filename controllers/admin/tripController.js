@@ -2524,7 +2524,7 @@ exports.alocate_driver = async (req, res) => {
                                   partnerAccount?.deviceToken,
                                   `Trip accepted by the driver ( ${driver_name}) and trip ID is ${update_trip.trip_id}`,
                                   `Trip Accepted (Company access:- ${companyAgencyData.company_name})`,
-                                  driverBySocketId
+                                  null
                                 );
               }
             } else if (partnerAccount.isCompany){
@@ -2539,7 +2539,7 @@ exports.alocate_driver = async (req, res) => {
                                       companyData?.deviceToken,
                                       `Trip accepted by driver ${driver_full_info.first_name + " " + driver_full_info.last_name} and trip ID is ${update_trip.trip_id}`,
                                       `Trip Accepted`,
-                                      driverBySocketId
+                                      null
                                     );
                 }
               }
@@ -2974,7 +2974,7 @@ exports.access_alocate_driver = async (req, res) => {
                                     partnerAccount?.deviceToken,
                                     `Trip accepted by the driver ( ${driver_name}) and trip ID is ${update_trip.trip_id}`,
                                     `Trip Accepted (Company access:- ${companyAgencyData.company_name})`,
-                                    driverBySocketId
+                                    null
                                   );
                 }
               } else if (partnerAccount.isCompany){
@@ -2989,7 +2989,7 @@ exports.access_alocate_driver = async (req, res) => {
                                         companyData?.deviceToken,
                                         `Trip accepted by driver ${driver_full_info.first_name + " " + driver_full_info.last_name} and trip ID is ${update_trip.trip_id}`,
                                         `Trip Accepted`,
-                                        driverBySocketId
+                                        null
                                       );
                   }
                 }
