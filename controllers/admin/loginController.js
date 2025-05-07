@@ -311,7 +311,6 @@ exports.login = async (req, res) => {
                           code: constants.error_code,
                           message: "Invalid Credentials",
                         });
-        
       }
 
       //  OTP will send during the login for ADMIN AND SUPER_ADMIN
@@ -368,22 +367,23 @@ exports.login = async (req, res) => {
                               { expiresIn: "365d" }
                             );
 
+      let updateData = {}
       if (mobile) {
-        check_data.jwtTokenMobile = jwtToken;
-        check_data.lastUsedTokenMobile = new Date();
+        updateData.jwtTokenMobile = jwtToken;
+        updateData.lastUsedTokenMobile = new Date();
       } else {
-        check_data.jwtToken = jwtToken;
-        check_data.lastUsedToken = new Date();
+        updateData.jwtToken = jwtToken;
+        updateData.lastUsedToken = new Date();
       }
       if (deviceToken) {
-        check_data.deviceToken = deviceToken;
+        updateData.deviceToken = deviceToken;
       }
 
 
 
 
-
-      await check_data.save();
+      // await check_data.save();
+      await USER.findByIdAndUpdate( check_data._id, { $set: updateData }, { new: true });
 
       // Update device token imn driver profile if compmany has driver account also
       if (check_data.isDriver) {
