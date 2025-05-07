@@ -340,14 +340,14 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
 
     
         const smsPrice  = req.body.smsPrice;
-
+        const customerId  = req.user.stripeCustomerId;
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['ideal'],
             mode: 'payment',  //isSubscription ? "subscription" : "payment",
             success_url: `${process.env.FRONTEND_URL}/sms-payment-success?session_id={CHECKOUT_SESSION_ID}`, // Redirect after payment success
             cancel_url: `${process.env.FRONTEND_URL}/sms-payment-fail`, // Redirect if the user cancels
             // customer_email: req.body.email, // Optional
-            
+            customer: customerId,
             line_items: [
                             {
                             price_data: {
@@ -362,6 +362,9 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
                             tax_rates: [process.env.STRIPE_VAT_TAX_ID],
                             }
                         ],
+            invoice_creation: {
+                enabled: true, // Enable invoice creation
+            },
             
         });
 
@@ -369,7 +372,7 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
             checkoutSessionId: session.id,
             user_id: req.userId,
             payment_method: "IDEAL",
-            price: smsPrice,
+            price: smsPrice * 100,
             status: constant.SMS_RECHARGE_STATUS.PENDING,
         }
 
@@ -378,7 +381,7 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
 
         return res.json({ 
             code: constant.success_code,
-            url: session
+            url: session.url
         });
     } catch (error) {
 
@@ -403,30 +406,40 @@ exports.smsPaymentValidateSession = async (req, res) => {
             });
         }
 
-        const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
-        const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent);
-        const receiptUrl = paymentIntent.charges.data[0].receipt_url;
-        console.log('receiptUrl----------' , receiptUrl)
+       
+        if (smsRechargeDetail.status == constant.SMS_RECHARGE_STATUS.PAID) {
+            return res.json({ 
+                code: constant.error_code,
+                message: `This session already paid`
+            });
+        }
+
+        const session = await stripe.checkout.sessions.retrieve(checkoutSessionId); // getting session details
+        const invoice = await stripe.invoices.retrieve(session.invoice); // get invoice details  based on session
+        
         if (session.payment_status == 'paid') {
 
             let option = { new: true };
             let updatedData =   {
                                     status: constant.SMS_RECHARGE_STATUS.PAID,
-                                    
+                                    hosted_invoice_url:invoice.hosted_invoice_url,
+                                    invoice_pdf:invoice.invoice_pdf
                                 };
             await SMS_RECHARGE_MODEL.findOneAndUpdate({checkoutSessionId :checkoutSessionId } , updatedData , option);
+
+            let userDetails = await USER_MODEL.findById(smsRechargeDetail.user_id);
+            
+            userDetails.sms_balance = (userDetails?.sms_balance ? userDetails?.sms_balance : 0) + smsRechargeDetail.price;
+            await USER_MODEL.findOneAndUpdate({_id: userDetails._id}, {$set: {sms_balance: userDetails.sms_balance}} , { new: true })
             return res.json({ 
                 code: constant.success_code,
                 message: `Your payment has been successfully completed.`,
-                smsRechargeDetail: smsRechargeDetail,
-                session:session
             });
         } else {
             
             return res.json({ 
                 code: constant.error_code,
-                message: `Your payment was not completed. Please try again.`,
-                
+                message: `Your payment was not completed. Please try again.`
             });
         }
         
@@ -434,6 +447,38 @@ exports.smsPaymentValidateSession = async (req, res) => {
     } catch (error) {
 
         console.error('Error createPaymentIntent error:', error.message);
+        return  res.send({
+                    code: constant.error_code,
+                    message: error.message,
+                });
+    }
+}
+
+exports.smsRecharges = async (req, res) => {
+
+
+    try{
+
+        const smsRechargeList = await SMS_RECHARGE_MODEL.findOne({user_id:req.userId});
+
+
+        if (smsRechargeList) {
+
+            return  res.send({
+                code: constant.success_code,
+                message: smsRechargeList,
+            });
+        } else {
+
+            return  res.send({
+                code: constant.error_code,
+                message: `Your top-up history will appear here once you make a payment.`,
+            });
+        }
+
+    } catch (error) {
+
+        console.error('Error smsBuyCreateIdealCheckoutSession error:', error.message);
         return  res.send({
                     code: constant.error_code,
                     message: error.message,

@@ -14,10 +14,18 @@ const SMS_RECHARGE_STATUS = Object.values(CONSTANT.SMS_RECHARGE_STATUS)
         type: String, 
         required: true 
     },
-    price: { 
+    price: { // in cents
       type: Number, 
       required: true 
-  },
+    },
+    hosted_invoice_url: { 
+      type: String, 
+      default: ""
+    },
+    invoice_pdf: { 
+      type: String,
+      default: ""
+    },
     status: { type: String, enum: SMS_RECHARGE_STATUS, default: CONSTANT.SMS_RECHARGE_STATUS.PENDING },
     checkoutSessionId: { type: String }, // from payment gateway checkout session
     created_at: { type: Date, default: Date.now }

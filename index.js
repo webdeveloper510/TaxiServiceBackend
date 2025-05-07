@@ -1708,8 +1708,12 @@ const initiateWeeklyCompanyPayouts = async () => {
         if (tripList.length > 0) {
           // console.log('paybale trip------')
           for (let  trip of tripList) {
-
+            
             let amount = trip.companyPaymentAmount;
+
+            if (amount < 1) { // atleast one euro will  be to send to the bank
+              continue
+            }
             let connectedAccountId = trip?.companyDetails?.connectedAccountId;
             let tripId = trip?.trip_id;
 
