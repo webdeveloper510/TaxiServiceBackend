@@ -2,6 +2,7 @@ require("dotenv").config();
 const AGENCY = require("../../models/user/agency_model");
 const DRIVER = require("../../models/user/driver_model");
 const USER = require("../../models/user/user_model");
+const SMS_TRANSACTION = require("../../models/user/sms_transaction_model");
 const VEHICLETYPE = require("../../models/admin/vehicle_type");
 const { getNextSequenceValue } = require("../../models/user/trip_counter_model");
 var FARES = require("../../models/user/fare_model");
@@ -22,7 +23,7 @@ const {
         dateFilter , 
         canDriverOperate , 
         willCompanyPayCommissionOnTrip , 
-        sendSms
+        sendTripUpdateToCustomerViaSMS
       } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
@@ -32,6 +33,7 @@ const driver_model = require("../../models/user/driver_model");
 const nodemailer = require("nodemailer");
 const emailConstant = require("../../config/emailConstant");
 const twilio = require("twilio");
+const { Sms } = require("twilio/lib/twiml/VoiceResponse");
 
 const tripIsBooked = async (tripId, driver_info, io) => {
 
@@ -260,7 +262,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
 exports.add_trip = async (req, res) => {
   try {
     let data = req.body;
- 
+
     data.created_by = data.created_by ? data.created_by : req.userId;
     // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
     data.trip_id    = await getNextSequenceValue();
@@ -361,7 +363,11 @@ exports.add_trip = async (req, res) => {
       partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
 
       if (data?.created_by_company_id) {
-        
+        const companyDetail = await user_model.findById(data?.created_by_company_id);
+
+        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
+          sendTripUpdateToCustomerViaSMS(data , constant.SMS_EVENTS.TRIP_CREATE);
+        }
       }
 
       return res.send({
@@ -496,6 +502,15 @@ exports.access_add_trip = async (req, res) => {
        // refresh trip functionality for the drivers who have account access as partner
       
        partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data", req.io);
+
+       if (data?.created_by_company_id) {
+        const companyDetail = await user_model.findById(data?.created_by_company_id);
+
+        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
+          sendTripUpdateToCustomerViaSMS(data , constant.SMS_EVENTS.TRIP_CREATE);
+        }
+      }
+      
       res.send({
         code: constant.success_code,
         message: "Saved Successfully",

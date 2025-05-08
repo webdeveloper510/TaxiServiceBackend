@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user/user_model");
 const driver_model = require("../models/user/driver_model");
 const user_model = require("../models/user/user_model");
+const SMS_TRANSACTION = require("../models/user/sms_transaction_model");
 const AGENCY_MODEL = require("../models/user/agency_model.js");
 const TRIP_MODEL = require("../models/user/trip_model.js");
 const SUBSCRIPTION_MODEL = require("../models/user/subscription_model");
@@ -247,13 +248,19 @@ exports.sendPayout = async (amount, connectedAccountId) => {
 
 exports.sendSms = async (data) => {
   try {
+    console.log('data-------' , data)
     let payload = {
                     body: data.message,
                     to: data.to,
                     from: "+3197010204679",
                   };
     // const message = await client.messages.create(payload);
-  } catch (error) {}
+    return true
+    console.log('message------' , message)
+    return message
+  } catch (error) {
+    console.log('error-------' , error)
+  }
 };
 
 exports.userDetailsByToken = async (token) => {
@@ -2196,6 +2203,142 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
   } catch (error) {
 
     console.error("Error sendBookingCancelledEmail:",  error.message);
+    throw error;
+  }
+}
+
+exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
+  try {
+
+    const companyDetail = await user_model.findById(tripDetail?.created_by_company_id)
+    
+    if (companyDetail?.sms_balance > process.env.SMS_CHARGE) { // check if compnay has enough balance to send an sms
+
+      const companyAgencyDetail = await AGENCY_MODEL.findOne({user_id: tripDetail?.created_by_company_id});
+      const id = tripDetail?._id;
+      const companyId = tripDetail?.created_by_company_id;
+      const message = `Thank you for your reservation at ${companyAgencyDetail?.company_name}. Visit ${process.env.BASEURL}/booking-details/${id}/${companyId}`;
+      const phone = companyDetail?.phone;
+      const isSendSms    = await this.sendSms({to: phone , message:message});
+
+
+      const smsTransactionData = {
+        user_id: tripDetail?.created_by_company_id,
+        trip_id: id,
+        trip_no: tripDetail.trip_id,
+        phone: phone,
+        message_type: smsEventType,
+        description: tripDetail?.trip_from?.address,
+        cost_in_cents: process.env.SMS_CHARGE,
+        status: isSendSms ? constant.SMS_STATUS.FAILED : constant.SMS_STATUS.SENT
+      }
+      const smsTransaction = await new SMS_TRANSACTION(smsTransactionData);
+      await smsTransaction.save();
+
+      if (isSendSms) {
+
+        companyDetail.sms_balance = companyDetail?.sms_balance - process.env.SMS_CHARGE; // cut the sms money from company account
+        await user_model.findOneAndUpdate({_id: companyDetail?._id} , {$set: {sms_balance: companyDetail?.sms_balance}}, { new: true })
+       
+        if (companyDetail.sms_balance < process.env.MINIMUM_SMS_BALANCE_ALERT) { // send an alert email when company sms balance will less than minimum balance
+          this.notifyLowSmsBalance(tripDetail)
+        }
+      }
+    }
+  } catch (error) {
+
+    console.error("Error sendTripUpdateToCustomerViaSMS:",  error.message);
+    throw error;
+  }
+}
+
+exports.notifyLowSmsBalance = async (userDetails) => {
+  try {
+
+    const companyDetails = await user_model.findOne({ _id: userDetails?.created_by_company_id });
+    const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: userDetails?.created_by_company_id });
+    let email = companyDetails?.email;
+    
+    const subject = `Low SMS Balance Alert – Action Required`;
+
+
+    const bodyHtml =  `
+                       <style>
+                        body {
+                          font-family: Arial, sans-serif;
+                          color: #333;
+                          padding: 20px;
+                        }
+                        .container {
+                          max-width: 600px;
+                          margin: auto;
+                          border: 1px solid #ddd;
+                          padding: 20px;
+                          border-radius: 8px;
+                        }
+                        h2 {
+                          color: #007BFF;
+                        }
+                        table {
+                          width: 100%;
+                          margin-top: 20px;
+                          border-collapse: collapse;
+                        }
+                        td {
+                          padding: 8px 0;
+                        }
+                        .footer {
+                          margin-top: 30px;
+                          font-size: 14px;
+                          color: #555;
+                        }
+                      </style>
+                      <body>
+                        <div class="container">
+                          <p class="header">⚠️ Low SMS Balance Alert – Action Required</p>
+                          
+                          <p>Dear ${companyAgencyDetails?.company_name},</p>
+
+                          <p>
+                            We wanted to inform you that your current SMS balance has dropped below 
+                            <strong>€${process.env.MINIMUM_SMS_BALANCE_ALERT / 100}</strong>. Once your balance reaches <strong>€0</strong>, your SMS service 
+                            will be <strong>automatically paused</strong>, and your customers will 
+                            <strong>no longer receive SMS notifications</strong>.
+                          </p>
+
+                          <p>
+                            This includes critical messages such as OTPs, booking confirmations, and service updates.
+                            To avoid any disruption, please top up your balance as soon as possible.
+                          </p>
+
+                          <p>If you have any questions or need help, feel free to contact our support team.</p>
+
+                          <p>Best regards,<br/>
+                          <strong>Idispatch Mobility</strong><br/>
+                          <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a></p>
+
+                          <div class="footer">
+                            This is an automated message. Please do not reply directly to this email.
+                          </div>
+                        </div>
+                      </body>
+
+
+                    `;
+    let template = ` ${bodyHtml}`
+  
+    var transporter = nodemailer.createTransport(emailConstant.credentials);
+    var mailOptions = {
+                        from: emailConstant.from_email,
+                        to: email,
+                        subject: subject,
+                        html: template
+                      };
+    let sendEmail = await transporter.sendMail(mailOptions);
+    return sendEmail
+  } catch (error) {
+
+    console.error("Error notifyLowSmsBalance:",  error.message);
     throw error;
   }
 }

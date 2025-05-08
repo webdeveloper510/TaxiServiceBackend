@@ -20,7 +20,7 @@ const SMS_STATUS = Object.values(CONSTANT.SMS_STATUS)
         type: String, 
         required: true 
     },
-    phone_number: { 
+    phone: { 
         type: String, 
         required: true 
     },
@@ -29,7 +29,7 @@ const SMS_STATUS = Object.values(CONSTANT.SMS_STATUS)
             enum: SMS_EVENTS,
             default: CONSTANT.SMS_EVENTS.TRIP_CREATE,
     },
-    message: { 
+    description: { 
         type: String, 
         required: true
     },
