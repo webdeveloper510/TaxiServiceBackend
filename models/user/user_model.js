@@ -113,9 +113,11 @@ const user = new Schema(
           type: Boolean,
           default: false
         },
-        child_seat_price: { // euros
-          type: Number,
-          default: 0
+        child_seat_price: { // when customer will pay in cash 
+          enabled: { type: Boolean, default: true },
+          fee: { type: Number, default: 0 },
+          percentage: { type: Number, default: 0 },
+          text:{ type: String, default: "Child Seat" }
         },
         sms_options :{
           trip_ceate_request :{ // when ride will create
