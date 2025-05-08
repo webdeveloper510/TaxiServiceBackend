@@ -116,7 +116,6 @@ const user = new Schema(
         child_seat_price: { // when customer will pay in cash 
           enabled: { type: Boolean, default: true },
           fee: { type: Number, default: 0 },
-          percentage: { type: Number, default: 0 },
           text:{ type: String, default: "Child Seat" }
         },
         sms_options :{
