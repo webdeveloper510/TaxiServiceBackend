@@ -459,15 +459,30 @@ exports.smsRecharges = async (req, res) => {
 
     try{
 
-        const smsRechargeList = await SMS_RECHARGE_MODEL.find({user_id:req.userId , status: {$ne: constant.SMS_RECHARGE_STATUS.PENDING}});
+        const page = parseInt(req.query.page) || 1; // default to page 1
+        const limit = parseInt(req.query.limit) || 10; // default to 10 items per page
+        const skip = (page - 1) * limit;
+        const smsRechargeList = await SMS_RECHARGE_MODEL.find(
+                                                                {
+                                                                    user_id:req.userId , 
+                                                                    status: {$ne: constant.SMS_RECHARGE_STATUS.PENDING}
+                                                                }
+                                                            ).skip(skip)
+                                                            .limit(limit)
+                                                            .sort({ createdAt: -1 });;
 
-
+        const totalCount = await SMS_RECHARGE_MODEL.countDocuments({
+                                                                user_id: req.userId,
+                                                                status: { $ne: constant.SMS_RECHARGE_STATUS.PENDING }
+                                                            });
         if (smsRechargeList) {
 
             return  res.send({
                 code: constant.success_code,
                 smsBalance: req.user.sms_balance,
                 message: smsRechargeList,
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
             });
         } else {
 
