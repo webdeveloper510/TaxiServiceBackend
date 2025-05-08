@@ -459,13 +459,14 @@ exports.smsRecharges = async (req, res) => {
 
     try{
 
-        const smsRechargeList = await SMS_RECHARGE_MODEL.findOne({user_id:req.userId});
+        const smsRechargeList = await SMS_RECHARGE_MODEL.find({user_id:req.userId , status: {$ne: constant.SMS_RECHARGE_STATUS.PENDING}});
 
 
         if (smsRechargeList) {
 
             return  res.send({
                 code: constant.success_code,
+                smsBalance: req.user.sms_balance,
                 message: smsRechargeList,
             });
         } else {

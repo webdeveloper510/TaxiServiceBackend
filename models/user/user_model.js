@@ -113,6 +113,10 @@ const user = new Schema(
           type: Boolean,
           default: false
         },
+        child_seat_price: { // euros
+          type: Number,
+          default: 0
+        },
         sms_options :{
           trip_ceate_request :{ // when ride will create
             enabled: { type: Boolean, default: false },
