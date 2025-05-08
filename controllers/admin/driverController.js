@@ -2361,16 +2361,20 @@ exports.switchToCompany = async (req, res) => {
         process.env.JWTSECRET,
         { expiresIn: "365d" }
       );
+
+      let updateData = {}
       const result = companyData.toObject();
       if (req.isMobile) {
-        companyData.jwtTokenMobile = jwtToken;
-        companyData.lastUsedTokenMobile = new Date();
+        updateData.jwtTokenMobile = jwtToken;
+        updateData.lastUsedTokenMobile = new Date();
       } else {
-        companyData.jwtToken = jwtToken;
-        companyData.lastUsedToken = new Date();
+        updateData.jwtToken = jwtToken;
+        updateData.lastUsedToken = new Date();
       }
 
-      await companyData.save();
+      await user_model.findByIdAndUpdate( {_id: companyData._id}, { $set: updateData }, { new: true });
+      // await companyData.save();
+      
 
       // When driver switch account from partner account to his compnay account
       driverData.currently_active_company = null;
