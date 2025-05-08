@@ -462,19 +462,25 @@ exports.smsRecharges = async (req, res) => {
         const page = parseInt(req.query.page) || 1; // default to page 1
         const limit = parseInt(req.query.limit) || 10; // default to 10 items per page
         const skip = (page - 1) * limit;
-        const smsRechargeList = await SMS_RECHARGE_MODEL.find(
-                                                                {
-                                                                    user_id:req.userId , 
-                                                                    status: {$ne: constant.SMS_RECHARGE_STATUS.PENDING}
-                                                                }
-                                                            ).skip(skip)
-                                                            .limit(limit)
-                                                            .sort({ createdAt: -1 });;
 
-        const totalCount = await SMS_RECHARGE_MODEL.countDocuments({
-                                                                user_id: req.userId,
-                                                                status: { $ne: constant.SMS_RECHARGE_STATUS.PENDING }
-                                                            });
+        const date = req.query.date ? new Date(req.query.date) : null;
+
+        let dateFilter = {};
+        if (date) {
+            const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+            const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+            dateFilter.created_at = { $gte: startOfDay, $lte: endOfDay };
+        }
+
+        const filter = {
+            user_id: req.userId,
+            status: { $ne: constant.SMS_RECHARGE_STATUS.PENDING },
+            ...dateFilter
+        };
+
+        const smsRechargeList = await SMS_RECHARGE_MODEL.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 });
+
+        const totalCount = await SMS_RECHARGE_MODEL.countDocuments(filter);
         if (smsRechargeList) {
 
             return  res.send({

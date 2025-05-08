@@ -16,7 +16,14 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const moment = require("moment");
 const { sendNotification } = require("../../Service/helperFuntion");
-const { isDriverHasCompanyAccess , getCompanyActivePaidPlans , dateFilter , canDriverOperate , willCompanyPayCommissionOnTrip} = require("../../Service/helperFuntion");
+const { 
+        isDriverHasCompanyAccess , 
+        getCompanyActivePaidPlans , 
+        dateFilter , 
+        canDriverOperate , 
+        willCompanyPayCommissionOnTrip , 
+        sendSms
+      } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
@@ -352,6 +359,11 @@ exports.add_trip = async (req, res) => {
       // refresh trip functionality for the drivers who have account access as partner
 
       partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
+
+      if (data?.created_by_company_id) {
+        
+      }
+
       return res.send({
                         code: constant.success_code,
                         message: "Saved Successfully",
