@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
-const {partnerAccountRefreshTrip , noShowTrip , willCompanyPayCommissionOnTrip , dateFilter} = require("../../Service/helperFuntion");
+const {partnerAccountRefreshTrip , noShowTrip , willCompanyPayCommissionOnTrip , dateFilter , sendBookingUpdateDateTimeEmail , sendTripUpdateToCustomerViaSMS} = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 
@@ -411,8 +411,30 @@ exports.edit_trip = async (req, res) => {
         message: "Unable to update the trip",
       });
     } else {
+
+      // When Date and time will be updated then customer will be notify
+      if (new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
         
-      // when company send the trip to the driver for accepting and company want to cancel in between before acceping the driver
+        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
+        const companyDetail = await USER.findById(data?.created_by_company_id);
+        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for update date time trip
+          
+          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
+        }
+      }
+
+      // When driver will go to for pick the customer (On the way) then customer will be notify
+      if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
+
+        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
+        const companyDetail = await USER.findById(data?.created_by_company_id);
+        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request) { // check if company turned on sms feature for driver on the route
+          
+          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
+        }
+      }
+        
+      // when company send the trip to the driver for accepting and company want to cancel in between before accepying the driver
       if (data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data?.trip_status == constant.TRIP_STATUS.APPROVED) {
         console.log('before accepting')
         let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
@@ -429,29 +451,14 @@ exports.edit_trip = async (req, res) => {
           let driver_data_created_by = await USER.findOne({ _id: driver_data.created_by,  });
           device_token = driver_data_created_by.deviceToken;
         }
-
-        //  device_token = "evnYTVy9QMm9Al231AlxEp:APA91bHG7ewABk-KVBrbXOG3LabwTe4NKdeuPIEa6VuWqnmUwirp8-aKgCfzI2ibPK5kxxVLS-qqE-hfQf-iVhqrhis5fKjurRdkzqLS4S6KEwZRkZ_ZnirAfEbLp-gGi8mSPHW7jvOY";
-
-        try {
-          // const response = await sendNotification(
-          //   device_token,
-          //   `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
-          //   `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
-          //   trip_data
-          // );
-        } catch (e) {
-          // res.send({
-          //     code: constant.success_code,
-          //     message: "not found",
-          //     result: e
-          // })
-        }
       }
 
       if (update_trip?.trip_status == constant.TRIP_STATUS.ACTIVE || update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
         await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true}, option);
       }
+
+      
 
       // refresh trip functionality for the drivers who have account access as partner
       
@@ -567,6 +574,29 @@ exports.access_edit_trip = async (req, res) => {
         message: "Unable to update the trip",
       });
     } else {
+
+      // When Date and time will be updated then customer will be notify
+      if (new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
+        
+        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
+        const companyDetail = await USER.findById(data?.created_by_company_id);
+        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for update date time trip
+          
+          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
+        }
+      }
+
+      // When driver will go to for pick the customer (On the way) then customer will be notify
+      if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
+
+        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
+        const companyDetail = await USER.findById(data?.created_by_company_id);
+        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request) { // check if company turned on sms feature for driver on the route
+          
+          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
+        }
+      }
+      
       if ( data?.trip_status == "Pending" && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
         let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
 

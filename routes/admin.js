@@ -207,6 +207,7 @@ router.get("/get-connected-account-details/:id" , subscriptionController.getConn
 
 // SMS buy functionality
 router.post("/sms-buy-create-ideal-checkout-session",[verifyToken , companyAuth] ,subscriptionController.smsBuyCreateIdealCheckoutSession);// IDEAL  functionality
-router.post("/sms-payment-validate-session" ,subscriptionController.smsPaymentValidateSession);// IDEAL  functionality
-router.get("/sms-recharges" ,[verifyToken , companyAuth] ,subscriptionController.smsRecharges);// IDEAL  functionality
+router.post("/sms-payment-validate-session" ,subscriptionController.smsPaymentValidateSession);// checking if payment has been done
+router.get("/sms-recharges" ,[verifyToken , companyAuth] ,subscriptionController.smsRecharges);// top-up list
+router.get("/sms-transaction-list" ,[verifyToken , companyAuth] ,subscriptionController.smsTransactionList);// top-up list
 module.exports = router;

@@ -3,6 +3,7 @@ const { initiateStripePayment, checkPaymentStatus,} = require("../../Service/Str
 const constant = require("../../config/constant");
 const USER_MODEL = require("../../models/user/user_model");
 const SMS_RECHARGE_MODEL = require("../../models/user/sms_recharge_model");
+const SMS_TRANSACTION_MODEL = require("../../models/user/sms_transaction_model");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
@@ -446,7 +447,7 @@ exports.smsPaymentValidateSession = async (req, res) => {
         
     } catch (error) {
 
-        console.error('Error createPaymentIntent error:', error.message);
+        console.error('Error smsPaymentValidateSession error:', error.message);
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -486,7 +487,7 @@ exports.smsRecharges = async (req, res) => {
             return  res.send({
                 code: constant.success_code,
                 smsBalance: req.user.sms_balance,
-                message: smsRechargeList,
+                smsRechargeList: smsRechargeList,
                 currentPage: page,
                 totalPages: Math.ceil(totalCount / limit),
             });
@@ -501,6 +502,66 @@ exports.smsRecharges = async (req, res) => {
     } catch (error) {
 
         console.error('Error smsBuyCreateIdealCheckoutSession error:', error.message);
+        return  res.send({
+                    code: constant.error_code,
+                    message: error.message,
+                });
+    }
+}
+
+exports.smsTransactionList = async (req, res) => {
+    try{
+
+        const page = parseInt(req.query.page) || 1; // default to page 1
+        const limit = parseInt(req.query.limit) || 10; // default to 10 items per page
+        const skip = (page - 1) * limit;
+
+        const date = req.query.date ? new Date(req.query.date) : null;
+
+        let dateFilter = {};
+        if (date) {
+            const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+            const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+            dateFilter.created_at = { $gte: startOfDay, $lte: endOfDay };
+        }
+
+        const filter = {
+            user_id: req.userId,
+            ...(req.query.date && {
+                $expr: {
+                  $eq: [
+                    { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } },
+                    new Date(req.query.date).toISOString().split("T")[0] // 'YYYY-MM-DD'
+                  ]
+                }
+              })
+        };
+
+        console.log('filter---------' ,filter)
+
+        const smsTransactionList = await SMS_TRANSACTION_MODEL.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 });
+
+        const totalCount = await SMS_TRANSACTION_MODEL.countDocuments(filter);
+
+        if (smsTransactionList) {
+
+            return  res.send({
+                code: constant.success_code,
+                smsBalance: req.user.sms_balance,
+                smsTransactionList: smsTransactionList,
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
+            });
+        } else {
+
+            return  res.send({
+                code: constant.error_code,
+                message: `Your top-up history will appear here once you make a payment.`,
+            });
+        }
+    } catch (error) {
+
+        console.error('Error smsTransactionList error:', error.message);
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
