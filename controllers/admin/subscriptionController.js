@@ -805,7 +805,7 @@ exports.getConnectedAccountDetails = async (req, res) => {
 
                 if (connectedAccountDetails.requirements.currently_due.length > 0) {
                     // Sent email to user to complete the pending stripe  onboarding info
-                    await sendEmailMissingInfoStripeOnboaring(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
+                    sendEmailMissingInfoStripeOnboaring(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
                 }
     
                 return  res.send({
@@ -818,6 +818,11 @@ exports.getConnectedAccountDetails = async (req, res) => {
                                     message: `Your bank account attached successfully with the platform`,
                                 });
             } else {
+
+                if (connectedAccountDetails.requirements.currently_due.length > 0) {
+                    // Sent email to user to complete the pending stripe  onboarding info
+                    sendEmailMissingInfoStripeOnboaring(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
+                }
                 return  res.send({
                                     code: constant.error_code,
                                     message: `You bank account verification is still pending`,
