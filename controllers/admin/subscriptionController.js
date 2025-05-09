@@ -468,8 +468,8 @@ exports.smsRecharges = async (req, res) => {
 
         let dateFilter = {};
         if (date) {
-            const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-            const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+            const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
+            const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999));
             dateFilter.created_at = { $gte: startOfDay, $lte: endOfDay };
         }
 
@@ -520,25 +520,17 @@ exports.smsTransactionList = async (req, res) => {
 
         let dateFilter = {};
         if (date) {
-            const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-            const endOfDay = new Date(date.setHours(23, 59, 59, 999));
-            dateFilter.created_at = { $gte: startOfDay, $lte: endOfDay };
+            const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
+            const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999));
+            dateFilter.sent_at = { $gte: startOfDay, $lte: endOfDay };
         }
 
         const filter = {
             user_id: req.userId,
-            ...(req.query.date && {
-                $expr: {
-                  $eq: [
-                    { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } },
-                    new Date(req.query.date).toISOString().split("T")[0] // 'YYYY-MM-DD'
-                  ]
-                }
-              })
+            ...dateFilter
         };
 
-        console.log('filter---------' ,filter)
-
+        console.log('dateFilter--------' , dateFilter)
         const smsTransactionList = await SMS_TRANSACTION_MODEL.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 });
 
         const totalCount = await SMS_TRANSACTION_MODEL.countDocuments(filter);
