@@ -544,7 +544,8 @@ exports.driverCancelTrip = async (req, res) => {
 
     const updateData = {  
       under_cancellation_review: true,
-      trip_cancellation_request_id: tripCancellationRequest._id
+      trip_cancellation_request_id: tripCancellationRequest._id,
+      cancellation_reason: req.cancellation_reason,
     }
     
     let update_trip = await TRIP.findOneAndUpdate(criteria, updateData, option); 
@@ -557,6 +558,55 @@ exports.driverCancelTrip = async (req, res) => {
     });
   } catch (err) {
     console.log('driverCancelTrip------', err)
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
+  }
+}
+
+exports.driverCancelTripRequests = async (req, res) => {
+  try {
+
+    let data = req.body;
+    let criteria = { _id: req.params.id };
+
+    const page = parseInt(req.query.page) || 1; // default to page 1
+    const limit = parseInt(req.query.limit) || 10; // default to 10 items per page
+    const skip = (page - 1) * limit;
+    const date = req.query.date ? new Date(req.query.date) : null;
+
+    // Optional filter (e.g., by user or company)
+    let filter = { 
+      is_deleted: false,
+      under_cancellation_review: true,
+    };
+
+    if (date) {
+      const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
+      const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999));
+      dateFilter.updatedAt = { $gte: startOfDay, $lte: endOfDay };
+    }
+
+    if (req.user.role == constant.ROLES.COMPANY) {
+
+      dateFilter.created_by_company_id = req.user._id;
+    } else if (req.user.role == constant.ROLES.DRIVER) {
+
+      dateFilter.created_by_company_id = req.query?.company_id;
+    }
+    let tripInfo = await TRIP.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const total = await TRIP.countDocuments(filter);
+    
+    return res.send({
+      code: constant.success_code,
+      data: tripInfo,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalTrips: total
+    });
+  } catch (err) {
+    console.log('driverCancelTripRequests------', err)
     return res.send({
                       code: constant.error_code,
                       message: err.message,

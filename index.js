@@ -1013,12 +1013,12 @@ io.on("connection", (socket) => {
 
           if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
 
-            driverBySocketId.is_available = true;
-            await driverBySocketId.save();
+            // driverBySocketId.is_available = true;
+            // await driverBySocketId.save();
 
-            let updated_data = { trip_status: "Pending", driver_name: null };
-            let option = { new: true };
-            let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
+            // let updated_data = { trip_status: "Pending", driver_name: null };
+            // let option = { new: true };
+            // let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
 
             let user = await user_model.findById(trip?.created_by_company_id);
             const companyAgencyData = await agency_model.findOne({user_id: trip.created_by_company_id})
@@ -1027,12 +1027,19 @@ io.on("connection", (socket) => {
             if (user.role == "COMPANY") {
               if (user?.socketId) {
                 // socket for app
-                io.to(user?.socketId).emit("tripCancelledBYDriver", {
-                                                                      trip,
-                                                                      driver: driverBySocketId,
-                                                                      message: `Trip canceled by the driver ${driver_name}`,
-                                                                    }
-                                          );
+
+                console.log('trip?.driver_name.toString()---------', trip?.driver_name.toString());
+                console.log('user?._id.toString()-------', user?._id.toString());
+                // when trip owner will cancel the trip from his driver account then pop-up will not show on his side
+                if (socket.id != user?.socketId) {
+                  io.to(user?.socketId).emit("tripCancelledBYDriver", {
+                                                                        trip,
+                                                                        driver: driverBySocketId,
+                                                                        message: `Trip canceled by the driver ${driver_name}`,
+                                                                      }
+                                            );
+                }
+                
 
                 // for refresh trip
                 io.to(user?.socketId).emit("refreshTrip",
@@ -1046,14 +1053,18 @@ io.on("connection", (socket) => {
               if (user?.webSocketId) {
 
                 // socket for web
-                io.to(user?.webSocketId).emit(
-                                                      "tripCancelledBYDriver",
-                                                      {
-                                                        trip,
-                                                        driver: driverBySocketId,
-                                                        message: `Trip canceled by the driver ${driver_name}`,
-                                                      },
-                                                     );
+
+                // when trip owner will cancel the trip from his driver account then pop-up will not show on his side
+                if (socket.id != user?.socketId) {
+                  io.to(user?.webSocketId).emit(
+                                                  "tripCancelledBYDriver",
+                                                  {
+                                                    trip,
+                                                    driver: driverBySocketId,
+                                                    message: `Trip canceled by the driver ${driver_name}`,
+                                                  },
+                                                );
+                }
 
                 // for refresh trip
                 io.to(user?.webSocketId).emit(

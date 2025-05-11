@@ -19,8 +19,9 @@ router.get('/', function(req, res, next) {
 router.post('/get_trip/:status',[verifyToken],tripController.get_trip)
 router.get('/get_counts_dashboard',[verifyToken],tripController.get_counts_dashboard)
 router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
-router.put('/edit_trip/:id',[verifyToken],tripController.edit_trip)
+router.put('/edit_trip/:id',[verifyToken],tripController.edit_trip);
 router.put('/driver_cancel_trip/:id',[verifyToken],tripController.driverCancelTrip)
+router.post('/driver_cancel_trip_requests',[verifyToken],tripController.driverCancelTripRequests)
 router.put('/no-show-user/:id',[verifyToken],tripController.noShowUser)
 router.put('/access_edit_trip/:id/:company_id',[verifyToken],tripController.access_edit_trip)
 router.delete('/delete_trip/:id',[verifyToken],tripController.delete_trip)
