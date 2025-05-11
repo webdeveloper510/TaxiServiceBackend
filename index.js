@@ -750,9 +750,16 @@ io.on("connection", (socket) => {
         const driver = await driver_model.findOne({ _id: id });
         if (driver) {
 
-          driver.isSocketConnected = true;
-          driver.socketId = socketId;
-          await driver.save();
+          // driver.isSocketConnected = true;
+          // driver.socketId = socketId;
+          // await driver.save();
+          let driverUpdateData = {
+            isSocketConnected:true,
+            socketId:socketId
+          };
+
+          await driver_model.findOneAndUpdate({ _id: id }, {$set: driverUpdateData} , { new: true })
+          
 
           io.to(socketId).emit("userConnection",  {
                                                     code: 200,
@@ -768,9 +775,16 @@ io.on("connection", (socket) => {
 
         if (user) {
 
-          user.isSocketConnected = true;
-          user.socketId = socketId;
-          await user.save();
+          // user.isSocketConnected = true;
+          // user.socketId = socketId;
+          // await user.save();
+
+          let userUpdateData = {
+            isSocketConnected:true,
+            socketId:socketId
+          };
+
+          await user_model.findOneAndUpdate({ _id: id } , {$set:userUpdateData}, {new : true})
 
           // If compaany has driver account then socket will be updated in driver document
           const updatedDriver = await driver_model.findOneAndUpdate(
@@ -794,7 +808,7 @@ io.on("connection", (socket) => {
       
 
     } catch (err) {
-      console.log("🚀 ~ socket.on ~ err: addUser", err);
+      console.log("🚀 ~ socket.on ~ err: addUser------", err);
     }
   });
 
@@ -802,6 +816,7 @@ io.on("connection", (socket) => {
     try {
       const trip_details = await trip_model.findById(trip.result?._id);
 
+      
       if (trip_details) {
         trip_details.driver_name = null;
         await trip_details.save(); // Save the updated trip details
@@ -815,11 +830,16 @@ io.on("connection", (socket) => {
 
       if (driverById?.socketId) {
 
-        io.to(driverById.socketId).emit("retrivedTrip", {
-                                                          message: `Your trip has been retrived by company, ${company_data?.company_name}`,
-                                                          trip: trip,
-                                                        }
-                                              );
+        // When someone will retieve the trip from his driver then socket will not hit for that user
+        if (socket.id != driverById.socketId) {
+
+          io.to(driverById.socketId).emit("retrivedTrip", {
+                                                            message: `Your trip has been retrived by company, ${company_data?.company_name}`,
+                                                            trip: trip,
+                                                          }
+                                          );
+        }
+        
 
         io.to(driverById?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
       }
@@ -836,11 +856,11 @@ io.on("connection", (socket) => {
 
       if (driverById?.deviceToken) {
         const response = sendNotification(
-                                                  driverById?.deviceToken,
-                                                  `Your trip ( ${ trip_details.trip_id } ) has been retrived by company, ${company_data?.company_name}`,
-                                                  `Trip Retrieved by Company ( ${company_data?.company_name} )`,
-                                                  trip
-                                                );
+                                            driverById?.deviceToken,
+                                            `Your trip ( ${ trip_details.trip_id } ) has been retrived by company, ${company_data?.company_name}`,
+                                            `Trip Retrieved by Company ( ${company_data?.company_name} )`,
+                                            trip
+                                          );
       }
 
       // for the company
@@ -964,7 +984,7 @@ io.on("connection", (socket) => {
         });
       }
     } catch (error) {
-      console.log("🚀 ~ socket.on ~ error:", error);
+      console.log("🚀 ~ socket.on ~ error: updateDriverLocation-----", error);
     }
   });
 
@@ -1447,7 +1467,7 @@ io.on("connection", (socket) => {
         }
       }
     } catch (error) {
-      console.log("🚀 ~ socket.on ~ error:", error);
+      console.log("🚀 ~ socket.on ~ error:activeDriverTrip---", error);
       return io.to(socket.id).emit("driverNotification", {
         code: 200,
         message: "There is some",

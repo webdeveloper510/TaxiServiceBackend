@@ -2382,12 +2382,6 @@ exports.alocate_driver = async (req, res) => {
           
           if ( created_by_company?.socketId ) {
 
-            console.log('check_driver._id.toString()--------' , check_driver._id.toString())
-            console.log('req?.user?.driverId?.toString()--------' , req?.user?.driverId?._id.toString())
-            console.log('update_trip.trip_status--------' , update_trip.trip_status)
-            console.log('req.companyPartnerAccess--------' , req.companyPartnerAccess)
-            console.log('req.CompanyPartnerDriverId--------' , req.CompanyPartnerDriverId)
-
             // when user will assign the trip to itself then no pop-up will show
             if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && check_driver._id.toString() != req?.user?.driverId?._id.toString()) {
 
@@ -2497,8 +2491,26 @@ exports.alocate_driver = async (req, res) => {
           }
         }
 
+        let exculdePartnerDriverId = {};
+        // When Partner account alocate the trip to his driver then this driver will not get pop-up
+        if(req.companyPartnerAccess && req.CompanyPartnerDriverId == update_trip?.driver_name)  {
+          exculdePartnerDriverId= {_id : {$ne: req.CompanyPartnerDriverId}};
 
+          // Refresh trip for partner account when it will retrieve the trip
+          const partnerInformation = await driver_model.findById(req.CompanyPartnerDriverId)
+
+          if (partnerInformation?.socketId){
+
+            req.io.to(partnerInformation?.socketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } )
+          }
+
+          if (partnerInformation?.webSocketId){
+
+            req.io.to(partnerInformation?.webSocketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
+          }
+        }
         const driverHasCompanyPartnerAccess = await driver_model.find({
+                                                                        ...exculdePartnerDriverId,
                                                                         parnter_account_access  : {
                                                                                                     $elemMatch: { company_id: new mongoose.Types.ObjectId(update_trip?.created_by_company_id) },
                                                                                                   },

@@ -1,9 +1,11 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 const CONSTANT = require("../../config/constant");
-const PAYMENT_COLLECT_ENUM = Object.values(CONSTANT.PAYMENT_COLLECTION_TYPE)
-const PAYOUT_TANSFER_ENUM = Object.values(CONSTANT.PAYOUT_TANSFER_STATUS)
-const PAYMENT_OPTION_ENUM = Object.values(CONSTANT.PAY_OPTION)
+const PAYMENT_COLLECT_ENUM = Object.values(CONSTANT.PAYMENT_COLLECTION_TYPE);
+const PAYOUT_TANSFER_ENUM = Object.values(CONSTANT.PAYOUT_TANSFER_STATUS);
+const PAYMENT_OPTION_ENUM = Object.values(CONSTANT.PAY_OPTION);
+const TRIP_STATUS_ENUM = Object.values(CONSTANT.TRIP_STATUS);
+
 const trip = new Schema({
     driver_name:{
         type:mongoose.Schema.Types.ObjectId,ref:'driver',
@@ -174,8 +176,8 @@ const trip = new Schema({
     },
     trip_status:{
         type:String,
-        enum:['Booked','Active','Completed','Pending','Accepted','Canceled',"Reached"],
-        default:'Pending'
+        enum: TRIP_STATUS_ENUM,
+        default:CONSTANT.TRIP_STATUS.PENDING
     },
     stripe_payment: {
         payment_intent_id: {
@@ -261,6 +263,15 @@ const trip = new Schema({
     },
     susbscriptionPlanId:{
         type:mongoose.Schema.Types.ObjectId,ref:'plans', 
+        default: null,
+    },
+    under_cancellation_review: {
+        type: Boolean,
+        default: false
+    },
+    trip_cancellation_request_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'trip_cancellation_requests',
         default: null,
     },
 

@@ -3,6 +3,7 @@ const DRIVER = require("../../models/user/driver_model");
 const USER = require("../../models/user/user_model");
 const VEHICLETYPE = require("../../models/admin/vehicle_type");
 const TRIP = require("../../models/user/trip_model");
+const TRIP_CANCELLATION_REQUEST = require("../../models/user/trip_cancellation_requests_model");
 const multer = require("multer");
 const path = require("path");
 const constant = require("../../config/constant");
@@ -397,9 +398,14 @@ exports.edit_trip = async (req, res) => {
         data.driverPaymentAmount = (Number(data.price) - data.companyPaymentAmount - data.superAdminPaymentAmount).toFixed(2);
   
       } else {
-        data.superAdminPaymentAmount = 0;
-        data.companyPaymentAmount = 0;
-        data.driverPaymentAmount = Number(data.price).toFixed(2)
+
+        if (data?.price) {
+
+          data.superAdminPaymentAmount = 0;
+          data.companyPaymentAmount = 0;
+          data.driverPaymentAmount = Number(data.price).toFixed(2);
+        }
+        
       }
     }
     
@@ -413,7 +419,7 @@ exports.edit_trip = async (req, res) => {
     } else {
 
       // When Date and time will be updated then customer will be notify
-      if (new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
+      if (data?.pickup_date_time && new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
         
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
@@ -514,6 +520,50 @@ exports.noShowUser = async (req, res) => {
   }
 };
 
+exports.driverCancelTrip = async (req, res) => {
+  try{
+
+    let data = req.body;
+    let criteria = { _id: req.params.id };
+    let tripInfo = await TRIP.findOne(criteria);
+
+    // Saving the trip cancel reson and its request info
+    const trip_cancellation_request_data = {
+      trip_id: tripInfo._id,
+      driver_id: req.userId,
+      company_id: tripInfo.created_by_company_id,
+      cancellation_reason: req.cancellation_reason,
+      trip_status: tripInfo.trip_status,
+      trip_sequence_id: tripInfo.trip_id
+    }
+    let tripCancellationRequest = await new TRIP_CANCELLATION_REQUEST(trip_cancellation_request_data);
+    await tripCancellationRequest.save();
+
+    let option = { new: true };
+    data.status = true;
+
+    const updateData = {  
+      under_cancellation_review: true,
+      trip_cancellation_request_id: tripCancellationRequest._id
+    }
+    
+    let update_trip = await TRIP.findOneAndUpdate(criteria, updateData, option); 
+    console.log('update_trip---' ,update_trip)
+    partnerAccountRefreshTrip(tripInfo.created_by_company_id , "The trip details have been updated. Please refresh the data to view the changes", req.io);
+      
+    return res.send({
+      code: constant.success_code,
+      message: "The trip cancellation request has been submitted successfully. The company will review the reason and provide an update shortly."
+    });
+  } catch (err) {
+    console.log('driverCancelTrip------', err)
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
+  }
+}
+
 exports.access_edit_trip = async (req, res) => {
   try {
     let data = req.body;
@@ -539,7 +589,7 @@ exports.access_edit_trip = async (req, res) => {
 
     let option = { new: true };
     data.status = true;
-
+    
     if (data?.commission && data?.commission?.commission_value != 0) {
 
       let commission = data.commission.commission_value;
@@ -557,15 +607,21 @@ exports.access_edit_trip = async (req, res) => {
       }
       const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
 
+      
       data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((Number(commission) * parseFloat(adminCommision.value)) / 100 || 0).toFixed(2);
       // data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
       data.companyPaymentAmount = (Number(commission) - Number(data.superAdminPaymentAmount)).toFixed(2);
       data.driverPaymentAmount = (Number(data.price) - data.companyPaymentAmount - data.superAdminPaymentAmount).toFixed(2);
 
     } else {
-      data.superAdminPaymentAmount = 0;
-      data.companyPaymentAmount = 0;
-      data.driverPaymentAmount = Number(data.price).toFixed(2)
+
+      if (data?.price) {
+        data.superAdminPaymentAmount = 0;
+        data.companyPaymentAmount = 0;
+        console.log('data----', data)
+        data.driverPaymentAmount = Number(data.price).toFixed(2)
+      }
+      
     }
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
     if (!update_trip) {
@@ -576,7 +632,7 @@ exports.access_edit_trip = async (req, res) => {
     } else {
 
       // When Date and time will be updated then customer will be notify
-      if (new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
+      if (data?.pickup_date_time && new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
         
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);

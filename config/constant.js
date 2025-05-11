@@ -26,6 +26,11 @@ module.exports={
         PENDING: 'Pending', // When trip is created
         NO_SHOW: 'NoShow'// when user will not be present at the trip start location
     },
+    TRIP_CANCELLATION_REQUEST_STATUS: {
+        PENDING: 'Pending',
+        APPROVED: 'Accepted',
+        REJECTED: 'Rejected',
+    },
     DRIVER_STATUS: {
         VERIFIED: 'Verified',
         UNVERIFIED: 'Unverified', 

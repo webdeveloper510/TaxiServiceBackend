@@ -2210,6 +2210,8 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
 exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
   try {
 
+    if (!tripDetail?.customerDetails?.phone) return true; // if phone is  not availabe then functional will not continue ahead
+
     const companyDetail = await user_model.findById(tripDetail?.created_by_company_id)
     
     if (companyDetail?.sms_balance > process.env.SMS_CHARGE) { // check if compnay has enough balance to send an sms
@@ -2269,7 +2271,9 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
     const companyDetails = await user_model.findOne({ _id: tripDetail?.created_by_company_id });
     const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: tripDetail?.created_by_company_id });
     let email = tripDetail?.customerDetails?.email;
-    
+
+    if (!tripDetail?.customerDetails?.email) return true;
+
     const subject = `Your Trip is Starting Soon – Driver En Route: # ${tripDetail?.trip_id}`;
 
     const dateString = tripDetail?.pickup_date_time;
@@ -2401,7 +2405,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
 
   } catch (error) {
 
-    console.error("Error sendBookingCancelledEmail:",  error.message);
+    console.error("Error sendBookingUpdateDateTimeEmail:",  error.message);
     throw error;
   }
 }
@@ -2413,6 +2417,8 @@ exports.informCustomerDriverOnTheWay = async (tripDetail) => {
     const companyDetails = await user_model.findOne({ _id: tripDetail?.created_by_company_id });
     const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: tripDetail?.created_by_company_id });
     let email = tripDetail?.customerDetails?.email;
+
+    if (!tripDetail?.customerDetails?.email) return true;
     
     const subject = `Important: Your Trip Details Have Been Updated # ${tripDetail?.trip_id}`;
 
@@ -2504,7 +2510,7 @@ exports.informCustomerDriverOnTheWay = async (tripDetail) => {
 
   } catch (error) {
 
-    console.error("Error sendBookingCancelledEmail:",  error.message);
+    console.error("Error informCustomerDriverOnTheWay:",  error.message);
     throw error;
   }
 }

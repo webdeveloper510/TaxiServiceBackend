@@ -127,16 +127,28 @@ exports.login = async (req, res) => {
         return res.send({
                           code: constant.error_code,
                           message:
-                            "You are blocked by administration. Please contact administration",
+                            "Access has been restricted by the administration. For further assistance, please contact the administrative",
                         });
       } else if (userData?.role == constants.ROLES.COMPANY && userData?.isDriver == false){
         return res.send({
                           code: constant.error_code,
                           message:
-                            "You are blocked by administration. Please contact administration",
+                            "Access has been restricted by the administration. For further assistance, please contact the administrative",
                         });
       } else {}
       
+    }else if (userData?.role == constants.ROLES.HOTEL) {
+
+      let hotelCreatedBy = await USER.findOne({_id: userData.created_by})
+
+      if (hotelCreatedBy?.is_blocked) {
+        return res.send({
+          code: constant.error_code,
+          message:
+            "Your compnay's access has been restricted by the administration. For further assistance, please contact the administrative",
+        });
+      }
+      console.log('userData----', hotelCreatedBy)
     }
 
     
