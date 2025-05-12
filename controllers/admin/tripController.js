@@ -267,24 +267,9 @@ exports.add_trip = async (req, res) => {
     // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
     data.trip_id    = await getNextSequenceValue();
     let token_code  = randToken.generate( 4, "1234567890abcdefghijklmnopqrstuvxyz" );
-    let check_user  = await USER.findOne({ _id: req.userId });
-    let currentDate = moment().format("YYYY-MM-DD");
-
-    let check_id = await TRIP.aggregate([
-                                          {
-                                            $match: {
-                                              createdAt: {
-                                                $gte: new Date(currentDate),
-                                                $lt: new Date(
-                                                  new Date(currentDate).getTime() + 24 * 60 * 60 * 1000
-                                                ), // Add 1 day to include the entire day
-                                              },
-                                            },
-                                          },
-                                        ]);
-
-    let series      = Number(check_id.length) + 1;
-    data.series_id  = token_code + "-" + "000" + series;
+    // let check_user  = await USER.findOne({ _id: req.userId });
+    
+    data.series_id  = '';
 
     data.trip_id = "T" + "-" + data.trip_id;
     let distance = ( geolib.getDistance( {
@@ -412,23 +397,9 @@ exports.access_add_trip = async (req, res) => {
       data.trip_id = await getNextSequenceValue();
       let token_code = randToken.generate(4,"1234567890abcdefghijklmnopqrstuvxyz");
       let check_user = await USER.findOne({ _id: req.userId });
-      let currentDate = moment().format("YYYY-MM-DD");
-      let check_id = await TRIP.aggregate([
-                                            {
-                                              $match: {
-                                                createdAt: {
-                                                  $gte: new Date(currentDate),
-                                                  $lt: new Date(
-                                                    new Date(currentDate).getTime() + 24 * 60 * 60 * 1000
-                                                  ), // Add 1 day to include the entire day
-                                                },
-                                              },
-                                            },
-                                          ]
-                                        );
-
-      let series = Number(check_id.length) + 1;
-      data.series_id = token_code + "-" + "000" + series;
+      
+      
+      data.series_id = '';
 
       data.trip_id = "T" + "-" + data.trip_id;
       let distance = (geolib.getDistance(
@@ -530,6 +501,16 @@ exports.add_trip_link = async (req, res) => {
     let data = req.body;
     data.created_by = data.created_by;
     data.trip_id = await getNextSequenceValue();
+
+    const userCheck = await USER.findById(data.created_by_company_id);
+
+    if (!userCheck) {
+      return res.send({
+        code: constant.error_code,
+        message: "Invalid company",
+      });
+
+    }
     
     data.series_id = '';
 
@@ -543,6 +524,7 @@ exports.add_trip_link = async (req, res) => {
 
     if (data?.is_return_booking) {
       return_ticket_data = data.return_booking;
+      return_ticket_data.trip_id = "T" + "-" + (await getNextSequenceValue());
     }
 
     delete data?.is_return_booking;
@@ -550,7 +532,8 @@ exports.add_trip_link = async (req, res) => {
 
     let add_trip = await TRIP(data).save();
     if (return_ticket_data) {
-      let add_return_trip = await TRIP(data).save();
+      
+      let add_return_trip = await TRIP(return_ticket_data).save();
     }
     
     
@@ -1921,7 +1904,7 @@ exports.get_recent_trip_super = async (req, res) => {
                                 { "trip_to.address": { $regex: search_value, $options: "i" } },
                                 { "trip_from.address": { $regex: search_value, $options: "i" } },
                                 { company_name: { $regex: search_value, $options: "i" } },
-                                { series_id: { $regex: search_value, $options: "i" } },
+                                { trip: { $regex: search_value, $options: "i" } },
                               ],
                             },
                             pay_option.length > 0 ? { 
@@ -1990,7 +1973,6 @@ exports.get_recent_trip_super = async (req, res) => {
           trip_status: 1,
           createdAt: 1,
           created_by: 1,
-          series_id: 1,
           status: 1,
           passenger_detail: 1,
           vehicle_type: 1,
@@ -3548,21 +3530,9 @@ exports.add_trip1 = async (req, res) => {
       "1234567890abcdefghijklmnopqrstuvxyz"
     );
     // let check_user = await USER.findOne({ _id: req.userId })
-    let currentDate = moment().format("YYYY-MM-DD");
-    let check_id = await TRIP.aggregate([
-      {
-        $match: {
-          createdAt: {
-            $gte: new Date(currentDate),
-            $lt: new Date(
-              new Date(currentDate).getTime() + 24 * 60 * 60 * 1000
-            ), // Add 1 day to include the entire day
-          },
-        },
-      },
-    ]);
-    let series = Number(check_id.length) + 1;
-    data.series_id = token_code + "-" + "000" + series;
+    
+   
+    data.series_id = ``;
 
     data.trip_id = "T" + "-" + data.trip_id;
 

@@ -538,7 +538,7 @@ exports.driverCancelTrip = async (req, res) => {
       trip_id: tripInfo._id,
       driver_id: req.userId,
       company_id: tripInfo.created_by_company_id,
-      cancellation_reason: req.cancellation_reason,
+      cancellation_reason: req.body.cancellation_reason,
       trip_status: tripInfo.trip_status,
       trip_sequence_id: tripInfo.trip_id
     }
@@ -551,7 +551,7 @@ exports.driverCancelTrip = async (req, res) => {
     const updateData = {  
       under_cancellation_review: true,
       trip_cancellation_request_id: tripCancellationRequest._id,
-      cancellation_reason: req.cancellation_reason,
+      cancellation_reason: req.body.cancellation_reason,
     }
     
     let update_trip = await TRIP.findOneAndUpdate(criteria, updateData, option); 
@@ -564,6 +564,78 @@ exports.driverCancelTrip = async (req, res) => {
     });
   } catch (err) {
     console.log('driverCancelTrip------', err)
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
+  }
+}
+
+exports.driverCancelTripDecision = async (req, res) => {
+  try {
+
+    let tripDecisionStatus = req.body.tripDecision;
+    let criteria = {  _id: req.params.id };
+    let  tripDetails = await TRIP.findOne(criteria);
+
+    if (!tripDetails) {
+      return res.send({
+                      code: constant.error_code,
+                      message: `Invalid trip`,
+                    });
+    }
+
+    if (!tripDetails.under_cancellation_review) {
+      return res.send({
+                      code: constant.error_code,
+                      message: `This trip is not under cancellation review.`,
+                    });
+    }
+
+    let tripDecisionData = {
+                              
+                              reviewer_action :{
+                                action_taken: tripDecisionStatus,
+                                reviewed_by_user: null,
+                                reviewed_by_driver_partner: null,
+                                reviewed_by_account_access_driver: null
+                              },
+                              reviewed_by_role: null
+                            }
+    
+    if (req.user?.role == constant.ROLES.COMPANY || req.user?.role == constant.ROLES.ADMIN || req.user?.role == constant.ROLES.SUPER_ADMIN) {
+
+      tripDecisionData.reviewed_by_role = req.companyPartnerAccess ? constant.ROLES.DRIVER : req.user?.role;
+      
+      if (req.companyPartnerAccess ) {// if driver has company's partner access
+        tripDecisionData.reviewer_action.reviewed_by_driver_partner =  req.CompanyPartnerDriverId;
+      } else {
+        tripDecisionData.reviewer_action.reviewed_by_user =  req.user?._id
+      }
+      
+    } else {
+      tripDecisionData.reviewed_by_role = constant.ROLES.DRIVER;
+    }
+
+    await TRIP_CANCELLATION_REQUEST.findOneAndUpdate({_id: tripDetails?.trip_cancellation_request_id}, { $set:tripDecisionData}, {new: true}); 
+    
+    const tripUpdateData = {under_cancellation_review: false , trip_cancellation_request_id: null};
+
+    if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
+      tripUpdateData.driver_name = null;
+      tripUpdateData.trip_status = constant.TRIP_STATUS.PENDING;
+
+      await DRIVER.findOneAndUpdate({_id: tripDetails?.driver_name}, { $set:{is_available: true}}, {new: true});
+    }
+
+    await TRIP.findOneAndUpdate(criteria , tripUpdateData, {new: true});
+
+    return res.send({
+                      code: constant.success_code,
+                      message: 'Successfully updated the trip cancellation request',
+                    });
+    
+  } catch (err) {
     return res.send({
                       code: constant.error_code,
                       message: err.message,

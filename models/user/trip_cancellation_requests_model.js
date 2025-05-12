@@ -43,7 +43,7 @@ const cancellationRequestSchema = new Schema({
         enum: RIP_CANCELLATION_REQUEST_ENUM,
         default: CONSTANT.TRIP_CANCELLATION_REQUEST_STATUS.PENDING
       },
-      reviewed_by_company: {
+      reviewed_by_user: { // company , admin or superadmin will review the request
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
         default: null
@@ -60,7 +60,7 @@ const cancellationRequestSchema = new Schema({
       },
       reviewed_at: {
         type: Date,
-        default: null
+        default: Date.now
       }
     },
     default: {}
