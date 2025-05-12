@@ -530,21 +530,8 @@ exports.add_trip_link = async (req, res) => {
     let data = req.body;
     data.created_by = data.created_by;
     data.trip_id = await getNextSequenceValue();
-    let token_code = randToken.generate(4,"1234567890abcdefghijklmnopqrstuvxyz");
-
-    let currentDate = moment().format("YYYY-MM-DD");
-    let check_id = await TRIP.aggregate([
-                                          {
-                                            $match: {
-                                              createdAt: {
-                                                $gte: new Date(currentDate),
-                                                $lt: new Date( new Date(currentDate).getTime() + 24 * 60 * 60 * 1000 ), // Add 1 day to include the entire day
-                                              },
-                                            },
-                                          },
-                                        ]);
-    let series = Number(check_id.length) + 1;
-    data.series_id = token_code + "-" + "000" + series;
+    
+    data.series_id = '';
 
     data.trip_id = "T" + "-" + data.trip_id;
     data.driverPaymentAmount = data?.price ? data.price : 0;
@@ -552,7 +539,21 @@ exports.add_trip_link = async (req, res) => {
     data.superAdminPaymentAmount = 0;
     console.log('data------' , data);
 
+    let return_ticket_data = {}
+
+    if (data?.is_return_booking) {
+      return_ticket_data = data.return_booking;
+    }
+
+    delete data?.is_return_booking;
+    delete data?.return_booking;
+
     let add_trip = await TRIP(data).save();
+    if (return_ticket_data) {
+      let add_return_trip = await TRIP(data).save();
+    }
+    
+    
     if (!add_trip) {
       res.send({
         code: constant.error_code,

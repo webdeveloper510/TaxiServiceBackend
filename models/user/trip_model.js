@@ -5,6 +5,8 @@ const PAYMENT_COLLECT_ENUM = Object.values(CONSTANT.PAYMENT_COLLECTION_TYPE);
 const PAYOUT_TANSFER_ENUM = Object.values(CONSTANT.PAYOUT_TANSFER_STATUS);
 const PAYMENT_OPTION_ENUM = Object.values(CONSTANT.PAY_OPTION);
 const TRIP_STATUS_ENUM = Object.values(CONSTANT.TRIP_STATUS);
+const NAVIGATION_MODE_ENUM = Object.values(CONSTANT.NAVIGATION_MODE);
+const BOOKING_SOURCE_ENUM = Object.values(CONSTANT.BOOKING_SOURCE);
 
 const trip = new Schema({
     driver_name:{
@@ -57,14 +59,27 @@ const trip = new Schema({
         type:Number,
         default:0
     },
+    child_seat_price:{
+        type:Number,
+        default:0
+    },
+    payment_method_price:{
+        type:Number,
+        default:0
+    },
     pickup_time:{
         type:Date,
         default:Date.now()
     },
     navigation_mode:{
         type:String,
-        enum:['google_maps','direct', ''],
-        default: ''
+        enum:NAVIGATION_MODE_ENUM,
+        default: CONSTANT.NAVIGATION_MODE.DEFAULT
+    },
+    booking_source:{
+        type:String,
+        enum:BOOKING_SOURCE_ENUM,
+        default: CONSTANT.BOOKING_SOURCE.COMPNAY_DASHBOARD
     },
     drop_time:{
         type:Date,
