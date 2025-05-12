@@ -599,6 +599,9 @@ exports.  get_trip = async (req, res) => {
         {
           $or: [{ created_by: { $in: objectIds } }, { created_by: mid }, { created_by_company_id: mid }],
         },
+        {
+          under_cancellation_review: false
+        },
         { status: true },
         { trip_status: req.params.status },
         { is_deleted: false },
