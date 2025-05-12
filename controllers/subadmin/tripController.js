@@ -81,6 +81,9 @@ exports.get_trip = async (req, res) => {
             { trip_status: "Accepted" },
           ],
         },
+        {
+          under_cancellation_review: false
+        },
         { is_deleted: false },
         {
           $or: [
@@ -96,6 +99,9 @@ exports.get_trip = async (req, res) => {
       query = [
         { created_by: mid },
         { trip_status: req.params.status },
+        {
+          under_cancellation_review: false
+        },
         {
           $or: [
             { comment: { $regex: search_value, $options: "i" } },
