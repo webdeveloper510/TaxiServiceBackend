@@ -513,13 +513,11 @@ exports.add_trip_link = async (req, res) => {
     }
     
     data.series_id = '';
-
     data.trip_id = "T" + "-" + data.trip_id;
     data.driverPaymentAmount = data?.price ? data.price : 0;
     data.companyPaymentAmount = 0;
     data.superAdminPaymentAmount = 0;
-    console.log('data------' , data);
-
+    
     let return_ticket_data = {}
 
     if (data?.is_return_booking) {
@@ -536,6 +534,17 @@ exports.add_trip_link = async (req, res) => {
       let add_return_trip = await TRIP(return_ticket_data).save();
     }
     
+    // refresh trip functionality for the drivers who have account access as partner
+
+    partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
+
+    if (data?.created_by_company_id) {
+      const companyDetail = await user_model.findById(data?.created_by_company_id);
+
+      if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
+        sendTripUpdateToCustomerViaSMS(data , constant.SMS_EVENTS.TRIP_CREATE);
+      }
+    }
     
     if (!add_trip) {
       res.send({
