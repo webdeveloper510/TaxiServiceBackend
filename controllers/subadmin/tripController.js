@@ -533,6 +533,21 @@ exports.driverCancelTrip = async (req, res) => {
     let criteria = { _id: req.params.id };
     let tripInfo = await TRIP.findOne(criteria);
 
+    if (!criteria) {
+      return res.send({
+                      code: constant.error_code,
+                      message: `Invalid trip`,
+                    });
+    }
+
+    if (criteria?.under_cancellation_review) {
+      return res.send({
+                      code: constant.error_code,
+                      message: `This trip is already under cancellation review.`,
+                    });
+    }
+
+
     // Saving the trip cancel reson and its request info
     const trip_cancellation_request_data = {
       trip_id: tripInfo._id,
@@ -576,7 +591,7 @@ exports.driverCancelTripDecision = async (req, res) => {
 
     let tripDecisionStatus = req.body.tripDecision;
     let criteria = {  _id: req.params.id };
-    let  tripDetails = await TRIP.findOne(criteria);
+    let tripDetails = await TRIP.findOne(criteria);
 
     if (!tripDetails) {
       return res.send({
@@ -617,6 +632,7 @@ exports.driverCancelTripDecision = async (req, res) => {
       tripDecisionData.reviewed_by_role = constant.ROLES.DRIVER;
     }
 
+    // Update trip request
     await TRIP_CANCELLATION_REQUEST.findOneAndUpdate({_id: tripDetails?.trip_cancellation_request_id}, { $set:tripDecisionData}, {new: true}); 
     
     const tripUpdateData = {under_cancellation_review: false , trip_cancellation_request_id: null};
@@ -629,6 +645,46 @@ exports.driverCancelTripDecision = async (req, res) => {
     }
 
     await TRIP.findOneAndUpdate(criteria , tripUpdateData, {new: true});
+
+    if (tripDetails?.driver_name) {
+      let driver_data = await DRIVER.findOne({ _id: tripDetails.driver_name });
+
+      let device_token = driver_data?.deviceToken;
+      if ((device_token == "" || device_token == null) && driver_data?.isCompany) {
+
+        let driverCompany = await USER.findOne({ _id: driver_data.driver_company_id,  });
+        device_token = driverCompany.deviceToken ? driverCompany.deviceToken : null;
+      }
+
+      if (driver_data?.socketId) {
+        req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
+          message: `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+          tripDecisionStatus: tripDecisionStatus,
+          tripDetails:tripDetails
+        });
+      }
+
+      if (driver_data?.webSocketId) {
+        req.io.to(driver_data.webSocketId).emit("tripCancellationRequestDecision", {
+          message: `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+          tripDecisionStatus: tripDecisionStatus,
+          tripDetails:tripDetails
+        });
+      }
+      
+      if (device_token) {
+        sendNotification(
+                        device_token,
+                        `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                        `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                        tripDetails
+                      );
+      }
+
+
+        
+      
+    }
 
     return res.send({
                       code: constant.success_code,
@@ -675,6 +731,8 @@ exports.driverCancelTripRequests = async (req, res) => {
     }
     let tripInfo = await TRIP.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
     const total = await TRIP.countDocuments(filter);
+
+
     
     return res.send({
       code: constant.success_code,

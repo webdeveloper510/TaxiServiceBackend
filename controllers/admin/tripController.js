@@ -2317,6 +2317,8 @@ exports.alocate_driver = async (req, res) => {
           console.log( "🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error );
 
         }
+
+        
         try {
           // to resolve the object error
           if (update_trip && typeof update_trip.toObject === "function") {
@@ -2360,6 +2362,7 @@ exports.alocate_driver = async (req, res) => {
           console.log("🚀 ~ exports.alocate_driver= ~ error:", error);
         }
 
+        
         let current_date_time = new Date();
         // Update request send time in Trip
         await TRIP.updateOne(
@@ -2421,7 +2424,7 @@ exports.alocate_driver = async (req, res) => {
           }
 
           
-
+          
 
           // functionality For assigned driver by company
 
@@ -2485,6 +2488,8 @@ exports.alocate_driver = async (req, res) => {
             }
           }
         }
+
+        
 
         let exculdePartnerDriverId = {};
         // When Partner account alocate the trip to his driver then this driver will not get pop-up
@@ -2554,12 +2559,15 @@ exports.alocate_driver = async (req, res) => {
 
                 // when will assign the trip to itself
               if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
+                let driver_name = driver_full_info.first_name + " " + driver_full_info.last_name;
                 sendNotification(
                                   partnerAccount?.deviceToken,
                                   `Trip accepted by the driver ( ${driver_name}) and trip ID is ${update_trip.trip_id}`,
-                                  `Trip Accepted (Company access:- ${companyAgencyData.company_name})`,
+                                  `Trip Accepted`,
                                   null
                                 );
+
+                                
               }
             } else if (partnerAccount.isCompany){
   
