@@ -3165,7 +3165,7 @@ exports.get_trip_detail = async (req, res) => {
         message: "Trip not found",
       });
     }
-    
+
     let getData = await TRIP.aggregate([
       {
         $match: {
@@ -3221,6 +3221,8 @@ exports.get_trip_detail = async (req, res) => {
           hotel_location: {
             $arrayElemAt: ["$company_detail.hotel_location", 0],
           },
+          payment_method_price:1,
+          child_seat_price:1,
           vehicle_model: 1,
           commission: 1,
           price: 1,
