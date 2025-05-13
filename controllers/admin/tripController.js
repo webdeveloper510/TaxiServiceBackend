@@ -2239,7 +2239,7 @@ exports.alocate_driver = async (req, res) => {
     if (!driver_full_info) {
       return res.send({
                         code: constant.error_code,
-                        message: "Driver not available",
+                        message: "This driver is not valid",
                       });
       
     }
@@ -2254,6 +2254,7 @@ exports.alocate_driver = async (req, res) => {
 
     if (data.status != "Canceled") {
 
+      // Here we are checking the driver is available or not based on some condition like vehicle , plans and blocked etc
       const driverStatus = await canDriverOperate(driver_full_info._id);
 
       if (driverStatus?.isPassed == false) {
@@ -2293,32 +2294,27 @@ exports.alocate_driver = async (req, res) => {
                         });
 
       } else {
-        try {
+        
 
-          // when user is not alocating the trip to self
-          if ( driver_full_info._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
+        // when user is not alocating the trip to self
+        if ( driver_full_info._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
 
-            let driver_c_data = await USER.findOne({ _id: driver_full_info.created_by });
+          let driver_c_data = await USER.findOne({ _id: driver_full_info.created_by });
 
-            let token_value = driver_full_info.deviceToken == null ? driver_c_data.deviceToken :driver_full_info.deviceToken;
+          let token_value = driver_full_info.deviceToken == null ? driver_c_data.deviceToken :driver_full_info.deviceToken;
 
 
-            if (token_value) {
-              await sendNotification(
-                                      token_value,
-                                      "New Trip is allocated have ID " + update_trip.trip_id,
-                                      "New Trip is allocated have ID " + update_trip.trip_id,
-                                      update_trip
-                                    );
+          if (token_value) {
+            await sendNotification(
+                                    token_value,
+                                    "New Trip is allocated have ID T-" + update_trip.trip_id,
+                                    "New Trip is allocated have ID T-" + update_trip.trip_id,
+                                    update_trip
+                                  );
 
-            }
           }
-        } catch (error) {
-
-          console.log( "🚀 ~ exports.alocate_driver= ~ error: Unable to send notification", error );
-
         }
-
+        
         
         try {
           // to resolve the object error
@@ -2345,7 +2341,7 @@ exports.alocate_driver = async (req, res) => {
           }
           
 
-          // Company name a nd phone added
+          // Company name and phone added
           if (user_agancy_data) {
             req.user.user_company_name = user_agancy_data.company_name;
             req.user.user_company_phone = user_agancy_data.phone;
@@ -2384,7 +2380,6 @@ exports.alocate_driver = async (req, res) => {
             // when user will assign the trip to itself then no pop-up will show
             if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && driver_full_info._id.toString() != req?.user?.driverId?._id.toString()) {
 
-                console.log('inner into aocate trip company')
               req.io.to(created_by_company?.socketId).emit("tripAcceptedBYDriver",
                                                           {
                                                             update_trip,
@@ -3162,6 +3157,15 @@ exports.get_trip_detail = async (req, res) => {
     let data = req.body;
     let mid = new mongoose.Types.ObjectId(req.params.id);
 
+    const tripExist = await TRIP.findOne({ _id: req.params.id });
+
+    if (!tripExist) {
+      return res.send({
+        code: constant.error_code,
+        message: "Trip not found",
+      });
+    }
+    
     let getData = await TRIP.aggregate([
       {
         $match: {
