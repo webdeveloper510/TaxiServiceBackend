@@ -2236,24 +2236,25 @@ exports.alocate_driver = async (req, res) => {
 
     let driver_full_info = await DRIVER.findOne({ _id: data.driver_name });
 
+    if (!driver_full_info) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "Driver not available",
+                      });
+      
+    }
+
     if (driver_full_info?.is_blocked) {
       return res.send({
                         code: constant.error_code,
                         message: "This driver has been bocked by the administration.",
                       });
     }
+
+
     if (data.status != "Canceled") {
 
-      let check_driver = await DRIVER.findOne({ _id: data.driver_name });
-      if (!check_driver) {
-        return res.send({
-                          code: constant.error_code,
-                          message: "Driver not available",
-                        });
-        
-      }
-
-      const driverStatus = await canDriverOperate(check_driver._id);
+      const driverStatus = await canDriverOperate(driver_full_info._id);
 
       if (driverStatus?.isPassed == false) {
 
@@ -2265,18 +2266,18 @@ exports.alocate_driver = async (req, res) => {
 
       let newValues = {
                         $set: {
-                          driver_name: check_driver._id,
-                          vehicle: check_driver.defaultVehicle,
+                          driver_name: driver_full_info._id,
+                          vehicle: driver_full_info.defaultVehicle,
                           trip_status: data.status,
                           cancellation_reason: ""
                         },
                       };
 
-      if (check_driver._id.toString() == req?.user?.driverId?.toString()) {
+      if (driver_full_info._id.toString() == req?.user?.driverId?.toString()) {
         newValues = {
                       $set: {
-                        driver_name: check_driver._id,
-                        vehicle: check_driver.defaultVehicle,
+                        driver_name: driver_full_info._id,
+                        vehicle: driver_full_info.defaultVehicle,
                         trip_status: "Booked",
                       },
                     };
@@ -2295,11 +2296,11 @@ exports.alocate_driver = async (req, res) => {
         try {
 
           // when user is not alocating the trip to self
-          if ( check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
+          if ( driver_full_info._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
 
-            let driver_c_data = await USER.findOne({ _id: check_driver.created_by });
+            let driver_c_data = await USER.findOne({ _id: driver_full_info.created_by });
 
-            let token_value = check_driver.deviceToken == null ? driver_c_data.deviceToken :check_driver.deviceToken;
+            let token_value = driver_full_info.deviceToken == null ? driver_c_data.deviceToken :driver_full_info.deviceToken;
 
 
             if (token_value) {
@@ -2354,8 +2355,8 @@ exports.alocate_driver = async (req, res) => {
             update_trip.user_hotel_name = update_trip?.hotel_id ? hotel_data.company_name : "";
           }
 
-          if ( check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
-            req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: req.user });
+          if ( driver_full_info._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
+            req?.io?.to(driver_full_info.socketId)?.emit("newTrip", { trip: update_trip, company: req.user });
           } else {
           }
         } catch (error) {
@@ -2381,7 +2382,7 @@ exports.alocate_driver = async (req, res) => {
           if ( created_by_company?.socketId ) {
 
             // when user will assign the trip to itself then no pop-up will show
-            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && check_driver._id.toString() != req?.user?.driverId?._id.toString()) {
+            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && driver_full_info._id.toString() != req?.user?.driverId?._id.toString()) {
 
                 console.log('inner into aocate trip company')
               req.io.to(created_by_company?.socketId).emit("tripAcceptedBYDriver",
@@ -2405,7 +2406,7 @@ exports.alocate_driver = async (req, res) => {
             //  If Socket id  is exist
 
             // when user will assign the trip to itself then no pop-up will show
-            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && check_driver._id.toString() != req?.user?.driverId?._id.toString()) {
+            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && driver_full_info._id.toString() != req?.user?.driverId?._id.toString()) {
 
               req.io.to(created_by_company?.webSocketId).emit("tripAcceptedBYDriver",
                                                           {
@@ -2726,20 +2727,25 @@ exports.access_alocate_driver = async (req, res) => {
 
     let driver_full_info = await DRIVER.findOne({ _id: data.driver_name });
 
+    if (!driver_full_info) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "Driver not available",
+                      });
+      
+    }
+
+    if (driver_full_info?.is_blocked) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "This driver has been bocked by the administration.",
+                      });
+    }
+
     if (data.status != "Canceled") {
 
-      let check_driver = await DRIVER.findOne({ _id: data.driver_name });
 
-      if (!check_driver) {
-        return res.send({
-                          code: constant.error_code,
-                          message: "Driver not available",
-                        });
-        
-      }
-
-
-      const driverStatus = await canDriverOperate(check_driver._id);
+      const driverStatus = await canDriverOperate(driver_full_info._id);
 
       // check if driver completed all the check to get the trip
       if (driverStatus?.isPassed == false) {
@@ -2752,18 +2758,18 @@ exports.access_alocate_driver = async (req, res) => {
 
       let newValues = {
                         $set: {
-                          driver_name: check_driver._id,
-                          vehicle: check_driver.defaultVehicle,
+                          driver_name: driver_full_info._id,
+                          vehicle: driver_full_info.defaultVehicle,
                           trip_status: data.status,
                           cancellation_reason: ""
                         },
                       };
 
-      if (check_driver._id.toString() == req.userId.toString()) {
+      if (driver_full_info._id.toString() == req.userId.toString()) {
         newValues = {
                       $set: {
-                        driver_name: check_driver._id,
-                        vehicle: check_driver.defaultVehicle,
+                        driver_name: driver_full_info._id,
+                        vehicle: driver_full_info.defaultVehicle,
                         trip_status: "Booked",
                       },
                     };
@@ -2782,10 +2788,10 @@ exports.access_alocate_driver = async (req, res) => {
       } else {
         try {
 
-          if ( check_driver._id.toString() != req.userId.toString() && data.status !== "Booked" ) {
+          if ( driver_full_info._id.toString() != req.userId.toString() && data.status !== "Booked" ) {
 
-            let driver_c_data = await USER.findOne({ _id: check_driver.created_by, });
-            let token_value = check_driver.deviceToken;
+            let driver_c_data = await USER.findOne({ _id: driver_full_info.created_by, });
+            let token_value = driver_full_info.deviceToken;
             if (token_value == null) {
               token_value = driver_c_data.deviceToken;
             }
@@ -2832,9 +2838,9 @@ exports.access_alocate_driver = async (req, res) => {
             update_trip.user_hotel_name = update_trip?.hotel_id ? hotel_data.company_name : "";
           }
 
-          if ( check_driver._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
+          if ( driver_full_info._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
 
-            req?.io?.to(check_driver.socketId)?.emit("newTrip", { trip: update_trip, company: user });
+            req?.io?.to(driver_full_info.socketId)?.emit("newTrip", { trip: update_trip, company: user });
           }
         } catch (error) {
           console.log("🚀 ~ exports.access_alocate_driver= ~ error:", error);
