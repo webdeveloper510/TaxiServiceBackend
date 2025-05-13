@@ -3012,10 +3012,11 @@ exports.access_alocate_driver = async (req, res) => {
 
                  // when will assign the trip to itself
                 if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
+                  let driver_name = driver_full_info.first_name + " " + driver_full_info.last_name;
                   sendNotification(
                                     partnerAccount?.deviceToken,
                                     `Trip accepted by the driver ( ${driver_name}) and trip ID is ${update_trip.trip_id}`,
-                                    `Trip Accepted (Company access:- ${companyAgencyData.company_name})`,
+                                    `Trip Accepted `,
                                     null
                                   );
                 }
