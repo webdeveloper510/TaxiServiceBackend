@@ -869,6 +869,10 @@ exports.getAllTripsForDrivers = async (req, res) => {
                                                 is_paid: false,
                                               })
                                           .countDocuments();
+      const underCancellationReview = await TRIP.find({
+                                                driver_name: id,
+                                                under_cancellation_review: true,
+                                              });
 
 
 
@@ -881,7 +885,8 @@ exports.getAllTripsForDrivers = async (req, res) => {
                         totalActiveTrips,
                         totalUnpaidTrips,
                         totalReachedTrip,
-                        
+                        totalUndercancellationReview: underCancellationReview.length,
+                        totalUndercancellationTrip: underCancellationReview,
                       });
     }
   } catch (err) {
