@@ -610,7 +610,7 @@ exports.driverCancelTripDecision = async (req, res) => {
     let tripDecisionData = {
                               
                               reviewer_action :{
-                                action_taken: tripDecisionStatus,
+                                action_taken: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
                                 reviewed_by_user: null,
                                 reviewed_by_driver_partner: null,
                                 reviewed_by_account_access_driver: null
@@ -646,7 +646,10 @@ exports.driverCancelTripDecision = async (req, res) => {
 
     await TRIP.findOneAndUpdate(criteria , tripUpdateData, {new: true});
 
+    // Refesh the trip for the company and its partner and account access drivers
     partnerAccountRefreshTrip(tripDetails.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
+
+    // Send notification to the driver and inform by the socket
     if (tripDetails?.driver_name) {
       let driver_data = await DRIVER.findOne({ _id: tripDetails.driver_name });
 
@@ -657,18 +660,25 @@ exports.driverCancelTripDecision = async (req, res) => {
         device_token = driverCompany.deviceToken ? driverCompany.deviceToken : null;
       }
 
+      let message = '';
+
+      if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
+        message = `Your cancellation request for trip T-${tripDetails?.trip_id} has been approved by the company`
+      } else {
+        message = `Your cancellation request for trip T-${tripDetails?.trip_id} has been rejected by the company. Please proceed with the scheduled trip`
+      }
       if (driver_data?.socketId) {
         req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
-          message: `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
-          tripDecisionStatus: tripDecisionStatus,
+          message: message,
+          tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
           tripDetails:tripDetails
         });
       }
 
       if (driver_data?.webSocketId) {
         req.io.to(driver_data.webSocketId).emit("tripCancellationRequestDecision", {
-          message: `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
-          tripDecisionStatus: tripDecisionStatus,
+          message: message,
+          tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
           tripDetails:tripDetails
         });
       }
@@ -681,10 +691,6 @@ exports.driverCancelTripDecision = async (req, res) => {
                         tripDetails
                       );
       }
-
-
-        
-      
     }
 
     return res.send({
