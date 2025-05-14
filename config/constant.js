@@ -24,7 +24,8 @@ module.exports={
         COMPLETED: 'Completed', // When driver reached to the destination
         CANCELED: 'Canceled', //  When compnay cancelled the trip from driver
         PENDING: 'Pending', // When trip is created
-        NO_SHOW: 'NoShow'// when user will not be present at the trip start location
+        NO_SHOW: 'NoShow',// when user will not be present at the trip start location
+        CUSTOMER_CENCEL: 'CustomerCancel', // When customer cancelled the trip
     },
     TRIP_CANCELLATION_REQUEST_STATUS: {
         PENDING: 'Pending',

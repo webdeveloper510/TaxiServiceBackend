@@ -706,6 +706,133 @@ exports.driverCancelTripDecision = async (req, res) => {
   }
 }
 
+exports.customerCancelTrip = async (req , res) => {
+  try {
+    let data = req.body;
+    let criteria = { _id: req.params.id };
+    let tripInfo = await TRIP.findOne(criteria);
+
+    if (!criteria) {
+      return res.send({
+                      code: constant.error_code,
+                      message: `Invalid trip`,
+                    });
+    }
+
+    if (criteria?.trip_status == constant.TRIP_STATUS.CUSTOMER_CENCEL) {
+      return res.send({
+                        code: constant.error_code,
+                        message: `This trip is already cancelled by the user.`,
+                      });
+    }
+
+    await TRIP.findOneAndUpdate(criteria, {$set:{trip_status: constant.TRIP_STATUS.CUSTOMER_CENCEL}}, {new: true});
+
+   
+
+    let option = { new: true };
+    data.status = true;
+
+    const updateData = {  
+      under_cancellation_review: true,
+      trip_cancellation_request_id: tripCancellationRequest._id,
+      cancellation_reason: req.body.cancellation_reason,
+    }
+    
+    let update_trip = await TRIP.findOneAndUpdate(criteria, updateData, option); 
+      
+    // const driverById = await DRIVER.findOne({ _id: tripInfo?.driver_name });
+    const customerName = tripInfo?.customerDetails?.name;
+    let user = await USER.findById(tripInfo?.created_by_company_id);
+    const companyAgencyData = await AGENCY.findOne({user_id: tripInfo.created_by_company_id});
+
+    if (user?.socketId) {
+      
+        io.to(user?.socketId).emit("tripCancelledBYCustomer", {
+                                                              tripInfo,
+                                                              message: `Trip canceled by the customer ${customerName}`,
+                                                            }
+                                  );
+    }
+
+    if (user?.webSocketId) {
+      // socket for web
+      io.to(user?.webSocketId).emit(
+                                      "tripCancelledBYCustomer",
+                                      {
+                                        tripInfo,
+                                        message: `Trip canceled by the customer ${customerName}`,
+                                      },
+                                    );
+    }
+
+    if (user?.deviceToken) {
+      sendNotification(
+                          user?.deviceToken,
+                          `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
+                          `Trip Canceled by Customer (T-${tripInfo.trip_id})`,
+                          tripInfo
+                        );
+    }
+
+    // For the driver who has company access
+            
+    const driverHasCompanyAccess = await DRIVER.find({
+                                                        company_account_access  : {
+                                                                                    $elemMatch: { company_id: new mongoose.Types.ObjectId(tripInfo.created_by_company_id) },
+                                                                                  },
+                                                    });
+  if (driverHasCompanyAccess){
+  
+    for (let driverCompanyAccess of driverHasCompanyAccess) {
+      
+      if (driverCompanyAccess?.socketId) {
+
+        io.to(driverCompanyAccess?.socketId).emit(
+                                                  "tripCancelledBYCustomer",
+                                                  {
+                                                    tripInfo,
+                                                    message: `Trip canceled by the customer ${customerName}`,
+                                                  },
+                                                );
+      }
+
+      if (driverCompanyAccess?.webSocketId) {
+
+        io.to(driverCompanyAccess?.webSocketId).emit(
+                                                      "tripCancelledBYCustomer",
+                                                      {
+                                                        tripInfo,
+                                                        message: `Trip canceled by the customer ${customerName}`,
+                                                      },
+                                                    );
+      }
+
+      if (driverCompanyAccess?.deviceToken) {
+
+        sendNotification(
+                                driverCompanyAccess?.deviceToken,
+                                `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
+                                `Trip canceled ( Company Access:- ${companyAgencyData.company_name} )`,
+                                tripInfo
+                              );
+      }
+    }
+  }
+
+    return res.send({
+      code: constant.success_code,
+      message: "The trip cancellation request has been submitted successfully."
+    });
+  } catch (err) {
+    console.log('customerCancelTrip------', err)
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
+  }
+}
+
 exports.driverCancelTripRequests = async (req, res) => {
   try {
 

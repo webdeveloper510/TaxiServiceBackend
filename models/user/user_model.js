@@ -113,6 +113,10 @@ const user = new Schema(
           type: Boolean,
           default: false
         },
+        online_cancellation_time: {
+          type: Number,
+          default: 0
+        },
         child_seat_price: { 
           enabled: { type: Boolean, default: true },
           fee: { type: Number, default: 0 },
