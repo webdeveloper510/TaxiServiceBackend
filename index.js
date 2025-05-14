@@ -1219,7 +1219,7 @@ io.on("connection", (socket) => {
                                                         });
           }
 
-          sendBookingCancelledEmail(trip)
+          // sendBookingCancelledEmail(trip)
         }
       } catch (error) {
         console.log("🚀 ~ socket.on cancelDriverTrip ~ error:", error);
