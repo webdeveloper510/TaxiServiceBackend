@@ -646,6 +646,7 @@ exports.driverCancelTripDecision = async (req, res) => {
 
     await TRIP.findOneAndUpdate(criteria , tripUpdateData, {new: true});
 
+    partnerAccountRefreshTrip(tripDetails.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
     if (tripDetails?.driver_name) {
       let driver_data = await DRIVER.findOne({ _id: tripDetails.driver_name });
 
