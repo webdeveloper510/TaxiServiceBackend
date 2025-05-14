@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const CONSTANT = require("../../config/constant");
+const ROLES_ENUM_WITHOUT_DRIVER = Object.values(CONSTANT.ROLES).filter(role => role !== CONSTANT.ROLES.DRIVER);
 
 const user = new Schema(
   {
@@ -60,8 +62,8 @@ const user = new Schema(
     },
     role: {
       type: String,
-      enum: ["SUPER_ADMIN", "COMPANY", "HOTEL", "ADMIN"],
-      default: "HOTEL",
+      enum: ROLES_ENUM_WITHOUT_DRIVER,
+      default: CONSTANT.ROLES.HOTEL,
     },
     is_deleted: {
       type: Boolean,
@@ -88,25 +90,25 @@ const user = new Schema(
                           enabled: { type: Boolean, default: true },
                           fee: { type: Number, default: 0 },
                           percentage: { type: Number, default: 0 },
-                          text:{ type: String, default: "Cash" }
+                          text:{ type: String, default: CONSTANT.PAY_OPTION.CASH }
                         },
                         debit_card: { // when customer will pay through the debit card
                           enabled: { type: Boolean, default: false },
                           fee: { type: Number, default: 0 },
                           percentage: { type: Number, default: 0 },
-                          text:{ type: String, default: "Debit Card" }
+                          text:{ type: String, default: CONSTANT.PAY_OPTION.DEBIT_CARD }
                         },
                         credit_card: { // when customer will pay through the credit card
                           enabled: { type: Boolean, default: false },
                           fee: { type: Number, default: 0 },
                           percentage: { type: Number, default: 0 },
-                          text:{ type: String, default: "Credit Card" }
+                          text:{ type: String, default: CONSTANT.PAY_OPTION.CREDIT_CARD }
                         },
                         on_account: { // when customer will pay through the credit card
                           enabled: { type: Boolean, default: false },
                           fee: { type: Number, default: 0 },
                           percentage: { type: Number, default: 0 },
-                          text:{ type: String, default: "On Account" }
+                          text:{ type: String, default: CONSTANT.PAY_OPTION.ON_ACCOUNT }
                         }
         },
         show_upload_price_to_hotel: {

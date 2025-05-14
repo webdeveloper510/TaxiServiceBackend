@@ -998,14 +998,18 @@ exports.edit_sub_admin = async (req, res) => {
       
       if (data?.settings) { // when company booking settings will be saved
        
-        data.settings = JSON.parse(data?.settings)
-
+        data.settings = JSON.parse(data?.settings);
+        data.settings.payment_options.cash.text = constant.PAY_OPTION.CASH
+        data.settings.payment_options.debit_card.text = constant.PAY_OPTION.DEBIT_CARD
+        data.settings.payment_options.credit_card.text = constant.PAY_OPTION.CREDIT_CARD
+        data.settings.payment_options.on_account.text = constant.PAY_OPTION.ON_ACCOUNT
+       
         console.log(";indie" , data.settings)
       }
 
       let update_data = await USER.findOneAndUpdate(criteria, data, option);
 
-      console.log('update_data---' , update_data)
+      
       let criteria2 = { user_id: update_data._id };
       let update_data_meta = await AGENCY.findOneAndUpdate(
         criteria2,
