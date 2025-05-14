@@ -23,7 +23,8 @@ const {
         dateFilter , 
         canDriverOperate , 
         willCompanyPayCommissionOnTrip , 
-        sendTripUpdateToCustomerViaSMS
+        sendTripUpdateToCustomerViaSMS,
+        sendBookingConfirmationEmail
       } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
@@ -519,8 +520,9 @@ exports.add_trip_link = async (req, res) => {
     data.superAdminPaymentAmount = 0;
     
     let return_ticket_data = {}
-
+    let isRetrunBooking = data?.is_return_booking;
     if (data?.is_return_booking) {
+      
       return_ticket_data = data.return_booking;
       return_ticket_data.trip_id = "T" + "-" + (await getNextSequenceValue());
     }
@@ -529,9 +531,10 @@ exports.add_trip_link = async (req, res) => {
     delete data?.return_booking;
 
     let add_trip = await TRIP(data).save();
+    let add_return_trip = null;
     if (return_ticket_data) {
       
-      let add_return_trip = await TRIP(return_ticket_data).save();
+      add_return_trip = await TRIP(return_ticket_data).save();
     }
     
     // refresh trip functionality for the drivers who have account access as partner
@@ -540,9 +543,17 @@ exports.add_trip_link = async (req, res) => {
 
     if (data?.created_by_company_id) {
       const companyDetail = await user_model.findById(data?.created_by_company_id);
-
+      sendBookingConfirmationEmail(add_trip)
+      if (isRetrunBooking) {
+        sendBookingConfirmationEmail(add_trip)
+      }
       if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
-        sendTripUpdateToCustomerViaSMS(data , constant.SMS_EVENTS.TRIP_CREATE);
+        sendTripUpdateToCustomerViaSMS(add_trip , constant.SMS_EVENTS.TRIP_CREATE);
+
+        if (isRetrunBooking) {
+            sendTripUpdateToCustomerViaSMS(add_return_trip , constant.SMS_EVENTS.TRIP_CREATE);
+        }
+        
       }
     }
     
