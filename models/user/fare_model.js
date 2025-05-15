@@ -2,9 +2,13 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const fare = new Schema({
-    vehicle_type:{
+    car_type:{
         type:String,
         default:''
+    },
+    car_type_id:{
+        type: Schema.Types.ObjectId,
+        ref: "cartypes",
     },
     vehicle_fare_per_km:{
         type:String,

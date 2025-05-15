@@ -83,6 +83,8 @@ router.put("/restore_sub_admin/:id",[verifyToken],subAdminController.restoreSubA
 
 // vehicle api's
 router.get("/get_vehicle_types", vehicleController.get_vehicle_types);
+router.post("/add_car_type",[adminAuth] , vehicleController.addCarType); // add car type
+router.get("/get_car_type_list", [verifyToken] , vehicleController.getCarTypeList); // add car type
 router.post("/add_vehicle", [verifyToken], vehicleController.add_vehicle);
 router.post("/admin_add_vehicle/:driverId", [verifyToken], vehicleController.adminAddVehicle);
 router.get("/get_vehicles", [verifyToken], vehicleController.get_vehicles);

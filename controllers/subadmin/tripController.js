@@ -1,7 +1,5 @@
-const VEHICLE = require("../../models/user/vehicle_model");
 const DRIVER = require("../../models/user/driver_model");
 const USER = require("../../models/user/user_model");
-const VEHICLETYPE = require("../../models/admin/vehicle_type");
 const TRIP = require("../../models/user/trip_model");
 const TRIP_CANCELLATION_REQUEST = require("../../models/user/trip_cancellation_requests_model");
 const multer = require("multer");

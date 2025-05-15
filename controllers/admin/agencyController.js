@@ -1,7 +1,5 @@
-const VEHICLE = require('../../models/user/vehicle_model')
+
 const AGENCY = require('../../models/user/agency_model')
-const USER = require('../../models/user/user_model')
-const VEHICLETYPE = require('../../models/admin/vehicle_type')
 const constant = require('../../config/constant')
 
 

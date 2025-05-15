@@ -42,7 +42,7 @@ module.exports = [
   {
     name: "EQE",
     fullName: "normal car",
-    otherName: "van",
+    otherName: "car",
     seats: 0,
     start_price: 4.02,
     per_km: 2.65,
@@ -51,7 +51,7 @@ module.exports = [
   {
     name: "EQS",
     fullName: "normal car",
-    otherName: "van",
+    otherName: "car",
     seats: 0,
     start_price: 4.02,
     per_km: 2.65,
@@ -69,7 +69,7 @@ module.exports = [
   {
     name: "B6 ",
     fullName: "minivan 6",
-    otherName: "",
+    otherName: "van",
     seats: 0,
     start_price: 7.33,
     per_km: 3.34,
@@ -78,7 +78,7 @@ module.exports = [
   {
     name: "S",
     fullName: "station wagon",
-    otherName: "",
+    otherName: "station",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
@@ -105,7 +105,7 @@ module.exports = [
   {
     name: "B8",
     fullName: "normal sedan",
-    otherName: "",
+    otherName: "van",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
@@ -114,7 +114,7 @@ module.exports = [
   {
     name: "EV",
     fullName: "normal sedan",
-    otherName: "",
+    otherName: "car",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
@@ -132,7 +132,7 @@ module.exports = [
   {
     name: "EQV",
     fullName: "normal sedan",
-    otherName: "",
+    otherName: "van",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
@@ -141,7 +141,7 @@ module.exports = [
   {
     name: "ELV",
     fullName: "normal sedan",
-    otherName: "",
+    otherName: "car",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,

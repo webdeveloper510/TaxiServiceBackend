@@ -1,37 +1,58 @@
-const VEHICLE = require("../../models/user/vehicle_model");
 const USER = require("../../models/user/user_model");
-const VEHICLETYPE = require("../../models/admin/vehicle_type");
 const FARE = require("../../models/user/fare_model");
 const SETTINGS = require("../../models/user/setting_model");
+const CAR_TYPE = require('../../models/admin/car_type_model')
 // const VEHICLETYPE = require('../../models/user/trip_model')
 const constant = require("../../config/constant");
+const mongoose = require("mongoose");
 
 exports.add_fare = async (req, res) => {
   try {
     let data = req.body;
-    let checkFare = await FARE.findOne({
-      vehicle_type: data.vehicle_type,
-      created_by: req.userId,
-      is_deleted: false,
-    });
-    if (checkFare) {
-      res.send({
-        code: constant.error_code,
-        message: "You have already added fare for this vehicle type",
-      });
-      return;
+    console.log("data", {_id: new mongoose.Types.ObjectId(data.car_type_id), is_deleted: false});
+    let checkCarType = await CAR_TYPE.findOne({_id: new mongoose.Types.ObjectId(data.car_type_id)});
+
+    if (!checkCarType) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "Invalid car type",
+                        checkCarType
+                      });
+      
     }
-    data.created_by = req.userId;
-    let save_data = await FARE(data).save();
+    
+    const checkFare = await FARE.findOne({
+                                          car_type_id: checkCarType._id,
+                                          created_by: req.userId,
+                                          is_deleted: false,
+                                        });
+    if (checkFare) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "You already added fare for this vehicle type",
+                        checkFare
+                      });
+    }
+
+    const fareData = {
+      car_type: checkCarType.name,
+      car_type_id: checkCarType._id,
+      vehicle_fare_per_km: data.vehicle_fare_per_km,
+      minimum_fare: data.minimum_fare,
+      price_per_min: data.price_per_min,
+      waiting_fare: data.waiting_fare,
+      created_by: req.userId,
+    }
+    let save_data = await FARE(fareData).save();
     if (!save_data) {
       res.send({
         code: constant.error_code,
-        message: "Unable to create the fare",
+        message: "Unable to add the fare",
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Saved successfully",
+        message: "fare added successfully",
         result: save_data,
       });
     }

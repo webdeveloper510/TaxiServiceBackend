@@ -2,11 +2,9 @@ require("dotenv").config();
 const AGENCY = require("../../models/user/agency_model");
 const DRIVER = require("../../models/user/driver_model");
 const USER = require("../../models/user/user_model");
-const SMS_TRANSACTION = require("../../models/user/sms_transaction_model");
-const VEHICLETYPE = require("../../models/admin/vehicle_type");
+
 const { getNextSequenceValue } = require("../../models/user/trip_counter_model");
 var FARES = require("../../models/user/fare_model");
-// const FARES = require('../../models/admin/fare_model')
 const TRIP = require("../../models/user/trip_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 const multer = require("multer");

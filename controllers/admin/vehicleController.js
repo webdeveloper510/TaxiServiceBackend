@@ -1,5 +1,6 @@
 const VEHICLE = require('../../models/user/vehicle_model')
 const USER = require('../../models/user/user_model')
+const CAR_TYPE = require('../../models/admin/car_type_model')
 const VEHICLETYPE = require('../../config/vehicleType')
 const multer = require('multer')
 const path = require('path')
@@ -50,6 +51,52 @@ exports.get_vehicle_types = async (req, res) => {
         })
     }
 }
+
+exports.addCarType  = async (req, res) => {
+    try {
+        
+        const name = req.body.name.trim().toLowerCase();
+        let checkVehicle = await CAR_TYPE.findOne({ name: new RegExp(`^${name}$`, 'i') })
+        if (checkVehicle) {
+            res.send({
+                code: constant.error_code,
+                message: "Vehicle type is already exist with this name"
+            })
+            return;
+        }
+
+        const data = { name: name,}
+
+        let save_data = await CAR_TYPE(data).save()
+        res.send({
+            code: constant.success_code,
+            message: "Car type added successfully",
+            result: save_data
+        })
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.getCarTypeList = async (req, res) => {
+    try {
+
+        let carTypeList = await CAR_TYPE.find({ is_deleted: false });
+         res.send({
+            code: constant.success_code,
+            result: carTypeList
+        })
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
 
 exports.add_vehicle = async (req, res) => {
     vehicleUpload(req, res, async (err) => {
