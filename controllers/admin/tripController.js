@@ -3511,11 +3511,20 @@ exports.calculatePrice = async (req, res) => {
       return res.send({
                         code: constant.error_code,
                         message: `No fare availabe for selected type`,
+                        d: {car_type_id: car_type_id , created_by: companyId}
                       });
     }
     const vehicleType = fareDetail?.car_type.toLowerCase();
     
     const element = await getDistanceAndDuration(origin, destination);
+
+    if(element.status === 'ZERO_RESULTS') {
+      return res.send({
+                        code: constant.error_code,
+                        message: `No drivable route found between the selected locations.`,
+      
+                      });
+    }
 
     let kilometers = element.distance.value / 1000;
     
@@ -3527,6 +3536,7 @@ exports.calculatePrice = async (req, res) => {
       searchQuery.number_of_person = { $gt: 4, $lte: 8 };
     }
 
+    // get the uploaded price based on 
     const alluploadedPriceList = await PRICE_MODEL.find(searchQuery);
 
     const matchingRoutes = alluploadedPriceList?.filter( (route) =>
