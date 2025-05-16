@@ -13,6 +13,14 @@ const trip = new Schema({
         type:mongoose.Schema.Types.ObjectId,ref:'driver',
         default:null
     },
+    car_type:{
+        type:String,
+        default:''
+    },
+    car_type_id:{
+        type: Schema.Types.ObjectId,
+        ref: "cartypes",
+    },
     vehicle_type:{
         type:String,
         default:''
