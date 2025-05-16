@@ -2606,6 +2606,17 @@ exports.notifyLowSmsBalance = async (userDetails) => {
     throw error;
   }
 }
+
+exports.getDistanceAndDuration = async (origin, destination) => {
+  origin = origin || '';
+  destination = destination || '';
+  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
+  
+      const response = await axios.get(url);
+      console.log('getDistanceAndTime--' ,url)
+      const element = response.data.rows[0].elements[0];
+      return element;
+}
 //   try {
 //     const accessToken = await getAccessToken();
 

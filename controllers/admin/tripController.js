@@ -22,7 +22,8 @@ const {
         canDriverOperate , 
         willCompanyPayCommissionOnTrip , 
         sendTripUpdateToCustomerViaSMS,
-        sendBookingConfirmationEmail
+        sendBookingConfirmationEmail,
+        getDistanceAndDuration
       } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
@@ -740,6 +741,8 @@ exports.  get_trip = async (req, res) => {
           price: 1,
           passengerCount: 1,
           is_paid:1,
+          car_type:1,
+          car_type_id:1,
           company_trip_payout_status:1,
           hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
@@ -3247,6 +3250,8 @@ exports.get_trip_detail = async (req, res) => {
           trip_status: 1,
           createdAt: 1,
           updatedAt: 1,
+          car_type:1,
+          car_type_id:1,
           pay_option: 1,
           customerDetails: 1,
           passengerCount: 1,
@@ -3446,15 +3451,38 @@ exports.getDistanceAndTime = async (req, res) => {
 
     let data = req.body;
     console.log('getDistanceAndTime--' , data?.locationFrom , data?.locationTo)
-    const locationFrom = data?.locationFrom || '';
-    const locationTo = data?.locationTo || '';
+    const element = await getDistanceAndDuration(data?.locationFrom, data?.locationTo);
+    
+    if (element.status === 'OK') {
+      
+      return res.send({
+        code: constant.success_code,
+        distanceText: element.distance.text,       // e.g., "25.4 km"
+        distanceMeters: element.distance.value,    // e.g., 25400
+        durationText: element.duration.text,       // e.g., "32 mins"
+        durationSeconds: element.duration.value
+      });
+    } else {
+      // throw new Error(`Google Maps API error: ${element.status}`);
+      return res.send({
+        code: constant.error_code,
+        message: element.status,
+      });
+    }
+  } catch (err) {
+    return res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
 
-    // const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${locationFrom}&destinations=${locationTo}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${locationFrom}&destinations=${locationTo}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
+exports.calculatePrice = async (req, res) => {
+  try {
 
-    const response = await axios.get(url);
-    console.log('getDistanceAndTime--' ,url)
-    const element = response.data.rows[0].elements[0];
+    let data = req.body;
+    console.log('getDistanceAndTime--' , data?.locationFrom , data?.locationTo)
+    const element = await getDistanceAndDuration(data?.locationFrom, data?.locationTo);
     
     if (element.status === 'OK') {
       
