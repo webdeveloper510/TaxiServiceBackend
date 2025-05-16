@@ -268,10 +268,12 @@ exports.edit_fare = async (req, res) => {
                       });
       
     }
+
+    console.log("checkCarType", {_id: { $ne: criteria._id}, car_type_id: data.car_type_id ,   is_deleted: false , created_by: req.userId});
     
     const checkFare = await FARE.findOne({_id: { $ne: criteria._id}, car_type_id: data.car_type_id ,   is_deleted: false , created_by: req.userId});
 
-    if (!checkFare) {
+    if (checkFare) {
       return res.send({
                         code: constant.error_code,
                         message: `Fare for the selected vehicle type has already been added`,
