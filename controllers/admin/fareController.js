@@ -9,8 +9,9 @@ const mongoose = require("mongoose");
 exports.add_fare = async (req, res) => {
   try {
     let data = req.body;
-    console.log("data", {_id: new mongoose.Types.ObjectId(data.car_type_id), is_deleted: false});
-    let checkCarType = await CAR_TYPE.findOne({_id: new mongoose.Types.ObjectId(data.car_type_id)});
+    const id = (data.car_type || '').trim()
+    console.log("data", {_id: id, is_deleted: false});
+    let checkCarType = await CAR_TYPE.findOne({_id: new mongoose.Types.ObjectId(id), is_deleted: false});
 
     if (!checkCarType) {
       return res.send({
@@ -30,7 +31,6 @@ exports.add_fare = async (req, res) => {
       return res.send({
                         code: constant.error_code,
                         message: "You already added fare for this vehicle type",
-                        checkFare
                       });
     }
 
@@ -47,12 +47,12 @@ exports.add_fare = async (req, res) => {
     if (!save_data) {
       res.send({
         code: constant.error_code,
-        message: "Unable to add the fare",
+        message: "We were unable to add the fare at this time. Please try again later or contact support if the issue persists",
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "fare added successfully",
+        message: "Fare has been added successfully",
         result: save_data,
       });
     }
