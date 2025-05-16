@@ -78,7 +78,7 @@ module.exports = [
   {
     name: "S",
     fullName: "station wagon",
-    otherName: "station",
+    otherName: "wagon",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
@@ -96,7 +96,7 @@ module.exports = [
   {
     name: "L",
     fullName: "limousine",
-    otherName: "lux",
+    otherName: "luxury",
     seats: 0,
     start_price: 30.49,
     per_km: 7.49,
