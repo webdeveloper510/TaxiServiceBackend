@@ -41,6 +41,8 @@ exports.add_fare = async (req, res) => {
       minimum_fare: data.minimum_fare,
       price_per_min: data.price_per_min,
       waiting_fare: data.waiting_fare,
+      km_10_fare: data.km_10_fare,
+      km_25_fare:data.km_25_fare,
       created_by: req.userId,
     }
     let save_data = await FARE(fareData).save();

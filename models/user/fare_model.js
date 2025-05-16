@@ -11,23 +11,23 @@ const fare = new Schema({
         ref: "cartypes",
     },
     vehicle_fare_per_km:{
-        type:String,
+        type:Number,
         default:'0'
     },
     minimum_fare:{
-        type:String,
+        type:Number,
         default:'0'
     },
     minimum_distance:{
-        type:String,
+        type:Number,
         default:'0'
     },
     price_per_min:{
-        type:String,
+        type:Number,
         default:'0'
     },
     waiting_fare:{
-        type:String,
+        type:Number,
         default:'0'
     },
     km_10_fare:{
