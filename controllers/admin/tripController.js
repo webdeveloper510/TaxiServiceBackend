@@ -2,10 +2,11 @@ require("dotenv").config();
 const AGENCY = require("../../models/user/agency_model");
 const DRIVER = require("../../models/user/driver_model");
 const USER = require("../../models/user/user_model");
-
+const CAR_TYPE = require('../../models/admin/car_type_model')
 const { getNextSequenceValue } = require("../../models/user/trip_counter_model");
 var FARES = require("../../models/user/fare_model");
 const TRIP = require("../../models/user/trip_model");
+const PRICE_MODEL = require("../../models/user/price_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 const multer = require("multer");
 const path = require("path");
@@ -1485,6 +1486,8 @@ exports.get_access_trip = async (req, res) => {
           commission: 1,
           pay_option: 1,
           customerDetails: 1,
+          car_type:1,
+          car_type_id:1,
           price: 1,
           passengerCount: 1,
           hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
@@ -3390,6 +3393,8 @@ exports.access_get_trip_detail = async (req, res) => {
           passenger_detail: 1,
           created_by: 1,
           is_deleted: 1,
+          car_type:1,
+          car_type_id:1,
           status: 1,
           trip_status: 1,
           createdAt: 1,
@@ -3481,14 +3486,51 @@ exports.calculatePrice = async (req, res) => {
   try {
 
     let data = req.body;
+    const companyId = req?.params.companyId;
     console.log('getDistanceAndTime--' , data?.locationFrom , data?.locationTo)
-    const element = await getDistanceAndDuration(data?.locationFrom, data?.locationTo);
+    const origin = data?.locationFrom;
+    const destination = data?.locationTo.toLowerCase();
+    const car_type_id = data?.car_type_id;
+
+    const fareDetail = await FARES.findOne({car_type_id: car_type_id , created_by: companyId});
+
+    if (!fareDetail) {
+      return res.send({
+                        code: constant.error_code,
+                        message: `No fare availabe for selected type`,
+                      });
+    }
+    const vehicleType = fareDetail?.car_type.toLowerCase();
     
+    const element = await getDistanceAndDuration(origin, destination);
+
+    let kilometers = element.distance.value / 1000;
+    
+    let searchQuery = { user_id: companyId  , vehicle_type: vehicleType};
+    const alluploadedPriceList = await PRICE_MODEL.find(searchQuery);
+
+    const matchingRoutes = alluploadedPriceList?.filter( (route) =>
+                                                          (
+                                                            (origin.includes(route?.departure_place?.toLowerCase()) 
+                                                            &&  destination.includes(route?.arrival_place?.toLowerCase()))
+                                                            ||
+                                                            (route?.departure_place?.toLowerCase().includes(origin) 
+                                                            &&  route?.arrival_place?.toLowerCase().includes(destination))
+                                                          )
+                                                       );
+    let finalPrice = 0;
+
+    if (matchingRoutes?.length > 0) {
+      finalPrice = matchingRoutes[0].amount;
+    } else {
+      let getFare = await FARES.findOne({ vehicle_type: vehicleType })
+    }
     if (element.status === 'OK') {
-      
 
       return res.send({
         code: constant.success_code,
+        matchingRoutes,
+        alluploadedPriceList,
         distanceText: element.distance.text,       // e.g., "25.4 km"
         distanceMeters: element.distance.value,    // e.g., 25400
         durationText: element.duration.text,       // e.g., "32 mins"
