@@ -9,15 +9,14 @@ const mongoose = require("mongoose");
 exports.add_fare = async (req, res) => {
   try {
     let data = req.body;
-    const id = (data.car_type || '').trim()
-    console.log("data", {_id: id, is_deleted: false});
+    const id = (data.car_type_id || '').trim()
+    
     let checkCarType = await CAR_TYPE.findOne({_id: new mongoose.Types.ObjectId(id), is_deleted: false});
 
     if (!checkCarType) {
       return res.send({
                         code: constant.error_code,
-                        message: "Invalid car type",
-                        checkCarType
+                        message: "The specified car type is invalid or does not exist. Please verify and try again.",
                       });
       
     }
@@ -120,7 +119,7 @@ exports.companyGetFares = async (req, res) => {
 
       return res.send({
         code: constant.error_code,
-        message: "Invalid company",
+        message: "The specified company is invalid or does not exist. Please verify the company details and try again.",
       });
     } 
 
@@ -259,7 +258,38 @@ exports.edit_fare = async (req, res) => {
     let data = req.body;
     let criteria = { _id: req.params.id };
     let option = { new: true };
-    let update_fare = await FARE.findByIdAndUpdate(criteria, data, option);
+
+    let checkCarType = await CAR_TYPE.findOne({_id: new mongoose.Types.ObjectId(data.car_type_id), is_deleted: false});
+
+    if (!checkCarType) {
+      return res.send({
+                        code: constant.error_code,
+                        message: "The specified car type is invalid or does not exist. Please verify and try again.",
+                      });
+      
+    }
+    
+    const checkFare = await FARE.findOne({_id: { $ne: criteria._id}, car_type_id: data.car_type_id ,   is_deleted: false , created_by: req.userId});
+
+    if (!checkFare) {
+      return res.send({
+                        code: constant.error_code,
+                        message: `Fare for the selected vehicle type has already been added`,
+                      });
+      
+    }
+
+    const updateData = {
+      car_type: checkCarType.name,
+      car_type_id: checkCarType._id,
+      vehicle_fare_per_km: data.vehicle_fare_per_km,
+      minimum_fare: data.minimum_fare,
+      price_per_min: data.price_per_min,
+      waiting_fare: data.waiting_fare,
+      km_10_fare: data.km_10_fare,
+      km_25_fare:data.km_25_fare,
+    }
+    let update_fare = await FARE.findByIdAndUpdate(criteria, {$set:updateData}, option);
     if (!update_fare) {
       res.send({
         code: constant.error_code,
