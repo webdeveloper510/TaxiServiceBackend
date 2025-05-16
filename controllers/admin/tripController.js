@@ -3486,12 +3486,25 @@ exports.calculatePrice = async (req, res) => {
   try {
 
     let data = req.body;
-    const companyId = req?.params.companyId;
-    console.log('getDistanceAndTime--' , data?.locationFrom , data?.locationTo)
     const origin = data?.locationFrom;
     const destination = data?.locationTo.toLowerCase();
     const car_type_id = data?.car_type_id;
+    const number_of_person = data?.number_of_person;
+    let companyId = null;
 
+    if (req?.params?.companyId) { // for booking and driver account access
+      companyId = req?.params?.companyId;
+
+    } else if (req?.user) {
+
+      if (req?.user?.role == constant.ROLES.COMPANY) {
+        companyId = req?.user?._id;
+      } else if (req?.user?.role == constant.ROLES.HOTEL) {
+        companyId = req?.user?.created_by._id;
+      }
+    }
+    
+    
     const fareDetail = await FARES.findOne({car_type_id: car_type_id , created_by: companyId});
 
     if (!fareDetail) {
@@ -3507,6 +3520,13 @@ exports.calculatePrice = async (req, res) => {
     let kilometers = element.distance.value / 1000;
     
     let searchQuery = { user_id: companyId  , vehicle_type: vehicleType};
+    
+    if (number_of_person <= 4) {
+      searchQuery.number_of_person = { $lte: 4 };
+    } else if (number_of_person > 4 && number_of_person <= 8) {
+      searchQuery.number_of_person = { $gt: 4, $lte: 8 };
+    }
+
     const alluploadedPriceList = await PRICE_MODEL.find(searchQuery);
 
     const matchingRoutes = alluploadedPriceList?.filter( (route) =>
@@ -3519,22 +3539,41 @@ exports.calculatePrice = async (req, res) => {
                                                           )
                                                        );
     let finalPrice = 0;
-
+    let priceGetBy = null;                               
     if (matchingRoutes?.length > 0) {
       finalPrice = matchingRoutes[0].amount;
+      priceGetBy = `uploaded price`
     } else {
-      let getFare = await FARES.findOne({ vehicle_type: vehicleType })
+      if (kilometers < 10) {
+        finalPrice = kilometers * fareDetail?.vehicle_fare_per_km;
+        priceGetBy = `price below 10`
+      } else if (kilometers >= 10 && kilometers <= 25) {
+        finalPrice = kilometers * fareDetail?.km_10_fare;
+        priceGetBy = `price under 10 and 25`
+      } else if (kilometers >= 25){
+        finalPrice = kilometers * fareDetail?.km_25_fare;
+        priceGetBy = `price above 25`
+      }
     }
+
+    if (finalPrice < fareDetail?.minimum_fare) {
+      finalPrice = fareDetail?.minimum_fare;
+      priceGetBy = `minimum price`
+    }
+    finalPrice = finalPrice < fareDetail?.minimum_fare ? fareDetail?.minimum_fare : finalPrice
     if (element.status === 'OK') {
 
       return res.send({
         code: constant.success_code,
-        matchingRoutes,
-        alluploadedPriceList,
-        distanceText: element.distance.text,       // e.g., "25.4 km"
-        distanceMeters: element.distance.value,    // e.g., 25400
-        durationText: element.duration.text,       // e.g., "32 mins"
-        durationSeconds: element.duration.value
+        kilometers,
+        finalPrice,
+        priceGetBy,
+        // matchingRoutes,
+        // alluploadedPriceList,
+        // distanceText: element.distance.text,       // e.g., "25.4 km"
+        // distanceMeters: element.distance.value,    // e.g., 25400
+        // durationText: element.duration.text,       // e.g., "32 mins"
+        // durationSeconds: element.duration.value
       });
     } else {
       // throw new Error(`Google Maps API error: ${element.status}`);

@@ -166,7 +166,8 @@ router.get("/check_trip_request/:id", tripController.check_trip_request);
 router.get("/get_counts_dashboard",[verifyToken],tripController.get_counts_dashboard);
 
 router.post("/get_distance_and_time_of_trip",tripController.getDistanceAndTime);
-router.post("/calculate_price/:companyId",tripController.calculatePrice);
+router.post("/calculate_price/:companyId",tripController.calculatePrice); // for outer booking link and driver account access
+router.post("/calculate_price/",[verifyToken] , tripController.calculatePrice); // for company , partner account access and Hotel
 
 
 
