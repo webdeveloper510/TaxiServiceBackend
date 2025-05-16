@@ -30,6 +30,14 @@ const fare = new Schema({
         type:String,
         default:'0'
     },
+    km_10_fare:{
+        type:Number,
+        default:'0'
+    },
+    km_25_fare:{
+        type:Number,
+        default:'0'
+    },
     created_by:{
         type:mongoose.Schema.Types.ObjectId,ref:'users',
         default:''

@@ -328,17 +328,17 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
               // For example, update your database or notify the user
               
               const chek = await trip_model.findOneAndUpdate(
-                                                            { company_trip_payout_id: payout?.id }, // Find by tripId
-                                                            { $set: { 
-                                                                      company_trip_payout_completed_date: payout. status == 'paid'?? new Date().toISOString(), 
-                                                                      company_trip_payout_status: payout. status == 'paid'?? constant.PAYOUT_TANSFER_STATUS.PAID,
-                                                                      company_trip_payout_failure_code: payout.failure_code ,
-                                                                      company_trip_payout_failure_message: payout.failure_message,
-                                                                      is_company_paid: true,
-                                                                    } 
-                                                            }, // Update fields
-                                                            { new: true } // Return the updated document
-                                                          );
+                                                              { company_trip_payout_id: payout?.id }, // Find by tripId
+                                                              { $set: { 
+                                                                        company_trip_payout_completed_date: payout. status == 'paid'?? new Date().toISOString(), 
+                                                                        company_trip_payout_status: payout. status == 'paid'?? constant.PAYOUT_TANSFER_STATUS.PAID,
+                                                                        company_trip_payout_failure_code: payout.failure_code ,
+                                                                        company_trip_payout_failure_message: payout.failure_message,
+                                                                        is_company_paid: true,
+                                                                      } 
+                                                              }, // Update fields
+                                                              { new: true } // Return the updated document
+                                                            );
 
               console.log('payout done------')
               notifyPayoutPaid(userDetails , tripDetails , payout);
@@ -940,7 +940,7 @@ io.on("connection", (socket) => {
       }
 
       if (trip_details?.customerDetails?.email) {
-        sendBookingCancelledEmail(trip_details);
+        // sendBookingCancelledEmail(trip_details);
       }
       
     } catch (err) {
