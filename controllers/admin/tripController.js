@@ -3578,6 +3578,10 @@ exports.calculatePrice = async (req, res) => {
         kilometers,
         finalPrice,
         priceGetBy,
+        distanceText: element.distance.text,       // e.g., "25.4 km"
+        distanceMeters: element.distance.value,    // e.g., 25400
+        durationText: element.duration.text,       // e.g., "32 mins"
+        durationSeconds: element.duration.value
         // matchingRoutes,
         // alluploadedPriceList,
         // distanceText: element.distance.text,       // e.g., "25.4 km"
