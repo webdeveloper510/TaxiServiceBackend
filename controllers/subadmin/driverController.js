@@ -940,6 +940,37 @@ exports.getTripsCountForDrivers = async (req, res) => {
   }
 }
 
+exports.getUnderTripCancelledTripsCountForDrivers = async (req, res) => {
+
+  try {
+
+    let id = new mongoose.Types.ObjectId(req.userId);
+
+    let criteria =  {
+                    created_by_company_id: id,
+                    status: true,
+                    under_cancellation_review: true,
+                    is_deleted: false
+                  }
+   
+
+
+    let get_trip =  await TRIP.countDocuments(criteria);
+    
+    return res.send({
+                      code: constant.success_code,
+                      count: get_trip,
+                    });
+
+  } catch (err) {
+    console.log('getTripsCountForDrivers--~~')
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
+
 exports.login = async (req, res) => {
   try {
     let data = req.body;

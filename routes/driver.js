@@ -24,6 +24,7 @@ router.get('/get_trips_for_driver/:status',[verifyToken],driverController.get_tr
 router.get('/get_trips_for_drivers/:status',[verifyToken],driverController.get_trips_for_drivers)
 router.get('/get_all_trips_for_drivers/:status',[verifyToken],driverController.getAllTripsForDrivers)
 router.get('/get_trips_count_for_drivers/:status',[verifyToken],driverController.getTripsCountForDrivers)
+router.get('/get_under_cancelled_trips_count_for_drivers',[verifyToken],driverController.getUnderTripCancelledTripsCountForDrivers)
 
 
 // company account access list company_access_list
