@@ -30,7 +30,7 @@ const trip = new Schema({
         type:{
             commission_type:{
                 type:String,
-                enum:PAYMENT_OPTION_ENUM
+                enum:TRIP_COMMISSION_TYPE_ENUM
             },
             commission_value: {
                 type:Number
