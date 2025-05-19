@@ -157,6 +157,12 @@ const trip = new Schema({
             name: {
                 type:String,
             },
+            countryName: {
+                type:String,
+            },
+            countryCode: {
+                type:String,
+            },
             phone: {
                 type:String,
             },

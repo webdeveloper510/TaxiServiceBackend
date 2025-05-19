@@ -1925,6 +1925,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: tripDetail?.created_by_company_id });
     let email = tripDetail?.customerDetails?.email;
    
+    
     const subject = `Your order confirmation # ${tripDetail?.trip_id}`;
 
     const dateString = tripDetail?.pickup_date_time;
@@ -1961,6 +1962,13 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                           padding: 20px;
                           border-radius: 8px;
                         }
+                        .header {
+                          padding: 20px;
+                          text-align: left;
+                        }
+                        .logo {
+                          height: 40px;
+                        }
                         h2 {
                           color: #007BFF;
                         }
@@ -1979,6 +1987,10 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                         }
                       </style>
                       <div class="container">
+
+                      <div class="header">
+                        <img class="logo" src="${companyDetails?.logo}" alt="${companyAgencyDetails?.company_name}">
+                      </div>
                         <h2>Your Order Confirmation: # ${tripDetail?.trip_id}</h2>
 
                         <p>Dear Sir/Madam <strong>${tripDetail?.customerDetails?.name}</strong>,</p>
@@ -2105,6 +2117,13 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                           padding: 20px;
                           border-radius: 8px;
                         }
+                          .header {
+                          padding: 20px;
+                          text-align: left;
+                        }
+                        .logo {
+                          height: 40px;
+                        }
                         h2 {
                           color: #007BFF;
                         }
@@ -2123,6 +2142,9 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                         }
                       </style>
                       <div class="container">
+                      <div class="header">
+                        <img class="logo" src="${companyDetails?.logo}" alt="${companyAgencyDetails?.company_name}">
+                      </div>
                         <h2>Your ride has been canceled: # ${tripDetail?.trip_id}</h2>
 
                         <p>Dear Sir/Madam <strong>${tripDetail?.customerDetails?.name}</strong>,</p>
@@ -2611,7 +2633,7 @@ exports.getDistanceAndDuration = async (origin, destination) => {
   origin = origin || '';
   destination = destination || '';
   const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
-  
+  console.log(url)
       const response = await axios.get(url);
       console.log('getDistanceAndTime--' ,url)
       const element = response.data.rows[0].elements[0];

@@ -3523,7 +3523,7 @@ exports.calculatePrice = async (req, res) => {
       return res.send({
                         code: constant.error_code,
                         message: `No drivable route found between the selected locations.`,
-      
+      element
                       });
     }
 

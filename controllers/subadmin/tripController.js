@@ -647,8 +647,9 @@ exports.driverCancelTripDecision = async (req, res) => {
     // Refesh the trip for the company and its partner and account access drivers
     partnerAccountRefreshTrip(tripDetails.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
 
-    // Send notification to the driver and inform by the socket
-    if (tripDetails?.driver_name) {
+    console.log('tripDetails?.driver_name---' , tripDetails?.driver_name , req.user?.driverId?._id ,  req.companyPartnerAccess)
+    // Send notification to the driver and inform by the socket but company and driver are same person then no notification or pop-up will be show
+    if ( (tripDetails?.driver_name.toString() != req.user?.driverId?._id.toString()) ||  req.companyPartnerAccess) {
       let driver_data = await DRIVER.findOne({ _id: tripDetails.driver_name });
 
       let device_token = driver_data?.deviceToken;
@@ -665,6 +666,7 @@ exports.driverCancelTripDecision = async (req, res) => {
       } else {
         message = `Your cancellation request for trip ${tripDetails?.trip_id} has been rejected by the company. Please proceed with the scheduled trip`
       }
+      
       if (driver_data?.socketId) {
         req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
           message: message,
@@ -694,6 +696,7 @@ exports.driverCancelTripDecision = async (req, res) => {
     return res.send({
                       code: constant.success_code,
                       message: 'Successfully updated the trip cancellation request',
+                      info:req.user
                     });
     
   } catch (err) {
