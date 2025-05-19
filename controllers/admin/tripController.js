@@ -508,7 +508,7 @@ exports.add_trip_link = async (req, res) => {
     if (!userCheck) {
       return res.send({
         code: constant.error_code,
-        message: "Invalid company",
+        message: "The specified company is invalid or does not exist"
       });
 
     }
@@ -532,11 +532,7 @@ exports.add_trip_link = async (req, res) => {
 
    
     let add_trip = await TRIP(data).save();
-     return res.send({
-        code: constant.error_code,
-        message: "Invalid company",
-        add_trip
-      });
+     
     let add_return_trip = null;
     if (return_ticket_data) {
       

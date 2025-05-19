@@ -133,7 +133,7 @@ module.exports={
         COMPANY_ACCESS_APP: 'COMPANY_ACCESS_APP',
     },
     TRIP_COMMISSION_TYPE :{
-        FIXED: `FIXED`,
+        FIXED: `Fixed`,
         PERCENTAGE: `Percentage`,
         DEFAULT:   ``
     }
