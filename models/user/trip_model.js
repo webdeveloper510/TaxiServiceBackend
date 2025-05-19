@@ -7,6 +7,7 @@ const PAYMENT_OPTION_ENUM = Object.values(CONSTANT.PAY_OPTION);
 const TRIP_STATUS_ENUM = Object.values(CONSTANT.TRIP_STATUS);
 const NAVIGATION_MODE_ENUM = Object.values(CONSTANT.NAVIGATION_MODE);
 const BOOKING_SOURCE_ENUM = Object.values(CONSTANT.BOOKING_SOURCE);
+const TRIP_COMMISSION_TYPE_ENUM = Object.values(CONSTANT.TRIP_COMMISSION_TYPE);
 
 const trip = new Schema({
     driver_name:{
@@ -29,13 +30,14 @@ const trip = new Schema({
         type:{
             commission_type:{
                 type:String,
+                enum:PAYMENT_OPTION_ENUM
             },
             commission_value: {
                 type:Number
             }
         },
         default:{
-            commission_type:"Percentage",
+            commission_type:CONSTANT.TRIP_COMMISSION_TYPE.DEFAULT, //Percentage , Fixed
             commission_value:0
         }
     },

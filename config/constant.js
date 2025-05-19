@@ -131,5 +131,10 @@ module.exports={
         COMPANY_APP: 'COMPANY_APP',
         PARTNER_ACCOUNT_APP: 'PARTNER_ACCOUNT_APP',
         COMPANY_ACCESS_APP: 'COMPANY_ACCESS_APP',
+    },
+    TRIP_COMMISSION_TYPE :{
+        FIXED: `FIXED`,
+        PERCENTAGE: `Percentage`,
+        DEFAULT:   ``
     }
 }

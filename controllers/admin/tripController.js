@@ -530,7 +530,13 @@ exports.add_trip_link = async (req, res) => {
     delete data?.is_return_booking;
     delete data?.return_booking;
 
+   
     let add_trip = await TRIP(data).save();
+     return res.send({
+        code: constant.error_code,
+        message: "Invalid company",
+        add_trip
+      });
     let add_return_trip = null;
     if (return_ticket_data) {
       
@@ -553,7 +559,6 @@ exports.add_trip_link = async (req, res) => {
         if (isRetrunBooking) {
             sendTripUpdateToCustomerViaSMS(add_return_trip , constant.SMS_EVENTS.TRIP_CREATE);
         }
-        
       }
     }
     
