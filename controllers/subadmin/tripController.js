@@ -693,6 +693,113 @@ exports.driverCancelTripDecision = async (req, res) => {
       }
     }
 
+
+    let excludePartnerDriver = [trip.driver_name];
+
+    if (req.companyPartnerAccess) {
+      excludePartnerDriver.push(req.CompanyPartnerDriverId)
+    }
+    // For the driver who has company access
+            
+    const driverHasCompanyAccess = await DRIVER.find({
+                                                        _id: { $nin: excludePartnerDriver}, 
+                                                        company_account_access  : {
+                                                                                    $elemMatch: { company_id: new mongoose.Types.ObjectId(tripDetails.created_by_company_id) },
+                                                                                  },
+                                                    });
+
+    if (driverHasCompanyAccess){
+
+      for (let driverCompanyAccess of driverHasCompanyAccess) {
+        
+        if (driverCompanyAccess?.socketId) {
+
+          io.to(driverCompanyAccess?.socketId).emit("tripCancellationRequestDecision", {
+                                                      message: message,
+                                                      tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
+                                                      tripDetails:tripDetails
+                                                    });
+        }
+
+        if (driverCompanyAccess?.webSocketId) {
+
+          io.to(driverCompanyAccess?.webSocketId).emit("tripCancellationRequestDecision", {
+                                                        message: message,
+                                                        tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
+                                                        tripDetails:tripDetails
+                                                      });
+        }
+
+        if (driverCompanyAccess?.deviceToken) {
+
+          sendNotification(
+                            driverCompanyAccess?.deviceToken,
+                            `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                            `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                            tripDetails
+                          );
+        }
+      }
+    }
+
+    // functionality for the drivers who have account access as partner
+    const driverHasCompanyPartnerAccess = await DRIVER.find({
+                                                              _id: { $nin: excludePartnerDriver},
+                                                              parnter_account_access : {
+                                                                $elemMatch: { company_id: new mongoose.Types.ObjectId(user._id) },
+                                                              },
+                                                            });
+
+    if (driverHasCompanyPartnerAccess){
+
+      for (let partnerAccount of driverHasCompanyPartnerAccess) {
+
+        // for partner app side
+        if (partnerAccount?.socketId) {
+          io.to(partnerAccount?.socketId).emit("tripCancellationRequestDecision", {
+                                                message: message,
+                                                tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
+                                                tripDetails:tripDetails
+                                              });
+        }
+
+        // for partner Web side
+        if (partnerAccount?.webSocketId) {
+
+        io.to(partnerAccount?.webSocketId).emit("tripCancellationRequestDecision", {
+                                                  message: message,
+                                                  tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
+                                                  tripDetails:tripDetails
+                                                });
+        }
+
+        // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
+        if (partnerAccount?.deviceToken) {
+          // notification for driver
+
+          sendNotification(
+                            partnerAccount?.deviceToken,
+                            `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                            `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                            tripDetails
+                          );
+        } else if (partnerAccount.isCompany){
+
+          const companyData = await user_model.findById(partnerAccount.driver_company_id);
+          if (companyData?.deviceToken) {
+            // notification for company
+
+            sendNotification(
+                              companyData?.deviceToken,
+                              `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                              `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                              tripDetails
+                            );
+          }
+        }
+      }
+    }
+
     return res.send({
                       code: constant.success_code,
                       message: 'Successfully updated the trip cancellation request',
