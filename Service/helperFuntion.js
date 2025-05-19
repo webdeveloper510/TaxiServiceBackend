@@ -2629,15 +2629,46 @@ exports.notifyLowSmsBalance = async (userDetails) => {
   }
 }
 
+exports.getLatLng = async (location) => {
+
+  try {
+
+    const encodedAddress = encodeURIComponent(location);
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${process.env.GOOGLE_MAP_KEY}`;
+
+    const res = await axios.get(url);
+    if (res.data.status === 'OK') {
+      return res.data.results[0].geometry.location;
+    }
+
+  } catch (error) {
+
+    console.error("Error getLatLng:",  error.message);
+    throw error;
+  }
+}
+
 exports.getDistanceAndDuration = async (origin, destination) => {
+
+ try {
+
   origin = origin || '';
   destination = destination || '';
+  // const originLatLng = await this.getLatLng(origin);
+  // const destLatLng = await this.getLatLng(destination);
+  // const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originLatLng.lat},${originLatLng.lng}&destinations=${destLatLng.lat},${destLatLng.lng}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
   const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
   console.log(url)
       const response = await axios.get(url);
-      console.log('getDistanceAndTime--' ,url)
+      
       const element = response.data.rows[0].elements[0];
       return element;
+  } catch (error) {
+
+    console.error("Error getDistanceAndDuration:",  error.message);
+    throw error;
+  }
+  
 }
 //   try {
 //     const accessToken = await getAccessToken();

@@ -3522,8 +3522,7 @@ exports.calculatePrice = async (req, res) => {
     if(element.status === 'ZERO_RESULTS') {
       return res.send({
                         code: constant.error_code,
-                        message: `No drivable route found between the selected locations.`,
-      element
+                        message: `We couldn’t calculate the route. Ensure you’ve entered detailed addresses, including street and city etc.`
                       });
     }
 
