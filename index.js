@@ -1569,7 +1569,6 @@ async function checkTripsAndSendNotifications() {
       const driverCompanyAccountNotificationMessage = `Your (company access - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
       const driverCompanyAccountNotificationTitleMessage = `Company (company access - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
       
-      console.log('this trip is eligible for 20 minute notification -----------' , trip)
       // send to trip's driver
       if (trip?.driver_name?.deviceToken) {
           

@@ -588,6 +588,7 @@ exports.driverCancelTripDecision = async (req, res) => {
   try {
 
     let tripDecisionStatus = req.body.tripDecision;
+    let isNoShow = req.body.noShow;
     let criteria = {  _id: req.params.id };
     let tripDetails = await TRIP.findOne(criteria);
 
@@ -605,7 +606,7 @@ exports.driverCancelTripDecision = async (req, res) => {
                     });
     }
 
-    let tripDecisionData = {
+    let tripDecisionData =  {
                               
                               reviewer_action :{
                                 action_taken: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
@@ -637,7 +638,7 @@ exports.driverCancelTripDecision = async (req, res) => {
 
     if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
       tripUpdateData.driver_name = null;
-      tripUpdateData.trip_status = constant.TRIP_STATUS.PENDING;
+      tripUpdateData.trip_status = isNoShow ? constant.TRIP_STATUS.NO_SHOW : constant.TRIP_STATUS.PENDING;
 
       await DRIVER.findOneAndUpdate({_id: tripDetails?.driver_name}, { $set:{is_available: true}}, {new: true});
     }
@@ -694,7 +695,7 @@ exports.driverCancelTripDecision = async (req, res) => {
     }
 
 
-    let excludePartnerDriver = [trip.driver_name];
+    let excludePartnerDriver = [tripDetails.driver_name];
 
     if (req.companyPartnerAccess) {
       excludePartnerDriver.push(req.CompanyPartnerDriverId)
