@@ -649,8 +649,14 @@ exports.driverCancelTripDecision = async (req, res) => {
     // Refesh the trip for the company and its partner and account access drivers
     partnerAccountRefreshTrip(tripDetails.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
 
-    console.log('tripDetails?.driver_name---' , tripDetails?.driver_name , req.user?.driverId?._id ,  req.companyPartnerAccess)
-    // Send notification to the driver and inform by the socket but company and driver are same person then no notification or pop-up will be show
+    let message = '';
+
+    if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
+      message = `Your cancellation request for trip ${tripDetails?.trip_id} has been approved by the company`
+    } else {
+      message = `Your cancellation request for trip ${tripDetails?.trip_id} has been rejected by the company. Please proceed with the scheduled trip`
+    }
+      // Send notification to the driver and inform by the socket but company and driver are same person then no notification or pop-up will be show
     if ( (tripDetails?.driver_name.toString() != req.user?.driverId?._id.toString()) ||  req.companyPartnerAccess) {
       let driver_data = await DRIVER.findOne({ _id: tripDetails.driver_name });
 
@@ -661,13 +667,7 @@ exports.driverCancelTripDecision = async (req, res) => {
         device_token = driverCompany.deviceToken ? driverCompany.deviceToken : null;
       }
 
-      let message = '';
-
-      if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
-        message = `Your cancellation request for trip ${tripDetails?.trip_id} has been approved by the company`
-      } else {
-        message = `Your cancellation request for trip ${tripDetails?.trip_id} has been rejected by the company. Please proceed with the scheduled trip`
-      }
+      
       
       if (driver_data?.socketId) {
         req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
@@ -716,7 +716,7 @@ exports.driverCancelTripDecision = async (req, res) => {
         
         if (driverCompanyAccess?.socketId) {
 
-          io.to(driverCompanyAccess?.socketId).emit("tripCancellationRequestDecision", {
+          req.io.to(driverCompanyAccess?.socketId).emit("tripCancellationRequestDecision", {
                                                       message: message,
                                                       tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
                                                       tripDetails:tripDetails
@@ -725,7 +725,7 @@ exports.driverCancelTripDecision = async (req, res) => {
 
         if (driverCompanyAccess?.webSocketId) {
 
-          io.to(driverCompanyAccess?.webSocketId).emit("tripCancellationRequestDecision", {
+          req.io.to(driverCompanyAccess?.webSocketId).emit("tripCancellationRequestDecision", {
                                                         message: message,
                                                         tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
                                                         tripDetails:tripDetails
@@ -748,7 +748,7 @@ exports.driverCancelTripDecision = async (req, res) => {
     const driverHasCompanyPartnerAccess = await DRIVER.find({
                                                               _id: { $nin: excludePartnerDriver},
                                                               parnter_account_access : {
-                                                                $elemMatch: { company_id: new mongoose.Types.ObjectId(user._id) },
+                                                                $elemMatch: { company_id: new mongoose.Types.ObjectId(tripDetails.created_by_company_id) },
                                                               },
                                                             });
 
@@ -758,7 +758,7 @@ exports.driverCancelTripDecision = async (req, res) => {
 
         // for partner app side
         if (partnerAccount?.socketId) {
-          io.to(partnerAccount?.socketId).emit("tripCancellationRequestDecision", {
+          req.io.to(partnerAccount?.socketId).emit("tripCancellationRequestDecision", {
                                                 message: message,
                                                 tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
                                                 tripDetails:tripDetails
@@ -768,11 +768,11 @@ exports.driverCancelTripDecision = async (req, res) => {
         // for partner Web side
         if (partnerAccount?.webSocketId) {
 
-        io.to(partnerAccount?.webSocketId).emit("tripCancellationRequestDecision", {
-                                                  message: message,
-                                                  tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
-                                                  tripDetails:tripDetails
-                                                });
+          req.io.to(partnerAccount?.webSocketId).emit("tripCancellationRequestDecision", {
+                                                    message: message,
+                                                    tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
+                                                    tripDetails:tripDetails
+                                                  });
         }
 
         // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
@@ -787,7 +787,7 @@ exports.driverCancelTripDecision = async (req, res) => {
                           );
         } else if (partnerAccount.isCompany){
 
-          const companyData = await user_model.findById(partnerAccount.driver_company_id);
+          const companyData = await USER.findById(partnerAccount.driver_company_id);
           if (companyData?.deviceToken) {
             // notification for company
 
