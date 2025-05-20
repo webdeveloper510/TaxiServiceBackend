@@ -588,7 +588,7 @@ exports.driverCancelTripDecision = async (req, res) => {
   try {
 
     let tripDecisionStatus = req.body.tripDecision;
-    let isNoShow = req.body.noShow;
+    let isNoShow = req.body?.noShow;
     let criteria = {  _id: req.params.id };
     let tripDetails = await TRIP.findOne(criteria);
 
@@ -636,6 +636,7 @@ exports.driverCancelTripDecision = async (req, res) => {
     
     const tripUpdateData = {under_cancellation_review: false , trip_cancellation_request_id: null};
 
+    // getback the trip from driver and sent it to the company
     if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
       tripUpdateData.driver_name = null;
       tripUpdateData.trip_status = isNoShow ? constant.TRIP_STATUS.NO_SHOW : constant.TRIP_STATUS.PENDING;
