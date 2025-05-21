@@ -102,6 +102,7 @@ exports.login = async (req, res) => {
     ); // Set to Monday of current week
     let data = req.body;
     const deviceToken = data.deviceToken;
+    const webDeviceToken = data.webDeviceToken;
     const mobile = data?.platform == "mobile";
 
     let check_data;
@@ -158,18 +159,18 @@ exports.login = async (req, res) => {
 
       
       let check_again = await DRIVER.findOne({
-        $and: [
-          {
-            $or: [
-              { email: { $regex: data.email, $options: "i" } },
-              { phone: { $regex: data.email, $options: "i" } },
-            ],
-          },
-          {
-            is_deleted: false,
-          },
-        ],
-      });
+                                              $and: [
+                                                {
+                                                  $or: [
+                                                    { email: { $regex: data.email, $options: "i" } },
+                                                    { phone: { $regex: data.email, $options: "i" } },
+                                                  ],
+                                                },
+                                                {
+                                                  is_deleted: false,
+                                                },
+                                              ],
+                                            });
       
 
       if (!check_again) {
@@ -269,6 +270,7 @@ exports.login = async (req, res) => {
         updateDriver.lastUsedTokenMobile = new Date();
       } else {
         updateDriver.jwtToken = jwtToken;
+        updateDriver.webDeviceToken = webDeviceToken;
         updateDriver.lastUsedToken = new Date();
       }
 
@@ -284,10 +286,10 @@ exports.login = async (req, res) => {
       if (updateLogin?.isCompany) {
 
         let updateUserDeviceToken = await USER.findOneAndUpdate(
-                                                          { _id: updateLogin.driver_company_id },
-                                                          { $set: {deviceToken: deviceToken} },
-                                                          { new: true }
-                                                        );
+                                                                  { _id: updateLogin.driver_company_id },
+                                                                  { $set: {deviceToken: deviceToken , webDeviceToken: webDeviceToken} },
+                                                                  { new: true }
+                                                                );
       }
 
       let check_data2 = updateLogin.toObject();
@@ -333,15 +335,14 @@ exports.login = async (req, res) => {
           const OTP = Math.floor(100000 + Math.random() * 900000);
           check_data.login_sms_otp_uid = uniqueId;
           check_data.login_sms_otp = OTP;
+          check_data.webDeviceToken = webDeviceToken;
           await check_data.save();
           await sendSms({
             to: check_data.phone,
             message: `Hello ${check_data.first_name} ${check_data.first_name} , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`,
           });
 
-          setTimeout(() => {
-            removeOTPAfter5Minutes(uniqueId);
-          }, 120 * 1000); // 120 seconds ( 2 minutes)
+          setTimeout(() => { removeOTPAfter5Minutes(uniqueId); }, 120 * 1000); // 120 seconds ( 2 minutes)
 
           return res.send({
                             code: constants.OTP_CODE,
@@ -385,13 +386,12 @@ exports.login = async (req, res) => {
         updateData.lastUsedTokenMobile = new Date();
       } else {
         updateData.jwtToken = jwtToken;
+        updateData.webDeviceToken = webDeviceToken;
         updateData.lastUsedToken = new Date();
       }
       if (deviceToken) {
         updateData.deviceToken = deviceToken;
       }
-
-
 
 
       // await check_data.save();
@@ -405,6 +405,7 @@ exports.login = async (req, res) => {
           updateDriverdata.jwtTokenMobile = null
         } else {
           updateDriverdata.jwtToken = null
+          updateDriverdata.webDeviceToken = webDeviceToken
         }
         await DRIVER.findOneAndUpdate(
                                         {_id: check_data.driverId},
