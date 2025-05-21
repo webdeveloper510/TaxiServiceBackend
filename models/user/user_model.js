@@ -208,6 +208,10 @@ const user = new Schema(
       type: String,
       default: null,
     },
+    webDeviceToken: {
+      type: String,
+      default: "",
+    },
     deviceToken: {
       type: String,
       default: "",

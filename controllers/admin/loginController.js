@@ -101,7 +101,8 @@ exports.login = async (req, res) => {
       startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
     ); // Set to Monday of current week
     let data = req.body;
-    const deviceToken = data.deviceToken;
+    const deviceToken = data?.deviceToken;
+    const webDeviceToken = data?.webDeviceToken;
     const mobile = data?.platform == "mobile";
 
     let check_data;
@@ -269,6 +270,7 @@ exports.login = async (req, res) => {
         updateDriver.lastUsedTokenMobile = new Date();
       } else {
         updateDriver.jwtToken = jwtToken;
+        updateDriver.webDeviceToken = webDeviceToken;
         updateDriver.lastUsedToken = new Date();
       }
 
@@ -285,7 +287,7 @@ exports.login = async (req, res) => {
 
         let updateUserDeviceToken = await USER.findOneAndUpdate(
                                                           { _id: updateLogin.driver_company_id },
-                                                          { $set: {deviceToken: deviceToken} },
+                                                          { $set: {deviceToken: deviceToken , webDeviceToken: webDeviceToken} },
                                                           { new: true }
                                                         );
       }
@@ -384,7 +386,7 @@ exports.login = async (req, res) => {
         updateData.jwtTokenMobile = jwtToken;
         updateData.lastUsedTokenMobile = new Date();
       } else {
-        updateData.jwtToken = jwtToken;
+        updateData.webDeviceToken = webDeviceToken;
         updateData.lastUsedToken = new Date();
       }
       if (deviceToken) {
@@ -405,6 +407,7 @@ exports.login = async (req, res) => {
           updateDriverdata.jwtTokenMobile = null
         } else {
           updateDriverdata.jwtToken = null
+          updateDriverdata.webDeviceToken = webDeviceToken
         }
         await DRIVER.findOneAndUpdate(
                                         {_id: check_data.driverId},

@@ -111,6 +111,17 @@ const tripIsBooked = async (tripId, driver_info, io) => {
                               );
       }
 
+      if (user?.webDeviceToken) {
+        // notification for company web
+
+        await sendNotification(
+                                user?.webDeviceToken,
+                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                updateDriver
+                              );
+      }
+
       // Functionality for assigned driver
 
       const company_assigned_driverIds = user.company_account_access.map((item) => item.driver_id); // get the assigned driver
@@ -2317,7 +2328,8 @@ exports.alocate_driver = async (req, res) => {
           let driver_c_data = await USER.findOne({ _id: driver_full_info.created_by });
 
           let token_value = driver_full_info.deviceToken == null ? driver_c_data.deviceToken :driver_full_info.deviceToken;
-
+          let web_token_value = driver_full_info.webDeviceToken == null ? driver_c_data.webDeviceToken :driver_full_info.webDeviceToken;
+          
 
           if (token_value) {
             await sendNotification(
@@ -2327,6 +2339,15 @@ exports.alocate_driver = async (req, res) => {
                                     {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
                                   );
 
+          }
+
+          if (web_token_value) {
+            await sendNotification(
+                                    web_token_value,
+                                    "New Trip is allocated have ID T-" + update_trip.trip_id,
+                                    "New Trip is allocated have ID T-" + update_trip.trip_id,
+                                    {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
+                                  );
           }
         }
         
@@ -2497,6 +2518,19 @@ exports.alocate_driver = async (req, res) => {
                                   );
               }
             }
+
+            if (driverCompanyAccess?.webDeviceToken) {
+
+              // when will assign the trip to itself
+              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
+                sendNotification(
+                                  driverCompanyAccess?.webDeviceToken,
+                                  `Trip accepted by the driver ( ${driver_full_info.first_name + " " + driver_full_info.last_name}) and trip ID is ${update_trip.trip_id}`,
+                                  `Trip Accepted`,
+                                  driver_full_info
+                                  );
+              }
+            }
           }
         }
 
@@ -2563,6 +2597,19 @@ exports.alocate_driver = async (req, res) => {
               req.io.to(partnerAccount?.webSocketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
             }
             
+            // sedn push notification on web
+            if (partnerAccount?.webDeviceToken) {
+
+              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
+                let driver_name = driver_full_info.first_name + " " + driver_full_info.last_name;
+                sendNotification(
+                                  partnerAccount?.webDeviceToken,
+                                  `Trip accepted by the driver ( ${driver_name}) and trip ID is ${update_trip.trip_id}`,
+                                  `Trip Accepted`,
+                                  null
+                                );              
+              }
+            }
           
             // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
             if (partnerAccount?.deviceToken) {
@@ -2576,9 +2623,7 @@ exports.alocate_driver = async (req, res) => {
                                   `Trip accepted by the driver ( ${driver_name}) and trip ID is ${update_trip.trip_id}`,
                                   `Trip Accepted`,
                                   null
-                                );
-
-                                
+                                );              
               }
             } else if (partnerAccount.isCompany){
   
@@ -2599,74 +2644,6 @@ exports.alocate_driver = async (req, res) => {
             }
           }
         }
-
-          // // functionality For assigned driver by company
-          // const company_assigned_driverIds = created_by_company.company_account_access.map(  (item) => item.driver_id );
-
-          // if (company_assigned_driverIds.length > 0) {
-          //   const drivers_info_for_socket_ids_app = await DRIVER.find({
-          //                                                               _id: { $in: company_assigned_driverIds },
-          //                                                               status: true,
-          //                                                               socketId: { $ne: null }, // device_token should not be null
-          //                                                             });
-
-          //   const drivers_info_for_socket_ids_web = await DRIVER.find({
-          //                                                               _id: { $in: company_assigned_driverIds },
-          //                                                               status: true,
-          //                                                               webSocketId: { $ne: null }, // device_token should not be null
-          //                                                             });
-
-          //   // getting only socet id from array
-          //   const company_assigned_driver_sockets_web = drivers_info_for_socket_ids_web.map((item) => item.webSocketId);
-
-          //   // getting only socet id from array
-          //   const company_assigned_driver_sockets_app = drivers_info_for_socket_ids_app.map((item) => item.socketId);
-
-          //   // merge the array in single array
-          //   const driverSocketIds = company_assigned_driver_sockets_web.concat( company_assigned_driver_sockets_app );
-
-          //   // Send the socket model popo to assigned drivers
-          //   if (driverSocketIds.length > 0) {
-          //     driverSocketIds.forEach((socketId) => {
-          //       if (socketId != req.user.socketId) {
-                  
-          //         req.io.to(socketId).emit("refreshTrip",
-          //                                                 {
-          //                                                   update_trip,
-          //                                                   message:
-          //                                                     "A trip has been sent for allocation to the driver. Please refresh the data",
-          //                                                 },
-          //                                                 (err, ack) => {
-          //                                                   if (ack) {
-          //                                                   } else {
-          //                                                   }
-          //                                                 }
-          //                                 );
-          //       }
-          //     });
-          //   }
-          // }
-
-          // // functionality for the drivers who have account access as partner
-
-          // const driverHasCompanyPartnerAccess = await driver_model.find({
-          //                                                                 parnter_account_access  : {
-          //                                                                                             $elemMatch: { company_id: new mongoose.Types.ObjectId(created_by_company._id) },
-          //                                                                                           },
-          //                                                               });
-
-          // if (driverHasCompanyPartnerAccess){
-
-          //   for (let partnerAccount of driverHasCompanyPartnerAccess) {
-
-          //     // for partner app side
-          //     if (partnerAccount?.socketId) {
-
-          //       // for refresh trip
-          //       await req.io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "A trip has been sent for allocation to the driver. Please refresh the data", } )
-          //     }
-          //   }
-          // }
         }
 
         return res.send({
@@ -2806,7 +2783,11 @@ exports.access_alocate_driver = async (req, res) => {
               token_value = driver_c_data.deviceToken;
             }
 
-            await sendNotification( token_value, "New Trip is allocated have ID " + update_trip.trip_id, "New Trip is allocated have ID " + update_trip.trip_id, update_trip);
+            await sendNotification( token_value, 
+                                    "New Trip is allocated have ID " + update_trip.trip_id, 
+                                    "New Trip is allocated have ID " + update_trip.trip_id, 
+                                    {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
+                                  );
           }
         } catch (error) {
           console.log(

@@ -819,7 +819,7 @@ exports.driverCancelTripDecision = async (req, res) => {
 exports.customerCancelTrip = async (req , res) => {
   try {
     let data = req.body;
-    let criteria = { _id: req.body.id };
+    let criteria = { _id: data.id };
     let tripInfo = await TRIP.findOne(criteria);
 
     if (!criteria) {
@@ -836,21 +836,9 @@ exports.customerCancelTrip = async (req , res) => {
                       });
     }
 
-    await TRIP.findOneAndUpdate(criteria, {$set:{trip_status: constant.TRIP_STATUS.CUSTOMER_CENCEL}}, {new: true});
+    await TRIP.findOneAndUpdate(criteria, {$set:{trip_status: constant.TRIP_STATUS.CUSTOMER_CENCEL , driver_name: null , under_cancellation_review: false}}, {new: true});
 
    
-
-    let option = { new: true };
-    data.status = true;
-
-    const updateData = {  
-      under_cancellation_review: true,
-      trip_cancellation_request_id: tripCancellationRequest._id,
-      cancellation_reason: req.body.cancellation_reason,
-    }
-    
-    let update_trip = await TRIP.findOneAndUpdate(criteria, updateData, option); 
-      
     // const driverById = await DRIVER.findOne({ _id: tripInfo?.driver_name });
     const customerName = tripInfo?.customerDetails?.name;
     let user = await USER.findById(tripInfo?.created_by_company_id);
@@ -858,7 +846,7 @@ exports.customerCancelTrip = async (req , res) => {
 
     if (user?.socketId) {
       
-        io.to(user?.socketId).emit("tripCancelledBYCustomer", {
+        req.io.to(user?.socketId).emit("tripCancelledBYCustomer", {
                                                               tripInfo,
                                                               message: `Trip canceled by the customer ${customerName}`,
                                                             }
@@ -867,7 +855,7 @@ exports.customerCancelTrip = async (req , res) => {
 
     if (user?.webSocketId) {
       // socket for web
-      io.to(user?.webSocketId).emit(
+      req.io.to(user?.webSocketId).emit(
                                       "tripCancelledBYCustomer",
                                       {
                                         tripInfo,
@@ -898,7 +886,7 @@ exports.customerCancelTrip = async (req , res) => {
         
         if (driverCompanyAccess?.socketId) {
 
-          io.to(driverCompanyAccess?.socketId).emit(
+          req.io.to(driverCompanyAccess?.socketId).emit(
                                                     "tripCancelledBYCustomer",
                                                     {
                                                       tripInfo,
@@ -909,7 +897,7 @@ exports.customerCancelTrip = async (req , res) => {
 
         if (driverCompanyAccess?.webSocketId) {
 
-          io.to(driverCompanyAccess?.webSocketId).emit(
+          req.io.to(driverCompanyAccess?.webSocketId).emit(
                                                         "tripCancelledBYCustomer",
                                                         {
                                                           tripInfo,
@@ -922,6 +910,16 @@ exports.customerCancelTrip = async (req , res) => {
 
           sendNotification(
                                   driverCompanyAccess?.deviceToken,
+                                  `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
+                                  `Trip canceled ( Company Access:- ${companyAgencyData.company_name} )`,
+                                  tripInfo
+                                );
+        }
+
+        if (driverCompanyAccess?.webDeviceToken) {
+
+          sendNotification(
+                                  driverCompanyAccess?.webDeviceToken,
                                   `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
                                   `Trip canceled ( Company Access:- ${companyAgencyData.company_name} )`,
                                   tripInfo
@@ -943,14 +941,14 @@ exports.customerCancelTrip = async (req , res) => {
 
           // for partner app side
           if (partnerAccount?.socketId) {
-            io.to(partnerAccount?.socketId).emit("tripCancelledBYCustomer",{
+            req.io.to(partnerAccount?.socketId).emit("tripCancelledBYCustomer",{
                                                                               tripInfo,
                                                                               message: `Trip canceled by the customer ${customerName}`,
                                                                             },
                                                 );
               
             // for refresh trip
-            io.to(partnerAccount?.socketId).emit(
+            req.io.to(partnerAccount?.socketId).emit(
                                                   "refreshTrip",
                                                   {
                                                     message:
@@ -962,17 +960,28 @@ exports.customerCancelTrip = async (req , res) => {
           // for partner Web side
           if (partnerAccount?.webSocketId) {
 
-          io.to(partnerAccount?.webSocketId).emit("tripCancelledBYCustomer",{
+          req.io.to(partnerAccount?.webSocketId).emit("tripCancelledBYCustomer",{
                                                                               tripInfo,
                                                                               message: `Trip canceled by the customer ${customerName}`,
                                                                             },
                                                 )
 
-          io.to(partnerAccount?.webSocketId).emit("refreshTrip",  {
+          req.io.to(partnerAccount?.webSocketId).emit("refreshTrip",  {
                                                                           message:
                                                                             "Trip Driver didn't accpet the trip. Please refresh the data",
                                                                         }
                                                         );
+          }
+
+          if (partnerAccount?.webDeviceToken) {
+            // notification for driver
+
+            sendNotification(
+                              partnerAccount?.webDeviceToken,
+                              `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
+                              `Trip Cancelled ( Partner Account Access:- ${companyAgencyData.company_name})`,
+                              tripInfo
+                            );
           }
 
           // If driver has device token to send the notification otherwise we can get device token his company account if has has company role

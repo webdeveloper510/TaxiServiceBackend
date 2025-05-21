@@ -489,6 +489,18 @@ exports.sendNotification = async (to, message, title, data = {notificationType: 
           },
         },
       },
+      webpush: {
+        notification: {
+          icon: `${process.env.FRONTEND_URL}/icons/icon-192x192.png`,
+          click_action: `${process.env.FRONTEND_URL}`,
+          sound: data?.notificationType == constant.NOTIFICATION_TYPE.ALLOCATE_TRIP
+            ? "/sounds/car_horn.mp3"
+            : "/sounds/ping.mp3"
+        },
+        headers: {
+          Urgency: `high`
+        }
+      }
     };
 
     
