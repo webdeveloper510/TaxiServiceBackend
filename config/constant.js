@@ -136,5 +136,13 @@ module.exports={
         FIXED: `Fixed`,
         PERCENTAGE: `Percentage`,
         DEFAULT:   ``
+    },
+
+    NOTIFICATION_TYPE:{
+        ALLOCATE_TRIP: `allocate_trip`,
+        RETRIEVE_TRIP: `retrieve_trip`,
+        CANCEL_TRIP: `cancel_trip`,
+        UPDATE_TRIP: `cancel_trip`,
+        OTHER: `other`,
     }
 }

@@ -819,7 +819,7 @@ exports.driverCancelTripDecision = async (req, res) => {
 exports.customerCancelTrip = async (req , res) => {
   try {
     let data = req.body;
-    let criteria = { _id: req.params.id };
+    let criteria = { _id: req.body.id };
     let tripInfo = await TRIP.findOne(criteria);
 
     if (!criteria) {

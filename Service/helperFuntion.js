@@ -462,8 +462,10 @@ exports.isDriverHasCompanyAccess = async (driver_data, company_id) => {
   return driver_data.company_account_access.some( (account) => account.company_id.toString() === company_id.toString() ); // return true if driver has access otherwise it will return false
 };
 
-exports.sendNotification = async (to, message, title, data) => {
+exports.sendNotification = async (to, message, title, data = {notificationType: constant.NOTIFICATION_TYPE.OTHER}) => {
   let device_token = to;
+  
+
   try {
     const messageData = {
       token: to, // The device token to send the message to
@@ -475,15 +477,15 @@ exports.sendNotification = async (to, message, title, data) => {
         priority: "high",
         notification: {
           // sound: "default", // Play default notification sound on Android
-          sound: "car_horn", // Play default notification sound on Android
-          channel_id: "custom_sound_channel"
+          sound: data?.notificationType == constant.NOTIFICATION_TYPE.ALLOCATE_TRIP ?  `car_hor` : `ping`, // Play default notification sound on Android
+          channel_id: data?.notificationType == constant.NOTIFICATION_TYPE.ALLOCATE_TRIP ? `trip_request_channel` : `ping_sound_channel`
         },
       },
       apns: {
         payload: {
           aps: {
             // sound: "default", // Play default notification sound on iOS
-            sound: "car_horn.wav",
+            sound: data?.notificationType == constant.NOTIFICATION_TYPE.ALLOCATE_TRIP ? `car_horn.wav` : `ping.wav`,
           },
         },
       },

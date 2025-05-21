@@ -2272,7 +2272,6 @@ exports.alocate_driver = async (req, res) => {
 
       // Here we are checking the driver is available or not based on some condition like vehicle , plans and blocked etc
       const driverStatus = await canDriverOperate(driver_full_info._id);
-
       if (driverStatus?.isPassed == false) {
 
         return res.send({
@@ -2325,7 +2324,7 @@ exports.alocate_driver = async (req, res) => {
                                     token_value,
                                     "New Trip is allocated have ID T-" + update_trip.trip_id,
                                     "New Trip is allocated have ID T-" + update_trip.trip_id,
-                                    update_trip
+                                    {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
                                   );
 
           }
