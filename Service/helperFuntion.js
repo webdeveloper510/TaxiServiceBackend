@@ -491,7 +491,7 @@ exports.sendNotification = async (to, message, title, data = {notificationType: 
       },
     };
 
-    console.log('messageData----' , messageData)
+    
     const response = await admin.messaging().send(messageData);
 
     return response;
