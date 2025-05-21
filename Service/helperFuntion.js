@@ -477,7 +477,7 @@ exports.sendNotification = async (to, message, title, data = {notificationType: 
         priority: "high",
         notification: {
           // sound: "default", // Play default notification sound on Android
-          sound: data?.notificationType == constant.NOTIFICATION_TYPE.ALLOCATE_TRIP ?  `car_hor` : `ping`, // Play default notification sound on Android
+          sound: data?.notificationType == constant.NOTIFICATION_TYPE.ALLOCATE_TRIP ?  `car_horn` : `ping`, // Play default notification sound on Android
           channel_id: data?.notificationType == constant.NOTIFICATION_TYPE.ALLOCATE_TRIP ? `trip_request_channel` : `ping_sound_channel`
         },
       },
