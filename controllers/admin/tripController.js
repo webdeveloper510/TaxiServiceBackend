@@ -132,22 +132,31 @@ const tripIsBooked = async (tripId, driver_info, io) => {
         const drivers_info_for_token = await driver_model.find({
                                                                 _id: { $in: company_assigned_driverIds, $ne: driver_full_info._id },
                                                                 status: true,
-                                                                deviceToken: { $ne: null }, // device_token should not be null
+                                                                // deviceToken: { $ne: null }, // device_token should not be null
                                                               });
 
         // Send the notification to assigned drivers
         if (drivers_info_for_token.length > 0) {
-          const company_assigned_driver_token = drivers_info_for_token.map( (item) => item.deviceToken );
+          // const company_assigned_driver_token = drivers_info_for_token.map( (item) => item.deviceToken );
 
-          company_assigned_driver_token.forEach(async (driver_device_token) => {
-            if (driver_device_token) {
-              let send_notification = await sendNotification(
-                                                              driver_device_token,
-                                                              `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                                                              agency.company_name +
-                                                                `'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                                                              updateDriver
-                                                            );
+          drivers_info_for_token.forEach(async (driver) => {
+            if (driver?.deviceToken) {
+              sendNotification(
+                                driver?.deviceToken,
+                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                agency.company_name +
+                                  `'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                updateDriver
+                              );
+            }
+            if (driver?.webDeviceToken) {
+              sendNotification(
+                                driver?.webDeviceToken,
+                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                agency.company_name +
+                                  `'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                updateDriver
+                              );
             }
           });
         }
@@ -239,16 +248,27 @@ const tripIsBooked = async (tripId, driver_info, io) => {
                             });
           }
 
+          if (partnerAccount?.webDeviceToken) {
+            // notification for driver
+
+            sendNotification(
+                              partnerAccount?.webDeviceToken,
+                              `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                              `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                              updateDriver
+                            );
+          }
+
           // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
           if (partnerAccount?.deviceToken) {
             // notification for driver
 
-            await sendNotification(
-                                  partnerAccount?.deviceToken,
-                                  `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                                  `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                                  updateDriver
-                                  );
+            sendNotification(
+                              partnerAccount?.deviceToken,
+                              `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                              `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                              updateDriver
+                            );
           } else if (partnerAccount.isCompany){
 
             const companyData = await user_model.findById(partnerAccount.driver_company_id);
