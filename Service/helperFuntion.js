@@ -509,8 +509,6 @@ exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) =
     }
   }
 
-  
-  
   // emit the socket for notifing---- driver didn't accept the trip
   if (socketList) {
     for (let socketId of socketList) {
@@ -536,7 +534,7 @@ exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) =
 
       if (tokenValue) {
         console.log('tokenValue----' , tokenValue)
-        await this.sendNotification(
+        this.sendNotification(
                                       tokenValue,
                                       `Trip ( ${tripDetail.trip_id} ) didn't accepted by the driver ( ${driverInfo?.first_name} ${driverInfo?.last_name} ) `,
                                       `Trip Not Accepted #:  ${tripDetail.trip_id}`,
