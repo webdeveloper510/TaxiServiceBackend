@@ -1,6 +1,5 @@
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const User = require("../models/user/user_model");
 const driver_model = require("../models/user/driver_model");
 const user_model = require("../models/user/user_model");
 const SMS_TRANSACTION = require("../models/user/sms_transaction_model");
@@ -461,6 +460,96 @@ exports.isDriverHasCompanyAccess = async (driver_data, company_id) => {
 
   return driver_data.company_account_access.some( (account) => account.company_id.toString() === company_id.toString() ); // return true if driver has access otherwise it will return false
 };
+
+exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) => {
+  try {
+
+      const user = await user_model.findById(tripDetail.created_by_company_id);
+      const agency = await AGENCY_MODEL.findOne({ user_id: tripDetail.created_by_company_id, });
+
+      let socketList = [];
+      let deviceTokenList = [];
+
+      if (user?.socketId) { socketList.push(user?.socketId); }
+      if (user?.webSocketId) { socketList.push(user?.webSocketId); }
+      if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
+      if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+
+      // get the drivers (who have access) of  partners and account access list 
+      const driverList = await driver_model.find({
+                                                    $and: [
+                                                      {
+                                                        _id: { $ne: driverInfo._id }, // 👈 Exclude this driver who get the trip so this driver will not be notified
+                                                        status: true,
+                                                      },
+                                                      {
+                                                        $or: [
+                                                          {
+                                                            parnter_account_access: {
+                                                              $elemMatch: { company_id: user._id },
+                                                            },
+                                                          },
+                                                          {
+                                                            company_account_access: {
+                                                              $elemMatch: { company_id: user._id },
+                                                            },
+                                                          },
+                                                        ],
+                                                      },
+                                                    ],
+                                                 });
+
+  if (driverList) {
+
+    for (let driver of driverList) {
+      if (driver?.socketId) { socketList.push(driver?.socketId); }
+      if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
+      if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
+      if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
+    }
+  }
+
+  
+  
+  // emit the socket for notifing---- driver didn't accept the trip
+  if (socketList) {
+    for (let socketId of socketList) {
+
+      if (socketId) {
+
+      
+        socket.to(socketId).emit("tripNotAcceptedBYDriver", {
+                                                              trip: tripDetail,
+                                                              message: agency.company_name + "'s Trip not accepted by the Driver",
+                                                            }
+                                );
+
+        socket.to(socketId).emit("refreshTrip", {  message: "Trip not accepted by driver. Please refresh the data"  }  );
+      }
+    }
+  }
+
+  // send the push notification
+  if (deviceTokenList) {
+    
+    for (let tokenValue of deviceTokenList) {
+
+      if (tokenValue) {
+        console.log('tokenValue----' , tokenValue)
+        await this.sendNotification(
+                                      tokenValue,
+                                      `Trip ( ${tripDetail.trip_id} ) didn't accepted by the driver ( ${driverInfo?.first_name} ${driverInfo?.last_name} ) `,
+                                      `Trip Not Accepted #:  ${tripDetail.trip_id}`,
+                                      driverInfo
+                                    );
+      }
+    }
+  }
+
+  } catch (error) {
+    console.log('emitTripNotAcceptedByDriver-------' , error)
+  }
+}
 
 exports.sendNotification = async (to, message, title, data = {notificationType: constant.NOTIFICATION_TYPE.OTHER}) => {
   let device_token = to;

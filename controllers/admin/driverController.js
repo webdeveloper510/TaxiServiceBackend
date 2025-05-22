@@ -2055,6 +2055,7 @@ exports.logout = async (req, res) => {
                                                           $set: { 
                                                                   is_login: false, 
                                                                   deviceToken: null, // driver will not recieve any notification in his device
+                                                                  webDeviceToken: null,
                                                                   status: false // driver will be offline
                                                                  },
                                                         },
@@ -2066,7 +2067,7 @@ exports.logout = async (req, res) => {
         let companyUpdate = await USER.findOneAndUpdate(
                                                           { _id: driverInfo?.driver_company_id },
                                                           {
-                                                            $set: { deviceToken: null },
+                                                            $set: { deviceToken: null   , webDeviceToken: null,},
                                                           },
                                                           { new: true }
                                                         );
@@ -2076,7 +2077,7 @@ exports.logout = async (req, res) => {
       let companyUpdate = await USER.findOneAndUpdate(
                                                       { _id: data.driverId },
                                                       {
-                                                        $set: { deviceToken: null },
+                                                        $set: { deviceToken: null  , webDeviceToken: null,},
                                                       },
                                                       { new: true }
                                                     );
@@ -2088,7 +2089,8 @@ exports.logout = async (req, res) => {
                                                             {
                                                               $set: { 
                                                                       is_login: false, 
-                                                                      deviceToken: null, // driver will not recieve any notification in his device
+                                                                      deviceToken: null, // driver will not recieve any notification in his device,
+                                                                      webDeviceToken: null,
                                                                       status: false // driver will be offline
                                                                     },
                                                             },

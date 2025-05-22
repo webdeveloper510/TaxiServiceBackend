@@ -24,7 +24,8 @@ const {
         willCompanyPayCommissionOnTrip , 
         sendTripUpdateToCustomerViaSMS,
         sendBookingConfirmationEmail,
-        getDistanceAndDuration
+        getDistanceAndDuration,
+        emitTripNotAcceptedByDriver
       } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
@@ -55,13 +56,24 @@ const tripIsBooked = async (tripId, driver_info, io) => {
       tripById.trip_status = "Pending";
       await tripById.save();
 
+      // for driver app side to close the pop-up------ this will apply for the app only
+      if (driver_full_info?.socketId) {
+        io.to(driver_full_info?.socketId).emit("popUpClose", {
+                                                                trip: tripById,
+                                                                message: "Close up socket connection",
+                                                              });
+      }
+
+      emitTripNotAcceptedByDriver(io , tripById , updateDriver);
+      return
+      
+
       const user = await user_model.findById(tripById.created_by_company_id);
       const agency = await AGENCY.findOne({ user_id: tripById.created_by_company_id, });
 
       // for company app side
       if (user?.socketId) {
 
-        console.log("🚀 ~ tripIsBooked ~ user?.socketId:", user?.socketId);
         io.to(user?.socketId).emit("tripNotAcceptedBYDriver", {
                                                                 trip: tripById,
                                                                 message: "Trip not accepted by the Driver",
@@ -83,22 +95,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
                                                     });
       }
 
-      // for driver app side
-      if (driver_full_info?.socketId) {
-        io.to(driver_full_info?.socketId).emit("popUpClose", {
-                                                                trip: tripById,
-                                                                message: "Close up socket connection",
-                                                              });
-      }
-
-      // for driver Web side
-      if (driver_full_info?.webSocketId) {
-        // for web app side
-        io.to(driver_full_info?.webSocketId).emit("popUpClose", {
-                                                                  trip: tripById,
-                                                                  message: "Close up socket connection",
-                                                                });
-      }
+      
 
       if (user?.deviceToken) {
         // notification for company
@@ -106,7 +103,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
         await sendNotification(
                                 user?.deviceToken,
                                 `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                `Trip Not Accepted`,
                                 updateDriver
                               );
       }
@@ -117,7 +114,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
         await sendNotification(
                                 user?.webDeviceToken,
                                 `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                `Trip Not Accepted`,
                                 updateDriver
                               );
       }
@@ -143,18 +140,18 @@ const tripIsBooked = async (tripId, driver_info, io) => {
             if (driver?.deviceToken) {
               sendNotification(
                                 driver?.deviceToken,
-                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
                                 agency.company_name +
                                   `'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                   `Trip Not Accepted #: ${tripById.trip_id}`,
                                 updateDriver
                               );
             }
             if (driver?.webDeviceToken) {
               sendNotification(
                                 driver?.webDeviceToken,
-                                `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
                                 agency.company_name +
                                   `'s Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                   `Trip Not Accepted #: ${tripById.trip_id}`,
                                 updateDriver
                               );
             }
@@ -185,24 +182,14 @@ const tripIsBooked = async (tripId, driver_info, io) => {
         if (driverSocketIds.length > 0) {
           driverSocketIds.forEach(async (socketId) => {
             if (socketId) {
-              await io.to(socketId).emit(
-                "tripNotAcceptedBYDriver",
-                {
-                  trip: tripById,
-                  message:
-                    agency.company_name + "'s Trip not accepted by the Driver",
-                },
-                (err, ack) => {
-                  if (ack) {
-                  } else {
-                  }
-                }
-              );
+              await io.to(socketId).emit("tripNotAcceptedBYDriver",
+                                                        {
+                                                          trip: tripById,
+                                                          message: agency.company_name + "'s Trip not accepted by the Driver",
+                                                        }
+                                        );
 
-              io.to(socketId).emit("refreshTrip", {
-                message:
-                  "Driver didn't accpet the trip. Please refresh the data",
-              });
+              io.to(socketId).emit("refreshTrip", {  message: "Driver didn't accept the trip. Please refresh the data",});
             }
           });
         }
@@ -254,7 +241,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
             sendNotification(
                               partnerAccount?.webDeviceToken,
                               `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                              `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                              `Trip Not Accepted #:  ${tripById.trip_id}`,
                               updateDriver
                             );
           }
@@ -266,7 +253,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
             sendNotification(
                               partnerAccount?.deviceToken,
                               `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                              `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                              `Trip Not Accepted #:  ${tripById.trip_id}`,
                               updateDriver
                             );
           } else if (partnerAccount.isCompany){
@@ -278,7 +265,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
               await sendNotification(
                                       companyData?.deviceToken,
                                       `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
-                                      `Trip not accepted by driver and trip ID is ${tripById.trip_id}`,
+                                      `Trip Not Accepted #:  ${tripById.trip_id}`,
                                       updateDriver
                                     );
             }
@@ -2270,9 +2257,12 @@ exports.alocate_driver = async (req, res) => {
   try {
     let data = req.body;
 
+
+    
+
     let criteria = { _id: req.params.id };
     let check_trip = await TRIP.findOne(criteria);
-    
+
     if (!check_trip) {
 
       return res.send({
@@ -2425,6 +2415,7 @@ exports.alocate_driver = async (req, res) => {
 
         // Trip will be back in old state (Pending) if driver will not accept the trip
         setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, process.env.TRIP_POP_UP_SHOW_TIME * 1000);
+        
 
         // Functionality for update the trips who has access of company along with company
         let created_by_company = await user_model.findById( update_trip?.created_by_company_id );
