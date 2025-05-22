@@ -499,53 +499,143 @@ exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) =
                                                     ],
                                                  });
 
-  if (driverList) {
+      if (driverList) {
 
-    for (let driver of driverList) {
-      if (driver?.socketId) { socketList.push(driver?.socketId); }
-      if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
-      if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
-      if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
-    }
-  }
-
-  // emit the socket for notifing---- driver didn't accept the trip
-  if (socketList) {
-    for (let socketId of socketList) {
-
-      if (socketId) {
-
-      
-        socket.to(socketId).emit("tripNotAcceptedBYDriver", {
-                                                              trip: tripDetail,
-                                                              message: agency.company_name + "'s Trip not accepted by the Driver",
-                                                            }
-                                );
-
-        socket.to(socketId).emit("refreshTrip", {  message: "Trip not accepted by driver. Please refresh the data"  }  );
+        for (let driver of driverList) {
+          if (driver?.socketId) { socketList.push(driver?.socketId); }
+          if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
+          if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
+          if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
+        }
       }
-    }
-  }
 
-  // send the push notification
-  if (deviceTokenList) {
-    
-    for (let tokenValue of deviceTokenList) {
+      // emit the socket for notifing---- driver didn't accept the trip
+      if (socketList) {
+        for (let socketId of socketList) {
 
-      if (tokenValue) {
-        console.log('tokenValue----' , tokenValue)
-        this.sendNotification(
-                                      tokenValue,
-                                      `Trip ( ${tripDetail.trip_id} ) didn't accepted by the driver ( ${driverInfo?.first_name} ${driverInfo?.last_name} ) `,
-                                      `Trip Not Accepted #:  ${tripDetail.trip_id}`,
-                                      driverInfo
+          if (socketId) {
+
+          
+            socket.to(socketId).emit("tripNotAcceptedBYDriver", {
+                                                                  trip: tripDetail,
+                                                                  message: agency.company_name + "'s Trip not accepted by the Driver",
+                                                                }
                                     );
+
+            socket.to(socketId).emit("refreshTrip", {  message: "Trip not accepted by driver. Please refresh the data"  }  );
+          }
+        }
+      }
+
+      // send the push notification
+      if (deviceTokenList) {
+        
+        for (let tokenValue of deviceTokenList) {
+
+          if (tokenValue) {
+            console.log('tokenValue----' , tokenValue)
+            this.sendNotification(
+                                          tokenValue,
+                                          `Trip ( ${tripDetail.trip_id} ) didn't accepted by the driver ( ${driverInfo?.first_name} ${driverInfo?.last_name} ) `,
+                                          `Trip Not Accepted #:  ${tripDetail.trip_id}`,
+                                          driverInfo
+                                        );
+          }
+        }
+      }
+
+    } catch (error) {
+    console.log('emitTripNotAcceptedByDriver-------' , error)
+    }
+}
+
+exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentSocketId , socket) => {
+ 
+  try {
+
+    let user = await user_model.findById(tripDetails?.created_by_company_id);
+    const companyAgencyData = await AGENCY_MODEL.findOne({user_id: tripDetails.created_by_company_id})
+    let driver_name = driverDetails.first_name + " " + driverDetails.last_name;
+
+    let socketList = [];
+    let deviceTokenList = [];
+
+    // If trip company owner is not cancelling the trip from his driver
+    if (currentSocketId != user?.socketId) {
+
+      if (user?.socketId) { socketList.push(user?.socketId); }
+      if (user?.webSocketId) { socketList.push(user?.webSocketId); }
+      if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
+      if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+    }
+
+    // get the drivers (who have access) of  partners and account access list 
+    const driverList = await driver_model.find({
+                                                  $and: [
+                                                    {
+                                                      socketId: { $ne: currentSocketId }, // 👈 Exclude this driver who get the trip so this driver will not be notified
+                                                      status: true,
+                                                    },
+                                                    {
+                                                      $or: [
+                                                        {
+                                                          parnter_account_access: {
+                                                            $elemMatch: { company_id: user._id },
+                                                          },
+                                                        },
+                                                        {
+                                                          company_account_access: {
+                                                            $elemMatch: { company_id: user._id },
+                                                          },
+                                                        },
+                                                      ],
+                                                    },
+                                                  ],
+                                                });
+
+    if (driverList) {
+
+      for (let driver of driverList) {
+        if (driver?.socketId) { socketList.push(driver?.socketId); }
+        if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
+        if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
+        if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
       }
     }
-  }
+
+    // emit the socket for notifing---- driver canceled the trip
+    if (socketList) {
+      for (let socketId of socketList) {
+        if (socketId) {
+          socket.to(socketId).emit("tripCancelledBYDriver", {
+                                                              trip: tripDetails,
+                                                              driver: driverDetails,
+                                                              message: `Driver ${driver_name} has canceled the trip`,
+                                                            },
+                                  );
+          socket.to(socketId).emit("refreshTrip", {  message: "The trip driver did not accept the trip. Please refresh the data to see the latest updates"  }  );
+        }
+      }
+    }
+
+    // send the push notification
+    if (deviceTokenList) {
+      
+      for (let tokenValue of deviceTokenList) {
+
+        if (tokenValue) {
+          this.sendNotification(
+                                  tokenValue,
+                                  `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${tripDetails.trip_id}`,
+                                  `Trip Canceled by Driver #:  ${tripDetails.trip_id}`,
+                                  driverDetails 
+                                );
+        }
+      }
+    }
 
   } catch (error) {
-    console.log('emitTripNotAcceptedByDriver-------' , error)
+    console.log('emitTripCancelledByDriver-------' , error)
   }
 }
 

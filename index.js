@@ -989,6 +989,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("cancelDriverTrip", async ({ tripId }) => {
+
+    // emitTripCancelledByDriver()
     if (!tripId) {
       return io.to(socket.id).emit("driverNotification", {
         code: 200,
@@ -1024,87 +1026,97 @@ io.on("connection", (socket) => {
             const companyAgencyData = await agency_model.findOne({user_id: trip.created_by_company_id})
             let driver_name = driverBySocketId.first_name + " " + driverBySocketId.last_name;
 
-            if (user.role == "COMPANY") {
-              if (user?.socketId) {
-                // socket for app
+            
+            if (user?.socketId) {
+              // socket for app
 
-                console.log('trip?.driver_name.toString()---------', trip?.driver_name.toString());
-                console.log('user?._id.toString()-------', user?._id.toString());
-                // when trip owner will cancel the trip from his driver account then pop-up will not show on his side
-                if (socket.id != user?.socketId) {
-                  io.to(user?.socketId).emit("tripCancelledBYDriver", {
-                                                                        trip,
-                                                                        driver: driverBySocketId,
-                                                                        message: `Trip canceled by the driver ${driver_name}`,
-                                                                      }
-                                            );
-                }
-                
-
-                // for refresh trip
-                io.to(user?.socketId).emit("refreshTrip",
-                                                  {
-                                                    message:
-                                                      "Trip Driver didn't accpet the trip. Please refresh the data",
-                                                  }
-                                                );
+              console.log('trip?.driver_name.toString()---------', trip?.driver_name.toString());
+              console.log('user?._id.toString()-------', user?._id.toString());
+              // when trip owner will cancel the trip from his driver account then pop-up will not show on his side
+              if (socket.id != user?.socketId) {
+                io.to(user?.socketId).emit("tripCancelledBYDriver", {
+                                                                      trip,
+                                                                      driver: driverBySocketId,
+                                                                      message: `Trip canceled by the driver ${driver_name}`,
+                                                                    }
+                                          );
               }
+              
 
-              if (user?.webSocketId) {
+              // for refresh trip
+              io.to(user?.socketId).emit("refreshTrip",
+                                                {
+                                                  message:
+                                                    "Trip Driver didn't accpet the trip. Please refresh the data",
+                                                }
+                                              );
+            }
 
-                // socket for web
+            if (user?.webSocketId) {
 
-                // when trip owner will cancel the trip from his driver account then pop-up will not show on his side
-                if (socket.id != user?.socketId) {
-                  io.to(user?.webSocketId).emit(
-                                                  "tripCancelledBYDriver",
-                                                  {
-                                                    trip,
-                                                    driver: driverBySocketId,
-                                                    message: `Trip canceled by the driver ${driver_name}`,
-                                                  },
-                                                );
-                }
+              // socket for web
 
-                // for refresh trip
+              // when trip owner will cancel the trip from his driver account then pop-up will not show on his side
+              if (socket.id != user?.socketId) {
                 io.to(user?.webSocketId).emit(
-                                                      "refreshTrip",
-                                                      {
-                                                        message:
-                                                          "The trip driver did not accept the trip. Please refresh the data to see the latest updates",
-                                                      },
-                                                    );
+                                                "tripCancelledBYDriver",
+                                                {
+                                                  trip,
+                                                  driver: driverBySocketId,
+                                                  message: `Trip canceled by the driver ${driver_name}`,
+                                                },
+                                              );
               }
 
-              if (user?.deviceToken) {
-                sendNotification(
-                                        user?.deviceToken,
-                                        `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
-                                        `Trip Canceled by Driver`,
-                                        driverBySocketId
-                                      );
-              }
+              // for refresh trip
+              io.to(user?.webSocketId).emit(
+                                                    "refreshTrip",
+                                                    {
+                                                      message:
+                                                        "The trip driver did not accept the trip. Please refresh the data to see the latest updates",
+                                                    },
+                                                  );
+            }
 
-           
+            if (user?.deviceToken) {
+              sendNotification(
+                                      user?.deviceToken,
+                                      `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
+                                      `Trip Canceled by Driver`,
+                                      driverBySocketId
+                                    );
+            }
 
-              // functionality For assigned driver by company
+            // functionality For assigned driver by company
 
-              // For the driver who has company access
-        
-              const driverHasCompanyAccess = await driver_model.find({
-                                                                        _id: { $ne: trip.driver_name}, //Notifications and pop-ups will exclude the driver currently assigned to the ride.
-                                                                        company_account_access  : {
-                                                                                                    $elemMatch: { company_id: new mongoose.Types.ObjectId(trip.created_by_company_id) },
-                                                                                                  },
-                                                                    });
+            // For the driver who has company access
+      
+            const driverHasCompanyAccess = await driver_model.find({
+                                                                      _id: { $ne: trip.driver_name}, //Notifications and pop-ups will exclude the driver currently assigned to the ride.
+                                                                      company_account_access  : {
+                                                                                                  $elemMatch: { company_id: new mongoose.Types.ObjectId(trip.created_by_company_id) },
+                                                                                                },
+                                                                  });
 
-              if (driverHasCompanyAccess){
+            if (driverHasCompanyAccess){
 
-                for (let driverCompanyAccess of driverHasCompanyAccess) {
-                  
-                  if (driverCompanyAccess?.socketId) {
+              for (let driverCompanyAccess of driverHasCompanyAccess) {
+                
+                if (driverCompanyAccess?.socketId) {
 
-                    io.to(driverCompanyAccess?.socketId).emit(
+                  io.to(driverCompanyAccess?.socketId).emit(
+                                                                    "tripCancelledBYDriver",
+                                                                    {
+                                                                      trip,
+                                                                      driver: driverBySocketId,
+                                                                      message: `Trip canceled by the driver ${driver_name}`,
+                                                                    },
+                                                                  );
+                }
+
+                if (driverCompanyAccess?.webSocketId) {
+
+                  io.to(driverCompanyAccess?.webSocketId).emit(
                                                                       "tripCancelledBYDriver",
                                                                       {
                                                                         trip,
@@ -1112,106 +1124,94 @@ io.on("connection", (socket) => {
                                                                         message: `Trip canceled by the driver ${driver_name}`,
                                                                       },
                                                                     );
-                  }
+                }
 
-                  if (driverCompanyAccess?.webSocketId) {
+                if (driverCompanyAccess?.deviceToken) {
 
-                    io.to(driverCompanyAccess?.webSocketId).emit(
-                                                                        "tripCancelledBYDriver",
-                                                                        {
-                                                                          trip,
-                                                                          driver: driverBySocketId,
-                                                                          message: `Trip canceled by the driver ${driver_name}`,
-                                                                        },
-                                                                      );
-                  }
-
-                  if (driverCompanyAccess?.deviceToken) {
-
-                    sendNotification(
-                                            driverCompanyAccess?.deviceToken,
-                                            `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
-                                            `Trip canceled ( Company Access:- ${companyAgencyData.company_name} )`,
-                                            driverBySocketId
-                                          );
-                  }
+                  sendNotification(
+                                          driverCompanyAccess?.deviceToken,
+                                          `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
+                                          `Trip canceled ( Company Access:- ${companyAgencyData.company_name} )`,
+                                          driverBySocketId
+                                        );
                 }
               }
+            }
 
-              // functionality for the drivers who have account access as partner
-              const driverHasCompanyPartnerAccess = await driver_model.find({
-                                                                              parnter_account_access : {
-                                                                                $elemMatch: { company_id: new mongoose.Types.ObjectId(user._id) },
-                                                                              },
-                                                                            });
+            // functionality for the drivers who have account access as partner
+            const driverHasCompanyPartnerAccess = await driver_model.find({
+                                                                            parnter_account_access : {
+                                                                              $elemMatch: { company_id: new mongoose.Types.ObjectId(user._id) },
+                                                                            },
+                                                                          });
 
-              if (driverHasCompanyPartnerAccess){
+            if (driverHasCompanyPartnerAccess){
 
-                for (let partnerAccount of driverHasCompanyPartnerAccess) {
-        
-                  // for partner app side
-                  if (partnerAccount?.socketId) {
-                    io.to(partnerAccount?.socketId).emit("tripCancelledBYDriver", {
-                                                                                          trip,
-                                                                                          driver: driverBySocketId,
-                                                                                          message: "Trip canceled successfully",
-                                                                                        }
-                                                              );
-                      
-                    // for refresh trip
-                   io.to(partnerAccount?.socketId).emit(
-                                                                "refreshTrip",
-                                                                {
-                                                                  message:
-                                                                    "The trip driver did not accept the trip. Please refresh the data to receive the latest updates.",
-                                                                }
-                                                              );
-                  }
-        
-                  // for partner Web side
-                  if (partnerAccount?.webSocketId) {
-        
-                  io.to(partnerAccount?.webSocketId).emit("tripCancelledBYDriver", {
+              for (let partnerAccount of driverHasCompanyPartnerAccess) {
+      
+                // for partner app side
+                if (partnerAccount?.socketId) {
+                  io.to(partnerAccount?.socketId).emit("tripCancelledBYDriver", {
                                                                                         trip,
                                                                                         driver: driverBySocketId,
-                                                                                        message: `Trip canceled by the driver ${driver_name}`,
+                                                                                        message: "Trip canceled successfully",
                                                                                       }
                                                             );
-        
-                  io.to(partnerAccount?.webSocketId).emit("refreshTrip",  {
-                                                                                  message:
-                                                                                    "Trip Driver didn't accpet the trip. Please refresh the data",
-                                                                                }
-                                                                );
-                  }
-        
-                  // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
-                  if (partnerAccount?.deviceToken) {
-                    // notification for driver
-        
+                    
+                  // for refresh trip
+                  io.to(partnerAccount?.socketId).emit(
+                                                              "refreshTrip",
+                                                              {
+                                                                message:
+                                                                  "The trip driver did not accept the trip. Please refresh the data to receive the latest updates.",
+                                                              }
+                                                            );
+                }
+      
+                // for partner Web side
+                if (partnerAccount?.webSocketId) {
+      
+                io.to(partnerAccount?.webSocketId).emit("tripCancelledBYDriver", {
+                                                                                      trip,
+                                                                                      driver: driverBySocketId,
+                                                                                      message: `Trip canceled by the driver ${driver_name}`,
+                                                                                    }
+                                                          );
+      
+                io.to(partnerAccount?.webSocketId).emit("refreshTrip",  {
+                                                                                message:
+                                                                                  "Trip Driver didn't accpet the trip. Please refresh the data",
+                                                                              }
+                                                              );
+                }
+      
+                // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
+                if (partnerAccount?.deviceToken) {
+                  // notification for driver
+      
+                  sendNotification(
+                                          partnerAccount?.deviceToken,
+                                          `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
+                                          `Trip Cancelled ( Partner Account Access:- ${companyAgencyData.company_name})`,
+                                          driverBySocketId
+                                        );
+                } else if (partnerAccount.isCompany){
+      
+                  const companyData = await user_model.findById(partnerAccount.driver_company_id);
+                  if (companyData?.deviceToken) {
+                    // notification for company
+      
                     sendNotification(
-                                            partnerAccount?.deviceToken,
+                                            companyData?.deviceToken,
                                             `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
                                             `Trip Cancelled ( Partner Account Access:- ${companyAgencyData.company_name})`,
                                             driverBySocketId
                                           );
-                  } else if (partnerAccount.isCompany){
-        
-                    const companyData = await user_model.findById(partnerAccount.driver_company_id);
-                    if (companyData?.deviceToken) {
-                      // notification for company
-        
-                      sendNotification(
-                                              companyData?.deviceToken,
-                                              `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${trip.trip_id}`,
-                                              `Trip Cancelled ( Partner Account Access:- ${companyAgencyData.company_name})`,
-                                              driverBySocketId
-                                            );
-                    }
                   }
                 }
               }
             }
+            
 
             io.to(socket.id).emit("driverNotification", {
                                                           code: 200,
