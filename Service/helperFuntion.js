@@ -639,6 +639,113 @@ exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentS
   }
 }
 
+exports.emitTripRetrivedByCompany = async(tripDetails , driverDetails , currentSocketId , socket) => {
+ 
+  try {
+    const user = await user_model.findOne({ _id: tripDetails?.created_by_company_id, });
+    const company_data = await AGENCY_MODEL.findOne({ user_id: tripDetails?.created_by_company_id, });
+    
+    let socketList = [];
+    let deviceTokenList = [];
+
+    // If trip company owner is not cancelling the trip from his driver
+    if (currentSocketId != driverDetails?.socketId) { // driver will notify in this sction
+      
+      if (driverDetails?.socketId) { socketList.push(driverDetails?.socketId); }
+      if (driverDetails?.webSocketId) { socketList.push(driverDetails?.webSocketId); }
+      if (driverDetails?.deviceToken) { deviceTokenList.push(driverDetails?.deviceToken)}
+      if (driverDetails?.webDeviceToken) { deviceTokenList.push(driverDetails?.webDeviceToken)}
+
+      // Only driver will notify with pop-up functionality
+      if (socketList) {
+        for (let socketId of socketList) {
+
+          if (socketId) {
+
+            socket.to(socketId).emit("retrivedTrip" , {
+                                                        message: `Your trip has been retrived by company, ${company_data?.company_name}`,
+                                                        trip: { result:  tripDetails, }
+                                                      }
+                                    );
+            socket.to(socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
+          }
+        }
+      }
+    }
+  
+    // main owner of the Trip will be notified
+    if (currentSocketId != user?.socketId && currentSocketId != user?.webSocketId) { // if trip owner  didn't retrive the trip then he will be notify
+
+      if (user?.socketId) { socketList.push(user?.socketId); }
+      if (user?.webSocketId) { socketList.push(user?.webSocketId); }
+      if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
+      if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+    }
+
+    // get the drivers (who have access) of  partners and account access list 
+    const driverList = await driver_model.find({
+                                                  $and: [
+                                                    {
+                                                      socketId: { $ne: currentSocketId }, // 👈 Exclude this driver who get the trip so this driver will not be notified
+                                                      status: true,
+                                                    },
+                                                    {
+                                                      $or: [
+                                                        {
+                                                          parnter_account_access: {
+                                                            $elemMatch: { company_id: user._id },
+                                                          },
+                                                        },
+                                                        {
+                                                          company_account_access: {
+                                                            $elemMatch: { company_id: user._id },
+                                                          },
+                                                        },
+                                                      ],
+                                                    },
+                                                  ],
+                                                });
+
+    if (driverList) {
+
+      for (let driver of driverList) {
+        if (driver?.socketId) { socketList.push(driver?.socketId); }
+        if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
+        if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
+        if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
+      }
+    }
+
+    // emit the socket for notifing---- driver canceled the trip
+    if (socketList) {
+      for (let socketId of socketList) {
+        if (socketId) {
+          socket.to(socketId).emit("refreshTrip", {  message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates"  }  );
+        }
+      }
+    }
+
+    // send the push notification
+    if (deviceTokenList) {
+      
+      for (let tokenValue of deviceTokenList) {
+        
+        if (tokenValue) {
+          this.sendNotification(
+                                  tokenValue,
+                                  `The trip ( ${ tripDetails.trip_id } ) has been retrieved from the driver by company, ${company_data?.company_name}`,
+                                  `Trip retrieved #:  ${tripDetails.trip_id}`,
+                                  driverDetails 
+                                );
+        }
+      }
+    }
+
+  } catch (error) {
+    console.log('emitTripCancelledByDriver-------' , error)
+  }
+}
+
 exports.sendNotification = async (to, message, title, data = {notificationType: constant.NOTIFICATION_TYPE.OTHER}) => {
   let device_token = to;
   

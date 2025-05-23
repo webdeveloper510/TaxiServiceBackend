@@ -27,7 +27,8 @@ const { driverDetailsByToken,
         notifyPayoutFailure,
         sendBookingConfirmationEmail,
         sendBookingCancelledEmail,
-        emitTripCancelledByDriver
+        emitTripCancelledByDriver,
+        emitTripRetrivedByCompany
       } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
@@ -822,12 +823,17 @@ io.on("connection", (socket) => {
         trip_details.driver_name = null;
         await trip_details.save(); // Save the updated trip details
       }
+      const driverById = await driver_model.findOne({ _id: driverId, });
       
-      
+      emitTripRetrivedByCompany(trip_details , driverById  , socket.id , io);
+
+      return
+
+
       const userData = await user_model.findOne({ _id: trip_details?.created_by_company_id, });
       const company_data = await agency_model.findOne({ user_id: trip_details?.created_by_company_id, });
 
-      const driverById = await driver_model.findOne({ _id: driverId, });
+      // const driverById = await driver_model.findOne({ _id: driverId, });
 
       if (driverById?.socketId) {
 
