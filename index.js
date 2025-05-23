@@ -26,7 +26,8 @@ const { driverDetailsByToken,
         notifyPayoutPaid,
         notifyPayoutFailure,
         sendBookingConfirmationEmail,
-        sendBookingCancelledEmail
+        sendBookingCancelledEmail,
+        emitTripCancelledByDriver
       } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
@@ -990,7 +991,7 @@ io.on("connection", (socket) => {
 
   socket.on("cancelDriverTrip", async ({ tripId }) => {
 
-    // emitTripCancelledByDriver()
+    
     if (!tripId) {
       return io.to(socket.id).emit("driverNotification", {
         code: 200,
@@ -1021,6 +1022,9 @@ io.on("connection", (socket) => {
             // let updated_data = { trip_status: "Pending", driver_name: null };
             // let option = { new: true };
             // let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
+
+            emitTripCancelledByDriver(trip , driverBySocketId  , socket.id , io);
+            return
 
             let user = await user_model.findById(trip?.created_by_company_id);
             const companyAgencyData = await agency_model.findOne({user_id: trip.created_by_company_id})
@@ -1222,10 +1226,10 @@ io.on("connection", (socket) => {
           // sendBookingCancelledEmail(trip)
         }
       } catch (error) {
-        console.log("🚀 ~ socket.on cancelDriverTrip ~ error:", error);
+        console.log("🚀 ~ socket.on cancelDriverTrip index ~ error:", error);
         return io.to(socket.id).emit("driverNotification", {
                                                               code: 200,
-                                                              message: "There is some",
+                                                              message: "There is some error",
                                                               error,
                                                             }
                                     );
