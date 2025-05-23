@@ -28,7 +28,8 @@ const { driverDetailsByToken,
         sendBookingConfirmationEmail,
         sendBookingCancelledEmail,
         emitTripCancelledByDriver,
-        emitTripRetrivedByCompany
+        emitTripRetrivedByCompany,
+        emitTripAcceptedByDriver
       } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
@@ -1267,14 +1268,25 @@ io.on("connection", (socket) => {
                                                               });
         }
 
+        
+
         // const user = await user_model.findById(trip.created_by).populate("created_by");
 
         let updated_data = { trip_status: "Booked", status: true };
         let option = { new: true };
         let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
 
-        // for refresh trip to driver who accepted the trip
+        
+
         await io.to(socket.id).emit("refreshTrip", { message: "You have accepted the trip. Please refresh the data to view the updates", } )
+        io.to(socket.id).emit("driverNotification", {
+                                                      code: 200,
+                                                      message: "Trip accepted successfully",
+                                                    }
+                              );
+        
+        emitTripAcceptedByDriver(trip , driverBySocketId , socket.id , io)
+        return
 
         let user = await user_model.findById(trip.created_by_company_id);
         const companyAgencyData = await agency_model.findOne({user_id: trip.created_by_company_id})
