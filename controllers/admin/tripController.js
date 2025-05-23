@@ -26,7 +26,8 @@ const {
         sendBookingConfirmationEmail,
         getDistanceAndDuration,
         emitTripNotAcceptedByDriver,
-        emitNewTripAddedByCustomer
+        emitNewTripAddedByCustomer,
+        emitTripAssignedToSelf,
       } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
@@ -2256,10 +2257,6 @@ exports.check_trip_request = async (req, res) => {
 exports.alocate_driver = async (req, res) => {
   try {
     let data = req.body;
-
-
-    
-
     let criteria = { _id: req.params.id };
     let check_trip = await TRIP.findOne(criteria);
 
@@ -2289,7 +2286,7 @@ exports.alocate_driver = async (req, res) => {
     }
 
 
-    if (data.status != "Canceled") {
+    if (data.status != constant.TRIP_STATUS.CANCELED) {
 
       // Here we are checking the driver is available or not based on some condition like vehicle , plans and blocked etc
       const driverStatus = await canDriverOperate(driver_full_info._id);
@@ -2305,20 +2302,11 @@ exports.alocate_driver = async (req, res) => {
                         $set: {
                           driver_name: driver_full_info._id,
                           vehicle: driver_full_info.defaultVehicle,
-                          trip_status: data.status,
+                          trip_status: driver_full_info._id.toString() == req?.user?.driverId?.toString() ? constant.TRIP_STATUS.BOOKED : data.status,
                           cancellation_reason: ""
                         },
                       };
-
-      if (driver_full_info._id.toString() == req?.user?.driverId?.toString()) {
-        newValues = {
-                      $set: {
-                        driver_name: driver_full_info._id,
-                        vehicle: driver_full_info.defaultVehicle,
-                        trip_status: "Booked",
-                      },
-                    };
-      }
+      
       let option = { new: true };
 
       let update_trip = await TRIP.findOneAndUpdate( criteria, newValues, option );
@@ -2326,343 +2314,99 @@ exports.alocate_driver = async (req, res) => {
       if (!update_trip) {
         return res.send({
                           code: constant.error_code,
-                          message: "Unable to allocate the driver",
+                          message: `The system was unable to assign the driver.`,
                         });
+      } 
 
-      } else {
-        
+      // For self assigned trip
+      if (update_trip?.trip_status == constant.TRIP_STATUS.BOOKED) {
 
-        // when user is not alocating the trip to self
-        if ( driver_full_info._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
-
-          let driver_c_data = await USER.findOne({ _id: driver_full_info.created_by });
-
-          let token_value = driver_full_info.deviceToken == null ? driver_c_data.deviceToken :driver_full_info.deviceToken;
-          let web_token_value = driver_full_info.webDeviceToken == null ? driver_c_data.webDeviceToken :driver_full_info.webDeviceToken;
-          
-
-          if (token_value) {
-            await sendNotification(
-                                    token_value,
-                                    "New Trip is allocated have ID T-" + update_trip.trip_id,
-                                    "New Trip is allocated have ID T-" + update_trip.trip_id,
-                                    {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
-                                  );
-
-          }
-
-          if (web_token_value) {
-            await sendNotification(
-                                    web_token_value,
-                                    "New Trip is allocated have ID T-" + update_trip.trip_id,
-                                    "New Trip is allocated have ID T-" + update_trip.trip_id,
-                                    {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
-                                  );
-          }
-        }
-        
-        
-        try {
-          // to resolve the object error
-          if (update_trip && typeof update_trip.toObject === "function") {
-            update_trip = update_trip.toObject();
-          }
-
-          // to resolve the object error
-          if (req.user && typeof req.user.toObject === "function") {
-            req.user = req.user.toObject();
-          }
-          // req.user = req.user.toObject();
-          req.user.user_company_name = "";
-          req.user.user_company_phone = "";
-          update_trip.user_company_name = "";
-          update_trip.user_company_phone = "";
-
-          let user_agancy_data = await AGENCY.findOne({ user_id: req.user._id, });
-
-          let hotel_data;
-          
-          if (update_trip?.hotel_id) {
-            hotel_data = await AGENCY.findOne({ user_id: update_trip?.hotel_id, });
-          }
-          
-
-          // Company name and phone added
-          if (user_agancy_data) {
-            req.user.user_company_name = user_agancy_data.company_name;
-            req.user.user_company_phone = user_agancy_data.phone;
-
-            update_trip.user_company_name = user_agancy_data.company_name;
-            update_trip.user_company_phone = user_agancy_data.phone;
-            update_trip.user_hotel_name = update_trip?.hotel_id ? hotel_data.company_name : "";
-          }
-
-          if ( driver_full_info._id.toString() != req?.user?.driverId?.toString() && data.status !== "Booked" ) {
-            req?.io?.to(driver_full_info.socketId)?.emit("newTrip", { trip: update_trip, company: req.user });
-          } else {
-          }
-        } catch (error) {
-          console.log("🚀 ~ exports.alocate_driver= ~ error:", error);
-        }
-
-        
-        let current_date_time = new Date();
-        // Update request send time in Trip
-        await TRIP.updateOne(
-                              { _id: req.params.id }, // Filter (find the document by _id)
-                              { $set: { send_request_date_time: current_date_time } } // Update (set the new value)
-                            );
-
-        // Trip will be back in old state (Pending) if driver will not accept the trip
-        setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, process.env.TRIP_POP_UP_SHOW_TIME * 1000);
-        
-
-        // Functionality for update the trips who has access of company along with company
-        let created_by_company = await user_model.findById( update_trip?.created_by_company_id );
-
-        if (created_by_company?.role == "COMPANY") {
-          
-          if ( created_by_company?.socketId ) {
-
-            // when user will assign the trip to itself then no pop-up will show
-            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && driver_full_info._id.toString() != req?.user?.driverId?._id.toString()) {
-
-              req.io.to(created_by_company?.socketId).emit("tripAcceptedBYDriver",
-                                                          {
-                                                            update_trip,
-                                                            driver: driver_full_info,
-                                                            message: "Trip accepted successfully",
-                                                          }
-                                                        );
-            }
-
-            //  If Socket id  is exist
-
-            req.io.to(created_by_company?.socketId).emit("refreshTrip", {
-                                                                          update_trip,
-                                                                          message: "A trip has been sent for allocation to the driver",
-                                                                        });
-          }
-
-          if ( created_by_company?.webSocketId) {
-            //  If Socket id  is exist
-
-            // when user will assign the trip to itself then no pop-up will show
-            if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED && driver_full_info._id.toString() != req?.user?.driverId?._id.toString()) {
-
-              req.io.to(created_by_company?.webSocketId).emit("tripAcceptedBYDriver",
-                                                          {
-                                                            update_trip,
-                                                            driver: driver_full_info,
-                                                            message: "Trip accepted successfully",
-                                                          }
-                                                        );
-            }
-
-            req.io.to(created_by_company?.webSocketId).emit("refreshTrip",  {
-                                                                              update_trip,
-                                                                              message: "A trip has been sent for allocation to the driver",
-                                                                            });
- 
-          }
-
-          
-          
-
-          // functionality For assigned driver by company
-
-          const driverHasCompanyAccess = await DRIVER.find({
-                                                              _id: { $ne: new mongoose.Types.ObjectId(update_trip.driver_name)}, //Notifications and pop-ups will exclude the driver currently assigned to the ride.
-                                                              company_account_access  : {
-                                                                                          $elemMatch: { company_id: new mongoose.Types.ObjectId(update_trip?.created_by_company_id) },
-                                                                                        },
-                                                          });
-
-                                                         
-        if (driverHasCompanyAccess){
-
-          for (let driverCompanyAccess of driverHasCompanyAccess) {
-
-            if (driverCompanyAccess?.socketId) {
-
-              // when will assign the trip to itself
-              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
-
-
-              req.io.to(driverCompanyAccess?.socketId).emit("tripAcceptedBYDriver",
-                          {
-                            update_trip,
-                            driver: driver_full_info,
-                            message: "Trip accepted successfully",
-                          }
-                        );
-              }
-              req.io.to(driverCompanyAccess?.socketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
-            }
-
-            if (driverCompanyAccess?.webSocketId) {
-
-              // when will assign the trip to itself
-              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
-
-              req.io.to(driverCompanyAccess?.webSocketId).emit("tripAcceptedBYDriver",
-                            {
-                              update_trip,
-                              driver: driver_full_info,
-                              message: "Trip accepted successfully",
-                            }
-                          );
-              }
-
-              req.io.to(driverCompanyAccess?.webSocketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
-            }
-
-            if (driverCompanyAccess?.deviceToken) {
-
-              // when will assign the trip to itself
-              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
-                sendNotification(
-                                  driverCompanyAccess?.deviceToken,
-                                  `Trip accepted by the driver ( ${driver_full_info.first_name + " " + driver_full_info.last_name}) and trip ID is ${update_trip.trip_id}`,
-                                  `Trip Accepted`,
-                                  driver_full_info
-                                  );
-              }
-            }
-
-            if (driverCompanyAccess?.webDeviceToken) {
-
-              // when will assign the trip to itself
-              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
-                sendNotification(
-                                  driverCompanyAccess?.webDeviceToken,
-                                  `Trip accepted by the driver ( ${driver_full_info.first_name + " " + driver_full_info.last_name}) and trip ID is ${update_trip.trip_id}`,
-                                  `Trip Accepted`,
-                                  driver_full_info
-                                  );
-              }
-            }
-          }
-        }
-
-        
-
-        let exculdePartnerDriverId = {};
-        // When Partner account alocate the trip to his driver then this driver will not get pop-up
-        if(req.companyPartnerAccess && req.CompanyPartnerDriverId == update_trip?.driver_name)  {
-          exculdePartnerDriverId= {_id : {$ne: req.CompanyPartnerDriverId}};
-
-          // Refresh trip for partner account when it will retrieve the trip
-          const partnerInformation = await driver_model.findById(req.CompanyPartnerDriverId)
-
-          if (partnerInformation?.socketId){
-
-            req.io.to(partnerInformation?.socketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } )
-          }
-
-          if (partnerInformation?.webSocketId){
-
-            req.io.to(partnerInformation?.webSocketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
-          }
-        }
-        const driverHasCompanyPartnerAccess = await driver_model.find({
-                                                                        ...exculdePartnerDriverId,
-                                                                        parnter_account_access  : {
-                                                                                                    $elemMatch: { company_id: new mongoose.Types.ObjectId(update_trip?.created_by_company_id) },
-                                                                                                  },
-                                                                      });
-
-        if (driverHasCompanyPartnerAccess){
-
-          for (let partnerAccount of driverHasCompanyPartnerAccess) {
-            
-            
-            // for partner app side
-            if (partnerAccount?.socketId) {
-
-                // when will assign the trip to itself
-              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
-                req.io.to(partnerAccount?.socketId).emit("tripAcceptedBYDriver",  {
-                                                                                update_trip,
-                                                                                message: "Trip accepted successfully",
-                                                                              },
-                                                          );
-              }
-
-              // for refresh trip
-              req.io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } )
-            }
-  
-            // for partner Web side
-            if (partnerAccount?.webSocketId) {
-  
-                // when will assign the trip to itself
-              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
-
-                req.io.to(partnerAccount?.webSocketId).emit("tripAcceptedBYDriver", {
-                                                                                  update_trip,
-                                                                                  message: "Trip accepted successfully",
-                                                                                }
-                                                        );
-              }
-              req.io.to(partnerAccount?.webSocketId).emit("refreshTrip", { message: "Trip Driver accpetted the trip. Please refresh the data", } ) 
-            }
-            
-            // sedn push notification on web
-            if (partnerAccount?.webDeviceToken) {
-
-              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
-                let driver_name = driver_full_info.first_name + " " + driver_full_info.last_name;
-                sendNotification(
-                                  partnerAccount?.webDeviceToken,
-                                  `Trip accepted by the driver ( ${driver_name}) and trip ID is ${update_trip.trip_id}`,
-                                  `Trip Accepted`,
-                                  null
-                                );              
-              }
-            }
-          
-            // If driver has device token to send the notification otherwise we can get device token his company account if has has company role
-            if (partnerAccount?.deviceToken) {
-              // notification for driver
-
-                // when will assign the trip to itself
-              if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
-                let driver_name = driver_full_info.first_name + " " + driver_full_info.last_name;
-                sendNotification(
-                                  partnerAccount?.deviceToken,
-                                  `Trip accepted by the driver ( ${driver_name}) and trip ID is ${update_trip.trip_id}`,
-                                  `Trip Accepted`,
-                                  null
-                                );              
-              }
-            } else if (partnerAccount.isCompany){
-  
-              const companyData = await user_model.findById(partnerAccount.driver_company_id);
-              if (companyData?.deviceToken) {
-                // notification for company
-                  
-                // when will assign the trip to itself
-                if (update_trip.trip_status == constant.TRIP_STATUS.BOOKED) {
-                  sendNotification(
-                                      companyData?.deviceToken,
-                                      `Trip accepted by driver ${driver_full_info.first_name + " " + driver_full_info.last_name} and trip ID is ${update_trip.trip_id}`,
-                                      `Trip Accepted`,
-                                      null
-                                    );
-                }
-              }
-            }
-          }
-        }
-        }
-
+        emitTripAssignedToSelf(update_trip , req.companyPartnerAccess , driver_full_info , req.io)
         return res.send({
-                  code: constant.success_code,
-                  message: "Driver allocated successfully",
-                  // data: { trip: update_trip, company: req.user },
-                });
+                        code: constant.success_code,
+                        message: "Driver allocated successfully",
+                        // data: { trip: update_trip, company: req.user },
+                      }); 
       }
+        
+
+      // when user is not alocating the trip to self
+      if ( driver_full_info._id.toString() != req?.user?.driverId?.toString() && data.status !== constant.TRIP_STATUS.BOOKED ) {
+
+        let driver_c_data = await USER.findOne({ _id: driver_full_info.created_by });
+
+        let token_value = driver_full_info.deviceToken == null ? driver_c_data.deviceToken :driver_full_info.deviceToken;
+        let web_token_value = driver_full_info.webDeviceToken == null ? driver_c_data.webDeviceToken :driver_full_info.webDeviceToken;
+        
+
+        if (token_value) {
+          await sendNotification(
+                                  token_value,
+                                  "New Trip is allocated have ID T-" + update_trip.trip_id,
+                                  "New Trip is allocated have ID T-" + update_trip.trip_id,
+                                  {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
+                                );
+
+        }
+
+        if (web_token_value) {
+          await sendNotification(
+                                  web_token_value,
+                                  "New Trip is allocated have ID T-" + update_trip.trip_id,
+                                  "New Trip is allocated have ID T-" + update_trip.trip_id,
+                                  {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
+                                );
+        }
+      }
+        
+      // to resolve the object error
+      
+      if (update_trip && typeof update_trip.toObject === "function") update_trip = update_trip.toObject();
+
+      // to resolve the object error
+      if (req.user && typeof req.user.toObject === "function") req.user = req.user.toObject();
+      // req.user = req.user.toObject();
+
+      req.user.user_company_name = "";
+      req.user.user_company_phone = "";
+      update_trip.user_company_name = "";
+      update_trip.user_company_phone = "";
+
+      let user_agancy_data = await AGENCY.findOne({ user_id: req.user._id, });
+
+      let hotel_data;
+      
+      if (update_trip?.hotel_id) {
+        hotel_data = await AGENCY.findOne({ user_id: update_trip?.hotel_id, });
+      }
+        
+
+      // Company name and phone added
+      if (user_agancy_data) {
+        req.user.user_company_name = user_agancy_data.company_name;
+        req.user.user_company_phone = user_agancy_data.phone;
+
+        update_trip.user_company_name = user_agancy_data.company_name;
+        update_trip.user_company_phone = user_agancy_data.phone;
+        update_trip.user_hotel_name = update_trip?.hotel_id ? hotel_data.company_name : "";
+      }
+
+      req?.io?.to(driver_full_info.socketId)?.emit("newTrip", { trip: update_trip, company: req.user });
+      
+      let current_date_time = new Date();
+
+      // Update request send time in Trip
+      await TRIP.updateOne( { _id: req.params.id } , { $set: { send_request_date_time: current_date_time } } );
+
+      // Trip will be back in old state (Pending) if driver will not accept the trip
+      setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, process.env.TRIP_POP_UP_SHOW_TIME * 1000);
+      
+      return res.send({
+                        code: constant.success_code,
+                        message: "Driver allocated successfully",
+                        // data: { trip: update_trip, company: req.user },
+                      });
+      
     } else {
       let newValues = {
                         $set: {

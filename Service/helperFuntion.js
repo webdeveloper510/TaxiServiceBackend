@@ -838,6 +838,101 @@ exports.emitTripAcceptedByDriver = async(tripDetail , driverDetails , currentSoc
   }
 }
 
+exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDetails , socket) => {
+ 
+  try {
+
+      const user = await user_model.findById(tripDetail.created_by_company_id);
+      // const agency = await AGENCY_MODEL.findOne({ user_id: tripDetail.created_by_company_id, });
+      let driver_name = driverDetails.first_name + " " + driverDetails.last_name;
+      let socketList = [];
+      let deviceTokenList = [];
+
+      // When trip owner will not assign the trip to his own driver account
+      if (isPartnerAccess) { // when partner account will assign the trip to his own driver account
+        if (user?.socketId) { socketList.push(user?.socketId); }
+        if (user?.webSocketId) { socketList.push(user?.webSocketId); }
+        if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
+        if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+      }
+      
+      // get the drivers (who have access) of  partners and account access list 
+      const driverList = await driver_model.find({
+                                                    $and: [
+                                                      {
+                                                       _id: { $ne: driverDetails._id }, // 👈 Exclude this driver who get the trip so this driver will not be notified
+                                                        status: true,
+                                                      },
+                                                      {
+                                                        $or: [
+                                                          {
+                                                            parnter_account_access: {
+                                                              $elemMatch: { company_id: user._id },
+                                                            },
+                                                          },
+                                                          {
+                                                            company_account_access: {
+                                                              $elemMatch: { company_id: user._id },
+                                                            },
+                                                          },
+                                                        ],
+                                                      },
+                                                    ],
+                                                 });
+
+      if (driverList) {
+
+        for (let driver of driverList) {
+          if (driver?.socketId) { socketList.push(driver?.socketId); }
+          if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
+          if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
+          if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
+        }
+      }
+
+      // emit the socket for notifing---- driver didn't accept the trip
+      if (socketList) {
+        for (let socketId of socketList) {
+
+          if (socketId) {
+
+            // socket.to(socketId).emit("tripAcceptedBYDriver", {
+            //                                                       trip: tripDetail,
+            //                                                       message: `Trip accepted successfully`,
+            //                                                     }
+            //                         );
+
+            socket.to(socketId).emit("refreshTrip", {  message: `The trip driver has accepted the trip. Please refresh the data to view the latest updates`  }  );
+          }
+        }
+      }
+
+      // send the push notification
+      if (deviceTokenList) {
+        
+        for (let tokenValue of deviceTokenList) {
+
+          if (tokenValue) {
+            
+            this.sendNotification(
+                                    tokenValue,
+                                    `Driver ${driver_name} has self-assigned a new trip  (#: ${tripDetail.trip_id}).`,
+                                    `Trip Self-Assigned #:  ${tripDetail.trip_id}`,
+                                    driverDetails
+                                  );
+          }
+        }
+      }
+
+      if (tripDetail?.customerDetails?.email) {
+        this.sendBookingConfirmationEmail(tripDetail);
+      }
+
+  } catch (error) {
+  console.log('emitTripAcceptedByDriver-------' , error)
+  }
+}
+
 exports.emitNewTripAddedByCustomer = async(tripDetail , socket) => {
  
   try {
