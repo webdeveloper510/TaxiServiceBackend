@@ -25,7 +25,8 @@ const {
         sendTripUpdateToCustomerViaSMS,
         sendBookingConfirmationEmail,
         getDistanceAndDuration,
-        emitTripNotAcceptedByDriver
+        emitTripNotAcceptedByDriver,
+        emitNewTripAddedByCustomer
       } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
@@ -548,16 +549,18 @@ exports.add_trip_link = async (req, res) => {
    
     let add_trip = await TRIP(data).save();
      
+    emitNewTripAddedByCustomer(add_trip , req.io)
     let add_return_trip = null;
     if (return_ticket_data) {
       
       add_return_trip = await TRIP(return_ticket_data).save();
+      emitNewTripAddedByCustomer(add_return_trip , req.io)
     }
     
     // refresh trip functionality for the drivers who have account access as partner
 
-    partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
-
+    // partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
+    
     if (data?.created_by_company_id) {
       const companyDetail = await user_model.findById(data?.created_by_company_id);
       sendBookingConfirmationEmail(add_trip)

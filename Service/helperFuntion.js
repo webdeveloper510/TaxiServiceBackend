@@ -838,6 +838,97 @@ exports.emitTripAcceptedByDriver = async(tripDetail , driverDetails , currentSoc
   }
 }
 
+exports.emitNewTripAddedByCustomer = async(tripDetail , socket) => {
+ 
+  try {
+
+      const user = await user_model.findById(tripDetail.created_by_company_id);
+      const agency = await AGENCY_MODEL.findOne({ user_id: tripDetail.created_by_company_id, });
+      
+      let socketList = [];
+      let deviceTokenList = [];
+
+      if (user?.socketId) { socketList.push(user?.socketId); }
+      if (user?.webSocketId) { socketList.push(user?.webSocketId); }
+      if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
+      if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+
+      // get the drivers (who have access) of  partners and account access list 
+      const driverList = await driver_model.find({
+                                                    $and: [
+                                                      {
+                                                       status: true,
+                                                      },
+                                                      {
+                                                        $or: [
+                                                          {
+                                                            parnter_account_access: {
+                                                              $elemMatch: { company_id: user._id },
+                                                            },
+                                                          },
+                                                          {
+                                                            company_account_access: {
+                                                              $elemMatch: { company_id: user._id },
+                                                            },
+                                                          },
+                                                        ],
+                                                      },
+                                                    ],
+                                                 });
+
+      if (driverList) {
+
+        for (let driver of driverList) {
+          if (driver?.socketId) { socketList.push(driver?.socketId); }
+          if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
+          if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
+          if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
+        }
+      }
+
+      // emit the socket for notifing---- driver didn't accept the trip
+      if (socketList) {
+        for (let socketId of socketList) {
+
+          if (socketId) {
+
+            // socket.to(socketId).emit("tripAcceptedBYDriver", {
+            //                                                       trip: tripDetail,
+            //                                                       message: `Trip accepted successfully`,
+            //                                                     }
+            //                         );
+
+            socket.to(socketId).emit("refreshTrip", {  message: `New trip added by customer. Please refresh the data to view the latest updates`  }  );
+          }
+        }
+      }
+
+      // send the push notification
+      if (deviceTokenList) {
+        
+        for (let tokenValue of deviceTokenList) {
+
+          if (tokenValue) {
+            
+            this.sendNotification(
+                                    tokenValue,
+                                    `Trip (ID: ${tripDetail.trip_id}) has been added by customer for company (${agency?.company_name}). `,
+                                    `Trip Added #:  ${tripDetail.trip_id}`,
+                                    tripDetail
+                                  );
+          }
+        }
+      }
+
+      if (tripDetail?.customerDetails?.email) {
+        this.sendBookingConfirmationEmail(tripDetail);
+      }
+
+  } catch (error) {
+  console.log('emitTripAcceptedByDriver-------' , error)
+  }
+}
+
 exports.sendNotification = async (to, message, title, data = {notificationType: constant.NOTIFICATION_TYPE.OTHER}) => {
   let device_token = to;
   
