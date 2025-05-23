@@ -549,9 +549,9 @@ exports.add_trip_link = async (req, res) => {
    
     let add_trip = await TRIP(data).save();
      
-    emitNewTripAddedByCustomer(add_trip , req.io)
+    emitNewTripAddedByCustomer(add_trip , req.io);
     let add_return_trip = null;
-    if (return_ticket_data) {
+    if (isRetrunBooking) {
       
       add_return_trip = await TRIP(return_ticket_data).save();
       emitNewTripAddedByCustomer(add_return_trip , req.io)
