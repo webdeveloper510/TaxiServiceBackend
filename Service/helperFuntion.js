@@ -838,7 +838,7 @@ exports.emitTripAcceptedByDriver = async(tripDetail , driverDetails , currentSoc
   }
 }
 
-exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDetails , socket) => {
+exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDetails , socket , isPartiallyAccess) => {
  
   try {
 
@@ -849,18 +849,18 @@ exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDeta
       let deviceTokenList = [];
 
       // When trip owner will not assign the trip to his own driver account
-      if (isPartnerAccess) { // when partner account will assign the trip to his own driver account
+      if (isPartnerAccess || isPartiallyAccess) { // when partner account will assign the trip to his own driver account ot partiall account driver will adign the trip
         if (user?.socketId) { socketList.push(user?.socketId); }
         if (user?.webSocketId) { socketList.push(user?.webSocketId); }
         if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
         if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
       }
       
-      // get the drivers (who have access) of  partners and account access list 
+      // get the drivers (who have access) of  partners account access and partialluy account access list 
       const driverList = await driver_model.find({
                                                     $and: [
                                                       {
-                                                       _id: { $ne: driverDetails._id }, // 👈 Exclude this driver who get the trip so this driver will not be notified
+                                                       ...(!isPartiallyAccess ? {_id: { $ne: driverDetails._id }} : {}), // 👈 Exclude this driver who get the trip so this driver will not be notified
                                                         status: true,
                                                       },
                                                       {
