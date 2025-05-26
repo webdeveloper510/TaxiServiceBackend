@@ -1004,8 +1004,6 @@ exports.edit_sub_admin = async (req, res) => {
         data.settings.payment_options.debit_card.text = constant.PAY_OPTION.DEBIT_CARD
         data.settings.payment_options.credit_card.text = constant.PAY_OPTION.CREDIT_CARD
         data.settings.payment_options.on_account.text = constant.PAY_OPTION.ON_ACCOUNT
-       
-        console.log(";indie" , data.settings)
       }
 
       let update_data = await USER.findOneAndUpdate(criteria, data, option);

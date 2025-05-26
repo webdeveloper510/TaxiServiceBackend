@@ -3018,11 +3018,11 @@ exports.calculatePrice = async (req, res) => {
 
     const matchingRoutes = alluploadedPriceList?.filter( (route) =>
                                                           (
-                                                            (origin.includes(route?.departure_place?.toLowerCase()) 
+                                                            (origin.toLowerCase().includes(route?.departure_place?.toLowerCase()) 
                                                             &&  destination.includes(route?.arrival_place?.toLowerCase()))
                                                             ||
-                                                            (route?.departure_place?.toLowerCase().includes(origin) 
-                                                            &&  route?.arrival_place?.toLowerCase().includes(destination))
+                                                            (route?.departure_place?.toLowerCase().includes(origin.toLowerCase()) 
+                                                            &&  route?.arrival_place?.toLowerCase().includes(destination.toLowerCase()))
                                                           )
                                                        );
     let finalPrice = 0;
@@ -3058,7 +3058,8 @@ exports.calculatePrice = async (req, res) => {
         distanceText: element.distance.text,       // e.g., "25.4 km"
         distanceMeters: element.distance.value,    // e.g., 25400
         durationText: element.duration.text,       // e.g., "32 mins"
-        durationSeconds: element.duration.value
+        durationSeconds: element.duration.value,
+        
         // matchingRoutes,
         // alluploadedPriceList,
         // distanceText: element.distance.text,       // e.g., "25.4 km"
