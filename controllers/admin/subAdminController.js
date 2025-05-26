@@ -881,6 +881,7 @@ exports.get_sub_admin_detail = async (req, res) => {
           // company_id:1,
           created_by: 1,
           phone: 1,
+          countryCode:1,
           profile_image: 1,
           role: 1,
           status: 1,
