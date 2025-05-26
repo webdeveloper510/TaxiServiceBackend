@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-
+const CONSTANT = require("../../config/constant");
 const driver = new Schema(
   {
     first_name: {
@@ -51,6 +51,10 @@ const driver = new Schema(
       type: String,
       default: "",
       index: true,
+    },
+    countryCode: {
+      type: String,
+      default: CONSTANT.NETHERLANDS_COUNTRY_CODE,
     },
     phone: {
       type: String,

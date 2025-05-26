@@ -41,21 +41,9 @@ router.get("/get_feedback", [verifyToken], loginController.get_feedback);
 
 router.post("/add_admin", [verifyToken], subAdminController.add_admin);
 router.get("/admin_list", [verifyToken], subAdminController.admin_list);
-router.get(
-  "/get_admin_details/:id",
-  [verifyToken],
-  subAdminController.get_admin_details
-);
-router.put(
-  "/update_admin_details/:id",
-  [verifyToken],
-  subAdminController.update_admin_details
-);
-router.delete(
-  "/delete_admin/:id",
-  [verifyToken],
-  subAdminController.delete_admin
-);
+router.get("/get_admin_details/:id",[verifyToken],subAdminController.get_admin_details);
+router.put("/update_admin_details/:id",[verifyToken],subAdminController.update_admin_details);
+router.delete("/delete_admin/:id",[verifyToken],subAdminController.delete_admin);
 
 // sub admin api's
 router.post("/add_sub_admin", [verifyToken], subAdminController.add_sub_admin);

@@ -44,6 +44,10 @@ const user = new Schema(
       type: String,
       default: "",
     },
+    countryCode: {
+      type: String,
+      default: CONSTANT.NETHERLANDS_COUNTRY_CODE,
+    },
     phone: {
       type: String,
       default: "",
