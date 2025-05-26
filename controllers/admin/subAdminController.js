@@ -2208,6 +2208,7 @@ exports.companyList = async (req, res) => {
           // company_id:1,
           // company_name:1,
           phone: 1,
+          countryCode:1,
           createdAt: -1,
           profile_image: 1,
           role: 1,
