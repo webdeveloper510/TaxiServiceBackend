@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const CONSTANT = require("../../config/constant");
 const ROLES_ENUM_WITHOUT_DRIVER = Object.values(CONSTANT.ROLES).filter(role => role !== CONSTANT.ROLES.DRIVER);
-
+const TRIP_COMMISSION_TYPE_ENUM = Object.values(CONSTANT.TRIP_COMMISSION_TYPE);
 const user = new Schema(
   {
     first_name: {
@@ -143,6 +143,18 @@ const user = new Schema(
             enabled: { type: Boolean, default: false },
           },
         },
+        default_web_booking_commission_type: {
+                                                
+                                                commission_type: {
+                                                                    type: String,
+                                                                    enum: TRIP_COMMISSION_TYPE_ENUM,
+                                                                    default: CONSTANT.TRIP_COMMISSION_TYPE.PERCENTAGE
+                                                                  },
+                                                commission_value: {
+                                                                      type: Number,
+                                                                      default: 0
+                                                                    }
+                                              },
       default: {}
     },
     sms_balance: { type: Number, default: 0 }, // in cents (e.g., 100 = €1.00)
