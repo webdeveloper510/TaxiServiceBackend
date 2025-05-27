@@ -30,7 +30,7 @@ router.delete('/delete_trip/:id',[verifyToken],tripController.delete_trip)
 router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 
 // Upload price feautre
-router.post('/upload_price',[verifyToken , companyAuth],priceUploadController.priceUploadController)
+router.post('/upload_price',[verifyToken , companyAuth],priceUploadController.priceUpload )
 router.post('/get_uploaded_price',[verifyToken , companyAuth],priceUploadController.getUploadedPrice)
 router.get('/get_all_uploaded_price',[verifyToken],priceUploadController.getAllUploadedPrice)
 router.post('/get_all_uploaded_price_for_hotel/:id', priceUploadController.getAllUploadedPriceForHotel)

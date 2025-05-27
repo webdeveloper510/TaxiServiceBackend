@@ -145,5 +145,37 @@ module.exports={
         CANCEL_TRIP: `cancel_trip`,
         UPDATE_TRIP: `cancel_trip`,
         OTHER: `other`,
+    },
+    UPLOADED_PRICE_TYPE: {
+        ZIP_CODE: 'ZIP_CODE',
+        ADDRESS: 'ADDRESS',
+    },
+    ZIP_CODE_UPLOAD_TYPE_REQUIRED_FIELDS: {
+        DEPARTURE_PLACE: "Departure Zipcode",
+        ARRIVAL_PLACE:"Arrival Zipcode",
+        NUMBER_OF_PERSONS:"Number of persons",
+        AMOUNT:"Amount",
+        VEHICLE_TYPE:"Vehicle type"
+    },
+    ZIP_CODE_UPLOAD_TYPE_REQUIRED_COLUMNS: {
+        DEPARTURE_PLACE: "Departure Zipcode",
+        ARRIVAL_PLACE:"Arrival Zipcode",
+        NUMBER_OF_PERSONS:"Number of persons",
+        AMOUNT:"Amount",
+        VEHICLE_TYPE:"Vehicle type"
+    },
+    ADDRESS_UPLOAD_TYPE_REQUIRED_FIELDS: {
+        DEPARTURE_PLACE: "Departure place",
+        ARRIVAL_PLACE:"Arrival place",
+        NUMBER_OF_PERSONS:"Number of persons",
+        AMOUNT:"Amount",
+        VEHICLE_TYPE:"Vehicle type"
+    },
+    ADDRESS_UPLOAD_TYPE_REQUIRED_COLUMNS: {
+        DEPARTURE_PLACE: "Departure place",
+        ARRIVAL_PLACE:"Arrival place",
+        NUMBER_OF_PERSONS:"Number of persons",
+        AMOUNT:"Amount",
+        VEHICLE_TYPE:"Vehicle type"
     }
 }

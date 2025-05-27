@@ -8,7 +8,7 @@ const xlsx = require("xlsx");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).single("file");
 
-exports.priceUploadController = async (req, res) => {
+exports.priceUpload = async (req, res) => {
     try {
 
         upload(req, res, async function (err) {
@@ -34,6 +34,15 @@ exports.priceUploadController = async (req, res) => {
                                 });
             }
 
+            if (req.body.upload_price_type == undefined || req.body.upload_price_type == '') {
+                return res.send({
+                                    code: constant.error_code,
+                                    message: `Invalid upload price type`,
+                                });
+            }
+
+           
+
             const fileBuffer = req.file.buffer;
             const workbook = xlsx.read(fileBuffer, { type: "buffer" });
 
@@ -48,26 +57,27 @@ exports.priceUploadController = async (req, res) => {
                 });
             }
 
-           
+           let  requiredColumns =  Object.values(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.ZIP_CODE_UPLOAD_TYPE_REQUIRED_COLUMNS : constant.ADDRESS_UPLOAD_TYPE_REQUIRED_COLUMNS);
+           let  requiredFields =  Object.values(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.ZIP_CODE_UPLOAD_TYPE_REQUIRED_FIELDS : constant.ADDRESS_UPLOAD_TYPE_REQUIRED_FIELDS);
+            console.log('requiredColumns-------' , requiredColumns)
+        //  requiredColumns = [
+        //         "Departure place",
+        //         "Arrival place",
+        //         "Number of persons",
+        //         "Amount",
+        //         "Vehicle type"
+        //     ];
 
-            const requiredColumns = [
-                "Departure place",
-                "Arrival place",
-                "Number of persons",
-                "Amount",
-                "Vehicle type"
-            ];
-
-            const requiredFields = [
-                "Departure place",
-                "Arrival place",
-                "Number of persons",
-                "Vehicle type"
-            ];
+        //      requiredFields = [
+        //         "Departure place",
+        //         "Arrival place",
+        //         "Number of persons",
+        //         "Vehicle type"
+        //     ];
 
             // Get column names from the sheet
             const sheetColumns = Object.keys(jsonData[0]);
-            console.log('sheetColumns-------' , sheetColumns)
+            
             // Check for missing columns
             const missingColumns = requiredColumns.filter(col => !sheetColumns.includes(col));
 
@@ -94,7 +104,7 @@ exports.priceUploadController = async (req, res) => {
                 const row = jsonData[i];
 
                 for (const field of requiredFields) {
-                    if (!row[field] || row[field].toString().trim() === "") {
+                    if (!row[field] || row[field].toString()?.trim() === "") {
                         return res.send({
                             code: constant.error_code,
                             message: `Row ${i + 2} has an empty value for '${field}'.`
@@ -111,13 +121,13 @@ exports.priceUploadController = async (req, res) => {
                     });
                 }
             }
-
+            
 
             const bulkOps = jsonData.map(value => {
-                const normalizeString = (str) => str?.trim().toLowerCase() || "";
+                const normalizeString = (str) => str !== undefined && str !== null ? String(str).trim().toLowerCase() : "";
 
-                const departurePlace = normalizeString(value['Departure place']);
-                const arrivalPlace = normalizeString(value['Arrival place']);
+                const departurePlace = normalizeString(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? value['Departure Zipcode'] : value['Departure place']);
+                const arrivalPlace = normalizeString(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? value['Arrival Zipcode'] : value['Arrival place']);
                 const vehicleType = normalizeString(value['Vehicle type']);
                 
                 return {
@@ -144,7 +154,7 @@ exports.priceUploadController = async (req, res) => {
                     }
                 };
             });
-            
+           
             await PRICE_MODEL.bulkWrite(bulkOps);
            
 
