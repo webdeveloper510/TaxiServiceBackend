@@ -1,10 +1,16 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
-
+const CONSTANT = require("../../config/constant");
+const UPLOADED_PRICE_TYPE_ENUM = Object.values(CONSTANT.UPLOADED_PRICE_TYPE);
 const prices = new Schema({
     user_id:{
         type:mongoose.Schema.Types.ObjectId,ref:'users',
         default:null
+    },
+    price_type:{
+        type:String,
+        enum:UPLOADED_PRICE_TYPE_ENUM,
+        default:CONSTANT.UPLOADED_PRICE_TYPE.ADDRESS
     },
     departure_place:{
         type:String,

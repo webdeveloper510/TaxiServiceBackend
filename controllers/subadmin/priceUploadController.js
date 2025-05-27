@@ -138,6 +138,7 @@ exports.priceUpload = async (req, res) => {
                             arrival_place: arrivalPlace,
                             number_of_person: value['Number of persons'],
                             vehicle_type: vehicleType,
+                            price_type: req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.UPLOADED_PRICE_TYPE.ZIP_CODE : constant.UPLOADED_PRICE_TYPE.ADDRESS
                         },
                         update: {
                             $set: {
@@ -147,6 +148,7 @@ exports.priceUpload = async (req, res) => {
                                 number_of_person: value['Number of persons'],
                                 amount: value['Amount'],
                                 vehicle_type: vehicleType,
+                                price_type: req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.UPLOADED_PRICE_TYPE.ZIP_CODE : constant.UPLOADED_PRICE_TYPE.ADDRESS
                             }
                         },
                         upsert: true, // Insert if not exists, update if exists
@@ -181,7 +183,7 @@ exports.getUploadedPrice = async (req, res) => {
         let limit = parseInt(data.limit) || 10; // Number of results per page, default to 10
         let skip = (page - 1) * limit;
         let search = data.search ? data.search.trim() : "";
-        let searchQuery = { user_id: req.userId };
+        let searchQuery = { user_id: req.userId  , price_type: data?.upload_price_type};
 
         if (search) {
             searchQuery.$or = [
