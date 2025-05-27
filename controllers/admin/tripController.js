@@ -3016,15 +3016,19 @@ exports.calculatePrice = async (req, res) => {
     // get the uploaded price based on 
     const alluploadedPriceList = await PRICE_MODEL.find(searchQuery);
 
-    const matchingRoutes = alluploadedPriceList?.filter( (route) =>
-                                                          (
-                                                            (origin.toLowerCase().includes(route?.departure_place?.toLowerCase()) 
-                                                            &&  destination.includes(route?.arrival_place?.toLowerCase()))
-                                                            ||
-                                                            (route?.departure_place?.toLowerCase().includes(origin.toLowerCase()) 
-                                                            &&  route?.arrival_place?.toLowerCase().includes(destination.toLowerCase()))
-                                                          )
-                                                       );
+    const matchingRoutes = alluploadedPriceList?.filter((route) => {
+                                                                      const routeFrom = route?.departure_place?.toLowerCase().trim();
+                                                                      const routeTo = route?.arrival_place?.toLowerCase().trim();
+                                                                      const originLower = origin.toLowerCase().trim();
+                                                                      const destinationLower = destination.toLowerCase().trim();
+
+                                                                      return (
+                                                                        (originLower.includes(routeFrom) && destinationLower.includes(routeTo)) ||
+                                                                        (routeFrom.includes(originLower) && routeTo.includes(destinationLower)) ||
+                                                                        (originLower.includes(routeTo) && destinationLower.includes(routeFrom)) ||
+                                                                        (routeTo.includes(originLower) && routeFrom.includes(destinationLower))
+                                                                      );
+                                                                    });
     let finalPrice = 0;
     let priceGetBy = null;                               
     if (matchingRoutes?.length > 0) {
