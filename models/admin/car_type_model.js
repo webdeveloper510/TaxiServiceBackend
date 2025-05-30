@@ -7,6 +7,11 @@ const cartypes = new Schema({
         default:null,
         require: true,
     },
+    passangerLimit: {
+        type:Number,
+        default:4,
+        require: true,
+    },
     is_deleted:{
         type:Boolean,
         default:false

@@ -589,10 +589,10 @@ exports.adminUpdatePayment = async (req, res) => {
     const tripInfo = await TRIP.findById(tripId);
 
     const driverDetail = await DRIVER_MODEL.findById(tripInfo?.driver_name);
-    // const stripeCustomerId = driverDetail?.stripeCustomerId;
-    const stripeCustomerId = `cus_SOpmX4S9VO7JqC`;
+    const stripeCustomerId = driverDetail?.stripeCustomerId;
+   
     if (stripeCustomerId) {
-      console.log('vijay raana')
+      
       // 1. Create the invoice
       const invoice = await stripe.invoices.create({
                                                     customer: stripeCustomerId,
