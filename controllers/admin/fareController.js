@@ -88,7 +88,13 @@ exports.get_fares = async (req, res) => {
         },
         { is_deleted: false },
       ],
-    }).sort({ vehicle_type: 1 });
+    }).populate({
+                  path: 'car_type_id',      // populate the field
+                  match: { is_deleted: false }, // optional filter to exclude deleted car types
+                  select: `passangerLimit`
+                })
+    .sort({ vehicle_type: 1 });
+
     if (!getData) {
       res.send({
         code: constant.error_code,
