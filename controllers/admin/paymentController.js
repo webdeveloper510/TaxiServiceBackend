@@ -11,6 +11,7 @@ const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 // const transaction = require("../../models/user/transaction");
 const TRIP = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
+const DRIVER_MODEL = require("../../models/user/driver_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { getUserActivePaidPlans , dateFilter} = require("../../Service/helperFuntion");
 
@@ -584,16 +585,66 @@ exports.adminUpdatePayment = async (req, res) => {
 
   try {
 
-    
     let tripId = req.params.id;
-
     const tripInfo = await TRIP.findById(tripId);
 
+    const driverDetail = await DRIVER_MODEL.findById(tripInfo?.driver_name);
+    // const stripeCustomerId = driverDetail?.stripeCustomerId;
+    const stripeCustomerId = `cus_SOpmX4S9VO7JqC`;
+    if (stripeCustomerId) {
+      console.log('vijay raana')
+      // 1. Create the invoice
+      const invoice = await stripe.invoices.create({
+                                                    customer: stripeCustomerId,
+                                                    collection_method: 'send_invoice',
+                                                    days_until_due: 0,
+                                                    custom_fields: [
+                                                      { name: 'Company Name', value: 'Doe Solutions B.V.' },
+                                                      { name: 'Father’s Name', value: 'Mr. Richard Doe' },
+                                                    ],
+                                                    footer: 'Thanks for your business.',
+                                                  });
+
+      await stripe.invoiceItems.create({
+                                        customer: stripeCustomerId,
+                                        invoice: invoice.id, // 🔥 attach this item to the specific invoice
+                                        amount: 20000, // €100.00
+                                        currency: 'eur',
+                                        description: 'Service Fee',
+                                        tax_rates: [process.env.STRIPE_VAT_TAX_ID],
+                                      });
+      
+      const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+      // 5. Mark it as paid (only works for invoices not paid via Stripe directly)
+      const paidInvoice = await stripe.invoices.pay(invoice.id, {
+                                                      paid_out_of_band: true,
+                                                    });
+      const invoices = await stripe.invoices.retrieve(invoice.id);
+      return res.send({
+                        code: constant.error_code,
+                        message: `chk paid`,
+                        ld:process.env.STRIPE_VAT_TAX_ID,
+                        invoices
+                      });
+                                                  // 4. Finalize the invoice
+      
+                                                  console.log('marked paidn')
+      
+console.log('marked paidInvoice' , paidInvoice)
+      return res.send({
+                        code: constant.error_code,
+                        message: `This trip already paid`,
+                        driverDetail,
+                        paidInvoice
+                      });
+
+    }
     if (tripInfo?.is_paid && req.user.role == constant.ROLES.ADMIN) {
 
       return res.send({
                         code: constant.error_code,
                         message: `This trip already paid`,
+                        
                         
                       });
     } else {
@@ -627,9 +678,6 @@ exports.adminUpdatePayment = async (req, res) => {
                         });
       }
     }
-      
-        
-
   } catch (err) {
     console.log( "🚀 ~ file: adminUpdatePayment.", err.message );
 

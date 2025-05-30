@@ -367,9 +367,34 @@ exports.adminAddDriver = async (req, res) => {
 
     
     // Create or get stripe customer id
+    // let customer = await stripe.customers.list({ email: data.email });
+    // customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
     let customer = await stripe.customers.list({ email: data.email });
-    customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
+    const userFormattedAddress = `${data?.address_1} ${data?.address_2} , ${data?.post_code}`;
+    const stripeUserData = { 
+                                                  name: data?.companyName,
+                                                  email: data.email,
+                                                  address: {
+                                                            line1: userFormattedAddress,
+                                                            postal_code: data?.post_code,
+                                                            city: data?.city,
+                                                            country: data?.country
+                                                          }, 
+                                                          metadata: {
+                                                                      person_name: `${data?.first_name} ${data?.last_name}`
+                                                                    }
+                                                }
+    // const getAddressData = await getCityAndCountry(userFormattedAddress);
+    // const city = getAddressData?.city ? getAddressData?.city : '';
+    // const country = getAddressData?.city ? getAddressData?.country : '';
     
+    if (customer.data.length) {
+      
+      customer =  customer.data[0]
+      await stripe.customers.update(customer.id, stripeUserData);
+    } else {
+      customer = await stripe.customers.create(stripeUserData)
+    }
     data.stripeCustomerId = customer.id;
     data.driverCounterId = `D-`+ await getDriverNextSequenceValue();
     
@@ -1135,6 +1160,32 @@ exports.update_driver = async (req, res) => {
 
       if (updates.isDocUploaded) {
         updates.isDocUploaded = req.body.isDocUploaded == "true";
+
+        let customer = await stripe.customers.list({ email: existingDriver.email });
+        const userFormattedAddress = `${data?.address_1} ${data?.address_2} , ${data?.zip_code}`;
+        const stripeUserData = { 
+                                  name: data?.companyName,
+                                  email: existingDriver.email,
+                                  address: {
+                                            line1: userFormattedAddress,
+                                            postal_code: data?.zip_code,
+                                            city: data?.city,
+                                            country: data?.country
+                                          }, 
+                                          metadata: {
+                                                      person_name: `${data?.first_name} ${data?.last_name}`
+                                                    }
+                                };
+
+        if (customer.data.length) {
+      
+          customer =  customer.data[0]
+          await stripe.customers.update(customer.id, stripeUserData); //update user info
+          
+        } else {
+          customer = await stripe.customers.create(stripeUserData ) // create user with new info
+
+        }
       }
       if (updates.is_available) {
         updates.is_available = req.body.is_available == "true";

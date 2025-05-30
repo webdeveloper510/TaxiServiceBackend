@@ -1086,6 +1086,40 @@ exports.sendNotification = async (to, message, title, data = {notificationType: 
   }
 };
 
+exports.getCityAndCountry = async (address) => {
+  
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${process.env.GOOGLE_MAP_KEY}`;
+  try {
+    const response = await axios.get(url);
+    const results = response.data.results;
+
+    if (results.length === 0) {
+      return { city: null, country: null };
+    }
+
+    const components = results[0].address_components;
+
+    let city = null;
+    let country = null;
+
+    for (const comp of components) {
+      if (comp.types.includes('locality')) {
+        city = comp.long_name;
+      }
+      if (comp.types.includes('country')) {
+        country = comp.long_name;
+      }
+    }
+
+    return { city, country };
+
+  } catch (error) {
+    console.error('Error fetching location:', error.message);
+    return { city: null, country: null };
+  }
+};
+
+
 exports.emailHeader = async () => {
 
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

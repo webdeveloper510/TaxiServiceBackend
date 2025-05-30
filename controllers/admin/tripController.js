@@ -3007,11 +3007,11 @@ exports.calculatePrice = async (req, res) => {
     
     let searchQuery = { user_id: companyId  , vehicle_type: vehicleType};
     
-    if (number_of_person <= 4) {
-      searchQuery.number_of_person = { $lte: 4 };
-    } else if (number_of_person > 4 && number_of_person <= 8) {
-      searchQuery.number_of_person = { $gt: 4, $lte: 8 };
-    }
+    // if (number_of_person <= 4) {
+    //   searchQuery.number_of_person = { $lte: 4 };
+    // } else if (number_of_person > 4 && number_of_person <= 8) {
+    //   searchQuery.number_of_person = { $gt: 4, $lte: 8 };
+    // }
 
     // get the uploaded price based on 
     const alluploadedPriceList = await PRICE_MODEL.find(searchQuery);
