@@ -1699,7 +1699,7 @@ exports.canDriverOperate = async (driverId) => {
         }
       }
   } catch (error) {
-    console.error("Error retrieving balance:", error);
+    console.error("Error can driver operate:", error);
     // throw error;
     return {
       isPassed: false,
@@ -2116,7 +2116,12 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
                                                   pickup_date_time: 1,
                                                   is_company_paid:1,
                                                   companyPaymentAmount:1,
+                                                  price:1,
+                                                  driverPaymentAmount:1,
+                                                  child_seat_price:1,
+                                                  payment_method_price:1,
                                                   "companyDetails.connectedAccountId": 1,
+                                                  "companyDetails.stripeCustomerId": 1,
                                                   "companyDetails.email": 1,
                                                 }
                                               }
@@ -2124,7 +2129,7 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
 
     return trips
   } catch (error) {
-    console.error("Error retrieving balance:", error);
+    console.error("Error getPendingPayoutTripsBeforeWeek:", error);
     throw error;
   }
 }
@@ -3304,7 +3309,7 @@ exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail) => {
                                     invoice: invoice.id, // 🔥 attach this item to the specific invoice
                                     amount: Number(amount) * 100, // €100.00
                                     currency: 'eur',
-                                    description: 'Service Fee',
+                                    description: `${tripDetail?.trip_id}`,
                                     tax_rates: [process.env.STRIPE_VAT_TAX_ID],
                                   });
 

@@ -544,7 +544,7 @@ app.get( "/weekly-company-payment", async (req, res) => {
                       balance
                     });
   } catch (error) {
-    console.error("Error retrieving balance:", error);
+    console.error("Error weekly-company-payment:", error);
     return  res.send({
                         code: constant.error_code,
                         message: error.message,
@@ -1727,7 +1727,7 @@ cron.schedule("* * * * *", () => {
 
   // Send push notification to driver and company when trip will start in 20 minutes
   checkTripsAndSendNotifications();
-  // initiateWeeklyCompanyPayouts();
+  initiateWeeklyCompanyPayouts();
   // logoutDriverAfterThreeHour()
 });
 
@@ -1739,11 +1739,7 @@ const initiateWeeklyCompanyPayouts = async (res) => {
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
-    return res.send({
-      code: 200,
-      message: "weekly-company-payment",
-      tripList
-    });
+    
 // console.log('tripList---------' , tripList)
     if (availableBalance > 100) {
        
@@ -1754,13 +1750,14 @@ const initiateWeeklyCompanyPayouts = async (res) => {
         if (tripList.length > 0) {
           // console.log('paybale trip------')
           for (let  trip of tripList) {
-            
-            let amount = trip.companyPaymentAmount;
+            console.log()
+            let amount = trip.companyPaymentAmount + trip?.child_seat_price + trip?.payment_method_price;
 
             if (amount < 1) { // atleast one euro will  be to send to the bank
               continue
             }
             let connectedAccountId = trip?.companyDetails?.connectedAccountId;
+            let stripeCustomerId = trip?.companyDetails?.stripeCustomerId;
             let tripId = trip?.trip_id;
 
             let stripBalance = await stripe.balance.retrieve();
@@ -1779,7 +1776,7 @@ const initiateWeeklyCompanyPayouts = async (res) => {
 
               // console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
               const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
-              const invoiceDetail = await generateInvoiceReceipt(connectedAccountId , trip)
+              const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , trip)
               await trip_model.findOneAndUpdate(
                                                   { _id: trip?._id }, // Find by tripId
                                                   { 
@@ -1819,7 +1816,7 @@ const initiateWeeklyCompanyPayouts = async (res) => {
     //   });
     
   } catch (error) {
-    console.error("Error retrieving balance:", error);
+    console.error("Error initiateweeklyCompanyPayouts:", error);
     console.log({
                         code: constant.error_code,
                         message: error.message,
