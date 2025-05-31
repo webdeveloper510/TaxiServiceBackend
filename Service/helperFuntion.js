@@ -1277,7 +1277,7 @@ exports.sendPaymentFailEmail = async (subsctiptionId , reseon) => {
                                   <span style="font-weight:bold;">Subscription ID: </span> ${subscriptionDetails.subscriptionId}
                                 </li>
                                 <li>
-                                  <span style="font-weight:bold;">Attempted Amount: </span> €${subscriptionDetails.amount}
+                                  <span style="font-weight:bold;">Attempted Amount: </span> €${subscriptionDetails.amount.toFixed(2)}
                                 </li>
                                 <li>
                                   <span style="font-weight:bold;">Date of Attempt: </span>  ${formattedDate}
@@ -1345,7 +1345,7 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                             <li> <span style="font-weight:bold;">Plan Name:</span> ${planDetails.name}</li>
                             <li> <span style="font-weight:bold;">Start Date:</span> ${subscriptionDetails.startPeriod}</li>
                             <li> <span style="font-weight:bold;">Next Billing Date:</span> ${subscriptionDetails.endPeriod} </li>
-                            <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount} + (21% VAT)</li>
+                            <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount.toFixed(2)} + (21% VAT)</li>
                           </ul>
 
                           <br><br>
@@ -1576,7 +1576,7 @@ exports.notifyPayoutPaid = async (userInfo , tripDetails , payoutDetails) => {
 
                           <ul>
                             <li> <span style="font-weight:bold;">Payout ID:</span> ${payoutDetails?.id}</li>
-                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.amount / 100)} €</li>
+                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.amount / 100).toFixed(2)} €</li>
                             <li> <span style="font-weight:bold;">Date:</span> ${new Date().toISOString()}</li>
                           </ul>
 
@@ -1630,7 +1630,7 @@ exports.notifyPayoutFailure = async (userInfo , tripDetails , payoutDetails) => 
 
                           <ul>
                             <li> <span style="font-weight:bold;">Payout ID:</span> ${payoutDetails?.id}</li>
-                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.amount / 100)} €</li>
+                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.amount / 100).toFixed(2)} €</li>
                             <li> <span style="font-weight:bold;">Failure Reason:</span> ${payoutDetails?.failure_message}</li>
                           </ul>
 
@@ -2628,7 +2628,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Your taxi fare:</strong></td>
-                            <td>€ ${tripDetail?.price}</td>
+                            <td>€ ${tripDetail?.price.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>
@@ -2785,7 +2785,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Your taxi fare:</strong></td>
-                            <td>€ ${tripDetail?.price}</td>
+                            <td>€ ${tripDetail?.price.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>
@@ -2988,7 +2988,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Your taxi fare:</strong></td>
-                            <td>€ ${tripDetail?.price}</td>
+                            <td>€ ${tripDetail?.price.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>
