@@ -560,6 +560,22 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
         }
       }
     };
+  } else if (amountKey === 'companyPaymentAmount') {
+    groupStage = {
+      $group: {
+        _id: null,
+        totalAmount: {
+          $sum: {
+            $add: [
+              { $ifNull: ['$companyPaymentAmount', 0] },
+              { $ifNull: ['$child_seat_price', 0] },
+              { $ifNull: ['$payment_method_price', 0] }
+            ]
+          }
+        }
+      }
+    };
+  
   } else {
     groupStage = {
       $group: {
