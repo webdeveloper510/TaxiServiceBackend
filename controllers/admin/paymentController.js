@@ -39,6 +39,7 @@ exports.tripCommissionPayment = async (req, res) => {
       if ( trip_by_id.commission.commission_type === "Percentage" && trip_by_id.commission.commission_value > 0 ) {
         commission = (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
       }
+      commission = commission + trip_by_id?.child_seat_price + trip_by_id?.payment_method_price
       commission = commission.toFixed(2);
 
       const paymentResult = await initiateStripePayment( trip_by_id, parseInt(commission * 100) );
@@ -46,8 +47,7 @@ exports.tripCommissionPayment = async (req, res) => {
                   code: constant.success_code,
                   result: paymentResult,
                   trip_by_id,
-                  message: "Success fully payment is created",
-                  // commission
+                  message: `Payment link has been successfully generated. Please complete the payment through the provided link.`,
                 });
     } catch (error) {
       return res.send({
@@ -604,57 +604,6 @@ exports.adminUpdatePayment = async (req, res) => {
     let tripId = req.params.id;
     const tripInfo = await TRIP.findById(tripId);
 
-    const driverDetail = await DRIVER_MODEL.findById(tripInfo?.driver_name);
-    const stripeCustomerId = driverDetail?.stripeCustomerId;
-   
-    if (stripeCustomerId) {
-      
-      // 1. Create the invoice
-      const invoice = await stripe.invoices.create({
-                                                    customer: stripeCustomerId,
-                                                    collection_method: 'send_invoice',
-                                                    days_until_due: 0,
-                                                    custom_fields: [
-                                                      { name: 'Company Name', value: 'Doe Solutions B.V.' },
-                                                      { name: 'Father’s Name', value: 'Mr. Richard Doe' },
-                                                    ],
-                                                    footer: 'Thanks for your business.',
-                                                  });
-
-      await stripe.invoiceItems.create({
-                                        customer: stripeCustomerId,
-                                        invoice: invoice.id, // 🔥 attach this item to the specific invoice
-                                        amount: 20000, // €100.00
-                                        currency: 'eur',
-                                        description: 'Service Fee',
-                                        tax_rates: [process.env.STRIPE_VAT_TAX_ID],
-                                      });
-      
-      const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
-      // 5. Mark it as paid (only works for invoices not paid via Stripe directly)
-      const paidInvoice = await stripe.invoices.pay(invoice.id, {
-                                                      paid_out_of_band: true,
-                                                    });
-      const invoices = await stripe.invoices.retrieve(invoice.id);
-      return res.send({
-                        code: constant.error_code,
-                        message: `chk paid`,
-                        ld:process.env.STRIPE_VAT_TAX_ID,
-                        invoices
-                      });
-                                                  // 4. Finalize the invoice
-      
-                                                  console.log('marked paidn')
-      
-console.log('marked paidInvoice' , paidInvoice)
-      return res.send({
-                        code: constant.error_code,
-                        message: `This trip already paid`,
-                        driverDetail,
-                        paidInvoice
-                      });
-
-    }
     if (tripInfo?.is_paid && req.user.role == constant.ROLES.ADMIN) {
 
       return res.send({
@@ -668,13 +617,49 @@ console.log('marked paidInvoice' , paidInvoice)
       let criteria = { _id: tripId };
       let newValue = {
                         $set: {
-                          is_paid : !tripInfo?.is_paid,
+                          is_paid : true,
                           "stripe_payment.payment_status" : "Paid",
                           payment_completed_date : new Date(),
                           payment_collcted : constant.PAYMENT_COLLECTION_TYPE.MANUALLY,
                           payment_upadted_by_admin: tripInfo?.is_paid ? null : req.userId,
                         },
                       };
+
+      const driverDetail = await DRIVER_MODEL.findById(tripInfo?.driver_name);
+      const stripeCustomerId = driverDetail?.stripeCustomerId;
+      
+      if (stripeCustomerId) {
+      
+        // 1. Create the invoice
+        const invoice = await stripe.invoices.create({
+                                                      customer: stripeCustomerId,
+                                                      collection_method: 'send_invoice',
+                                                      days_until_due: 0,
+                                                      custom_fields: [
+                                                        // { name: 'Company Name', value: 'Doe Solutions B.V.' },
+                                                        // { name: 'Father’s Name', value: 'Mr. Richard Doe' },
+                                                      ],
+                                                      footer: 'Thanks for your business.',
+                                                    });
+        const amount = ( tripInfo?.price - tripInfo?.driverPaymentAmount) + tripInfo?.child_seat_price + tripInfo?.payment_method_price; 
+        await stripe.invoiceItems.create({
+                                          customer: stripeCustomerId,
+                                          invoice: invoice.id, // 🔥 attach this item to the specific invoice
+                                          amount: Number(amount) * 100, // €100.00
+                                          currency: 'eur',
+                                          description: 'Service Fee',
+                                          tax_rates: [process.env.STRIPE_VAT_TAX_ID],
+                                        });
+        
+        const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+        // 5. Mark it as paid (only works for invoices not paid via Stripe directly)
+        const paidInvoice = await stripe.invoices.pay(invoice.id, { paid_out_of_band: true, });
+        const invoices = await stripe.invoices.retrieve(invoice.id);
+        
+        newValue.$set.hosted_invoice_url  =     invoices?.hosted_invoice_url;   
+        newValue.$set.invoice_pdf         =     invoices?.invoice_pdf;   
+
+      }
 
                      
       let option = { new: true };
@@ -699,7 +684,7 @@ console.log('marked paidInvoice' , paidInvoice)
 
     return res.send({
                       code: constant.error_code,
-                      message: err.message,
+                      message: '',
                     });
   }
 }
