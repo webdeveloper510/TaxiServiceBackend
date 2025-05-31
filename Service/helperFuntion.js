@@ -2077,12 +2077,14 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
   try {
 
     const sevenDaysAgo = new Date();
+    console.log(`sevenDaysAgo--------` , sevenDaysAgo)
     // sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 2);
 
     //  get the trips who have account attached with stripe then we can also transfer into his account
     const trips = await TRIP_MODEL.aggregate([
                                               {
                                                 $match: { 
+                                                          trip_status: constant.TRIP_STATUS.COMPLETED,
                                                           is_paid: true,
                                                           is_company_paid: false,
                                                           company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.NOT_INITIATED,
@@ -3280,7 +3282,37 @@ exports.getDistanceAndDuration = async (origin, destination) => {
     console.error("Error getDistanceAndDuration:",  error.message);
     throw error;
   }
-  
+}
+
+exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail) => {
+
+  // 1. Create the invoice
+  const invoice = await stripe.invoices.create({
+                                                customer: stripeCustomerId,
+                                                collection_method: 'send_invoice',
+                                                days_until_due: 0,
+                                                custom_fields: [
+                                                  // { name: 'Company Name', value: 'Doe Solutions B.V.' },
+                                                  // { name: 'Father’s Name', value: 'Mr. Richard Doe' },
+                                                ],
+                                                footer: 'Thanks for your business.',
+                                              });
+
+  const amount = ( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price; 
+  await stripe.invoiceItems.create({
+                                    customer: stripeCustomerId,
+                                    invoice: invoice.id, // 🔥 attach this item to the specific invoice
+                                    amount: Number(amount) * 100, // €100.00
+                                    currency: 'eur',
+                                    description: 'Service Fee',
+                                    tax_rates: [process.env.STRIPE_VAT_TAX_ID],
+                                  });
+
+  const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+  // 5. Mark it as paid (only works for invoices not paid via Stripe directly)
+  const paidInvoice = await stripe.invoices.pay(invoice.id, { paid_out_of_band: true, });
+  const invoiceDetail = await stripe.invoices.retrieve(invoice.id);
+  return invoiceDetail
 }
 //   try {
 //     const accessToken = await getAccessToken();

@@ -284,6 +284,14 @@ const trip = new Schema({
         type:String,
         default: ""
     },
+    company_hosted_invoice_url:{
+        type:String,
+        default: ""
+    },
+    company_invoice_pdf:{
+        type:String,
+        default: ""
+    },
     susbscriptionPlanName:{
         type:String,
         default: ""

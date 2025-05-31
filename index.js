@@ -29,7 +29,8 @@ const { driverDetailsByToken,
         sendBookingCancelledEmail,
         emitTripCancelledByDriver,
         emitTripRetrivedByCompany,
-        emitTripAcceptedByDriver
+        emitTripAcceptedByDriver,
+        generateInvoiceReceipt
       } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
@@ -449,6 +450,8 @@ app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
     
+    initiateWeeklyCompanyPayouts(res);
+    return 
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
@@ -1571,11 +1574,6 @@ async function checkTripsAndSendNotifications() {
                                                     { path: "driver_name" }, 
                                                     { path: "created_by_company_id" }
                                                   ]);
-    
-    // console.log('currentDateTime----' , currentDateTime)
-    // console.log('thirteenMinutesBefore----' , thirteenMinutesBefore)
-    // console.log('fifteenMinutesBefore----' , fifteenMinutesBefore)                                
-    // console.log('trip-----' , trips)
 
     const notifications = [];
     const ids = [];
@@ -1668,6 +1666,7 @@ async function checkTripsAndSendNotifications() {
     console.log("🚀 ~ checkTripsAndSendNotifications ~ error:", error);
   }
 }
+
 async function logoutDriverAfterThreeHour() {
   try {
     const now = new Date();
@@ -1728,20 +1727,11 @@ cron.schedule("* * * * *", () => {
 
   // Send push notification to driver and company when trip will start in 20 minutes
   checkTripsAndSendNotifications();
+  // initiateWeeklyCompanyPayouts();
   // logoutDriverAfterThreeHour()
 });
 
-// Schedule the task using cron for every minute
-cron.schedule("* * * * *", () => {
-
-  // console.log('running evry minute' , new Date())
-
-  // Send push notification to driver and company when trip will start in 20 minutes
-  initiateWeeklyCompanyPayouts();
-  // logoutDriverAfterThreeHour()
-});
-
-const initiateWeeklyCompanyPayouts = async () => {
+const initiateWeeklyCompanyPayouts = async (res) => {
   try {
 
    
@@ -1749,7 +1739,11 @@ const initiateWeeklyCompanyPayouts = async () => {
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
-    
+    return res.send({
+      code: 200,
+      message: "weekly-company-payment",
+      tripList
+    });
 // console.log('tripList---------' , tripList)
     if (availableBalance > 100) {
        
@@ -1785,10 +1779,13 @@ const initiateWeeklyCompanyPayouts = async () => {
 
               // console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
               const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
+              const invoiceDetail = await generateInvoiceReceipt(connectedAccountId , trip)
               await trip_model.findOneAndUpdate(
                                                   { _id: trip?._id }, // Find by tripId
                                                   { 
                                                     $set: { 
+                                                            company_hosted_invoice_url : invoiceDetail?.hosted_invoice_url,
+                                                            company_invoice_pdf : invoiceDetail?.invoice_pdf,
                                                             company_trip_payout_id: payoutDetails?.id,
                                                             company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.PENDING,
                                                             company_trip_payout_initiated_date: new Date().toISOString(),
