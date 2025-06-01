@@ -533,7 +533,7 @@ exports.add_trip_link = async (req, res) => {
     data.series_id = '';
     data.trip_id = "T" + "-" + data.trip_id;
     data.driverPaymentAmount = data?.price ? data.price : 0;
-    data.companyPaymentAmount = 0;
+    data.companyPaymentAmount = 0; 
     data.superAdminPaymentAmount = 0;
     
     let return_ticket_data = {}
@@ -547,7 +547,11 @@ exports.add_trip_link = async (req, res) => {
     delete data?.is_return_booking;
     delete data?.return_booking;
 
-   
+  //  res.send({
+  //       code: constant.error_code,
+  //       message: "Unable to create the trip",
+  //       data
+  //     });
     let add_trip = await TRIP(data).save();
      
     emitNewTripAddedByCustomer(add_trip , req.io);

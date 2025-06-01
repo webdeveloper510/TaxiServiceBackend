@@ -1814,7 +1814,6 @@ exports.willCompanyPayCommissionOnTrip =  async (userInfo) => {
             subscriptionDetail: null
           }
         }
-       
       }
 
     return subscriptions;

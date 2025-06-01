@@ -1026,13 +1026,18 @@ io.on("connection", (socket) => {
 
           if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
 
-            // driverBySocketId.is_available = true;
-            // await driverBySocketId.save();
+            // when company will send a request toa driver and pop will show on driver side and driver reject
+            if (trip?.trip_status == constant.TRIP_STATUS.APPROVED) { // when trip will not be already booked
+              
+              driverBySocketId.is_available = true;
+              await driverBySocketId.save();
 
-            // let updated_data = { trip_status: "Pending", driver_name: null };
-            // let option = { new: true };
-            // let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
-
+              let updated_data = { trip_status: "Pending", driver_name: null };
+              let option = { new: true };
+              let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
+              
+            }
+            
             emitTripCancelledByDriver(trip , driverBySocketId  , socket.id , io);
             return
 
@@ -1750,7 +1755,7 @@ const initiateWeeklyCompanyPayouts = async (res) => {
         if (tripList.length > 0) {
           // console.log('paybale trip------')
           for (let  trip of tripList) {
-            console.log()
+            
             let amount = trip.companyPaymentAmount + trip?.child_seat_price + trip?.payment_method_price;
 
             if (amount < 1) { // atleast one euro will  be to send to the bank
