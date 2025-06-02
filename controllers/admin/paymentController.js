@@ -609,8 +609,6 @@ exports.adminUpdatePayment = async (req, res) => {
       return res.send({
                         code: constant.error_code,
                         message: `This trip already paid`,
-                        
-                        
                       });
     } else {
 
@@ -637,7 +635,6 @@ exports.adminUpdatePayment = async (req, res) => {
 
       }
 
-                     
       let option = { new: true };
       let trip = await TRIP.findByIdAndUpdate(criteria, newValue, option);
 
@@ -652,6 +649,7 @@ exports.adminUpdatePayment = async (req, res) => {
         return res.send({
                           code: constant.error_code,
                           message: err.message,
+                          
                         });
       }
     }
@@ -660,7 +658,7 @@ exports.adminUpdatePayment = async (req, res) => {
 
     return res.send({
                       code: constant.error_code,
-                      message: '',
+                      message: err.message,
                     });
   }
 }

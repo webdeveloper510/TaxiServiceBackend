@@ -3302,7 +3302,8 @@ exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail) => {
                                                 footer: 'Thanks for your business.',
                                               });
 
-  const amount = ( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price; 
+  const amount = (( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2); 
+  
   await stripe.invoiceItems.create({
                                     customer: stripeCustomerId,
                                     invoice: invoice.id, // 🔥 attach this item to the specific invoice
