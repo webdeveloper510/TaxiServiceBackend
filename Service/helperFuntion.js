@@ -3290,6 +3290,7 @@ exports.getDistanceAndDuration = async (origin, destination) => {
 
 exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail , isInvoiceForCompany = true) => {
 
+  
   // 1. Create the invoice
   const invoice = await stripe.invoices.create({
                                                 customer: stripeCustomerId,
@@ -3306,11 +3307,12 @@ exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail , isInvoic
   let  amount = 0; 
   
   if (isInvoiceForCompany) {
-    amount = tripDetail?.companyPaymentAmount.toFixed(2); 
+    amount = tripDetail?.companyPaymentAmount.toFixed(0); 
   } else {
-    amount = (( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2); 
+    amount = (( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(0); 
   }
-  
+  console.log('amount---------' , amount)
+
   await stripe.invoiceItems.create({
                                     customer: stripeCustomerId,
                                     invoice: invoice.id, // 🔥 attach this item to the specific invoice

@@ -612,30 +612,49 @@ exports.adminUpdatePayment = async (req, res) => {
                       });
     } else {
 
+    
       let criteria = { _id: tripId };
-      let newValue = {
-                        $set: {
-                          is_paid : true,
-                          "stripe_payment.payment_status" : "Paid",
-                          payment_completed_date : new Date(),
-                          payment_collcted : constant.PAYMENT_COLLECTION_TYPE.MANUALLY,
-                          payment_upadted_by_admin: tripInfo?.is_paid ? null : req.userId,
-                        },
-                      };
+      let newValue = {}
 
-      const driverDetail = await DRIVER_MODEL.findById(tripInfo?.driver_name);
-      const stripeCustomerId = driverDetail?.stripeCustomerId;
+      if (tripInfo?.is_paid) {
 
-      if (stripeCustomerId) {
-        
-        const isInvoiceForCompany  = false;
-        const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , tripInfo , isInvoiceForCompany)
-        
-        newValue.$set.hosted_invoice_url  =     invoiceDetail?.hosted_invoice_url;   
-        newValue.$set.invoice_pdf         =     invoiceDetail?.invoice_pdf;   
+        newValue = {
+                      $set: {
+                        is_paid : false,
+                        "stripe_payment.payment_status" : "Pending",
+                        payment_completed_date : null,
+                        payment_collcted : constant.PAYMENT_COLLECTION_TYPE.PENDING,
+                        payment_upadted_by_admin: null,
+                        hosted_invoice_url: ``,
+                        invoice_pdf: ``
+                      },
+                    };
+      } else {
+        newValue = {
+                      $set: {
+                        is_paid : true,
+                        "stripe_payment.payment_status" : "Paid",
+                        payment_completed_date : new Date(),
+                        payment_collcted : constant.PAYMENT_COLLECTION_TYPE.MANUALLY,
+                        payment_upadted_by_admin: tripInfo?.is_paid ? null : req.userId,
+                      },
+                    };
 
+        const driverDetail = await DRIVER_MODEL.findById(tripInfo?.driver_name);
+        const stripeCustomerId = driverDetail?.stripeCustomerId;
+
+        if (stripeCustomerId) {
+          
+          const isInvoiceForCompany  = false;
+          const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , tripInfo , isInvoiceForCompany)
+          
+          newValue.$set.hosted_invoice_url  =     invoiceDetail?.hosted_invoice_url;   
+          newValue.$set.invoice_pdf         =     invoiceDetail?.invoice_pdf;   
+
+        }
       }
-
+      
+ 
       let option = { new: true };
       let trip = await TRIP.findByIdAndUpdate(criteria, newValue, option);
 
