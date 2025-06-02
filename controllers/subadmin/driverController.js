@@ -869,6 +869,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
                                                 driver_name: id,
                                                 trip_status: "Reached",
                                                 is_paid: false,
+                                                under_cancellation_review: false
                                               })
                                           .countDocuments();
       const underCancellationReview = await TRIP.find({
