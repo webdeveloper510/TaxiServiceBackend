@@ -3311,7 +3311,6 @@ exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail , isInvoic
   } else {
     amount = (( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(0); 
   }
-  console.log('amount---------' , amount)
 
   await stripe.invoiceItems.create({
                                     customer: stripeCustomerId,
