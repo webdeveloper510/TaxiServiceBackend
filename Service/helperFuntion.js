@@ -1086,6 +1086,40 @@ exports.sendNotification = async (to, message, title, data = {notificationType: 
   }
 };
 
+exports.getCityAndCountry = async (address) => {
+  
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${process.env.GOOGLE_MAP_KEY}`;
+  try {
+    const response = await axios.get(url);
+    const results = response.data.results;
+
+    if (results.length === 0) {
+      return { city: null, country: null };
+    }
+
+    const components = results[0].address_components;
+
+    let city = null;
+    let country = null;
+
+    for (const comp of components) {
+      if (comp.types.includes('locality')) {
+        city = comp.long_name;
+      }
+      if (comp.types.includes('country')) {
+        country = comp.long_name;
+      }
+    }
+
+    return { city, country };
+
+  } catch (error) {
+    console.error('Error fetching location:', error.message);
+    return { city: null, country: null };
+  }
+};
+
+
 exports.emailHeader = async () => {
 
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -1243,7 +1277,7 @@ exports.sendPaymentFailEmail = async (subsctiptionId , reseon) => {
                                   <span style="font-weight:bold;">Subscription ID: </span> ${subscriptionDetails.subscriptionId}
                                 </li>
                                 <li>
-                                  <span style="font-weight:bold;">Attempted Amount: </span> €${subscriptionDetails.amount}
+                                  <span style="font-weight:bold;">Attempted Amount: </span> €${subscriptionDetails.amount.toFixed(2)}
                                 </li>
                                 <li>
                                   <span style="font-weight:bold;">Date of Attempt: </span>  ${formattedDate}
@@ -1311,7 +1345,7 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                             <li> <span style="font-weight:bold;">Plan Name:</span> ${planDetails.name}</li>
                             <li> <span style="font-weight:bold;">Start Date:</span> ${subscriptionDetails.startPeriod}</li>
                             <li> <span style="font-weight:bold;">Next Billing Date:</span> ${subscriptionDetails.endPeriod} </li>
-                            <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount} + (21% VAT)</li>
+                            <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount.toFixed(2)} + (21% VAT)</li>
                           </ul>
 
                           <br><br>
@@ -1542,7 +1576,7 @@ exports.notifyPayoutPaid = async (userInfo , tripDetails , payoutDetails) => {
 
                           <ul>
                             <li> <span style="font-weight:bold;">Payout ID:</span> ${payoutDetails?.id}</li>
-                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.amount / 100)} €</li>
+                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.amount / 100).toFixed(2)} €</li>
                             <li> <span style="font-weight:bold;">Date:</span> ${new Date().toISOString()}</li>
                           </ul>
 
@@ -1596,7 +1630,7 @@ exports.notifyPayoutFailure = async (userInfo , tripDetails , payoutDetails) => 
 
                           <ul>
                             <li> <span style="font-weight:bold;">Payout ID:</span> ${payoutDetails?.id}</li>
-                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.amount / 100)} €</li>
+                            <li> <span style="font-weight:bold;">Amount:</span> ${(payoutDetails?.amount / 100).toFixed(2)} €</li>
                             <li> <span style="font-weight:bold;">Failure Reason:</span> ${payoutDetails?.failure_message}</li>
                           </ul>
 
@@ -1665,7 +1699,7 @@ exports.canDriverOperate = async (driverId) => {
         }
       }
   } catch (error) {
-    console.error("Error retrieving balance:", error);
+    console.error("Error can driver operate:", error);
     // throw error;
     return {
       isPassed: false,
@@ -1780,7 +1814,6 @@ exports.willCompanyPayCommissionOnTrip =  async (userInfo) => {
             subscriptionDetail: null
           }
         }
-       
       }
 
     return subscriptions;
@@ -2043,12 +2076,14 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
   try {
 
     const sevenDaysAgo = new Date();
+    console.log(`sevenDaysAgo--------` , sevenDaysAgo)
     // sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 2);
 
     //  get the trips who have account attached with stripe then we can also transfer into his account
     const trips = await TRIP_MODEL.aggregate([
                                               {
                                                 $match: { 
+                                                          trip_status: constant.TRIP_STATUS.COMPLETED,
                                                           is_paid: true,
                                                           is_company_paid: false,
                                                           company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.NOT_INITIATED,
@@ -2080,7 +2115,12 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
                                                   pickup_date_time: 1,
                                                   is_company_paid:1,
                                                   companyPaymentAmount:1,
+                                                  price:1,
+                                                  driverPaymentAmount:1,
+                                                  child_seat_price:1,
+                                                  payment_method_price:1,
                                                   "companyDetails.connectedAccountId": 1,
+                                                  "companyDetails.stripeCustomerId": 1,
                                                   "companyDetails.email": 1,
                                                 }
                                               }
@@ -2088,7 +2128,7 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
 
     return trips
   } catch (error) {
-    console.error("Error retrieving balance:", error);
+    console.error("Error getPendingPayoutTripsBeforeWeek:", error);
     throw error;
   }
 }
@@ -2594,7 +2634,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Your taxi fare:</strong></td>
-                            <td>€ ${tripDetail?.price}</td>
+                            <td>€ ${tripDetail?.price.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>
@@ -2751,7 +2791,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Your taxi fare:</strong></td>
-                            <td>€ ${tripDetail?.price}</td>
+                            <td>€ ${tripDetail?.price.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>
@@ -2954,7 +2994,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Your taxi fare:</strong></td>
-                            <td>€ ${tripDetail?.price}</td>
+                            <td>€ ${tripDetail?.price.toFixed(2)}</td>
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>
@@ -3246,7 +3286,37 @@ exports.getDistanceAndDuration = async (origin, destination) => {
     console.error("Error getDistanceAndDuration:",  error.message);
     throw error;
   }
-  
+}
+
+exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail) => {
+
+  // 1. Create the invoice
+  const invoice = await stripe.invoices.create({
+                                                customer: stripeCustomerId,
+                                                collection_method: 'send_invoice',
+                                                days_until_due: 0,
+                                                custom_fields: [
+                                                  // { name: 'Company Name', value: 'Doe Solutions B.V.' },
+                                                  // { name: 'Father’s Name', value: 'Mr. Richard Doe' },
+                                                ],
+                                                footer: 'Thanks for your business.',
+                                              });
+
+  const amount = ( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price; 
+  await stripe.invoiceItems.create({
+                                    customer: stripeCustomerId,
+                                    invoice: invoice.id, // 🔥 attach this item to the specific invoice
+                                    amount: Number(amount) * 100, // €100.00
+                                    currency: 'eur',
+                                    description: `${tripDetail?.trip_id}`,
+                                    tax_rates: [process.env.STRIPE_VAT_TAX_ID],
+                                  });
+
+  const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
+  // 5. Mark it as paid (only works for invoices not paid via Stripe directly)
+  const paidInvoice = await stripe.invoices.pay(invoice.id, { paid_out_of_band: true, });
+  const invoiceDetail = await stripe.invoices.retrieve(invoice.id);
+  return invoiceDetail
 }
 //   try {
 //     const accessToken = await getAccessToken();

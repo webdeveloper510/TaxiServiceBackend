@@ -14,7 +14,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
-const { sendNotification } = require("../../Service/helperFuntion");
+const { sendNotification ,  getCityAndCountry} = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess , dateFilter , createCustomAccount , sendAccountDeactivationEmail , sendAccountReactivationEmail} = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
@@ -143,7 +143,33 @@ exports.add_sub_admin = async (req, res) => {
 
     // Create or get stripe customer id
     let customer = await stripe.customers.list({ email: data.email });
-    customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
+    const userFormattedAddress = `${data?.house_number} ${data?.land} , ${data?.post_code}`;
+    const getAddressData = await getCityAndCountry(userFormattedAddress);
+    const city = getAddressData?.city ? getAddressData?.city : '';
+    const country = getAddressData?.city ? getAddressData?.country : '';
+    const stripeUserData = { 
+                              name: data?.company_name,
+                              email: data.email,
+                              address: {
+                                        line1: userFormattedAddress,
+                                        postal_code: data?.post_code,
+                                        city: city,
+                                        country: country
+                                      }, 
+                                      metadata: {
+                                                  person_name: `${data?.first_name} ${data?.last_name}`
+                                                }
+                            }
+    if (customer.data.length) {
+      
+      customer =  customer.data[0]
+      await stripe.customers.update(customer.id, stripeUserData); //update user info
+      
+    } else {
+      customer = await stripe.customers.create(stripeUserData ) // create user with new info
+
+    }
+    // customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
     data.stripeCustomerId = customer.id; //  stripe customer id assiged
 
     const connectedAccountId = await createCustomAccount(data.email); // created connected account 

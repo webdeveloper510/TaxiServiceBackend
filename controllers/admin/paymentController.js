@@ -11,8 +11,9 @@ const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 // const transaction = require("../../models/user/transaction");
 const TRIP = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
+const DRIVER_MODEL = require("../../models/user/driver_model");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getUserActivePaidPlans , dateFilter} = require("../../Service/helperFuntion");
+const { getUserActivePaidPlans , dateFilter , generateInvoiceReceipt} = require("../../Service/helperFuntion");
 
 exports.tripCommissionPayment = async (req, res) => {
   try {
@@ -38,6 +39,7 @@ exports.tripCommissionPayment = async (req, res) => {
       if ( trip_by_id.commission.commission_type === "Percentage" && trip_by_id.commission.commission_value > 0 ) {
         commission = (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
       }
+      commission = commission + trip_by_id?.child_seat_price + trip_by_id?.payment_method_price
       commission = commission.toFixed(2);
 
       const paymentResult = await initiateStripePayment( trip_by_id, parseInt(commission * 100) );
@@ -45,8 +47,7 @@ exports.tripCommissionPayment = async (req, res) => {
                   code: constant.success_code,
                   result: paymentResult,
                   trip_by_id,
-                  message: "Success fully payment is created",
-                  // commission
+                  message: `Payment link has been successfully generated. Please complete the payment through the provided link.`,
                 });
     } catch (error) {
       return res.send({
@@ -559,6 +560,22 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
         }
       }
     };
+  } else if (amountKey === 'companyPaymentAmount') {
+    groupStage = {
+      $group: {
+        _id: null,
+        totalAmount: {
+          $sum: {
+            $add: [
+              { $ifNull: ['$companyPaymentAmount', 0] },
+              { $ifNull: ['$child_seat_price', 0] },
+              { $ifNull: ['$payment_method_price', 0] }
+            ]
+          }
+        }
+      }
+    };
+  
   } else {
     groupStage = {
       $group: {
@@ -584,9 +601,7 @@ exports.adminUpdatePayment = async (req, res) => {
 
   try {
 
-    
     let tripId = req.params.id;
-
     const tripInfo = await TRIP.findById(tripId);
 
     if (tripInfo?.is_paid && req.user.role == constant.ROLES.ADMIN) {
@@ -595,19 +610,32 @@ exports.adminUpdatePayment = async (req, res) => {
                         code: constant.error_code,
                         message: `This trip already paid`,
                         
+                        
                       });
     } else {
 
       let criteria = { _id: tripId };
       let newValue = {
                         $set: {
-                          is_paid : !tripInfo?.is_paid,
+                          is_paid : true,
                           "stripe_payment.payment_status" : "Paid",
                           payment_completed_date : new Date(),
                           payment_collcted : constant.PAYMENT_COLLECTION_TYPE.MANUALLY,
                           payment_upadted_by_admin: tripInfo?.is_paid ? null : req.userId,
                         },
                       };
+
+      const driverDetail = await DRIVER_MODEL.findById(tripInfo?.driver_name);
+      const stripeCustomerId = driverDetail?.stripeCustomerId;
+
+      if (stripeCustomerId) {
+      
+        const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , tripInfo)
+        
+        newValue.$set.hosted_invoice_url  =     invoiceDetail?.hosted_invoice_url;   
+        newValue.$set.invoice_pdf         =     invoiceDetail?.invoice_pdf;   
+
+      }
 
                      
       let option = { new: true };
@@ -627,15 +655,12 @@ exports.adminUpdatePayment = async (req, res) => {
                         });
       }
     }
-      
-        
-
   } catch (err) {
     console.log( "🚀 ~ file: adminUpdatePayment.", err.message );
 
     return res.send({
                       code: constant.error_code,
-                      message: err.message,
+                      message: '',
                     });
   }
 }

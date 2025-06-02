@@ -29,7 +29,8 @@ const { driverDetailsByToken,
         sendBookingCancelledEmail,
         emitTripCancelledByDriver,
         emitTripRetrivedByCompany,
-        emitTripAcceptedByDriver
+        emitTripAcceptedByDriver,
+        generateInvoiceReceipt
       } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
@@ -449,6 +450,8 @@ app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
     
+    initiateWeeklyCompanyPayouts(res);
+    return 
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
     const tripList = await getPendingPayoutTripsBeforeWeek();
@@ -541,7 +544,7 @@ app.get( "/weekly-company-payment", async (req, res) => {
                       balance
                     });
   } catch (error) {
-    console.error("Error retrieving balance:", error);
+    console.error("Error weekly-company-payment:", error);
     return  res.send({
                         code: constant.error_code,
                         message: error.message,
@@ -1023,13 +1026,18 @@ io.on("connection", (socket) => {
 
           if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
 
-            // driverBySocketId.is_available = true;
-            // await driverBySocketId.save();
+            // when company will send a request toa driver and pop will show on driver side and driver reject
+            if (trip?.trip_status == constant.TRIP_STATUS.APPROVED) { // when trip will not be already booked
+              
+              driverBySocketId.is_available = true;
+              await driverBySocketId.save();
 
-            // let updated_data = { trip_status: "Pending", driver_name: null };
-            // let option = { new: true };
-            // let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
-
+              let updated_data = { trip_status: "Pending", driver_name: null };
+              let option = { new: true };
+              let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
+              
+            }
+            
             emitTripCancelledByDriver(trip , driverBySocketId  , socket.id , io);
             return
 
@@ -1571,11 +1579,6 @@ async function checkTripsAndSendNotifications() {
                                                     { path: "driver_name" }, 
                                                     { path: "created_by_company_id" }
                                                   ]);
-    
-    // console.log('currentDateTime----' , currentDateTime)
-    // console.log('thirteenMinutesBefore----' , thirteenMinutesBefore)
-    // console.log('fifteenMinutesBefore----' , fifteenMinutesBefore)                                
-    // console.log('trip-----' , trips)
 
     const notifications = [];
     const ids = [];
@@ -1668,6 +1671,7 @@ async function checkTripsAndSendNotifications() {
     console.log("🚀 ~ checkTripsAndSendNotifications ~ error:", error);
   }
 }
+
 async function logoutDriverAfterThreeHour() {
   try {
     const now = new Date();
@@ -1728,20 +1732,11 @@ cron.schedule("* * * * *", () => {
 
   // Send push notification to driver and company when trip will start in 20 minutes
   checkTripsAndSendNotifications();
-  // logoutDriverAfterThreeHour()
-});
-
-// Schedule the task using cron for every minute
-cron.schedule("* * * * *", () => {
-
-  // console.log('running evry minute' , new Date())
-
-  // Send push notification to driver and company when trip will start in 20 minutes
   initiateWeeklyCompanyPayouts();
   // logoutDriverAfterThreeHour()
 });
 
-const initiateWeeklyCompanyPayouts = async () => {
+const initiateWeeklyCompanyPayouts = async (res) => {
   try {
 
    
@@ -1761,12 +1756,13 @@ const initiateWeeklyCompanyPayouts = async () => {
           // console.log('paybale trip------')
           for (let  trip of tripList) {
             
-            let amount = trip.companyPaymentAmount;
+            let amount = trip.companyPaymentAmount + trip?.child_seat_price + trip?.payment_method_price;
 
             if (amount < 1) { // atleast one euro will  be to send to the bank
               continue
             }
             let connectedAccountId = trip?.companyDetails?.connectedAccountId;
+            let stripeCustomerId = trip?.companyDetails?.stripeCustomerId;
             let tripId = trip?.trip_id;
 
             let stripBalance = await stripe.balance.retrieve();
@@ -1785,10 +1781,13 @@ const initiateWeeklyCompanyPayouts = async () => {
 
               // console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
               const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
+              const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , trip)
               await trip_model.findOneAndUpdate(
                                                   { _id: trip?._id }, // Find by tripId
                                                   { 
                                                     $set: { 
+                                                            company_hosted_invoice_url : invoiceDetail?.hosted_invoice_url,
+                                                            company_invoice_pdf : invoiceDetail?.invoice_pdf,
                                                             company_trip_payout_id: payoutDetails?.id,
                                                             company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.PENDING,
                                                             company_trip_payout_initiated_date: new Date().toISOString(),
@@ -1822,7 +1821,7 @@ const initiateWeeklyCompanyPayouts = async () => {
     //   });
     
   } catch (error) {
-    console.error("Error retrieving balance:", error);
+    console.error("Error initiateweeklyCompanyPayouts:", error);
     console.log({
                         code: constant.error_code,
                         message: error.message,
