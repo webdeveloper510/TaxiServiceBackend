@@ -2725,6 +2725,8 @@ exports.get_trip_detail = async (req, res) => {
           trip_id: 1,
           pickup_date_time: 1,
           passenger_detail: 1,
+          payment_method_price:1,
+          child_seat_price:1,
           created_by: 1,
           is_deleted: 1,
           status: 1,
