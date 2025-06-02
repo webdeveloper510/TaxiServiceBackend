@@ -3288,7 +3288,7 @@ exports.getDistanceAndDuration = async (origin, destination) => {
   }
 }
 
-exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail) => {
+exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail , isInvoiceForCompany = true) => {
 
   // 1. Create the invoice
   const invoice = await stripe.invoices.create({
@@ -3302,7 +3302,14 @@ exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail) => {
                                                 footer: 'Thanks for your business.',
                                               });
 
-  const amount = (( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2); 
+          
+  let  amount = 0; 
+  
+  if (isInvoiceForCompany) {
+    amount = tripDetail?.companyPaymentAmount.toFixed(2); 
+  } else {
+    amount = (( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2); 
+  }
   
   await stripe.invoiceItems.create({
                                     customer: stripeCustomerId,

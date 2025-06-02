@@ -1780,8 +1780,9 @@ const initiateWeeklyCompanyPayouts = async (res) => {
                                                             );
 
               // console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
+              const isInvoiceForCompany = true;
               const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
-              const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , trip)
+              const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , trip , isInvoiceForCompany)
               await trip_model.findOneAndUpdate(
                                                   { _id: trip?._id }, // Find by tripId
                                                   { 

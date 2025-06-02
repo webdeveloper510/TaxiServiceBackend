@@ -627,8 +627,9 @@ exports.adminUpdatePayment = async (req, res) => {
       const stripeCustomerId = driverDetail?.stripeCustomerId;
 
       if (stripeCustomerId) {
-      
-        const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , tripInfo)
+        
+        const isInvoiceForCompany  = false;
+        const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , tripInfo , isInvoiceForCompany)
         
         newValue.$set.hosted_invoice_url  =     invoiceDetail?.hosted_invoice_url;   
         newValue.$set.invoice_pdf         =     invoiceDetail?.invoice_pdf;   
