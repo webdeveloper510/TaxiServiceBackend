@@ -2565,6 +2565,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     const formattedClean = formatted.replace(' at ', ' - ');
 
     const pickUpTime = `${formattedClean} hour`;
+    const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2)
    
     const bodyHtml =  `
                        <style>
@@ -2607,7 +2608,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                       <div class="container">
 
                       <div class="header">
-                        <img class="logo" src="${companyDetails?.logo}" alt="${companyAgencyDetails?.company_name}">
+                        <img class="logo" src="${companyDetails?.logo}" alt="${companyAgencyDetails?.company_name}" width="100%" height="300px">
                       </div>
                         <h2>Your Order Confirmation: # ${tripDetail?.trip_id}</h2>
 
@@ -2630,11 +2631,11 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Type of car:</strong></td>
-                            <td>Car - ${tripDetail?.passengerCount} passengers</td>
+                            <td>${tripDetail?.car_type} - ${tripDetail?.passengerCount} passengers</td>
                           </tr>
                           <tr>
                             <td><strong>Your taxi fare:</strong></td>
-                            <td>€ ${tripDetail?.price.toFixed(2)}</td>
+                            <td>€${totalPrice}</td>
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>
@@ -2720,7 +2721,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
     const formattedClean = formatted.replace(' at ', ' - ');
 
     const pickUpTime = `${formattedClean} hour`;
-   
+    const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2)
     const bodyHtml =  `
                        <style>
                         body {
@@ -2761,7 +2762,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                       </style>
                       <div class="container">
                       <div class="header">
-                        <img class="logo" src="${companyDetails?.logo}" alt="${companyAgencyDetails?.company_name}">
+                        <img class="logo" src="${companyDetails?.logo}" alt="${companyAgencyDetails?.company_name}" width="100%" height="300px">
                       </div>
                         <h2>Your ride has been canceled: # ${tripDetail?.trip_id}</h2>
 
@@ -2787,11 +2788,11 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Type of car:</strong></td>
-                            <td>Car - ${tripDetail?.passengerCount} passengers</td>
+                            <td>${tripDetail?.car_type} - ${tripDetail?.passengerCount} passengers</td>
                           </tr>
                           <tr>
                             <td><strong>Your taxi fare:</strong></td>
-                            <td>€ ${tripDetail?.price.toFixed(2)}</td>
+                            <td>€${totalPrice}</td>
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>
@@ -2936,7 +2937,8 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
     const formattedClean = formatted.replace(' at ', ' - ');
 
     const pickUpTime = `${formattedClean} hour`;
-   
+    const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2)
+
     const bodyHtml =  `
                        <style>
                         body {
@@ -2990,11 +2992,11 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Type of car:</strong></td>
-                            <td>Car - ${tripDetail?.passengerCount} passengers</td>
+                            <td>${tripDetail?.car_type}  - ${tripDetail?.passengerCount} passengers</td>
                           </tr>
                           <tr>
                             <td><strong>Your taxi fare:</strong></td>
-                            <td>€ ${tripDetail?.price.toFixed(2)}</td>
+                            <td>€${totalPrice}</td>
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>

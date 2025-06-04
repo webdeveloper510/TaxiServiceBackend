@@ -274,4 +274,17 @@ const driver = new Schema(
   { timestamps: true }
 );
 
+driver.index({
+  status: 1,
+  is_login: 1,
+  isVerified: 1,
+  isDocUploaded: 1,
+  is_deleted: 1,
+}); // for main driver filter
+driver.index({ defaultVehicle: 1 }); // vehicle lookup
+driver.index({ lastUsedTokenMobile: -1 }); // recent active drivers
+driver.index({ createdAt: -1 }); // sorting
+driver.index({ location: "2dsphere" }); // map/geospatial filtering
+driver.index({ is_special_plan_active: 1 }); // subscription logic
+
 module.exports = mongoose.model("driver", driver);

@@ -555,19 +555,8 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
         _id: null,
         totalAmount: {
           $sum: {
-            $subtract: ['$price', '$driverPaymentAmount']
-          }
-        }
-      }
-    };
-  } else if (amountKey === 'companyPaymentAmount') {
-    groupStage = {
-      $group: {
-        _id: null,
-        totalAmount: {
-          $sum: {
             $add: [
-              { $ifNull: ['$companyPaymentAmount', 0] },
+              { $ifNull: ['$driverPaymentAmount', 0] },
               { $ifNull: ['$child_seat_price', 0] },
               { $ifNull: ['$payment_method_price', 0] }
             ]
@@ -575,7 +564,6 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
         }
       }
     };
-  
   } else {
     groupStage = {
       $group: {
