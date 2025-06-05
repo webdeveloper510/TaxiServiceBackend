@@ -1925,14 +1925,14 @@ exports.get_active_drivers = async (req, res) => {
     let getDrivers = await DRIVER.aggregate([
       {
         $match: {
-          // status: true,
-          // is_login: true,
-          // isVerified: true,
-          // isDocUploaded: true,
-          // is_deleted: false,
-          // defaultVehicle: { $ne: null },
-          // lastUsedTokenMobile: { $gte: threeHoursBefore },
-          // "location.coordinates": { $ne: [null, null] },
+          status: true,
+          is_login: true,
+          isVerified: true,
+          isDocUploaded: true,
+          is_deleted: false,
+          defaultVehicle: { $ne: null },
+          lastUsedTokenMobile: { $gte: threeHoursBefore },
+          "location.coordinates": { $ne: [null, null] },
         },
       },
       {
