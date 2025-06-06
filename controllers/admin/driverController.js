@@ -2297,12 +2297,12 @@ exports.switchToDriver = async (req, res) => {
     if (!driverData) {
       return res.send({
                         code: constant.error_code,
-                        message: "You do'nt have driver profile",
+                        message: res.__('switchProfile.switchToDriver.error.noDriverProfile'),
                       });
     } else if (driverData?.is_blocked) {
       return res.send({
                         code: constant.error_code,
-                        message: `The driver has been blocked. If you believe this is an error, please contact the support team for assistance`,
+                        message: res.__('switchProfile.switchToDriver.error.driverBlocked'),
                       });
     }else {
 
@@ -2343,7 +2343,7 @@ exports.switchToDriver = async (req, res) => {
 
       res.send({
         code: constant.success_code,
-        message: "data fetch successfully",
+        message: res.__('switchProfile.switchToDriver.success.profileSwitched'),
         result,
         jwtToken,
       });
@@ -2441,13 +2441,13 @@ exports.switchDriverToPartnerCompany = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: `This company has been blocked by administration.`
+                        message: res.__('switchProfile.switchToCompanyPertner.error.companyBlocked')
                       });
     }
 
     const companyId = new mongoose.Types.ObjectId(req.params.companyId);
     const driverId = new mongoose.Types.ObjectId(req.companyPartnerAccess ? req.CompanyPartnerDriverId : req.userId);
-    console.log('req.companyPartnerAccess--', driverId)
+    
     const driverHasCompanyPartnerAccess = await DRIVER.findOne({
                                                                 _id: driverId,
                                                                 parnter_account_access : {
@@ -2468,12 +2468,10 @@ exports.switchDriverToPartnerCompany = async (req, res) => {
 
       return res.send({
         code: constant.error_code,
-        message: "You didn't have this company partner access"
+        message: res.__('switchProfile.switchToCompanyPertner.error.noPartnerAccessToCompany')
       });
     } 
       
-    
-    
 
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
@@ -2487,7 +2485,7 @@ exports.switchDriverToPartnerCompany = async (req, res) => {
     if (!driverData) {
       res.send({
         code: constant.error_code,
-        message: "You do'nt have driver profile",
+        message:  res.__('switchProfile.switchToCompanyPertner.error.noDriverProfile')
       });
     } else {
 
@@ -2521,7 +2519,7 @@ exports.switchDriverToPartnerCompany = async (req, res) => {
 
       res.send({
         code: constant.success_code,
-        message: "data fetch successfully",
+        message: res.__('switchProfile.switchToCompanyPertner.success.profileSwitched'),
         result,
         jwtToken,
       });

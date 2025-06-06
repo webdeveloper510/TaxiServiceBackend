@@ -73,5 +73,26 @@
         "success": {
             "tripUpdated": "The trip has been updated successfully"
         }
+    },
+    "switchProfile": {
+        "switchToDriver": {
+            "error": {
+                "noDriverProfile": "You don't have driver profile",
+                "driverBlocked": "The driver has been blocked. If you believe this is an error, please contact the support team for assistance"
+            },
+            "success": {
+                "profileSwitched": "Profile switched successfully"
+            }
+        },
+        "switchToCompanyPertner": {
+            "error": {
+                "noDriverProfile": "You don't have driver profile",
+                "companyBlocked": "This company has been blocked by administration.",
+                "noPartnerAccessToCompany": "You do not have partner access to this company."
+            },
+            "success": {
+                "profileSwitched": "Profile switched successfully"
+            }
+        }
     }
 }
