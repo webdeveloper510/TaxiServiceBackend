@@ -325,7 +325,7 @@ exports.add_trip = async (req, res) => {
 
         return res.send({
                           code: constant.error_code,
-                          result: `You can't create the trip because you didn't have any plan`,
+                          result: res.__('addTrip.error.noActivePlanForTripCreation')
                         });
       }
       
@@ -356,14 +356,14 @@ exports.add_trip = async (req, res) => {
     if (!add_trip) {
       return res.send({
                         code: constant.error_code,
-                        message: "Unable to create the trip",
+                        message: res.__('addTrip.error.unableToCreateTrip'),
                       });
     } else {
 
 
       // refresh trip functionality for the drivers who have account access as partner
 
-      partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
+      partnerAccountRefreshTrip(data.created_by_company_id , res.__('addTrip.socket.tripCreatedRefresh'),  req.io);
 
       if (data?.created_by_company_id) {
         const companyDetail = await user_model.findById(data?.created_by_company_id);
@@ -375,7 +375,7 @@ exports.add_trip = async (req, res) => {
 
       return res.send({
                         code: constant.success_code,
-                        message: "Saved Successfully",
+                        message: res.__('addTrip.success.tripAdded'),
                         result: add_trip,
                       });
     }
@@ -396,11 +396,11 @@ exports.access_add_trip = async (req, res) => {
       );
 
       if (!is_driver_has_company_access) {
-        res.send({
-          code: constant.ACCESS_ERROR_CODE,
-          message: "The company's access has been revoked",
-        });
-        return;
+        return res.send({
+                          code: constant.ACCESS_ERROR_CODE,
+                          message: res.__('addTrip.error.companyAccessRevoked'),
+                        });
+        
       }
     }
 
@@ -453,7 +453,7 @@ exports.access_add_trip = async (req, res) => {
 
           return res.send({
                             code: constant.error_code,
-                            result: `You can't create the trip because you didn't have any plan`,
+                            result: res.__('addTrip.error.noActivePlanForTripCreation'),
                           });
         }
 
@@ -484,13 +484,13 @@ exports.access_add_trip = async (req, res) => {
     if (!add_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to create the trip",
+        message: res.__('addTrip.error.unableToCreateTrip'),
       });
     } else {
 
        // refresh trip functionality for the drivers who have account access as partner
       
-       partnerAccountRefreshTrip(data.created_by_company_id , "A trip has been created.Please refresh the data", req.io);
+       partnerAccountRefreshTrip(data.created_by_company_id , res.__('addTrip.socket.tripCreatedRefresh'), req.io);
 
        if (data?.created_by_company_id) {
         const companyDetail = await user_model.findById(data?.created_by_company_id);
@@ -502,7 +502,7 @@ exports.access_add_trip = async (req, res) => {
       
       res.send({
         code: constant.success_code,
-        message: "Saved Successfully",
+        message: res.__('addTrip.success.tripAdded'),
         result: add_trip,
       });
     }
@@ -525,7 +525,7 @@ exports.add_trip_link = async (req, res) => {
     if (!userCheck) {
       return res.send({
         code: constant.error_code,
-        message: "The specified company is invalid or does not exist"
+        message: res.__('addTrip.error.invalidOrNonexistentCompany')
       });
 
     }
@@ -584,12 +584,12 @@ exports.add_trip_link = async (req, res) => {
     if (!add_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to create the trip",
+        message: res.__('addTrip.error.unableToCreateTrip')
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Saved Successfully",
+        message: res.__('addTrip.success.tripAdded'),
         result: add_trip,
       });
     }
@@ -601,7 +601,7 @@ exports.add_trip_link = async (req, res) => {
   }
 };
 
-exports.  get_trip = async (req, res) => {
+exports.get_trip = async (req, res) => {
   try {
     let data = req.body;
     let mid = new mongoose.Types.ObjectId(req.userId);

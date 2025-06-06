@@ -20,29 +20,17 @@ verifyToken = async (req, res, next) => {
     if (!token) {
       return res.send({
                         status: 400,
-                        message: "something went wrong in token",
+                        message: res.__('auth.error.tokenError'),
                       });
     } else {
       jwt.verify(token, process.env.JWTSECRET, async (err, decoded) => {
         if (err) {
-          res.send({
-            code: constant.tokenError,
-            Message: "auth token verification failed",
-          });
-          return;
+          return res.send({
+                            code: constant.tokenError,
+                            Message: res.__('auth.error.authTokenVerificationFailed'),
+                          });
         }
 
-
-        
-        // let checkUser =  USER.findOne({_id:decoded.userId,isDeleted:false})
-
-        // if(!checkUser.email){
-        //   res.send({
-        //     code:constant.error_code,
-        //     message:"Token is not valid"
-        //   })
-        //   return;
-        // }
         const now = new Date();
         const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 60 * 1000);
         let query = { _id: decoded?.userId, is_deleted: false };
@@ -92,7 +80,7 @@ verifyToken = async (req, res, next) => {
         if (!user) {
           return res.send({
                             code: constant.tokenError,
-                            message: "Token is expired",
+                            message: res.__('auth.error.tokenExpired'),
                           });
           ;
         }
@@ -106,14 +94,14 @@ verifyToken = async (req, res, next) => {
 
           return res.send({
                             code: constant.tokenError,
-                            message: "You are blocked by administration. Please contact administration",
+                            message: res.__('auth.error.blockedByAdmin'),
                           });
         }
         if (user.role == "DRIVER" && user?.is_blocked) {
 
           return res.send({
                             code: constant.tokenError,
-                            message: "You are blocked by administration. Please contact administration",
+                            message: res.__('auth.error.blockedByAdmin'),
                           });
         }
         // user=  user.toObject();
@@ -146,7 +134,7 @@ verifyToken = async (req, res, next) => {
           if (!driverHasCompanyPartnerAccess) {
             return res.send({
                               code: constant.REVOKED_ACCOUNT_ERROR,
-                              Message: "The company has withdrawn access to the account",
+                              Message: res.__('auth.error.companyAccessWithdrawn'),
                             });
           }
         } else {
@@ -160,7 +148,7 @@ verifyToken = async (req, res, next) => {
     console.log("🚀 ~ verifyToken= ~ err:", err);
     return res.send({
                     status: constant.tokenError,
-                    Message: "Token is expired",
+                    Message: res.__('auth.error.tokenExpired'),
                   });
     
   }

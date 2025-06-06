@@ -257,7 +257,7 @@ exports.update_driver = async (req, res) => {
       if (!existingDriver || existingDriver.is_deleted) {
         return res.send({
                           code: constant.error_code,
-                          message: "Driver not found",
+                          message: res.__('updateDriver.error.driverNotFound'),
                         });
       }
 
@@ -268,7 +268,7 @@ exports.update_driver = async (req, res) => {
 
         return res.send({
                           code: constant.error_code,
-                          message: "You cannot go offline until you have completed your active trip.",
+                          message: res.__('updateDriver.error.cannotGoOfflineWithActiveTrip')
                         });
       }
 
@@ -279,7 +279,7 @@ exports.update_driver = async (req, res) => {
       if (updatedDriver) {
         return res.send({
                           code: constant.success_code,
-                          message: "Driver Updated successfully",
+                          message: res.__('updateDriver.success.driverAccountUpdated'),
                           result: updatedDriver,
                         });
       }

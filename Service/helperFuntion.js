@@ -3325,8 +3325,15 @@ exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail , isInvoic
 
   const finalizedInvoice = await stripe.invoices.finalizeInvoice(invoice.id);
   // 5. Mark it as paid (only works for invoices not paid via Stripe directly)
-  const paidInvoice = await stripe.invoices.pay(invoice.id, { paid_out_of_band: true, });
-  const invoiceDetail = await stripe.invoices.retrieve(invoice.id);
+
+  let  invoiceDetail = await stripe.invoices.retrieve(invoice.id);
+
+  if (invoiceDetail.status !== 'paid') {
+
+     const paidInvoice = await stripe.invoices.pay(invoice.id, { paid_out_of_band: true, });
+  }
+ 
+  invoiceDetail = await stripe.invoices.retrieve(invoice.id);
   return invoiceDetail
 }
 //   try {

@@ -709,7 +709,7 @@ exports.get_token_detail = async (req, res) => {
 
         return res.send({
                           code: constants.error_code,
-                          message: "Unable to fetch the detail",
+                          message: res.__('getTokenDetail.error.unableToFetchDetail'),
                         });
         
       }
@@ -731,7 +731,7 @@ exports.get_token_detail = async (req, res) => {
 
       return res.send({
                         code: constant.success_code,
-                        message: "Success",
+                        message: res.__('getTokenDetail.success.informationRetrieved'),
                         result: get_data2,
                       });
     } else {
@@ -757,7 +757,7 @@ exports.get_token_detail = async (req, res) => {
       
       return res.send({
                         code: constant.success_code,
-                        message: "Success",
+                        message: res.__('getTokenDetail.success.informationRetrieved'),
                         result: dataResult ? dataResult : userByID,
                       });
     }

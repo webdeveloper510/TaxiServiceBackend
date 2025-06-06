@@ -99,36 +99,34 @@ exports.add_driver = async (req, res) => {
     if (checkNickName) {
       return res.send({
                         code: constant.error_code,
-                        message: "Unfortunately, this nickname is taken. Please use a different nickname.",
+                        message: res.__('addDriver.error.nicknameAlreadyInUse'),
                       });
     }
     if (check_other1) {
       return res.send({
                         code: constant.error_code,
-                        message: "Email Already exist",
+                        message: res.__('addDriver.error.emailAlreadyInUse'),
                       });
       
     }
     if (check_other2) {
       return res.send({
                         code: constant.error_code,
-                        message: "Phone Already exist",
+                        message: res.__('addDriver.error.phoneAlreadyInUse'),
                       });
       
     }
     if (check_other3) {
       return res.send({
                         code: constant.error_code,
-                        message:
-                          "This email is already registered as a Company. Sign in to register as a driver.",
+                        message: res.__('addDriver.error.emailRegisteredAsCompany')
                       });
       
     }
     if (check_other4) {
       return res.send({
                         code: constant.error_code,
-                        message:
-                          "This Phone Number is already registered as a Company. Sign in to register as a driver.",
+                        message: res.__('addDriver.error.phoneRegisteredAsCompany')
                       });
       
     }
@@ -154,19 +152,19 @@ exports.add_driver = async (req, res) => {
     await save_driver.save();
 
     if (!save_driver) {
-      res.send({
-        code: constant.error_code,
-        message: "Unable to save the data",
-      });
+      return res.send({
+                      code: constant.error_code,
+                      message: res.__('addDriver.error.saveFailed')
+                    });
     } else {
       // mail
       let sendEmail = await sendEmailDriverCreation(save_driver , null);
-      res.send({
-        code: constant.success_code,
-        message: "Driver created successfully",
-        result: save_driver,
-        jwtToken,
-      });
+      return res.send({
+                        code: constant.success_code,
+                        message: res.__('addDriver.success.driverCreated'),
+                        result: save_driver,
+                        jwtToken,
+                      });
     }
   } catch (err) {
     console.log("🚀 ~ driverUpload ~ err:", err);
@@ -1151,7 +1149,7 @@ exports.update_driver = async (req, res) => {
       if (!existingDriver) {
         return res.send({
                           code: constant.error_code,
-                          message: "Driver not found",
+                          message: res.__('updateDriver.error.driverNotFound')
                         });
       }
 
@@ -1162,18 +1160,18 @@ exports.update_driver = async (req, res) => {
         updates.isDocUploaded = req.body.isDocUploaded == "true";
 
         let customer = await stripe.customers.list({ email: existingDriver.email });
-        const userFormattedAddress = `${data?.address_1} ${data?.address_2} , ${data?.zip_code}`;
+        const userFormattedAddress = `${updates?.address_1} ${updates?.address_2} , ${updates?.zip_code}`;
         const stripeUserData = { 
-                                  name: data?.companyName,
+                                  name: updates?.companyName,
                                   email: existingDriver.email,
                                   address: {
                                             line1: userFormattedAddress,
-                                            postal_code: data?.zip_code,
-                                            city: data?.city,
-                                            country: data?.country
+                                            postal_code: updates?.zip_code,
+                                            city: updates?.city,
+                                            country: updates?.country
                                           }, 
                                           metadata: {
-                                                      person_name: `${data?.first_name} ${data?.last_name}`
+                                                      person_name: `${existingDriver?.first_name} ${existingDriver?.last_name}`
                                                     }
                                 };
 
@@ -1197,11 +1195,11 @@ exports.update_driver = async (req, res) => {
                                                       ...(existingDriver?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } } : {}),
                                                     });
         if (check_other1 || checkEmailInUser) {
-          res.send({
-            code: constant.error_code,
-            message: "Email Already exist with different account",
-          });
-          return;
+          return res.send({
+                            code: constant.error_code,
+                            message: res.__('updateDriver.error.emailExistsWithAnotherAccount')
+                          });
+          
         }
       }
       if (updates.phone != existingDriver.phone) {
@@ -1211,16 +1209,15 @@ exports.update_driver = async (req, res) => {
                                                     ...(existingDriver?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } } : {}),
                                                   });
         if (check_other2 || checkPhoneInUser) {
-          res.send({
-            code: constant.error_code,
-            message: "Phone Already exist with different account",
-          });
-          return;
+          return res.send({
+                            code: constant.error_code,
+                            message: res.__('updateDriver.error.phoneExistsWithAnotherAccount')
+                          });
         }
       }
 
       if (updates?.password != '' && updates?.password !== undefined) {
-        console.log('updates----' , updates.password)
+        
         updates.stored_password = updates.password;
         updates.password = await bcrypt.hashSync(updates.password, 10);
         // updates.jwtToken = '';
@@ -1237,7 +1234,7 @@ exports.update_driver = async (req, res) => {
 
         return res.send({
                           code: constant.error_code,
-                          message: "You cannot go offline until you have completed your active trip.",
+                          message: res.__('updateDriver.error.cannotGoOfflineWithActiveTrip')
                         });
       }
 
@@ -1349,13 +1346,7 @@ exports.update_driver = async (req, res) => {
 
                 </head>
                 <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
-              <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="
-                  margin-top: 30px;
-                  margin-bottom: 10px;
-                border-radius: 10px;
-               box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);
-              background:#ccc;
-                ">
+              <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style=" margin-top: 30px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%); background:#ccc; ">
               <tbody><tr>
               <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
               <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
@@ -1367,13 +1358,14 @@ exports.update_driver = async (req, res) => {
               <td class="">
               </td>
               </tr>
-              <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
+              <tr class=""><td class="headline">${res.__('updateDriver.success.emailDocumentUnderReviewConetnt.welcomeToIDispatch')}</td></tr>
               <tr>
               <td>
               <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
               <td class="" style="color:#444; font-weight: 400;"><br>
               <br><br>
-              Thank you for registering with us as a driver. Your driver profile is currently under review. Once approved, you'll receive an email notification and can log in. Thank you for your patience.<br>
+              ${res.__('updateDriver.success.emailDocumentUnderReviewConetnt.driverRegistrationUnderReview')}
+              <br>
                <br>
                 Your login credentials are provided below:
               <br>
@@ -1388,29 +1380,14 @@ exports.update_driver = async (req, res) => {
               <tr>
               <td class="">
               <div class="">
-              <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://idispatch.nl/login">Visit Account and Start Managing</a>
+              <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://idispatch.nl/login">${res.__('updateDriver.success.emailDocumentUnderReviewConetnt.visitAccountAndManage')}</a>
               </div>
                <br>
               </td>
               </tr>
               </tbody>
 
-                </table>
-
-              <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
-              <tbody>
-              <tr>
-              <td class="" style="color:#444;
-                                  ">
-              
-                </td>
-              </tr>
-              </tbody></table></td>
-              </tr>
-              </tbody></table></center>
-              </td>
-              </tr>
-              </tbody></table>
+              </table>
               </body></html>`,
           };
 
@@ -1418,7 +1395,7 @@ exports.update_driver = async (req, res) => {
         }
         res.send({
           code: constant.success_code,
-          message: "Driver account updated successfully",
+          message: res.__('updateDriver.success.driverAccountUpdated'),
           result: updatedDriver,
         });
       }

@@ -44,12 +44,12 @@ exports.add_trip = async (req, res) => {
     if (!add_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to create the trip",
+        message: res.__('addTrip.error.unableToCreateTrip'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Saved Successfully",
+        message: res.__('addTrip.success.tripAdded'),
         result: add_trip,
       });
     }
@@ -390,7 +390,7 @@ exports.edit_trip = async (req, res) => {
 
           return res.send({
                             code: constant.error_code,
-                            result: `You can't create the trip because you didn't have any plan`,
+                            result: res.__('editTrip.error.noActivePlanForTripCreation'),
                           });
         }
 
@@ -418,7 +418,7 @@ exports.edit_trip = async (req, res) => {
     if (!update_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to update the trip",
+        message: res.__('editTrip.error.unableToUpdateTrip'),
       });
     } else {
 
@@ -448,7 +448,7 @@ exports.edit_trip = async (req, res) => {
       if (data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data?.trip_status == constant.TRIP_STATUS.APPROVED) {
         console.log('before accepting')
         let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
-        req.io.to(driver_data.socketId).emit("popUpClose", { message: `Your trip request has been retrived by company`})
+        req.io.to(driver_data.socketId).emit("popUpClose", { message: res.__('editTrip.socket.tripRetrivedByCompany')})
       }
 
       if ( data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
@@ -472,10 +472,10 @@ exports.edit_trip = async (req, res) => {
 
       // refresh trip functionality for the drivers who have account access as partner
       
-      partnerAccountRefreshTrip(trip_data.created_by_company_id , "A trip has been changed.Please refresh the data", req.io);
+      partnerAccountRefreshTrip(trip_data.created_by_company_id , res.__('editTrip.socket.tripChangedRefresh'), req.io);
       res.send({
         code: constant.success_code,
-        message: "Updated successfully",
+        message: res.__('editTrip.success.tripUpdated'),
         result: update_trip,
       });
     }
