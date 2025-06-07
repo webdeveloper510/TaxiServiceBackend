@@ -23,6 +23,15 @@
             "driverCreated": "Driver account has been created successfully."
         }
     },
+
+    "updateVerification":{
+        "error": {
+            "unableToUpdateVerification": "An error occurred while updating verification."
+        },
+        "success": {
+            "verificationUpdated": "Verification updated successfully.."
+        }
+    },
     "deleteDriver": {
         "error": {
             "unableToDeleteDriver": "An error occurred while deleting the driver."
@@ -37,6 +46,14 @@
         },
         "success": {
             "driverListRetrieved": "Driver list has been successfully fetched."
+        }
+    },
+    "getActiveDrivers": {
+        "error": {
+            "noActiveDriversFound": "At this time, no active drivers are available."
+        },
+        "success": {
+            "activeDriversFound": "Active drivers are available"
         }
     },
     "restoreDriver": {
@@ -134,6 +151,14 @@
             "driverUnableToLocateCustomer": "Driver could not find the customer at the specified location for Trip ID: {{trip_id}}"
         }
     },
+    "convertIntoDriver":{
+        "error": {
+            "unableToSaveData": "An error occurred while saving data"
+        },
+        "success": {
+            "driverCreated": "Driver has been created successfully"
+        }
+    },
     "switchProfile": {
         "switchToDriver": {
             "error": {
@@ -202,6 +227,20 @@
         },
         "success": {
             "dataSaved": "Data has been saved successfully"
+        }
+    },
+    "updateLocation": {
+        "error": {
+            "unableToUpdateLocation": "An error occurred while updating the location",
+        },
+        "success": {
+            "locationUpdated": "Location has been updated successfully"
+        }
+    },
+    "logout": {
+       
+        "success": {
+            "logout": "You have been logged out successfully."
         }
     }
 }

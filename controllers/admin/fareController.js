@@ -16,7 +16,7 @@ exports.add_fare = async (req, res) => {
     if (!checkCarType) {
       return res.send({
                         code: constant.error_code,
-                        message: "The specified car type is invalid or does not exist. Please verify and try again.",
+                        message: res.__('addFare.error.invalidCarType'),
                       });
       
     }
@@ -29,7 +29,7 @@ exports.add_fare = async (req, res) => {
     if (checkFare) {
       return res.send({
                         code: constant.error_code,
-                        message: "You already added fare for this vehicle type",
+                        message: res.__('addFare.error.fareAlreadyExistsForVehicleType'),
                       });
     }
 
@@ -48,12 +48,12 @@ exports.add_fare = async (req, res) => {
     if (!save_data) {
       res.send({
         code: constant.error_code,
-        message: "We were unable to add the fare at this time. Please try again later or contact support if the issue persists",
+        message: res.__('addFare.error.unableToAddFare'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Fare has been added successfully",
+        message: res.__('addFare.success.fareAdded'),
         result: save_data,
       });
     }
@@ -73,7 +73,7 @@ exports.get_fares = async (req, res) => {
     if (!get_user) {
       res.send({
         code: constant.error_code,
-        message: "Check your token or id",
+        message: res.__('getFare.error.invalidUser'),
       });
     }
 
@@ -109,12 +109,12 @@ exports.get_fares = async (req, res) => {
     if (!getData) {
       res.send({
         code: constant.error_code,
-        message: "No Data Found",
+        message: res.__('getFare.error.noDataFound'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Successfully fetched",
+        message: res.__('getFare.success.fareRetrieved'),
         result: result,
       });
     }
@@ -136,7 +136,7 @@ exports.companyGetFares = async (req, res) => {
 
       return res.send({
         code: constant.error_code,
-        message: "The specified company is invalid or does not exist. Please verify the company details and try again.",
+        message: res.__('companyGetFares.error.invalidCompany'),
       });
     } 
 
@@ -154,12 +154,12 @@ exports.companyGetFares = async (req, res) => {
     if (!getData) {
       res.send({
         code: constant.error_code,
-        message: "No Data Found",
+        message: res.__('companyGetFares.error.noDataFound'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Successfully fetched",
+        message: res.__('companyGetFares.success.fareRetrieved'),
         result: getData,
       });
     }
