@@ -236,12 +236,12 @@ exports.adminAddDriver = async (req, res) => {
       if (checkEmailInDrivers.is_deleted == true) {
         return  res.send({
                           code: constant.error_code,
-                          message: `This email (${data.email}) is associated with a previously deleted driver. You can restore the driver from the deleted list instead of creating a new one.`,
+                          message: res.__('addDriver.error.emailAssociatedWithDeletedDriver' , {email: data.email}),
                         });
       } else {
         return  res.send({
                             code: constant.error_code,
-                            message: "Email Already exist"
+                            message: res.__('addDriver.error.emailAlreadyInUse')
                         });
       }
     }
@@ -271,7 +271,7 @@ exports.adminAddDriver = async (req, res) => {
     if (checkEmailInDrivers) {
       return res.send({
                         code: constant.error_code,
-                        message: "Email Already exist",
+                        message: res.__('addDriver.error.emailAlreadyInUse'),
                       });
       
     }
@@ -279,7 +279,7 @@ exports.adminAddDriver = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: "Phone Already exist",
+                        message: res.__('addDriver.error.phoneAlreadyInUse'),
                       });
     }
 
@@ -287,8 +287,7 @@ exports.adminAddDriver = async (req, res) => {
 
       return res.send({
                       code: constant.error_code,
-                      message:
-                        "This email is already registered as a Company. Sign in to register as a driver.",
+                      message: res.__('addDriver.error.emailRegisteredAsCompany')
                     });
     }
 
@@ -296,8 +295,7 @@ exports.adminAddDriver = async (req, res) => {
 
       return res.send({
                       code: constant.error_code,
-                      message:
-                        "This Phone Number is already registered as a Company. Sign in to register as a driver.",
+                      message: res.__('addDriver.error.phoneRegisteredAsCompany')
                     });
       
     }
@@ -305,7 +303,7 @@ exports.adminAddDriver = async (req, res) => {
     if (checkNickName) {
       return res.send({
                         code: constant.error_code,
-                        message: "Unfortunately, this nickname is taken. Please use a different nickname.",
+                        message: res.__('addDriver.error.nickNameAlreadyInUse')
                       });
     }
 
@@ -321,7 +319,7 @@ exports.adminAddDriver = async (req, res) => {
 
         return res.send({
                           code: constant.error_code,
-                          message: 'This company already has their own driver.',
+                          message: res.__('addDriver.error.companyHasOwnDriver'),
                         });
       }
 
@@ -403,7 +401,7 @@ exports.adminAddDriver = async (req, res) => {
     if (!save_driver) {
       res.send({
         code: constant.error_code,
-        message: "Unable to save the data",
+        message: res.__('addDriver.error.saveFailed'),
       });
     } else {
       // mail
@@ -418,7 +416,7 @@ exports.adminAddDriver = async (req, res) => {
       }
       res.send({
         code: constant.success_code,
-        message: "Driver created successfully",
+        message: res.__('addDriver.success.driverCreated'),
         result: save_driver
       });
     }
@@ -449,7 +447,7 @@ exports.remove_driver = async (req, res) => {
     if (!removedDriver) {
       res.send({
         code: constant.error_code,
-        message: "Unable to delete the driver",
+        message: res.__('deleteDriver.error.unableToDeleteDriver'),
       });
     } else {
 
@@ -464,7 +462,7 @@ exports.remove_driver = async (req, res) => {
       sendAccountDeactivationEmail(removedDriver);
       return res.send({
                         code: constant.success_code,
-                        message: "Deleted Successfully",
+                        message: res.__('deleteDriver.success.driverDeleted'),
                       });
       
     }
@@ -498,7 +496,7 @@ exports.adminDeleteDriver = async (req, res) => {
     if (!removedDriver) {
       res.send({
                 code: constant.error_code,
-                message: "Unable to delete the driver",
+                message: res.__('deleteDriver.error.unableToDeleteDriver'),
               });
     } else {
       
@@ -516,7 +514,7 @@ exports.adminDeleteDriver = async (req, res) => {
       sendAccountDeactivationEmail(removedDriver);
       res.send({
                 code: constant.success_code,
-                message: "Deleted Successfully",
+                message:  res.__('deleteDriver.success.driverDeleted'),
               });
       
     }
@@ -537,12 +535,12 @@ exports.get_driver_detail = async (req, res) => {
     if (!driver) {
       res.send({
         code: constant.error_code,
-        message: "Unable to fetch the detail",
+        message: res.__('getDriverDetail.error.unableToFetchDriverDetails'),
       });
     } else {
       const completedTrips = await trip_model.find({
                                                       driver_name: driverId,
-                                                      trip_status: "Completed",
+                                                      trip_status: constant.TRIP_STATUS.COMPLETED,
                                                       is_paid: true,
                                                     })
                                                     .countDocuments();
@@ -560,12 +558,12 @@ exports.get_driver_detail = async (req, res) => {
       );
       const totalActiveTrips = await trip_model.find({
                                                       driver_name: driverId,
-                                                      trip_status: "Active",
+                                                      trip_status: constant.TRIP_STATUS.ACTIVE,
                                                     })
                                                     .countDocuments();
       const totalUnpaidTrips = await trip_model.find({
                                                       driver_name: driverId,
-                                                      trip_status: "Completed",
+                                                      trip_status: constant.TRIP_STATUS.COMPLETED,
                                                       is_paid: false,
                                                       drop_time: {
                                                         $lte: startOfCurrentWeek,
@@ -575,13 +573,13 @@ exports.get_driver_detail = async (req, res) => {
 
       const totalReachedTrip = await trip_model.find({
                                                       driver_name: driverId,
-                                                      trip_status: "Reached",
+                                                      trip_status: constant.TRIP_STATUS.REACHED,
                                                       is_paid: false,
                                                     })
                                                     .countDocuments();
       return res.send({
                         code: constant.success_code,
-                        message: "Success",
+                        message: res.__('getDriverDetail.success.driverDetailsFetched'),
                         result,
                         totalActiveTrips,
                         totalUnpaidTrips,
@@ -626,73 +624,10 @@ exports.get_drivers = async (req, res) => {
         { address_1: { $regex: search, $options: "i" } },
       ];
     }
-    // const drivers = await DRIVER.find(
-    //     {
-    //         $and: [
-    //             { is_deleted: false },
-    //             { status: true },
-    //             // {is_available:true}
-    //             // {
-    //             //     $or: [
-    //             //         { created_by: req.userId },
-    //             //         { created_by: getDetail.created_by }
-    //             //     ]
-    //             // }
-    //         ]
-    //     }
-    // ).sort({ 'createdAt': -1 });
-    // const driver = await DRIVER.aggregate([
-    //     {
-    //         $match:{
-    //             is_deleted: false,
-    //             status: true ,
-    //             is_login:true
-    //         }
-    //     },
-    //     {
-    //         $lookup:{
-    //             location: "_id",
-    //             foreignField: "driver_name",
-    //             from: "trips",
-    //             as: "tripData",
-    //             pipeline: [
-    //                 {
-    //                     $match: {
-    //                         is_paid: "false",
-    //                         trip_status: "Completed",
-    //                     }
-    //                 }
-    //             ]
-    //         }
-    //     },
-    //     {
-    //         $project: {
-    //             totalUnpaidTrips: {
-    //                 $size : "$tripData"
-    //             }
-    //         }
-    //     },
-    //     {
-    //         $match:{
-    //             totalUnpaidTrips: 0,
-    //         }
-    //     }
-    // ])
+    
     const driver = await DRIVER.aggregate([
       {
         $match: query,
-        //  {
-        //     is_deleted: false,
-        //     $or:[
-        //         { 'email': { '$regex': search, '$options': 'i' } },
-        //         { 'phone': { '$regex': search, '$options': 'i' } },
-        //         { 'first_name': { '$regex': search, '$options': 'i' } },
-        //         { 'address_1': { '$regex': search, '$options': 'i' } },
-        //     ]
-
-        //     // status: true,
-        //     // is_login: true,
-        // },
       },
       {
         $lookup: {
@@ -734,11 +669,6 @@ exports.get_drivers = async (req, res) => {
           },
         },
       },
-      // {
-      //     $match: {
-      //         totalUnpaidTrips: 0,
-      //     },
-      // },
     ]);
     if (driver) {
       // const newDriver = driver.map(d=>d.toJson());
@@ -753,13 +683,13 @@ exports.get_drivers = async (req, res) => {
       });
       res.send({
         code: constant.success_code,
-        message: "Driver list retrieved successfully",
+        message: res.__('getDrivers.success.driverListRetrieved'),
         result: result,
       });
     } else {
       res.send({
         code: constant.error_code,
-        message: "No drivers found for the agency user",
+        message: res.__('getDrivers.error.noDriversFoundForAgencyUser'),
       });
     }
   } catch (err) {
@@ -827,14 +757,14 @@ exports.get_drivers_list = async (req, res) => {
       
       res.send({
         code: constant.success_code,
-        message: "Driver list retrieved successfully",
+        message: res.__('getDrivers.success.driverListRetrieved'),
         response_time: differenceInSeconds,
         result: result,
       });
     } else {
       res.send({
         code: constant.error_code,
-        message: "No drivers found for the agency user",
+        message: res.__('getDrivers.error.noDriversFoundForAgencyUser'),
       });
     }
   } catch (err) {
@@ -1057,7 +987,7 @@ exports.get_drivers_super = async (req, res) => {
     if (drivers) {
       res.send({
         code: constant.success_code,
-        message: "Driver list retrieved successfully",
+        message: res.__('getDrivers.success.driverListRetrieved'),
         query:query,
         result: drivers,
         totalCount: totalCount
@@ -1065,7 +995,7 @@ exports.get_drivers_super = async (req, res) => {
     } else {
       res.send({
         code: constant.error_code,
-        message: "No drivers found for the agency user",
+        message: res.__('getDrivers.error.noDriversFoundForAgencyUser'),
       });
     }
   } catch (err) {
@@ -1098,13 +1028,13 @@ exports.get_deleted_drivers_super = async (req, res) => {
     if (drivers) {
       res.send({
         code: constant.success_code,
-        message: "Driver list retrieved successfully",
+        message: res.__('getDrivers.success.driverListRetrieved'),
         result: drivers,
       });
     } else {
       res.send({
         code: constant.error_code,
-        message: "No drivers found for the agency user",
+        message: res.__('getDrivers.error.noDriversFoundForAgencyUser'),
       });
     }
   } catch (err) {
@@ -1416,65 +1346,34 @@ exports.restoreDriver = async (req, res) => {
 
     if (existingDriver) {
 
-      // let isCompanyExist = await USER.aggregate([
-      //                                             {
-      //                                               $match: { email: existingDriver.email }
-      //                                             },
-      //                                             {
-      //                                               $lookup: {
-      //                                                 from: 'agencies', // Name of the collection in MongoDB
-      //                                                 localField: '_id', // The field in the USER collection
-      //                                                 foreignField: 'user_id', // The field in the Agency collection
-      //                                                 as: 'agencyDetails' // Output field
-      //                                               }
-      //                                             },
-      //                                             {
-      //                                               $unwind: { path: '$agencyDetails', preserveNullAndEmptyArrays: true } // Unwind if needed
-      //                                             }
-      //                                           ]);
-      // if (isCompanyExist) {
-
-      //   // driver's company id will be updated in driver account when driver will be restored
-
-      //   let updatedDriver = await DRIVER.findOneAndUpdate( 
-      //                                                         { _id: driverId }, 
-      //                                                         {
-      //                                                           is_deleted: false,
-      //                                                           isCompany: true,
-      //                                                           driver_company_id: isCompanyExist?._id,
-      //                                                           company_agency_id: isCompanyExist?.agencyDetails?.id,
-      //                                                         }, 
-      //                                                         { new: true }
-      //                                                       );
-      // } else {
-        let updatedDriver = await DRIVER.findOneAndUpdate( 
-                                                            { _id: driverId }, 
-                                                            {
-                                                              is_deleted: false,
-                                                            }, 
-                                                            { new: true }
-                                                          );
-
-        let updateCompany = await USER.findOneAndUpdate(
-                                                          { email: existingDriver.email },
+      let updatedDriver = await DRIVER.findOneAndUpdate( 
+                                                          { _id: driverId }, 
                                                           {
-                                                            $set: {
-                                                                    isDriverDeleted: false,
-                                                                  },
-                                                          }
+                                                            is_deleted: false,
+                                                          }, 
+                                                          { new: true }
                                                         );
-      // }
+
+      let updateCompany = await USER.findOneAndUpdate(
+                                                        { email: existingDriver.email },
+                                                        {
+                                                          $set: {
+                                                                  isDriverDeleted: false,
+                                                                },
+                                                        }
+                                                      );
+     
       
       sendAccountReactivationEmail(existingDriver)
       return res.send({
                         code: constant.success_code,
-                        message: 'Driver restored successfully',
+                        message: res.__('restoreDriver.success.driverRestored'),
                       });
     } else {
 
       return res.send({
                         code: constant.error_code,
-                        message: `Driver doesn't exist`,
+                        message: res.__('restoreDriver.error.driverNotExist'),
                       });
     }
   } catch (err) {

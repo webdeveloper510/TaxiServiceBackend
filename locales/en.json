@@ -15,10 +15,44 @@
             "phoneAlreadyInUse": "This phone number is already associated with an existing account",
             "emailRegisteredAsCompany": "This email is already registered under a Company account. Please sign in to proceed with driver registration",
             "phoneRegisteredAsCompany": "This phone is already registered under a Company account. Please sign in to proceed with driver registration",
-            "saveFailed": "An error occurred while saving your data. Please try again."
+            "companyHasOwnDriver": "This company already has their own driver",
+            "saveFailed": "An error occurred while saving your data. Please try again.",
+            "emailAssociatedWithDeletedDriver": "This email ({{email}}) is associated with a previously deleted driver. Please restore the driver from the deleted list instead of creating a new account."
         },
         "success": {
             "driverCreated": "Driver account has been created successfully."
+        }
+    },
+    "deleteDriver": {
+        "error": {
+            "unableToDeleteDriver": "An error occurred while deleting the driver."
+        },
+        "success": {
+            "driverDeleted": "Driver has been deleted successfully."
+        }
+    },
+    "getDrivers": {
+        "error": {
+            "noDriversFoundForAgencyUser": "No drivers are associated with the agency user."
+        },
+        "success": {
+            "driverListRetrieved": "Driver list has been successfully fetched."
+        }
+    },
+    "restoreDriver": {
+        "error": {
+            "driverNotExist": "he specified driver does not exist"
+        },
+        "success": {
+            "driverRestored": "Driver has been successfully restored."
+        }
+    },
+    "getDriverDetail": {
+        "error": {
+            "unableToFetchDriverDetails": "An error occurred while fetching driver details."
+        },
+        "success": {
+            "driverDetailsFetched": "Driver details fetched successfully."
         }
     },
     "updateDriver": {
@@ -70,8 +104,34 @@
             "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",
             "tripRetrivedByCompany": "Your trip request has been retrieved by the company."
         },
+        "notification": {
+            "tripRetrievedByCompanyMessage": "Trip ({{trip_id}}) has been retrieved by the company.",
+            "tripRetrievedByCompanyTitle": "Trip retrieved ."
+        },
         "success": {
             "tripUpdated": "The trip has been updated successfully"
+        }
+    },
+    "deleteTrip": {
+        "error": {
+            "unableToDeleteTrip": "An error occurred while attempting to delete the trip"
+        },
+        "success": {
+            "deletedSuccessfully": "The trip has been delete successfully"
+        }
+    },
+    "getTrip": {
+        "error": {
+            "unableToRetrieveTrip": "An error occurred while fetching trips."
+        },
+        "success": {
+            "tripDataRetrieved": "Trip details retrieved successfully",
+            "dashboardCountsRetrieved": "Dashboard counts retrieved successfully."
+        }
+    },
+    "noShowUser": {
+        "success": {
+            "driverUnableToLocateCustomer": "Driver could not find the customer at the specified location for Trip ID: {{trip_id}}"
         }
     },
     "switchProfile": {
@@ -93,6 +153,55 @@
             "success": {
                 "profileSwitched": "Profile switched successfully"
             }
+        }
+    },
+    "driverCancelTripReason": {
+        "error": {
+            "invalidTrip": "This trip is not valid or no longer available.",
+            "tripNotUnderCancellationReview": "This trip is not currently under cancellation review.",
+            "tripUnderCancellationReview": "This trip is already under cancellation review."
+        },
+        "socket": {
+            "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",
+            "tripCancelLationApproved": "Your cancellation request for Trip ID {{trip_id}} has been approved by the company.",
+            "tripCancelLationRejected": "The company has rejected your cancellation request for Trip ID {{trip_id}}. Kindly continue with the scheduled trip.",
+            "tripCancelLationStatusMessage": "Trip {{trip_id}} cancellation request has been {{tripDecisionStatus}}",
+            "tripCancellationStatusTitle": "Trip Cancellation Request Update"
+        },
+        "success": {
+            "tripCancellationUpdated": "The cancellation request for the trip has been successfully updated",
+            "tripCancellationRequestSubmitted": "The trip cancellation request has been submitted successfully. The company will review the reason and provide an update shortly."
+        }
+    },
+    "customerCancelTrip": {
+        "error": {
+            "invalidTrip": "This trip is not valid or no longer available.",
+            "tripAlreadyCancelledByUser": "This trip has already been cancelled by the user."
+        },
+        "socket": {
+            "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",
+            "tripCancelledByCustomer": "Trip has been cancelled by {{customerName}}.",
+            "tripCancellationRejected": "The company has rejected your cancellation request for Trip ID {{trip_id}}. Kindly continue with the scheduled trip.",
+            "tripCancellationStatusMessage": "Trip {{trip_id}} cancellation request has been {{tripDecisionStatus}}",
+            "tripCancellationStatusTitle": "Trip Cancellation Request Update"
+        },
+        "notification": {
+            "tripCancelledByCustomerMessage": "Trip ID {{trip_id}} has been cancelled by customer ({{customerName}}).",
+            "tripCancelledByCustomerTitle": "Trip ({{trip_id}}) Canceled by Customer.",
+            "tripCancelledByCustomerForCompanyAccessTitle": "Trip: {{trip_id}}( Company Access:- {{company_name}} Canceled by Customer.",
+            "tripCancelledByCustomerForPartnerAccessTitle": "Trip: {{trip_id}}( Partner Account:- {{company_name}} Canceled by Customer."
+        },
+        "success": {
+            "tripCancellationSubmitted": "Your trip cancellation request has been submitted."
+        }
+    },
+    "addAgency": {
+        "error": {
+            "unableToSaveData": "An error occurred while saving data",
+            "dataSaved": "Data has been saved successfully"
+        },
+        "success": {
+            "dataSaved": "Data has been saved successfully"
         }
     }
 }

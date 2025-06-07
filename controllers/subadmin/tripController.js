@@ -171,12 +171,12 @@ exports.get_trip = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__('getTrip.error.unableToRetrieveTrip'), 
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('getTrip.success.tripDataRetrieved'),
         result: get_trip,
       });
     }
@@ -257,12 +257,12 @@ exports.get_recent_trip = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__('getTrip.error.unableToRetrieveTrip'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('getTrip.success.tripDataRetrieved'),
         result: get_trip,
       });
     }
@@ -279,7 +279,7 @@ exports.get_counts_dashboard = async (req, res) => {
     let data = req.body;
 
     let mid = new mongoose.Types.ObjectId(req.userId);
-    let getIds = await USER.find({ role: "HOTEL", created_by: req.userId });
+    let getIds = await USER.find({ role: constant.ROLES.HOTEL, created_by: req.userId });
 
     let search_value = data.comment ? data.comment : "";
     let ids = [];
@@ -296,7 +296,7 @@ exports.get_counts_dashboard = async (req, res) => {
               $or: [{ created_by: { $in: objectIds } }, { created_by: mid }],
             },
             { status: true },
-            { trip_status: "Booked" },
+            { trip_status: constant.TRIP_STATUS.BOOKED },
             { is_deleted: false },
           ],
         },
@@ -310,7 +310,7 @@ exports.get_counts_dashboard = async (req, res) => {
               $or: [{ created_by: { $in: objectIds } }, { created_by: mid }],
             },
             { status: true },
-            { trip_status: "Completed" },
+            { trip_status: constant.TRIP_STATUS.COMPLETED },
             { is_deleted: false },
           ],
         },
@@ -324,7 +324,7 @@ exports.get_counts_dashboard = async (req, res) => {
               $or: [{ created_by: { $in: objectIds } }, { created_by: mid }],
             },
             { status: true },
-            { trip_status: "Pending" },
+            { trip_status: constant.TRIP_STATUS.PENDING },
             { is_deleted: false },
           ],
         },
@@ -338,24 +338,24 @@ exports.get_counts_dashboard = async (req, res) => {
               $or: [{ created_by: { $in: objectIds } }, { created_by: mid }],
             },
             { status: true },
-            { trip_status: "Canceled" },
+            { trip_status: constant.TRIP_STATUS.CANCELED },
             { is_deleted: false },
           ],
         },
       },
     ]);
-    let companyCount = await USER.find({ role: "COMPPANY" }).countDocuments();
-    res.send({
-      code: constant.success_code,
-      message: "success",
-      result: {
-        bookedTrips: bookedTrip.length,
-        cancelTrips: cancelTrip.length,
-        pendingTrip: pendingTrip.length,
-        completedTrip: completedTrip.length,
-        companies: companyCount,
-      },
-    });
+    let companyCount = await USER.find({ role: constant.ROLES.COMPANY }).countDocuments();
+    return res.send({
+                      code: constant.success_code,
+                      message: res.__('getTrip.success.dashboardCountsRetrieved'),
+                      result: {
+                        bookedTrips: bookedTrip.length,
+                        cancelTrips: cancelTrip.length,
+                        pendingTrip: pendingTrip.length,
+                        completedTrip: completedTrip.length,
+                        companies: companyCount,
+                      },
+                    });
   } catch (err) {
     res.send({
       code: constant.error_code,
@@ -378,7 +378,7 @@ exports.edit_trip = async (req, res) => {
       if (data?.commission && data?.commission?.commission_value != 0) {
       
         let commission = data.commission.commission_value;
-        if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
+        if ( data.commission.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE && data.commission.commission_value > 0 ) {
           commission = (Number(data.price) * data.commission.commission_value) / 100;
         }
 
@@ -446,7 +446,7 @@ exports.edit_trip = async (req, res) => {
         
       // when company send the trip to the driver for accepting and company want to cancel in between before accepying the driver
       if (data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data?.trip_status == constant.TRIP_STATUS.APPROVED) {
-        console.log('before accepting')
+        
         let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
         req.io.to(driver_data.socketId).emit("popUpClose", { message: res.__('editTrip.socket.tripRetrivedByCompany')})
       }
@@ -473,17 +473,17 @@ exports.edit_trip = async (req, res) => {
       // refresh trip functionality for the drivers who have account access as partner
       
       partnerAccountRefreshTrip(trip_data.created_by_company_id , res.__('editTrip.socket.tripChangedRefresh'), req.io);
-      res.send({
-        code: constant.success_code,
-        message: res.__('editTrip.success.tripUpdated'),
-        result: update_trip,
-      });
+      return res.send({
+                        code: constant.success_code,
+                        message: res.__('editTrip.success.tripUpdated'),
+                        result: update_trip,
+                      });
     }
   } catch (err) {
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 };
 
@@ -500,19 +500,19 @@ exports.noShowUser = async (req, res) => {
     if (!update_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to update the trip",
+        message: res.__('editTrip.error.unableToUpdateTrip'),
       });
     } else {
       
       // If the driver does not find the customer at the trip's starting location, it will be classified as a "no-show" case.
-      noShowTrip(trip_data.created_by_company_id , trip_data  , `The driver was unable to locate the customer at the specified location for Trip ID:- ${update_trip.trip_id}`, req.io);
+      noShowTrip(trip_data.created_by_company_id , trip_data  , res.__('noShowUser.success.driverUnableToLocateCustomer' , {trip_id: update_trip.trip_id}) , req.io);
 
       // Implement a "Refresh Trip" functionality for drivers with partner account access.
       
-      partnerAccountRefreshTrip(trip_data.created_by_company_id , "The trip details have been updated. Please refresh the data to view the changes", req.io);
+      partnerAccountRefreshTrip(trip_data.created_by_company_id , res.__('editTrip.socket.tripChangedRefresh'), req.io);
       return res.send({
                         code: constant.success_code,
-                        message: "Updated successfully",
+                        message:res.__('editTrip.success.tripUpdated'),
                         result: update_trip,
                       });
     }
@@ -534,14 +534,14 @@ exports.driverCancelTrip = async (req, res) => {
     if (!criteria) {
       return res.send({
                       code: constant.error_code,
-                      message: `Invalid trip`,
+                      message: res.__('driverCancelTripReason.error.invalidTrip'),
                     });
     }
 
     if (criteria?.under_cancellation_review) {
       return res.send({
                       code: constant.error_code,
-                      message: `This trip is already under cancellation review.`,
+                      message: res.__('driverCancelTripReason.error.tripUnderCancellationReview'),
                     });
     }
 
@@ -569,11 +569,11 @@ exports.driverCancelTrip = async (req, res) => {
     
     let update_trip = await TRIP.findOneAndUpdate(criteria, updateData, option); 
     console.log('update_trip---' ,update_trip)
-    partnerAccountRefreshTrip(tripInfo.created_by_company_id , "The trip details have been updated. Please refresh the data to view the changes", req.io);
+    partnerAccountRefreshTrip(tripInfo.created_by_company_id , res.__('driverCancelTripReason.socket.tripChangedRefresh'), req.io);
       
     return res.send({
       code: constant.success_code,
-      message: "The trip cancellation request has been submitted successfully. The company will review the reason and provide an update shortly."
+      message: res.__('driverCancelTripReason.success.tripCancellationRequestSubmitted')
     });
   } catch (err) {
     console.log('driverCancelTrip------', err)
@@ -595,14 +595,14 @@ exports.driverCancelTripDecision = async (req, res) => {
     if (!tripDetails) {
       return res.send({
                       code: constant.error_code,
-                      message: `Invalid trip`,
+                      message: res.__('driverCancelTripReason.error.invalidTrip'),
                     });
     }
 
     if (!tripDetails.under_cancellation_review) {
       return res.send({
                       code: constant.error_code,
-                      message: `This trip is not under cancellation review.`,
+                      message: res.__('driverCancelTripReason.error.tripNotUnderCancellationReview'),
                     });
     }
 
@@ -647,14 +647,14 @@ exports.driverCancelTripDecision = async (req, res) => {
     await TRIP.findOneAndUpdate(criteria , tripUpdateData, {new: true});
 
     // Refesh the trip for the company and its partner and account access drivers
-    partnerAccountRefreshTrip(tripDetails.created_by_company_id , "A trip has been created.Please refresh the data",  req.io);
+    partnerAccountRefreshTrip(tripDetails.created_by_company_id ,res.__('driverCancelTripReason.socket.tripChangedRefresh'),  req.io);
 
     let message = '';
 
     if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
-      message = `Your cancellation request for trip ${tripDetails?.trip_id} has been approved by the company`
+      message = res.__('driverCancelTripReason.socket.tripCancellationApproved' , {trip_id: tripDetails?.trip_id})
     } else {
-      message = `Your cancellation request for trip ${tripDetails?.trip_id} has been rejected by the company. Please proceed with the scheduled trip`
+      message = res.__('driverCancelTripReason.socket.tripCancellationRejected' , {trip_id: tripDetails?.trip_id})
     }
       // Send notification to the driver and inform by the socket but company and driver are same person then no notification or pop-up will be show
     if ( (tripDetails?.driver_name.toString() != req.user?.driverId?._id.toString()) ||  req.companyPartnerAccess) {
@@ -679,19 +679,20 @@ exports.driverCancelTripDecision = async (req, res) => {
 
       if (driver_data?.webSocketId) {
         req.io.to(driver_data.webSocketId).emit("tripCancellationRequestDecision", {
-          message: message,
-          tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
-          tripDetails:tripDetails
-        });
+                                                                                      message: message,
+                                                                                      tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
+                                                                                      tripDetails:tripDetails
+                                                                                    }
+                                                );
       }
       
       if (device_token) {
         sendNotification(
-                        device_token,
-                        `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
-                        `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
-                        tripDetails
-                      );
+                          device_token,
+                          res.__('driverCancelTripReason.socket.tripCancellationStatusMessage' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
+                          res.__('driverCancelTripReason.socket.tripCancellationStatusTitle' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
+                          tripDetails
+                        );
       }
     }
 
@@ -736,8 +737,8 @@ exports.driverCancelTripDecision = async (req, res) => {
 
           sendNotification(
                             driverCompanyAccess?.deviceToken,
-                            `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
-                            `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                            res.__('driverCancelTripReason.socket.tripCancellationStatusMessage' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
+                            res.__('driverCancelTripReason.socket.tripCancellationStatusTitle' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
                             tripDetails
                           );
         }
@@ -781,8 +782,8 @@ exports.driverCancelTripDecision = async (req, res) => {
 
           sendNotification(
                             partnerAccount?.deviceToken,
-                            `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
-                            `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                            res.__('driverCancelTripReason.socket.tripCancellationStatusMessage' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
+                            res.__('driverCancelTripReason.socket.tripCancellationStatusTitle' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
                             tripDetails
                           );
         } else if (partnerAccount.isCompany){
@@ -793,8 +794,8 @@ exports.driverCancelTripDecision = async (req, res) => {
 
             sendNotification(
                               companyData?.deviceToken,
-                              `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
-                              `Trip T-${tripDetails?.trip_id} cancellation request has been ${tripDecisionStatus}`,
+                              res.__('driverCancelTripReason.socket.tripCancellationStatusMessage' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
+                              res.__('driverCancelTripReason.socket.tripCancellationStatusTitle' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
                               tripDetails
                             );
           }
@@ -804,7 +805,7 @@ exports.driverCancelTripDecision = async (req, res) => {
 
     return res.send({
                       code: constant.success_code,
-                      message: 'Successfully updated the trip cancellation request',
+                      message:  res.__('driverCancelTripReason.success.tripCancellationUpdated'),
                       info:req.user
                     });
     
@@ -825,14 +826,14 @@ exports.customerCancelTrip = async (req , res) => {
     if (!criteria) {
       return res.send({
                       code: constant.error_code,
-                      message: `Invalid trip`,
+                      message: res.__('customerCancelTrip.error.invalidTrip'),
                     });
     }
 
     if (criteria?.trip_status == constant.TRIP_STATUS.CUSTOMER_CENCEL) {
       return res.send({
                         code: constant.error_code,
-                        message: `This trip is already cancelled by the user.`,
+                        message: res.__('customerCancelTrip.error.tripAlreadyCancelledByUser'),
                       });
     }
 
@@ -848,7 +849,7 @@ exports.customerCancelTrip = async (req , res) => {
       
         req.io.to(user?.socketId).emit("tripCancelledBYCustomer", {
                                                               tripInfo,
-                                                              message: `Trip canceled by the customer ${customerName}`,
+                                                              message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                             }
                                   );
     }
@@ -856,21 +857,21 @@ exports.customerCancelTrip = async (req , res) => {
     if (user?.webSocketId) {
       // socket for web
       req.io.to(user?.webSocketId).emit(
-                                      "tripCancelledBYCustomer",
-                                      {
-                                        tripInfo,
-                                        message: `Trip canceled by the customer ${customerName}`,
-                                      },
-                                    );
+                                          "tripCancelledBYCustomer",
+                                          {
+                                            tripInfo,
+                                            message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
+                                          },
+                                        );
     }
 
     if (user?.deviceToken) {
       sendNotification(
-                          user?.deviceToken,
-                          `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
-                          `Trip Canceled by Customer (T-${tripInfo.trip_id})`,
-                          tripInfo
-                        );
+                        user?.deviceToken,
+                        res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
+                        res.__('customerCancelTrip.notification.tripCancelledByCustomerTitle' , { trip_id: tripInfo.trip_id}),
+                        tripInfo
+                      );
     }
 
     // For the driver who has company access
@@ -890,7 +891,7 @@ exports.customerCancelTrip = async (req , res) => {
                                                     "tripCancelledBYCustomer",
                                                     {
                                                       tripInfo,
-                                                      message: `Trip canceled by the customer ${customerName}`,
+                                                      message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                     },
                                                   );
         }
@@ -901,7 +902,7 @@ exports.customerCancelTrip = async (req , res) => {
                                                         "tripCancelledBYCustomer",
                                                         {
                                                           tripInfo,
-                                                          message: `Trip canceled by the customer ${customerName}`,
+                                                          message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                         },
                                                       );
         }
@@ -910,8 +911,8 @@ exports.customerCancelTrip = async (req , res) => {
 
           sendNotification(
                                   driverCompanyAccess?.deviceToken,
-                                  `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
-                                  `Trip canceled ( Company Access:- ${companyAgencyData.company_name} )`,
+                                  res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
+                                  res.__('customerCancelTrip.notification.tripCancelledByCustomerForCompanyAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
                                   tripInfo
                                 );
         }
@@ -920,8 +921,8 @@ exports.customerCancelTrip = async (req , res) => {
 
           sendNotification(
                                   driverCompanyAccess?.webDeviceToken,
-                                  `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
-                                  `Trip canceled ( Company Access:- ${companyAgencyData.company_name} )`,
+                                  res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
+                                  res.__('customerCancelTrip.notification.tripCancelledByCustomerForCompanyAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
                                   tripInfo
                                 );
         }
@@ -943,18 +944,12 @@ exports.customerCancelTrip = async (req , res) => {
           if (partnerAccount?.socketId) {
             req.io.to(partnerAccount?.socketId).emit("tripCancelledBYCustomer",{
                                                                               tripInfo,
-                                                                              message: `Trip canceled by the customer ${customerName}`,
+                                                                              message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                                             },
                                                 );
               
             // for refresh trip
-            req.io.to(partnerAccount?.socketId).emit(
-                                                  "refreshTrip",
-                                                  {
-                                                    message:
-                                                      "The trip driver did not accept the trip. Please refresh the data to receive the latest updates.",
-                                                  }
-                                                );
+            req.io.to(partnerAccount?.socketId).emit( "refreshTrip", { message:  res.__('customerCancelTrip.socket.tripChangedRefresh')} );
           }
 
           // for partner Web side
@@ -962,15 +957,11 @@ exports.customerCancelTrip = async (req , res) => {
 
           req.io.to(partnerAccount?.webSocketId).emit("tripCancelledBYCustomer",{
                                                                               tripInfo,
-                                                                              message: `Trip canceled by the customer ${customerName}`,
+                                                                              message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                                             },
                                                 )
 
-          req.io.to(partnerAccount?.webSocketId).emit("refreshTrip",  {
-                                                                          message:
-                                                                            "Trip Driver didn't accpet the trip. Please refresh the data",
-                                                                        }
-                                                        );
+          req.io.to(partnerAccount?.webSocketId).emit("refreshTrip",  {  message:res.__('customerCancelTrip.socket.tripChangedRefresh') } );
           }
 
           if (partnerAccount?.webDeviceToken) {
@@ -978,8 +969,8 @@ exports.customerCancelTrip = async (req , res) => {
 
             sendNotification(
                               partnerAccount?.webDeviceToken,
-                              `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
-                              `Trip Cancelled ( Partner Account Access:- ${companyAgencyData.company_name})`,
+                              res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
+                              res.__('customerCancelTrip.notification.tripCancelledByCustomerForPartnerAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
                               tripInfo
                             );
           }
@@ -990,8 +981,8 @@ exports.customerCancelTrip = async (req , res) => {
 
             sendNotification(
                               partnerAccount?.deviceToken,
-                              `The trip has been canceled by customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
-                              `Trip Cancelled ( Partner Account Access:- ${companyAgencyData.company_name})`,
+                              res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
+                              res.__('customerCancelTrip.notification.tripCancelledByCustomerForPartnerAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
                               tripInfo
                             );
           } else if (partnerAccount.isCompany){
@@ -1001,18 +992,18 @@ exports.customerCancelTrip = async (req , res) => {
               // notification for company
 
               sendNotification(
-                                      companyData?.deviceToken,
-                                      `The trip has been canceled by Customer ( ${customerName} ) and trip ID is ${tripInfo.trip_id}`,
-                                      `Trip Cancelled ( Partner Account Access:- ${companyAgencyData.company_name})`,
-                                      tripInfo
-                                    );
+                                companyData?.deviceToken,
+                                res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
+                                res.__('customerCancelTrip.success.tripCancelledByCustomerForPartnerAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
+                                tripInfo
+                              );
             }
           }
         }
       }
     return res.send({
       code: constant.success_code,
-      message: "The trip cancellation request has been submitted successfully."
+      message: res.__('customerCancelTrip.notification.tripCancelledByCustomerForPartnerAccessTitle')
     });
   } catch (err) {
     console.log('customerCancelTrip------', err)
@@ -1026,9 +1017,6 @@ exports.customerCancelTrip = async (req , res) => {
 exports.driverCancelTripRequests = async (req, res) => {
   try {
 
-    let data = req.body;
-    let criteria = { _id: req.params.id };
-
     const page = parseInt(req.query.page) || 1; // default to page 1
     const limit = parseInt(req.query.limit) || 10; // default to 10 items per page
     const skip = (page - 1) * limit;
@@ -1036,9 +1024,9 @@ exports.driverCancelTripRequests = async (req, res) => {
 
     // Optional filter (e.g., by user or company)
     let filter = { 
-      is_deleted: false,
-      under_cancellation_review: true,
-    };
+                    is_deleted: false,
+                    under_cancellation_review: true,
+                  };
 
     if (date) {
       const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
@@ -1056,15 +1044,13 @@ exports.driverCancelTripRequests = async (req, res) => {
     let tripInfo = await TRIP.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
     const total = await TRIP.countDocuments(filter);
 
-
-    
     return res.send({
-      code: constant.success_code,
-      data: tripInfo,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-      totalTrips: total
-    });
+                      code: constant.success_code,
+                      data: tripInfo,
+                      currentPage: page,
+                      totalPages: Math.ceil(total / limit),
+                      totalTrips: total
+                    });
   } catch (err) {
     console.log('driverCancelTripRequests------', err)
     return res.send({
@@ -1078,7 +1064,7 @@ exports.access_edit_trip = async (req, res) => {
   try {
     let data = req.body;
 
-    if (req.user.role == "DRIVER") {
+    if (req.user.role == constant.ROLES.DRIVER) {
 
       let is_driver_has_company_access = await isDriverHasCompanyAccess(
                                                                           req.user,
@@ -1089,7 +1075,7 @@ exports.access_edit_trip = async (req, res) => {
 
         return res.send({
                           code: constant.ACCESS_ERROR_CODE,
-                          message: "The company's access has been revoked",
+                          message: res.__('editTrip.error.companyAccessRevoked'),
                         });
       }
     }
@@ -1103,7 +1089,7 @@ exports.access_edit_trip = async (req, res) => {
     if (data?.commission && data?.commission?.commission_value != 0) {
 
       let commission = data.commission.commission_value;
-      if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
+      if ( data.commission.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE && data.commission.commission_value > 0 ) {
         commission = (data.price * data.commission.commission_value) / 100;
       }
 
@@ -1112,7 +1098,7 @@ exports.access_edit_trip = async (req, res) => {
 
         return res.send({
                           code: constant.error_code,
-                          result: `You can't create the trip because you didn't have any plan`,
+                          result: res.__('editTrip.error.noActivePlanForTripCreation'),
                         });
       }
       const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
@@ -1128,7 +1114,7 @@ exports.access_edit_trip = async (req, res) => {
       if (data?.price) {
         data.superAdminPaymentAmount = 0;
         data.companyPaymentAmount = 0;
-        console.log('data----', data)
+        
         data.driverPaymentAmount = Number(data.price).toFixed(2)
       }
       
@@ -1137,7 +1123,7 @@ exports.access_edit_trip = async (req, res) => {
     if (!update_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to update the trip",
+        message: res.__('editTrip.error.unableToUpdateTrip'),
       });
     } else {
 
@@ -1163,7 +1149,7 @@ exports.access_edit_trip = async (req, res) => {
         }
       }
       
-      if ( data?.trip_status == "Pending" && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
+      if ( data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
         let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
 
         let device_token = driver_data?.deviceToken;
@@ -1178,8 +1164,8 @@ exports.access_edit_trip = async (req, res) => {
         try {
           const response = await sendNotification(
                                                     device_token,
-                                                    `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
-                                                    `Trip has been retrived by company and trip ID is ${trip_data.trip_id}`,
+                                                    res.__('editTrip.notification.tripRetrievedByCompanyMessage' , {trip_id: trip_data.trip_id}),
+                                                    res.__('editTrip.notification.tripRetrievedByCompanyTitle'),
                                                     trip_data
                                                   );
         } catch (e) {
@@ -1191,12 +1177,12 @@ exports.access_edit_trip = async (req, res) => {
         }
       }
 
-      partnerAccountRefreshTrip(update_trip.created_by_company_id , "A trip has been changed.Please refresh the data" , req.io);
+      partnerAccountRefreshTrip(update_trip.created_by_company_id , res.__('editTrip.socket.tripChangedRefresh'), req.io);
       return res.send({
-                  code: constant.success_code,
-                  message: "Updated successfully",
-                  result: update_trip,
-                });
+                        code: constant.success_code,
+                        message: res.__('editTrip.success.tripUpdated'),
+                        result: update_trip,
+                      });
     }
   } catch (err) {
     res.send({
@@ -1220,12 +1206,12 @@ exports.delete_trip = async (req, res) => {
     if (!update_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to delete the trip",
+        message: res.__('deleteTrip.error.unableToDeleteTrip'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Deleted Successfully",
+        message: res.__('deleteTrip.success.deletedSuccessfully'),
       });
     }
   } catch (err) {
