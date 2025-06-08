@@ -8,6 +8,43 @@
             "companyAccessWithdrawn": "The company has withdrawn access to the account"
         }
     },
+    "createSuperAdmin":{
+        "error": {
+            "emailAlreadyInUse": "Email address is already associated with an existing account",
+            "phoneAlreadyInUse": "This phone number is already associated with an existing account",
+            "saveFailed": "An error occurred while saving your data. Please try again."
+        },
+        "success": {
+            "accountCreated": "Account has been created successfully."
+        }
+    },
+    "userLogin": {
+        "error": {
+            "accessRestricted": "Your access has been restricted by the administration. Please reach out to the admin team for support.",
+            "companyAccessRestricted": "Your compnay's access has been restricted by the administration. For further assistance, please contact the administrative",
+            "incorrectCredentials": "The credentials you entered are incorrect.",
+            "noPhoneLinked": "OTP cannot be sent as there is no phone number linked to your account.For further assistance,Please reach out to the admin team for support",
+            "appVersionNotFound": "App version not found."
+        },
+        "success": {
+            "loginWelcome": "Welcome back! You’re now logged in.",
+            "otpMessage": "Hello {{first_name}} {{last_name}} , Your OTP for login is {{OTP}}. Please enter this code to complete your login. This OTP will expire in 5 minutes.",
+            "otpSent": "We've sent the OTP to your registered mobile number ending with ......{{phone}}."
+        
+        }
+    },
+    "loginOtpVerify": {
+        "error": {
+            "invalidOtp": "The OTP you entered is invalid",
+            "requestExpired": "The request is no longer valid. Kindly authenticate again",
+            "roleValidationFailed": "Role validation failed. Please contact support if the issue persists."
+        }
+    },
+    "sendOtp": {
+        "error":{
+            "invalidInput": "The input provided is invalid."
+        }
+    },
     "addDriver": {
         "error": {
             "nickNameAlreadyInUse": "Unfortunately, this nickname is taken. Please use a different nickname.",
@@ -297,4 +334,5 @@
             "settingsUpdated": "Your settings have been saved successfully."
         }
     }
+    
 }

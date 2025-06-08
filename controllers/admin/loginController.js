@@ -47,7 +47,7 @@ exports.create_super_admin = async (req, res) => {
     if (checkEmail) {
       res.send({
         code: constants.error_code,
-        message: "Email is already exist!",
+        message: res.__('createSuperAdmin.error.emailAlreadyInUse'),
       });
       return;
     }
@@ -55,7 +55,7 @@ exports.create_super_admin = async (req, res) => {
     if (checkPhone) {
       res.send({
         code: constants.error_code,
-        message: "Phone number is already exist",
+        message: res.__('createSuperAdmin.error.phoneAlreadyInUse'),
       });
       return;
     }
@@ -65,7 +65,7 @@ exports.create_super_admin = async (req, res) => {
     if (!save_data) {
       res.send({
         code: constants.error_code,
-        message: "Unable to save the data",
+        message: res.__('createSuperAdmin.error.saveFailed'),
       });
     } else {
       let jwtToken = jwt.sign(
@@ -79,7 +79,7 @@ exports.create_super_admin = async (req, res) => {
       save_data.jwtToken = jwtToken;
       res.send({
         code: constants.success_code,
-        message: "Successfully created",
+        message: res.__('createSuperAdmin.success.accountCreated'),
         result: save_data,
       });
     }
@@ -127,14 +127,12 @@ exports.login = async (req, res) => {
       if ( userData.role != constants.ROLES.COMPANY) {
         return res.send({
                           code: constant.error_code,
-                          message:
-                            "Access has been restricted by the administration. For further assistance, please contact the administrative",
+                          message: res.__('userLogin.error.accessRestricted')
                         });
       } else if (userData?.role == constants.ROLES.COMPANY && userData?.isDriver == false){
         return res.send({
                           code: constant.error_code,
-                          message:
-                            "Access has been restricted by the administration. For further assistance, please contact the administrative",
+                          message: res.__('userLogin.error.accessRestricted')
                         });
       } else {}
       
@@ -144,16 +142,12 @@ exports.login = async (req, res) => {
 
       if (hotelCreatedBy?.is_blocked) {
         return res.send({
-          code: constant.error_code,
-          message:
-            "Your compnay's access has been restricted by the administration. For further assistance, please contact the administrative",
-        });
+                          code: constant.error_code,
+                          message: res.__('userLogin.error.companyAccessRestricted')
+           });
       }
-      console.log('userData----', hotelCreatedBy)
     }
 
-    
-    
     // drver login code
     if (!userData || (userData?.role == constants.ROLES.COMPANY &&  userData?.isDriver == true && userData?.is_blocked == true)) {
 
@@ -176,15 +170,14 @@ exports.login = async (req, res) => {
       if (!check_again) {
         return res.send({
                           code: constant.error_code,
-                          message: "Invalid Credentials",
+                          message: res.__('userLogin.error.incorrectCredentials'),
                         });
       }
 
       if (check_again?.is_blocked){
         return res.send({
                           code: constant.error_code,
-                          message:
-                            "You are blocked by administration. Please contact administration",
+                          message: res.__('userLogin.error.accessRestricted')
                         });
       }
 
@@ -222,7 +215,7 @@ exports.login = async (req, res) => {
       if (!checkPassword) {
         return res.send({
                           code: constants.error_code,
-                          message: "Invalid Credentials",
+                          message: res.__('userLogin.error.incorrectCredentials')
                         });
         
       }
@@ -300,7 +293,7 @@ exports.login = async (req, res) => {
 
       res.send({
                 code: constants.success_code,
-                message: "Login Successful",
+                message: res.__('userLogin.success.loginWelcome'),
                 result: check_data2,
                 jwtToken: jwtToken,
               });
@@ -312,8 +305,7 @@ exports.login = async (req, res) => {
       if (check_data?.is_blocked) {
         return res.send({
                           code: constant.error_code,
-                          message:
-                            "You are blocked by administration. Please contact adminstation",
+                          message: res.__('userLogin.error.accessRestricted')
                         });
       }
 
@@ -323,7 +315,7 @@ exports.login = async (req, res) => {
       if (!checkPassword) {
         return res.send({
                           code: constants.error_code,
-                          message: "Invalid Credentials",
+                          message: res.__('userLogin.error.incorrectCredentials'),
                         });
       }
 
@@ -339,16 +331,14 @@ exports.login = async (req, res) => {
           await check_data.save();
           await sendSms({
             to: check_data.phone,
-            message: `Hello ${check_data.first_name} ${check_data.first_name} , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`,
+            message: res.__('userLogin.success.otpMessage', { first_name: check_data.first_name , last_name: check_data.last_name})
           });
 
           setTimeout(() => { removeOTPAfter5Minutes(uniqueId); }, 120 * 1000); // 120 seconds ( 2 minutes)
 
           return res.send({
                             code: constants.OTP_CODE,
-                            message: `We have sent the OTP to this phone number that ends with .........${check_data.phone.slice(
-                              -4
-                            )}`,
+                            message: res.__('userLogin.success.otpSent', { phone: check_data.phone.slice(-4)}),
                             uniqueId: uniqueId,
                             OTP: OTP,
                           });
@@ -357,8 +347,7 @@ exports.login = async (req, res) => {
 
           return res.send({
                             code: constants.error_code,
-                            message:
-                              "We can't send OTP because you didn't have phone number in our system",
+                            message: res.__('userLogin.error.noPhoneLinked')
                           });
         }
       }
@@ -453,7 +442,7 @@ exports.login = async (req, res) => {
 
       res.send({
         code: constants.success_code,
-        message: "Login Successful",
+        message: res.__('userLogin.success.loginWelcome'),
         result: getData[0] ? getData[0] : check_data,
         jwtToken: jwtToken,
       });
@@ -480,7 +469,7 @@ exports.getIosAppVersion = async (req, res) => {
   } catch (error) {
     res.send({
       code: constants.error_code,
-      message: "No version found"
+      message: res.__('userLogin.error.appVersionNotFound')
     });
   }
 }
@@ -537,14 +526,14 @@ exports.login_otp_verify = async (req, res) => {
 
         return res.send({
           code: constants.success_code,
-          message: "Login Successful",
+          message: res.__('userLogin.success.loginWelcome'),
           result: getData[0] ? getData[0] : check_data,
           jwtToken: jwtToken,
         });
       } else {
         return res.send({
           code: constants.error_code,
-          message: "Invalid OTP",
+          message: res.__('loginOtpVerify.error.invalidOtp')
         });
       }
       res.send({
@@ -554,8 +543,7 @@ exports.login_otp_verify = async (req, res) => {
     } else {
       return res.send({
         code: constants.error_code,
-        message:
-          "This request has been expired. Please validate the credential again",
+        message: res.__('loginOtpVerify.error.requestExpired')
       });
     }
   } catch (error) {
@@ -589,7 +577,7 @@ exports.resend_login_otp = async (req, res) => {
           await check_data.save();
           await sendSms({
             to: check_data.phone,
-            message: `Hello ${check_data.first_name} ${check_data.first_name} , Your OTP for login is ${OTP}. Please enter this code to complete your login. This OTP will expire in 5 minutes.`,
+            message: res.__('userLogin.success.otpMessage' , {first_name: check_data.first_name , last_name: check_data.last_name, OTP:OTP})
           });
 
           setTimeout(() => {
@@ -598,30 +586,26 @@ exports.resend_login_otp = async (req, res) => {
 
           return res.send({
             code: constants.OTP_CODE,
-            message: `We have sent the OTP to this phone number that ends with .........${check_data.phone.slice(
-              -4
-            )}`,
+            message: res.__('userLogin.success.otpSent' , {phone: check_data.phone.slice(-4)}),
             OTP: OTP,
             uniqueId: uniqueId,
           });
         } else {
           return res.send({
             code: constants.error_code,
-            message:
-              "We can't send OTP because you didn't have phone number in our system",
+            message:res.__('userLogin.error.noPhoneLinked'),
           });
         }
       } else {
         return res.send({
           code: constants.error_code,
-          message: "Invalid role",
+          message: res.__('loginOtpVerify.error.roleValidationFailed'),
         });
       }
     } else {
       return res.send({
         code: constants.error_code,
-        message:
-          "This request has been expired. Please validate the credential again",
+        message: res.__('loginOtpVerify.error.requestExpired')
       });
     }
   } catch (error) {
@@ -806,7 +790,7 @@ exports.send_otp = async (req, res) => {
       if (!check_driver) {
         res.send({
           code: constant.error_code,
-          message: "Invalid email IDs",
+          message: res.__('sendOtp.error.invalidInput'),
         });
         return;
       }
@@ -814,7 +798,7 @@ exports.send_otp = async (req, res) => {
       if (check_driver.is_blocked) {
         return res.send({
                       code: constant.error_code,
-                      message: "You are blocked by administration. Please contact administration",
+                      message: res.__('userLogin.error.accessRestricted'),
                     });
       }
       data.OTP = randToken.generate(4, "123456789");
@@ -830,154 +814,154 @@ exports.send_otp = async (req, res) => {
         to: check_driver.email,
         subject: "Reset your password",
         html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
-  @import url(https://fonts.googleapis.com/css?family=Nunito);
+              "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+              <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>Reset your password</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
+                @import url(https://fonts.googleapis.com/css?family=Nunito);
 
-  /* Take care of image borders and formatting */
+                /* Take care of image borders and formatting */
 
-  img {
-    max-width: 600px;
-    outline: none;
-    text-decoration: none;
-    -ms-interpolation-mode: bicubic;
-  }
-  html{
-    margin: 0;
-    padding:0;
-  }
+                img {
+                  max-width: 600px;
+                  outline: none;
+                  text-decoration: none;
+                  -ms-interpolation-mode: bicubic;
+                }
+                html{
+                  margin: 0;
+                  padding:0;
+                }
 
-  a {
-    text-decoration: none;
-    border: 0;
-    outline: none;
-    color: #bbbbbb;
-  }
+                a {
+                  text-decoration: none;
+                  border: 0;
+                  outline: none;
+                  color: #bbbbbb;
+                }
 
-  a img {
-    border: none;
-  }
+                a img {
+                  border: none;
+                }
 
-  /* General styling */
+                /* General styling */
 
-  td, h1, h2, h3  {
-    font-family: Helvetica, Arial, sans-serif;
-    font-weight: 400;
-  }
+                td, h1, h2, h3  {
+                  font-family: Helvetica, Arial, sans-serif;
+                  font-weight: 400;
+                }
 
-  td {
-    text-align: center;
-  }
+                td {
+                  text-align: center;
+                }
 
-  body {
-    -webkit-font-smoothing:antialiased;
-    -webkit-text-size-adjust:none;
-    width: 100%;
-    height: 100%;
-    color: #666;
-    background: #fff;
-    font-size: 16px;
-    width: 100%;
-    padding: 0px;
-    margin: 0px;
-  }
+                body {
+                  -webkit-font-smoothing:antialiased;
+                  -webkit-text-size-adjust:none;
+                  width: 100%;
+                  height: 100%;
+                  color: #666;
+                  background: #fff;
+                  font-size: 16px;
+                  width: 100%;
+                  padding: 0px;
+                  margin: 0px;
+                }
 
-   table {
-    border-collapse: collapse !important;
-  }
+                table {
+                  border-collapse: collapse !important;
+                }
 
-  .headline {
-    color: #444;
-    font-size: 36px;
-        padding-top: 10px;
-  }
+                .headline {
+                  color: #444;
+                  font-size: 36px;
+                      padding-top: 10px;
+                }
 
- .force-full-width {
-  width: 100% !important;
- }
+              .force-full-width {
+                width: 100% !important;
+              }
 
 
-  </style><style media="screen" type="text/css">
-      @media screen {
-        td, h1, h2, h3 {
-          font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
-        }
-      }
-  </style><style media="only screen and (max-width: 480px)" type="text/css">
-    /* Mobile styles */
-    @media only screen and (max-width: 480px) {
+                </style><style media="screen" type="text/css">
+                    @media screen {
+                      td, h1, h2, h3 {
+                        font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
+                      }
+                    }
+                </style><style media="only screen and (max-width: 480px)" type="text/css">
+                  /* Mobile styles */
+                  @media only screen and (max-width: 480px) {
 
-      table[class="w320"] {
-        width: 320px !important;
-      }
-    }
-  </style>
-  <style type="text/css"></style>
-  
-  </head>
-  <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
-<table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="
-    margin-top: 30px;
-    margin-bottom: 10px;
-  border-radius: 10px;
- box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);
-background:#ccc;
-  ">
-<tbody><tr>
-<td align="center" bgcolor="#fff" class="" valign="top" width="100%">
-<center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
-<tbody><tr>
-<td align="center" class="" valign="top">
-<table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
-<tbody style="margin-top: 5px;">
-  <tr class="" style="border-bottom: 1px solid #cccccc38;">
-<td class="">
+                    table[class="w320"] {
+                      width: 320px !important;
+                    }
+                  }
+                </style>
+                <style type="text/css"></style>
+                
+                </head>
+                <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
+              <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="
+                  margin-top: 30px;
+                  margin-bottom: 10px;
+                border-radius: 10px;
+              box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);
+              background:#ccc;
+                ">
+              <tbody><tr>
+              <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
+              <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
+              <tbody><tr>
+              <td align="center" class="" valign="top">
+              <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
+              <tbody style="margin-top: 5px;">
+                <tr class="" style="border-bottom: 1px solid #cccccc38;">
+              <td class="">
 
-</td>
-</tr>
-<tr class=""><td class="headline"> iDispatch!</td></tr>
-<tr>
-<td>
-<center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
-<td class="" style="color:#444; font-weight: 400;"><br>
-There was a request to change your password!
- <br>
-  Your OTP is provided below:
-<br>
-<span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${check_driver.email}</span> 
- <br>
-  <span style="font-weight:bold;">OTP: &nbsp;</span><span style="font-weight:lighter;" class="">${data.OTP}</span>
-<br><br>  
-<br></td>
-</tr>
-</tbody></table></center>
-</td>
-</tr>
-<tr>
-<td class="">
-<div class="">
-</div>
- <br>
-</td>
-</tr>
-</tbody>
-  
-  </table>
+              </td>
+              </tr>
+              <tr class=""><td class="headline"> iDispatch!</td></tr>
+              <tr>
+              <td>
+              <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
+              <td class="" style="color:#444; font-weight: 400;"><br>
+              There was a request to change your password!
+              <br>
+                Your OTP is provided below:
+              <br>
+              <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${check_driver.email}</span> 
+              <br>
+                <span style="font-weight:bold;">OTP: &nbsp;</span><span style="font-weight:lighter;" class="">${data.OTP}</span>
+              <br><br>  
+              <br></td>
+              </tr>
+              </tbody></table></center>
+              </td>
+              </tr>
+              <tr>
+              <td class="">
+              <div class="">
+              </div>
+              <br>
+              </td>
+              </tr>
+              </tbody>
+                
+                </table>
 
-<table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
-<tbody>
-<tr>
-<td class="" style="color:#444;
-                    ">
-  </td>
-</tr>
-</tbody></table></td>
-</tr>
-</tbody></table></center>
-</td>
-</tr>
-</tbody></table>
-</body></html>`,
+              <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
+              <tbody>
+              <tr>
+              <td class="" style="color:#444;
+                                  ">
+                </td>
+              </tr>
+              </tbody></table></td>
+              </tr>
+              </tbody></table></center>
+              </td>
+              </tr>
+              </tbody></table>
+              </body></html>`,
       };
       await transporter.sendMail(mailOptions);
 
@@ -990,7 +974,7 @@ There was a request to change your password!
       if (check_email.is_blocked) {
         return res.send({
                       code: constant.error_code,
-                      message: "You are blocked by administration. Please contact administration",
+                      message: res.__('userLogin.error.accessRestricted'),
                     });
       }
 
