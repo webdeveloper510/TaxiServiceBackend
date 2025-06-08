@@ -178,6 +178,15 @@
             "success": {
                 "profileSwitched": "Profile switched successfully"
             }
+        },
+        "switchToCompany":{
+            "error": {
+                "noCompanyProfile": "You don't have company profile",
+                "CompanyBlocked": "The company has been blocked. If you believe this is an error, please contact the support team for assistance"
+            },
+            "success": {
+                "profileSwitched": "Profile switched successfully"
+            }    
         }
     },
     "driverCancelTripReason": {
@@ -231,7 +240,7 @@
     },
     "updateLocation": {
         "error": {
-            "unableToUpdateLocation": "An error occurred while updating the location",
+            "unableToUpdateLocation": "An error occurred while updating the location"
         },
         "success": {
             "locationUpdated": "Location has been updated successfully"
@@ -241,6 +250,34 @@
        
         "success": {
             "logout": "You have been logged out successfully."
+        }
+    },
+    "addFare": {
+        "error": {
+            "invalidCarType": "The specified car type is invalid or does not exist. Please verify and try again.",
+            "fareAlreadyExistsForVehicleType": "Fare for this vehicle type has already been added.",
+            "unableToAddFare": "An error occurred while adding the fare. Try again later or contact support if needed."
+        },
+        "success": {
+            "fareAdded": "Fare has been added successfully"
+        }
+    },
+    "getFare": {
+        "error": {
+            "invalidUser": "Unauthorized access attempt detected",
+            "noDataFound": "No records available."
+        },
+        "success": {
+            "fareRetrieved": "Fare retrieved successfully."
+        }
+    },
+    "companyGetFares": {
+        "error": {
+            "invalidCompany": "The specified company is invalid or does not exist. Please verify the company details and try again.",
+            "noDataFound": "No records available."
+        },
+        "success": {
+            "fareRetrieved": "Fare retrieved successfully."
         }
     }
 }
