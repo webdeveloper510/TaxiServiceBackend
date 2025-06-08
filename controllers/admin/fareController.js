@@ -180,7 +180,7 @@ exports.access_get_fares = async (req, res) => {
     if (!get_user) {
       res.send({
         code: constant.error_code,
-        message: "Check your token or id",
+        message: res.__('companyGetFares.error.invalidCompany'),
       });
     }
 
@@ -199,12 +199,12 @@ exports.access_get_fares = async (req, res) => {
     if (!getData) {
       res.send({
         code: constant.error_code,
-        message: "No Data Found",
+        message: res.__('companyGetFares.error.noDataFound')
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Successfully fetched",
+        message: res.__('companyGetFares.success.fareRetrieved'),
         result: getData,
       });
     }
@@ -223,12 +223,12 @@ exports.get_fare_detail = async (req, res) => {
     if (!getFareDetail) {
       res.send({
         code: constant.error_code,
-        message: "Unable to fetch the details",
+        message: res.__('companyGetFares.error.noDataFound'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('companyGetFares.success.fareRetrieved'),
         resizeTo: getFareDetail,
       });
     }
@@ -254,12 +254,12 @@ exports.delete_fare = async (req, res) => {
     if (!delete_fare) {
       res.send({
         code: constant.error_code,
-        message: "Unable to delete the fare",
+        message: res.__('deleteFares.error.unableToDeleteFare'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Deleted Successfully",
+        message: res.__('deleteFares.success.fareDeleted'),
       });
     }
   } catch (err) {
@@ -281,19 +281,17 @@ exports.edit_fare = async (req, res) => {
     if (!checkCarType) {
       return res.send({
                         code: constant.error_code,
-                        message: "The specified car type is invalid or does not exist. Please verify and try again.",
+                        message: res.__('addFare.error.invalidCarType'),
                       });
       
     }
 
-    console.log("checkCarType", {_id: { $ne: criteria._id}, car_type_id: data.car_type_id ,   is_deleted: false , created_by: req.userId});
-    
     const checkFare = await FARE.findOne({_id: { $ne: criteria._id}, car_type_id: data.car_type_id ,   is_deleted: false , created_by: req.userId});
 
     if (checkFare) {
       return res.send({
                         code: constant.error_code,
-                        message: `Fare for the selected vehicle type has already been added`,
+                        message: res.__('addFare.error.fareAlreadyExistsForVehicleType'),
                       });
       
     }
@@ -312,12 +310,12 @@ exports.edit_fare = async (req, res) => {
     if (!update_fare) {
       res.send({
         code: constant.error_code,
-        message: "Unable to update the fare",
+        message: res.__('addFare.error.unableToAddFare'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Updated successfully",
+        message: res.__('addFare.success.fareUpdated'),
         result: update_fare,
       });
     }
@@ -379,7 +377,7 @@ exports.updateAdminSettings = async (req, res) => {
 
     return res.send({
                       code: constant.success_code,
-                      message: `The settings have been successfully updated.`,
+                      message: res.__('adminSetting.success.settingsUpdated'),
                     });
   } catch (err) {
 

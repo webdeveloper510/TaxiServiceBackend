@@ -259,7 +259,8 @@
             "unableToAddFare": "An error occurred while adding the fare. Try again later or contact support if needed."
         },
         "success": {
-            "fareAdded": "Fare has been added successfully"
+            "fareAdded": "Fare has been added successfully",
+            "fareUpdated": "The fare has been updated successfully."
         }
     },
     "getFare": {
@@ -278,6 +279,22 @@
         },
         "success": {
             "fareRetrieved": "Fare retrieved successfully."
+        }
+    },
+    "deleteFares": {
+        "error": {
+            "unableToDeleteFare": "An error occurred while deleting the fare. Please contact support if the issue persists."
+        },
+        "success": {
+            "fareDeleted": "The fare has been removed successfully."
+        }
+    },
+    "adminSetting": {
+        "error": {
+            
+        },
+        "success": {
+            "settingsUpdated": "Your settings have been saved successfully."
         }
     }
 }
