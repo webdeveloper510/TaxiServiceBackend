@@ -967,7 +967,7 @@ exports.send_otp = async (req, res) => {
 
       res.send({
         code: constant.success_code,
-        message: "OTP sent successfully",
+        message: res.__('sendOtp.success.otpSentToContact'),
       });
     } else {
 
@@ -988,7 +988,7 @@ exports.send_otp = async (req, res) => {
       if (!updateUser) {
         res.send({
           code: constant.error_code,
-          message: "Unable to send the otp please try again",
+          message: res.__('sendOtp.error.otpSendFailed'),
         });
       } else {
         var transporter = nodemailer.createTransport(emailConstant.credentials);
@@ -1150,7 +1150,7 @@ exports.send_otp = async (req, res) => {
 
         res.send({
           code: constant.success_code,
-          message: "OTP sent successfully",
+          message: res.__('sendOtp.success.otpSent'),
         });
       }
     }
@@ -1171,51 +1171,40 @@ exports.verify_otp = async (req, res) => {
       email: { $regex: data.email, $options: "i" },
     });
     if (!checkEmail1) {
-      let checkEmail2 = await DRIVER.findOne({
-        email: { $regex: data.email, $options: "i" },
-      });
+      let checkEmail2 = await DRIVER.findOne({email: { $regex: data.email, $options: "i" },});
+
       if (!checkEmail2) {
-        res.send({
-          code: constant.error_code,
-          message: "Invalid Email",
-        });
-        return;
+        return res.send({
+                          code: constant.error_code,
+                          message:  res.__('loginOtpVerify.error.invalidEmail'),
+                        });
       }
+
       let checkEmail = checkEmail2;
       if (data.OTP != checkEmail.OTP) {
-        res.send({
-          code: constant.error_code,
-          message: "Invalid OTP",
-        });
-        return;
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('loginOtpVerify.error.invalidOtp'),
+                        });
+        
       }
-      res.send({
-        code: constant.success_code,
-        message: "OTP verified successfully",
-      });
+      return res.send({
+                        code: constant.success_code,
+                        message: res.__('loginOtpVerify.success.otpVerified'),
+                      });
     } else {
       if (data.OTP != checkEmail1.OTP) {
         res.send({
           code: constant.error_code,
-          message: "Invalid OTP",
+          message: res.__('loginOtpVerify.error.invalidOtp'),
         });
         return;
       }
       res.send({
         code: constant.success_code,
-        message: "OTP verified successfully",
+        message: res.__('loginOtpVerify.success.otpVerified'),
       });
-      // console.log('current', moment().format(), 'expiry-----', checkEmail1.otp_expiry)
-      // const currentDate = new Date(moment().format());
-      // // Expiry date
-      // const expiryDate = new Date(checkEmail.otp_expiry);
-      // if (expiryDate > currentDate) {
-      //     res.send({
-      //         code: constant.error_code,
-      //         message: "Your otp is expired"
-      //     })
-      //     return;
-      // }
+     
     }
   } catch (err) {
     console.log(err);

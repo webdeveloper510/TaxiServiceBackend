@@ -37,12 +37,21 @@
         "error": {
             "invalidOtp": "The OTP you entered is invalid",
             "requestExpired": "The request is no longer valid. Kindly authenticate again",
-            "roleValidationFailed": "Role validation failed. Please contact support if the issue persists."
+            "roleValidationFailed": "Role validation failed. Please contact support if the issue persists.",
+            "invalidEmail": "The email address entered is invalid."
+        },
+        "success": {
+            "otpVerified":"OTP verified successfully"
         }
     },
     "sendOtp": {
         "error":{
-            "invalidInput": "The input provided is invalid."
+            "invalidInput": "The input provided is invalid.",
+            "otpSendFailed": "We're unable to send the OTP at the moment. Please retry shortly."
+        },
+        "success": {
+            "otpSentToContact":"A One-Time Password (OTP) has been sent to your registered contact.",
+            "otpSent":"The verification code has been sent to your registered contact."
         }
     },
     "addDriver": {
