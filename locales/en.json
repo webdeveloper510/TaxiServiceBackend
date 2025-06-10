@@ -369,5 +369,50 @@
         "success": {
             "feedbackRetrieved": "Your feedback has been retrieved successfully."
         }
-    }
+    },
+    "tripCommissionPayment": {
+        "error": {
+            "invalidTrip": "The specified trip does not exist in our system. Please verify the trip ID and try again.",
+            "tripCommissionAlreadyPaid": "The commission for this trip has already been paid.",
+            "paymentFailed": "We were unable to process your payment. Please try again later or contact support."
+        },
+        "success": {
+            "paymentLinkGenerated": "Your payment link has been generated successfully. Please use the link to complete your payment."
+        }
+    },
+    "failedTripPay": {
+        "error": {
+            "invalidTrip": "The specified trip does not exist in our system. Please verify the trip ID and try again.",
+            "paymentFailed": "We were unable to process your payment. Please try again later or contact support."
+        }
+    },
+    "successTripPay": {
+        "error": {
+            "invalidTrip": "The specified trip does not exist in our system. Please verify the trip ID and try again.",
+            "tripCommissionAlreadyPaid": "The commission for this trip has already been paid.",
+            "paymentFailed": "We were unable to process your payment. Please try again later or contact support.",
+            "notPaidYet": "The payment is currently incomplete."
+        },
+        "success": {
+            "paymentPaid": "Your payment has been processed successfully."
+        }
+    },
+    "payCompany": {
+        "error": {
+            "amountMustBePositive": "The amount must be a numeric value greater than zero.",
+            "invalidCompany": "No matching company was found in our records.",
+            "amountExceedsBalance": "The amount exceeds the available balance. Please enter a valid amount."
+        },
+        "success": {
+            "commissionPaid": "Company commission has been paid successfully."
+        }
+    },
+    "adminUpdatePayment": {
+        "error": {
+            "tripAlreadyPaid": "This trip has already been paid."
+        },
+        "success": {
+            "tripPaymentUpdated": "Trip payment updated successfully."
+        }
+    },
 }

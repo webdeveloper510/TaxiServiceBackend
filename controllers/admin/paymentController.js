@@ -23,13 +23,13 @@ exports.tripCommissionPayment = async (req, res) => {
     if (!trip_by_id) {
       return res.send({
                         code: constant.error_code,
-                        message: "Unable to get the trip by id",
+                        message: res.__('tripCommissionPayment.error.invalidTrip'),
                       });
     }
     if (trip_by_id.is_paid) {
       return res.send({
                         code: constant.error_code,
-                        message: "Already paid",
+                        message: res.__('tripCommissionPayment.error.tripCommissionAlreadyPaid'),
                       });
     }
 
@@ -47,12 +47,12 @@ exports.tripCommissionPayment = async (req, res) => {
                   code: constant.success_code,
                   result: paymentResult,
                   trip_by_id,
-                  message: `Payment link has been successfully generated. Please complete the payment through the provided link.`,
+                  message: res.__('tripCommissionPayment.success.paymentLinkGenerated'),
                 });
     } catch (error) {
       return res.send({
                         code: constant.error_code,
-                        message: "Error while creating payment",
+                        message: res.__('tripCommissionPayment.error.paymentFailed'),
                       });
     }
   } catch (err) {
@@ -73,7 +73,7 @@ exports.failedTripPay = async (req, res) => {
     if (!trip_by_id) {
       return res.send({
         code: constant.error_code,
-        message: "Unable to get the trip by id",
+        message: res.__('failedTripPay.error.invalidTrip'),
       });
     }
     // if (trip_by_id.is_paid) {
@@ -88,7 +88,7 @@ exports.failedTripPay = async (req, res) => {
     res.send({
       result: trip_by_id,
       code: constant.success_code,
-      message: "Payment failed",
+      message:  res.__('failedTripPay.error.paymentFailed'),
     });
   } catch (err) {
     console.log(
@@ -111,7 +111,7 @@ exports.successTripPay = async (req, res) => {
     if (!trip_by_id) {
       return res.send({
                         code: constant.error_code,
-                        message: "Unable to get the trip by id",
+                        message: res.__('successTripPay.error.invalidTrip'),
                       });
     }
 
@@ -119,7 +119,7 @@ exports.successTripPay = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: "Already paid",
+                        message: res.__('successTripPay.error.tripCommissionAlreadyPaid'),
                       });
     }
 
@@ -192,16 +192,10 @@ exports.successTripPay = async (req, res) => {
                                                               { $set: { totalBalance: superBalance } }
                                                             );
 
-        console.log('success payment-------' , {
-          result: trip_by_id,
-          code: constant.success_code,
-          message: "Payment Paid",
-          resultFromStipe,
-        })
         return res.send({
                           result: trip_by_id,
                           code: constant.success_code,
-                          message: "Payment Paid",
+                          message: res.__('successTripPay.success.paymentPaid'),
                           resultFromStipe,
                         });
       } else {
@@ -210,16 +204,11 @@ exports.successTripPay = async (req, res) => {
         trip_by_id.stripe_payment.payment_status = "Failed";
         await trip_by_id.save();
 
-         console.log('failure payment-------', {
-          result: trip_by_id,
-          code: constant.error_code,
-          message: "Payment Not Paid Yet",
-        })
-        res.send({
-                    result: trip_by_id,
-                    code: constant.error_code,
-                    message: "Payment Not Paid Yet",
-                  });
+        return res.send({
+                          result: trip_by_id,
+                          code: constant.error_code,
+                          message: res.__('successTripPay.error.notPaidYet'),
+                        });
       }
     } catch (error) {
       throw error;
@@ -244,7 +233,7 @@ exports.payCompany = async (req, res) => {
     if (isNaN(amount) || !amount)
       return res.send({
         code: constant.error_code,
-        message: "Amount must be a number and greater than zero",
+        message: res.__('payCompany.error.amountMustBePositive'),
       });
 
     const company = await user_model.findById(req.body.company_id);
@@ -252,7 +241,7 @@ exports.payCompany = async (req, res) => {
     if (!company)
       return res.send({
         code: constant.error_code,
-        message: "Company not found",
+        message: res.__('payCompany.error.invalidCompany'),
       });
     const newTransaction = new transaction({
       to: company._id,
@@ -264,7 +253,7 @@ exports.payCompany = async (req, res) => {
     if (req.body.amount > company.totalBalance)
       return res.send({
         code: constant.error_code,
-        message: "Amount should be less than total balance",
+        message: res.__('payCompany.error.amountExceedsBalance'),
       });
     const updateCompany = user_model.updateOne(
       { _id: company._id },
@@ -278,7 +267,7 @@ exports.payCompany = async (req, res) => {
     const result = await Promise.all([newTransaction.save(), updateCompany]);
     res.send({
       code: constant.success_code,
-      message: "You paid company commission successfully",
+      message: res.__('payCompany.success.commissionPaid'),
       transaction: newTransaction,
     });
   } catch (err) {
@@ -383,7 +372,7 @@ exports.getCommissionTrans = async (req, res) => {
     const date = new Date();
     res.send({
       code: constant.success_code,
-      message: "You paid company commission successfully",
+      message: res.__('payCompany.success.commissionPaid'),
       allSuperTrans: result[0],
       allDriverTrans: result[1],
       totalBalance: user.totalBalance,
@@ -440,7 +429,6 @@ exports.adminTransaction = async (req, res) => {
 
     res.send({
               code: constant.success_code,
-
               totalAmountPurchasedPlan,
               paidTripCommisionOfAdmin,
               DuesTripCommisionOfAdmin,
@@ -608,7 +596,7 @@ exports.adminUpdatePayment = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: `This trip already paid`,
+                        message: res.__('adminUpdatePayment.error.tripAlreadyPaid'),
                       });
     } else {
 
@@ -663,13 +651,12 @@ exports.adminUpdatePayment = async (req, res) => {
         return res.send({
                           code: constant.success_code,
                           data: trip,
-                          message: `This trip payment status has been updated`,
+                          message: res.__('adminUpdatePayment.success.tripPaymentUpdated'),
                         });
       } else {
         return res.send({
                           code: constant.error_code,
                           message: err.message,
-                          
                         });
       }
     }
