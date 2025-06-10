@@ -61,11 +61,16 @@
             "emailRegisteredAsCompany": "This email is already registered under a Company account. Please sign in to proceed with driver registration",
             "phoneRegisteredAsCompany": "This phone is already registered under a Company account. Please sign in to proceed with driver registration",
             "companyHasOwnDriver": "This company already has their own driver",
+            "driverHasOwnCompany": "This driver already has their own company",
             "saveFailed": "An error occurred while saving your data. Please try again.",
+            "hotelIdAlreadyExists": "A record with this Hotel ID already exists.",
+            "emailLinkedToInactiveAccount": "This email is already associated with an inactive account (Deleted User)",
             "emailAssociatedWithDeletedDriver": "This email ({{email}}) is associated with a previously deleted driver. Please restore the driver from the deleted list instead of creating a new account."
         },
         "success": {
-            "driverCreated": "Driver account has been created successfully."
+            "driverCreated": "Driver account has been created successfully.",
+            "subAdminAdded": "The sub-administrator account has been successfully created",
+            "superAdminAdded": "The super administrator account has been successfully created"
         }
     },
     "updateVerification": {
@@ -415,4 +420,12 @@
             "tripPaymentUpdated": "Trip payment updated successfully."
         }
     },
+    "addSubAdmin": {
+        "error": {
+            "invalidData": "The provided data is invalid. Please check and try again."
+        },
+        "success": {
+            "subAdminAdded": "Sub-admin has been added successfully."
+        }
+    }
 }

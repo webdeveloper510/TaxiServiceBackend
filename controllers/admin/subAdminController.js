@@ -51,7 +51,7 @@ exports.add_sub_admin = async (req, res) => {
     if (checkEmail) {
       return res.send({
                         code: constant.error_code,
-                        message: "Email is already registered",
+                        message: res.__('addDriver.error.emailAlreadyInUse'),
                       });
     }
 
@@ -69,7 +69,7 @@ exports.add_sub_admin = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: "Email is already registered",
+                        message: res.__('addDriver.error.emailAlreadyInUse'),
                       });
     }
     let checkPhone = await USER.findOne({
@@ -80,7 +80,7 @@ exports.add_sub_admin = async (req, res) => {
     if (checkPhone) {
       return res.send({
                         code: constant.error_code,
-                        message: "Phone Number is already exist",
+                        message: res.__('addDriver.error.phoneAlreadyInUse'),
                       });
     }
 
@@ -96,7 +96,7 @@ exports.add_sub_admin = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: "Phone Number is already exist",
+                        message: res.__('addDriver.error.phoneAlreadyInUse'),
                       });
     }
 
@@ -109,7 +109,7 @@ exports.add_sub_admin = async (req, res) => {
 
         return res.send({
                           code: constant.error_code,
-                          message: 'This driver already has their own company.',
+                          message: res.__('addDriver.error.driverHasOwnCompany'),
                         });
       }
     }
@@ -136,7 +136,7 @@ exports.add_sub_admin = async (req, res) => {
     if (check_hotel) {
       return res.send({
                         code: constant.error_code,
-                        message: "Already exist with this Hotel ID",
+                        message: res.__('addDriver.error.hotelIdAlreadyExists'),
                       });
     }
     // data.role = 'COMPANY'
@@ -203,7 +203,7 @@ exports.add_sub_admin = async (req, res) => {
     if (!save_data) {
       return res.send({
                         code: constant.error_code,
-                        message: "Something went wrong",
+                        message: res.__('addDriver.error.saveFailed'),
                       });
     } else {
       let jwtToken = jwt.sign(
@@ -402,7 +402,7 @@ exports.add_sub_admin = async (req, res) => {
 
       return res.send({
                         code: constant.success_code,
-                        message: "Sub admin added successfully",
+                        message: res.__('addDriver.success.subAdminAdded'),
                         result: save_data,
                         jwtToken: jwtToken,
                       });
@@ -427,15 +427,15 @@ exports.add_admin = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: "This email is already associated with an inactive account (Deleted User)",
+                        message: res.__('addDriver.error.emailLinkedToInactiveAccount'),
                       });
     }
     if (checkEmail) {
       return res.send({
                         code: constant.error_code,
-                        message: "Email is already registered",
+                        message: res.__('addDriver.error.emailAlreadyInUse'),
                       });
-      
+
     }
     let checkDEmail = await DRIVER.findOne({
       email: data.email,
@@ -444,7 +444,7 @@ exports.add_admin = async (req, res) => {
     if (checkDEmail) {
       res.send({
         code: constant.error_code,
-        message: "Email is already registered",
+        message: res.__('addDriver.error.emailAlreadyInUse'),
       });
       return;
     }
@@ -455,7 +455,7 @@ exports.add_admin = async (req, res) => {
     if (checkPhone) {
       res.send({
         code: constant.error_code,
-        message: "Phone Number is already exist",
+        message: res.__('addDriver.error.phoneAlreadyInUse'),
       });
       return;
     }
@@ -474,7 +474,7 @@ exports.add_admin = async (req, res) => {
     if (!save_data) {
       res.send({
         code: constant.error_code,
-        message: "Something went wrong",
+        message: res.__('addDriver.error.saveFailed'),
       });
     } else {
       let jwtToken = jwt.sign(
@@ -647,7 +647,7 @@ exports.add_admin = async (req, res) => {
 
       res.send({
         code: constant.success_code,
-        message: "Super admin added successfully",
+        message: res.__('addDriver.success.superAdminAdded'),
       });
     }
   } catch (err) {
