@@ -8,7 +8,7 @@
             "companyAccessWithdrawn": "The company has withdrawn access to the account"
         }
     },
-    "createSuperAdmin":{
+    "createSuperAdmin": {
         "error": {
             "emailAlreadyInUse": "Email address is already associated with an existing account",
             "phoneAlreadyInUse": "This phone number is already associated with an existing account",
@@ -30,7 +30,6 @@
             "loginWelcome": "Welcome back! You’re now logged in.",
             "otpMessage": "Hello {{first_name}} {{last_name}} , Your OTP for login is {{OTP}}. Please enter this code to complete your login. This OTP will expire in 5 minutes.",
             "otpSent": "We've sent the OTP to your registered mobile number ending with ......{{phone}}."
-        
         }
     },
     "loginOtpVerify": {
@@ -41,17 +40,17 @@
             "invalidEmail": "The email address entered is invalid."
         },
         "success": {
-            "otpVerified":"OTP verified successfully"
+            "otpVerified": "OTP verified successfully"
         }
     },
     "sendOtp": {
-        "error":{
+        "error": {
             "invalidInput": "The input provided is invalid.",
             "otpSendFailed": "We're unable to send the OTP at the moment. Please retry shortly."
         },
         "success": {
-            "otpSentToContact":"A One-Time Password (OTP) has been sent to your registered contact.",
-            "otpSent":"The verification code has been sent to your registered contact."
+            "otpSentToContact": "A One-Time Password (OTP) has been sent to your registered contact.",
+            "otpSent": "The verification code has been sent to your registered contact."
         }
     },
     "addDriver": {
@@ -69,8 +68,7 @@
             "driverCreated": "Driver account has been created successfully."
         }
     },
-
-    "updateVerification":{
+    "updateVerification": {
         "error": {
             "unableToUpdateVerification": "An error occurred while updating verification."
         },
@@ -197,7 +195,7 @@
             "driverUnableToLocateCustomer": "Driver could not find the customer at the specified location for Trip ID: {{trip_id}}"
         }
     },
-    "convertIntoDriver":{
+    "convertIntoDriver": {
         "error": {
             "unableToSaveData": "An error occurred while saving data"
         },
@@ -225,14 +223,14 @@
                 "profileSwitched": "Profile switched successfully"
             }
         },
-        "switchToCompany":{
+        "switchToCompany": {
             "error": {
                 "noCompanyProfile": "You don't have company profile",
                 "CompanyBlocked": "The company has been blocked. If you believe this is an error, please contact the support team for assistance"
             },
             "success": {
                 "profileSwitched": "Profile switched successfully"
-            }    
+            }
         }
     },
     "driverCancelTripReason": {
@@ -293,7 +291,6 @@
         }
     },
     "logout": {
-       
         "success": {
             "logout": "You have been logged out successfully."
         }
@@ -336,12 +333,41 @@
         }
     },
     "adminSetting": {
-        "error": {
-            
-        },
+        "error": {},
         "success": {
             "settingsUpdated": "Your settings have been saved successfully."
         }
+    },
+    "forgot_password": {
+        "error": {
+            "emailNotFound": "The email address you entered is not associated with any account.",
+            "passwordUpdateFailed": "We were unable to update your password.Contact support if the issue continues"
+        },
+        "success": {
+            "passwordUpdated": "You have successfully updated your password."
+        }
+    },
+    "resetPassword": {
+        "error": {
+            "userNotFound": "We couldn’t find a user with the provided information.",
+            "incorrectOldPassword": "The old password doesn't match our records.",
+            "passwordUpdateFailed": "We were unable to update your password.Contact support if the issue continues"
+        },
+        "success": {
+            "passwordReset": "You have successfully reset your password."
+        }
+    },
+    "saveFeedback": {
+        "error": {
+            "saveFailed": "We were unable to save your data. Please try again later or contact support."
+        },
+        "success": {
+            "feedbackSaved": "Your feedback has been saved successfully."
+        }
+    },
+    "getFeedback": {
+        "success": {
+            "feedbackRetrieved": "Your feedback has been retrieved successfully."
+        }
     }
-    
 }

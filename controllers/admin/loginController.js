@@ -1226,11 +1226,11 @@ exports.forgot_password = async (req, res) => {
 
       
       if (!check_driver) {
-        res.send({
-          code: constant.error_code,
-          message: "Please enter valid email",
-        });
-        return;
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('forgot_password.error.emailNotFound'),
+                        });
+        
       }
       let option = { new: true };
       let hash = bcrypt.hashSync(data.password, 10);
@@ -1245,12 +1245,12 @@ exports.forgot_password = async (req, res) => {
       if (!updatePassword) {
         res.send({
                   code: constant.error_code,
-                  message: "Unable to udpate the password",
+                  message: res.__('forgot_password.error.passwordUpdateFailed'),
                 });
       } else {
         res.send({
                   code: constant.success_code,
-                  message: "Updated successfully",
+                  message: res.__('forgot_password.success.passwordUpdated'),
                 });
       }
     } else {
@@ -1275,12 +1275,12 @@ exports.forgot_password = async (req, res) => {
       if (!updatePassword) {
         res.send({
           code: constant.error_code,
-          message: "Unable to udpate the password",
+          message: res.__('forgot_password.error.passwordUpdateFailed'),
         });
       } else {
         res.send({
           code: constant.success_code,
-          message: "Updated successfully",
+          message: res.__('forgot_password.success.passwordUpdated'),
         });
       }
     }
@@ -1299,13 +1299,13 @@ exports.reset_password = async (req, res) => {
     let check_email = await USER.findOne({ _id: req.userId });
     if (!check_email) {
 
-      let check_driver = await DRIVER.findOne(criteria);
+      let check_driver = await DRIVER.findOne({ _id: req.userId });
 
       
       if (!check_driver) {
         return res.send({
                           code: constant.error_code,
-                          message: "Invalid ID",
+                          message: res.__('resetPassword.error.userNotFound'),
                         });
       } else {
 
@@ -1314,7 +1314,7 @@ exports.reset_password = async (req, res) => {
         if (!comparePassword) {
           return res.send({
                             code: constant.error_code,
-                            message: "Old password is not correct",
+                            message: res.__('resetPassword.error.incorrectOldPassword'),
                           });
         } 
 
@@ -1343,7 +1343,7 @@ exports.reset_password = async (req, res) => {
       if (!comparePassword) {
         return res.send({
                           code: constant.error_code,
-                          message: "Old password is not correct",
+                          message: res.__('resetPassword.error.incorrectOldPassword'),
                         });
       } else {
 
@@ -1364,12 +1364,12 @@ exports.reset_password = async (req, res) => {
         if (!updateUser) {
           return res.send({
                             code: constant.error_code,
-                            message: "Unable to update the password",
+                            message: res.__('resetPassword.error.passwordUpdateFailed'),
                           });
         } else {
           return res.send({
                           code: constant.success_code,
-                          message: "Updated successfully",
+                          message: res.__('resetPassword.success.passwordReset'),
                         });
         }
       }
@@ -1390,12 +1390,12 @@ exports.save_feedback = async (req, res) => {
     if (!save_data) {
       res.send({
         code: constant.error_code,
-        message: "Unable to save the data",
+        message: res.__('saveFeedback.error.saveFailed'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Saved Successylly",
+        message: res.__('saveFeedback.success.feedbackSaved'),
       });
     }
   } catch (err) {
@@ -1447,7 +1447,7 @@ exports.get_feedback = async (req, res) => {
     ]).sort({ createdAt: -1 });
     res.send({
       code: constant.success_code,
-      message: "Success",
+      message: res.__('getFeedback.success.feedbackRetrieved'),
       result: get_feedbacks,
     });
   } catch (err) {
