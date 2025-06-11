@@ -96,7 +96,8 @@
             "inValidDriver": "The provided driver ID is invalid or does not exist.",
             "driverBlocked": "The driver has been blocked by administration.",
             "unableToAssignDriver": "An error occurred while assigning the driver. Please try again later.",
-            "noneAvailable": "No drivers are currently available for assignment."
+            "noneAvailable": "No drivers are currently available for assignment.",
+            "unbaleToUpdate": "An error occurred while updating the driver. Please try again later."
         },
         "success": {
             "driverListRetrieved": "Driver list has been successfully fetched.",
@@ -516,6 +517,37 @@
             "paymentProcessed": "The payment has been successfully received.",
             "subscriptionCancelled": "Your subscription has been successfully cancelled.",
             "accountLinkSuccess": "Your bank account attached successfully with the platform"
+        }
+    },
+    "getVehicle": {
+        "error": {
+            "vehicleNameAlreadyInUse": "The specified vehicle type already exists.",
+            "invalidVehicleType": "The specified vehicle type is invalid or does not exist. Please verify and try again.",
+            "vehicleNumberAlreadyInUse": "This vehicle number is already registered",
+            "unableToAddVehicle": "An error occurred while adding the vehicle. Try again later or contact support if needed.",
+            "noVehicleFound": "No vehicle found in the system.",
+            "getVehicleFailed": "An error occurred while retrieving the vehicle. Please try again later.",
+            "updateFailed": "An error occurred while updating the vehicle. Please try again later.",
+            "deleteFailed": "An error occurred while deleting the vehicle. Please try again later."
+        },
+        "success": {
+            "getVehicleType": "Vehicle types retrieved successfully.",
+            "carTypeAdded": "Car type has been added successfully.",
+            "vehicleListRetrieved": "Vehicle list has been successfully fetched.",
+            "vehicleAdded": "Vehicle has been added successfully",
+            "vehicleUpdated": "The vehicle has been updated successfully.",
+            "vehicleDeleted": "The vehicle has been deleted successfully."
+        }
+    },
+    "blockedUser": {
+        "error": {
+            "inValidRoleType": "Role {{role}} is not a valid enum value",
+            "unableToBlockUser": "An error occurred while blocking the user. Please try again later.",
+            "unableToUnblockUser": "An error occurred while unblocking the user. Please try again later."
+        },
+        "success": {
+            "userBlocked": "The {{role}} has been blocked successfully.",
+            "userUnblocked": "The user{{role}} has been unblocked successfully."
         }
     }
 }

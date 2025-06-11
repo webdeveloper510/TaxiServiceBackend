@@ -40,7 +40,7 @@ exports.get_vehicle_types = async (req, res) => {
 
         res.send({
             code: constant.success_code,
-            message: "Success",
+            message: res.__("getVehicle.success.getVehicleType"),
             result: VEHICLETYPE
         })
 
@@ -60,7 +60,7 @@ exports.addCarType  = async (req, res) => {
         if (checkVehicle) {
             res.send({
                 code: constant.error_code,
-                message: "Vehicle type is already exist with this name"
+                message: res.__("getVehicle.error.vehicleNameAlreadyInUse")
             })
             return;
         }
@@ -70,7 +70,7 @@ exports.addCarType  = async (req, res) => {
         let save_data = await CAR_TYPE(data).save()
         res.send({
             code: constant.success_code,
-            message: "Car type added successfully",
+            message: res.__("getVehicle.success.carTypeAdded"),
             result: save_data
         })
     } catch (err) {
@@ -120,7 +120,7 @@ exports.add_vehicle = async (req, res) => {
             if (checkVehicle) {
                 res.send({
                     code: constant.error_code,
-                    message: "Vehicle is already exist with this vehicle number"
+                    message: res.__("getVehicle.error.vehicleNumberAlreadyInUse")
                 })
                 return;
             }
@@ -132,12 +132,12 @@ exports.add_vehicle = async (req, res) => {
             if (!save_data) {
                 res.send({
                     code: constant.error_code,
-                    message: "Unable to create the vehicle"
+                    message: res.__("getVehicle.error.unableToAddVehicle")
                 })
             } else {
                 res.send({
                     code: constant.success_code,
-                    message: "Created Successfully",
+                    message: res.__("getVehicle.success.vehicleAdded"),
                     result: save_data
                 })
             }
@@ -177,7 +177,7 @@ exports.adminAddVehicle = async (req, res) => {
                 if (checkVehicle) {
                     res.send({
                         code: constant.error_code,
-                        message: "Vehicle is already exist with this vehicle number"
+                        message: res.__("getVehicle.error.vehicleNumberAlreadyInUse")
                     })
                     return;
                 }
@@ -192,19 +192,19 @@ exports.adminAddVehicle = async (req, res) => {
                 if (!save_data) {
                     res.send({
                         code: constant.error_code,
-                        message: "Unable to create the vehicle"
+                        message: res.__("getVehicle.error.unableToAddVehicle")
                     })
                 } else {
                     res.send({
                         code: constant.success_code,
-                        message: "Created Successfully",
+                        message: res.__("getVehicle.success.vehicleAdded"),
                         result: save_data
                     })
                 }
             } else {
                 res.send({
                     code: constant.error_code,
-                    message: `Driver doen't exist`
+                    message: res.__("getDrivers.error.noDriverFound")
                 })
             }
             
@@ -222,26 +222,26 @@ exports.get_vehicles = async (req, res) => {
     try {
         let getUser = await USER.findOne({ _id: req.userId })
         let get_vehicle = await VEHICLE.find({
-            $and: [
-                { is_deleted: false },
-                { agency_user_id: req.userId },
-                // {
-                //     $or: [
-                //         { created_by: req.userId },
-                //         { created_by: getUser.created_by },
-                //     ]
-                // }
-            ]
-        }).sort({ 'createdAt': -1 })
+                                                $and: [
+                                                    { is_deleted: false },
+                                                    { agency_user_id: req.userId },
+                                                    // {
+                                                    //     $or: [
+                                                    //         { created_by: req.userId },
+                                                    //         { created_by: getUser.created_by },
+                                                    //     ]
+                                                    // }
+                                                ]
+                                            }).sort({ 'createdAt': -1 })
         if (!get_vehicle) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the details"
+                message: res.__("getVehicle.error.noVehicleFound")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("getVehicle.success.vehicleListRetrieved"),
                 result: get_vehicle
             })
         }
@@ -259,7 +259,7 @@ exports.get_vehicles_by_driverid = async (req, res) => {
         if(!driverData){
             return res.send({
                 code: constant.error_code,
-                message: "Wrong driver id",
+                message: res.__("getDrivers.error.noDriverFound"),
                 id: req.params.id
             })
         }
@@ -278,12 +278,12 @@ exports.get_vehicles_by_driverid = async (req, res) => {
         if (!get_vehicle) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the details"
+                message: res.__("getVehicle.error.invalidVehicleType")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("getVehicle.success.vehicleListRetrieved"),
                 result: get_vehicle,
                 defaulVehicle: driverData.defaultVehicle
             })
@@ -316,12 +316,12 @@ exports.get_vehicles_with_type = async (req, res) => {
         if (!get_vehicle) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the details"
+                message:res.__("getVehicle.error.noVehicleFound")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("getVehicle.success.vehicleListRetrieved"),
                 result: get_vehicle
             })
         }
@@ -341,12 +341,12 @@ exports.get_vehicle_type = async (req, res) => {
         if (!getData) {
             res.send({
                 code: constant.error_code,
-                message: "Unbale to fetch the vehicles"
+                message: res.__("getVehicle.error.noVehicleFound")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("getVehicle.success.vehicleListRetrieved"),
                 result: getData
             })
         }
@@ -364,12 +364,12 @@ exports.get_vehicle_detail = async (req, res) => {
         if (!getData) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the details"
+                message: res.__("getVehicle.error.noVehicleFound")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("getVehicle.success.vehicleListRetrieved"),,
                 result: getData
             })
         }
@@ -406,7 +406,7 @@ exports.edit_vehicle = async (req, res) => {
             if (!check_vehicle) {
                 res.send({
                     code: constant.error_code,
-                    message: "Invalid ID"
+                    message: res.__("getVehicle.error.invalidVehicleType")
                 })
                 return;
             }
@@ -417,12 +417,12 @@ exports.edit_vehicle = async (req, res) => {
             if (!updateVehicle) {
                 res.send({
                     code: constant.error_code,
-                    message: "Unable to update the details"
+                    message: res.__("getVehicle.error.updateFailed")
                 })
             } else {
                 res.send({
                     code: constant.success_code,
-                    message: "Updated successfully",
+                    message:  res.__("getVehicle.success.vehicleUpdated"),
                     result: updateVehicle
                 })
             }
@@ -457,12 +457,12 @@ exports.delete_vehicle = async (req, res) => {
         if (!deleteOption) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to Delete Vehicle"
+                message: res.__("getVehicle.error.deleteFailed")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Deleted"
+                message: res.__("getVehicle.success.vehicleDeleted")
             })
         }
     } catch (err) {
@@ -503,12 +503,12 @@ exports.adminDeleteVehicle = async (req, res) => {
         if (!deleteOption) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to Delete Vehicle"
+                message: res.__("getVehicle.error.deleteFailed")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Deleted"
+                message: res.__("getVehicle.success.vehicleDeleted")
             })
         }
     } catch (err) {
@@ -557,7 +557,7 @@ exports.blockUser = async (req, res) => {
         } else {
             return res.send({
                                 code: constant.error_code,
-                                message: `Role ${role} is not a valid enum value`
+                                message:  res.__("blockedUser.error.inValidRoleType" , {role: role})
                             })
         }
 
@@ -566,7 +566,7 @@ exports.blockUser = async (req, res) => {
 
             return res.send({
                                 code: constant.error_code,
-                                message: "Unable to update the driver"
+                                message: res.__("getDrivers.error.unbaleToUpdate")
                             })
         } else {
 
@@ -603,8 +603,8 @@ exports.blockUser = async (req, res) => {
            
             return res.send({
                                 code: constant.success_code,
-                                message: data?.is_blocked == 'true' ? `The ${userInfo.role.toLowerCase()} has been successfully blocked.` : `The ${userInfo.role.toLowerCase()} has been successfully unblocked.`,
-                                
+                                message: data?.is_blocked == 'true' ? res.__("blockedUser.success.userBlocked" , {role: userInfo.role.toLowerCase()}) : res.__("blockedUser.success.userUnblocked" , {role: userInfo.role.toLowerCase()}),
+
                             })
         }
     } catch (err) {
@@ -635,7 +635,7 @@ exports.adminGetAllVehicle = async (req, res) => {
             ];
 
             const  isNumber = (search) =>  typeof search === "number" && !isNaN(search); 
-            console.log('isNumber(search)------' , isNumber(search))
+           
             if (isNumber(search)) {
                 query.$or.push({ seating_capacity: { $regex: Number(search), $options: "i" } })
             }
@@ -651,12 +651,12 @@ exports.adminGetAllVehicle = async (req, res) => {
         if (!get_vehicle) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the details"
+                message: res.__("getVehicle.error.getVehicleFailed")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("getVehicle.success.vehicleListRetrieved"),
                 totalCount: totalCount,
                 result: get_vehicle
             })
