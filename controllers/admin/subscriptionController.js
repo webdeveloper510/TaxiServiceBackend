@@ -225,7 +225,7 @@ exports.createPaymentIntent = async (req, res) => {
         } else {
             return  res.send({
                                 code: constant.error_code,
-                                message: `The provided plan ID is invalid.`,
+                                message: res.__('payment.error.invalidPlan'),
                             });
         }
         
@@ -319,7 +319,7 @@ exports.createIdealCheckoutSession = async (req, res) => {
         } else {
             return  res.send({
                                 code: constant.error_code,
-                                message: `The provided plan ID is invalid.`,
+                                message: res.__('payment.error.invalidPlan'),
                             });
         }
 
@@ -403,7 +403,7 @@ exports.smsPaymentValidateSession = async (req, res) => {
         if(!smsRechargeDetail) {
             return res.json({ 
                 code: constant.error_code,
-                message: `Invalid session id`
+                message: res.__('payment.error.invalidOrExpiredSession')
             });
         }
 
@@ -411,7 +411,7 @@ exports.smsPaymentValidateSession = async (req, res) => {
         if (smsRechargeDetail.status == constant.SMS_RECHARGE_STATUS.PAID) {
             return res.json({ 
                 code: constant.error_code,
-                message: `This session already paid`
+                message: res.__('payment.error.sessionAlreadyPaid')
             });
         }
 
@@ -434,17 +434,15 @@ exports.smsPaymentValidateSession = async (req, res) => {
             await USER_MODEL.findOneAndUpdate({_id: userDetails._id}, {$set: {sms_balance: userDetails.sms_balance}} , { new: true })
             return res.json({ 
                 code: constant.success_code,
-                message: `Your payment has been successfully completed.`,
+                message: res.__('payment.error.paymentProcessed'),
             });
         } else {
             
             return res.json({ 
                 code: constant.error_code,
-                message: `Your payment was not completed. Please try again.`
+                message: res.__('payment.error.paymentFailed')
             });
         }
-        
-        
     } catch (error) {
 
         console.error('Error smsPaymentValidateSession error:', error.message);
@@ -495,7 +493,7 @@ exports.smsRecharges = async (req, res) => {
 
             return  res.send({
                 code: constant.error_code,
-                message: `Your top-up history will appear here once you make a payment.`,
+                message: res.__('payment.error.noTopupHistory'),
             });
         }
 
@@ -548,7 +546,7 @@ exports.smsTransactionList = async (req, res) => {
 
             return  res.send({
                 code: constant.error_code,
-                message: `Your top-up history will appear here once you make a payment.`,
+                message: res.__('payment.error.noTopupHistory'),
             });
         }
     } catch (error) {
@@ -657,7 +655,7 @@ exports.createSubscription = async (req, res) => {
         } else {
             return  res.send({
                                 code: constant.error_code,
-                                message: `The provided plan ID is invalid.`,
+                                message: res.__('payment.error.invalidPlan'),
                             });
         }
       
@@ -690,15 +688,15 @@ exports.cancelSubscription = async (req, res) => {
                 cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.USER_CANCEL
             }
             await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
-
+res.__('payment.error.invalidPlan')
             return res.send({
                                 code: constant.success_code,
-                                message:`Subscription has been cancelled successfully`
+                                message: res.__('payment.success.subscriptionCancelled')
                             });
         } else {
             return  res.send({
                                 code: constant.error_code,
-                                message: `Subscription not found.`,
+                                message: res.__('payment.error.subscriptionNotFound'),
                             });
         }
       
@@ -727,7 +725,7 @@ exports.getMyPaidPlans = async (req, res) => {
 
             return  res.send({
                                 code: constant.error_code,
-                                message: `You don't have any paid plan`,
+                                message: res.__('payment.error.noActivePaidPlan'),
                             });
         }
     } catch (error) {
@@ -761,7 +759,7 @@ exports.userOnboardOnStripe = async (req, res) => {
 
             return  res.send({
                                 code: constant.error_code,
-                                message: `User's account already attached`,
+                                message: res.__('payment.error.accountAlreadyAttached'),
                             });
         } else {
 
@@ -815,7 +813,7 @@ exports.getConnectedAccountDetails = async (req, res) => {
                                     // capabilities_transfers:connectedAccountDetails?.capabilities?.transfers,
                                     // capabilities_card_payments:connectedAccountDetails?.capabilities?.card_payments,
                                     
-                                    message: `Your bank account attached successfully with the platform`,
+                                    message: res.__('payment.success.accountLinkSuccess'),
                                 });
             } else {
 
@@ -825,7 +823,7 @@ exports.getConnectedAccountDetails = async (req, res) => {
                 }
                 return  res.send({
                                     code: constant.error_code,
-                                    message: `You bank account verification is still pending`,
+                                    message: res.__('payment.error.bankAccountVerificationPending'),
                                 });
             }
 
@@ -833,7 +831,7 @@ exports.getConnectedAccountDetails = async (req, res) => {
         } else {
             return  res.send({
                                 code: constant.error_code,
-                                message: `User doesn't have platform stripe account`,
+                                message: res.__('payment.error.accountNotConnected'),
                             });
         }
         

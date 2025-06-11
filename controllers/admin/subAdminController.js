@@ -3809,8 +3809,6 @@ exports.getPartnerDriverList = async (req, res) => {
                       });
     }
     
-
-    
   } catch (err) {
     return res.send({
       code: constant.error_code,

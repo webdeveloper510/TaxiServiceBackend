@@ -481,5 +481,24 @@
             "accountRevokedByCompanyTitle": "Account Revoked",
             "accountSharedByCompanyTitle": "Account Shared"
         }
+    },
+    "payment": {
+        "error": {
+            "invalidPlan": "Plan selection is invalid. Please choose a valid option.",
+            "invalidOrExpiredSession": "The session ID is not valid or has expired.",
+            "sessionAlreadyPaid": "Payment for this session has already been completed",
+            "paymentFailed": "We were unable to process your payment. Please try again later or contact support.",
+            "noTopupHistory": "Your top-up history will appear here once you make a payment.",
+            "subscriptionNotFound": "The specified subscription does not exist or is invalid.",
+            "noActivePaidPlan": "You do not have an active paid plan. Please subscribe to a plan to access this feature.",
+            "accountAlreadyAttached": "User's account is already attached.",
+            "bankAccountVerificationPending": "Your bank account verification is still pending",
+            "accountNotConnected": "The user does not have a connected Stripe account on the platform."
+        },
+        "success": {
+            "paymentProcessed": "The payment has been successfully received.",
+            "subscriptionCancelled": "Your subscription has been successfully cancelled.",
+            "accountLinkSuccess": "Your bank account attached successfully with the platform"
+        }
     }
 }
