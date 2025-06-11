@@ -691,28 +691,28 @@ exports.get_admin_details = async (req, res) => {
     const admin_id = req.params.id;
 
     let admin_detail = await USER.findOne({
-      _id: admin_id,
-      is_deleted: false,
-      status: true,
-    });
+                                            _id: admin_id,
+                                            is_deleted: false,
+                                            status: true,
+                                          });
 
     if (admin_detail) {
-      res.send({
-        code: constant.success_code,
-        data: admin_detail,
-      });
+      return res.send({
+                        code: constant.success_code,
+                        data: admin_detail,
+                      });
     } else {
-      res.send({
-        code: constant.error_code,
-        message: "No data found",
-        id: new mongoose.Types.ObjectId(admin_id),
-      });
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('getAdminDetail.error.noAdminsFound'),
+                        id: new mongoose.Types.ObjectId(admin_id),
+                      });
     }
   } catch (err) {
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 };
 
@@ -726,7 +726,7 @@ exports.update_admin_details = async (req, res) => {
     if (!check_admin) {
       return res.send({
         code: constant.error_code,
-        message: "Invalid ID",
+        message: res.__('getAdminDetail.error.noAdminsFound'),
       });
     }
 
@@ -735,7 +735,7 @@ exports.update_admin_details = async (req, res) => {
       if (check_email) {
         return res.send({
           code: constant.error_code,
-          message: "Email is already exist",
+          message: res.__('addDriver.error.emailAlreadyInUse'),
         });
       }
     }
@@ -746,7 +746,7 @@ exports.update_admin_details = async (req, res) => {
       if (check_phone) {
         return res.send({
           code: constant.error_code,
-          message: "Phone Number is already exist",
+          message: res.__('addDriver.error.phoneAlreadyInUse'),
         });
       }
     }
@@ -756,12 +756,12 @@ exports.update_admin_details = async (req, res) => {
     if (!update_data) {
       res.send({
         code: constant.error_code,
-        message: "Unable to update the data",
+        message: res.__('addDriver.error.saveFailed'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Updated successfully",
+        message: res.__('getAdminDetail.success.adminAccountUpdated'),
         result: update_data,
       });
     }
@@ -788,12 +788,12 @@ exports.delete_admin = async (req, res) => {
     if (!delete_admin) {
       res.send({
         code: constant.error_code,
-        message: "Unable to delete the sub admin",
+        message: res.__('getAdminDetail.error.deleteError'),
       });
     } else {
       return res.send({
         code: constant.success_code,
-        message: "Deleted",
+        message: res.__('getAdminDetail.success.adminAccountDeleted'),
       });
     }
   } catch (err) {
@@ -805,9 +805,9 @@ exports.delete_admin = async (req, res) => {
 };
 
 exports.get_sub_admins = async (req, res) => {
-  try {
+  try {  
     let data = req.body;
-    let query = req.query.role ? req.query.role : "COMPANY";
+    let query = req.query.role ? req.query.role : constant.ROLES.COMPANY;
 
     let get_data = await USER.aggregate([
       {
@@ -861,15 +861,16 @@ exports.get_sub_admins = async (req, res) => {
         },
       },
     ]).sort({ createdAt: -1 });
+
     if (!get_data) {
       res.send({
         code: constant.error_code,
-        message: "Unable to fetch the data",
+        message: res.__('addSubAdmin.error.noMatchingRecords'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message:  res.__('addSubAdmin.success.infoRetrievedSuccess'),
         result: get_data,
       });
     }
@@ -885,77 +886,77 @@ exports.get_sub_admin_detail = async (req, res) => {
   try {
     let data = req.params;
     let check_detail = await USER.aggregate([
-      {
-        $match: {
-          _id: new mongoose.Types.ObjectId(data.userId),
-        },
-      },
-      {
-        $lookup: {
-          from: "agencies",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "meta",
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          first_name: 1,
-          last_name: 1,
-          email: 1,
-          // company_id:1,
-          created_by: 1,
-          phone: 1,
-          countryCode:1,
-          profile_image: 1,
-          role: 1,
-          status: 1,
-          logo: 1,
-          background_color: 1,
-          color:1,
-          stored_password:1,
-          totalBalance: 1,
-          settings:1,
-          land: { $arrayElemAt: ["$meta.land", 0] },
-          post_code: { $arrayElemAt: ["$meta.post_code", 0] },
-          house_number: { $arrayElemAt: ["$meta.house_number", 0] },
-          description: { $arrayElemAt: ["$meta.description", 0] },
-          affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
-          p_number: { $arrayElemAt: ["$meta.p_number", 0] },
-          number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
-          chamber_of_commerce_number: {
-            $arrayElemAt: ["$meta.chamber_of_commerce_number", 0],
-          },
-          vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
-          website: { $arrayElemAt: ["$meta.website", 0] },
-          tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
-          saluation: { $arrayElemAt: ["$meta.saluation", 0] },
-          company_name: { $arrayElemAt: ["$meta.company_name", 0] },
-          company_id: { $arrayElemAt: ["$meta.company_id", 0] },
-          location: { $arrayElemAt: ["$meta.location", 0] },
-          hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
-          commision: { $arrayElemAt: ["$meta.commision", 0] },
-        },
-      },
-    ]);
+                                              {
+                                                $match: {
+                                                  _id: new mongoose.Types.ObjectId(data.userId),
+                                                },
+                                              },
+                                              {
+                                                $lookup: {
+                                                  from: "agencies",
+                                                  localField: "_id",
+                                                  foreignField: "user_id",
+                                                  as: "meta",
+                                                },
+                                              },
+                                              {
+                                                $project: {
+                                                  _id: 1,
+                                                  first_name: 1,
+                                                  last_name: 1,
+                                                  email: 1,
+                                                  // company_id:1,
+                                                  created_by: 1,
+                                                  phone: 1,
+                                                  countryCode:1,
+                                                  profile_image: 1,
+                                                  role: 1,
+                                                  status: 1,
+                                                  logo: 1,
+                                                  background_color: 1,
+                                                  color:1,
+                                                  stored_password:1,
+                                                  totalBalance: 1,
+                                                  settings:1,
+                                                  land: { $arrayElemAt: ["$meta.land", 0] },
+                                                  post_code: { $arrayElemAt: ["$meta.post_code", 0] },
+                                                  house_number: { $arrayElemAt: ["$meta.house_number", 0] },
+                                                  description: { $arrayElemAt: ["$meta.description", 0] },
+                                                  affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
+                                                  p_number: { $arrayElemAt: ["$meta.p_number", 0] },
+                                                  number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
+                                                  chamber_of_commerce_number: {
+                                                    $arrayElemAt: ["$meta.chamber_of_commerce_number", 0],
+                                                  },
+                                                  vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
+                                                  website: { $arrayElemAt: ["$meta.website", 0] },
+                                                  tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+                                                  saluation: { $arrayElemAt: ["$meta.saluation", 0] },
+                                                  company_name: { $arrayElemAt: ["$meta.company_name", 0] },
+                                                  company_id: { $arrayElemAt: ["$meta.company_id", 0] },
+                                                  location: { $arrayElemAt: ["$meta.location", 0] },
+                                                  hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
+                                                  commision: { $arrayElemAt: ["$meta.commision", 0] },
+                                                },
+                                              },
+                                            ]);
     let get_color = await USER.findOne({ _id: check_detail[0].created_by });
     if (check_detail.length == 0) {
-      res.send({
-        code: constant.error_code,
-        message: "Unable to fetch the detail",
-      });
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addSubAdmin.error.noUserFound'),
+                      });
     } else {
       let get_name = await AGENCY.findOne({ user_id: check_detail[0]._id });
       check_detail[0].hotel_name = get_name.company_name ? get_name.company_name : "N/A";
       check_detail[0].meta = get_color?.toObject();
       const result = check_detail[0];
 
-      res.send({
-        code: constant.success_code,
-        message: "Success",
-        result,
-      });
+      return res.send({
+                        code: constant.success_code,
+                        message: res.__('addSubAdmin.success.infoRetrievedSuccess'),
+                        result,
+                      });
     }
   } catch (err) {
     res.send({
@@ -973,11 +974,11 @@ exports.edit_sub_admin = async (req, res) => {
       let option = { new: true };
       let checkSubAdmin = await USER.findOne(criteria);
       if (!checkSubAdmin) {
-        res.send({
-          code: constant.error_code,
-          message: "Invalid ID",
-        });
-        return;
+
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('addSubAdmin.error.noUserFound'),
+                        });
       }
 
       data.logo = req?.file?.location ? req.file.location : checkSubAdmin.logo;
@@ -992,7 +993,7 @@ exports.edit_sub_admin = async (req, res) => {
         if (check_email || checkEmailInDrivers) {
           return res.send({
                             code: constant.error_code,
-                            message: "Email is already exist",
+                            message: res.__('addDriver.error.emailAlreadyInUse'),
                           });
         }
 
@@ -1008,7 +1009,7 @@ exports.edit_sub_admin = async (req, res) => {
         if (check_phone || checkPhoneInDrivers) {
           return res.send({
                             code: constant.error_code,
-                            message: "Phone Number is already exist",
+                            message: res.__('addDriver.error.phoneAlreadyInUse'),
                           });
         }
       }
@@ -1053,7 +1054,6 @@ exports.edit_sub_admin = async (req, res) => {
           ...(data?.password && data.password != '' ? { stored_password: data.stored_password , password : data.password } : {}),
         }
 
-        console.log('updateDriver_data---------' , updateDriver_data)
         await DRIVER.findOneAndUpdate({ _id: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } , updateDriver_data , option)
       }
       
@@ -1061,12 +1061,12 @@ exports.edit_sub_admin = async (req, res) => {
       if (!update_data) {
         res.send({
           code: constant.error_code,
-          message: "Unable to update the data",
+          message: res.__('addSubAdmin.error.unableToupdate'),
         });
       } else {
         res.send({
           code: constant.success_code,
-          message: "Updated successfully",
+          message: res.__('addSubAdmin.success.subAdminUpdated'),
           result: update_data,
         });
       }
@@ -1092,7 +1092,7 @@ exports.editHotel = async (req, res) => {
     if (!checkHotel) {
       returnres.send({
                         code: constant.error_code,
-                        message: "Invalid ID",
+                        message: res.__('addSubAdmin.error.noUserFound'),
                     });
     }
 
@@ -1101,7 +1101,7 @@ exports.editHotel = async (req, res) => {
 
       return res.send({
         code: constant.error_code,
-        message: "Phone Number is already exist",
+        message: res.__('addDriver.error.phoneAlreadyInUse'),
       });
     }
 
@@ -1121,26 +1121,26 @@ exports.editHotel = async (req, res) => {
     const update_data = await USER.findOneAndUpdate(criteria, updateData, option);
 
     if (update_data) {
-      res.send({
-        code: constant.success_code,
-        message: 'Updated successfully',
-        result:update_data
-      });
+      return res.send({
+                        code: constant.success_code,
+                        message: res.__('addSubAdmin.success.subAdminUpdated'),
+                        result:update_data
+                      });
     } else {
 
-      res.send({
-        code: constant.error_code,
-        message: 'Unable to update the data',
-      });
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addSubAdmin.error.unableToupdate'),
+                      });
     } 
 
     
 
   } catch (err) {
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 }
 
@@ -1264,7 +1264,7 @@ exports.hotelListAdmin = async (req, res) => {
       if (searchUser) {
         res.send({
           code: constant.success_code,
-          message: "Hotel list retrieved successfully",
+          message: res.__('addSubAdmin.success.infoRetrievedSuccess'),
           result: results,
           totalCount: totalCount,
           totalPages: totalPages
@@ -1272,7 +1272,7 @@ exports.hotelListAdmin = async (req, res) => {
       } else {
         res.send({
           code: constant.error_code,
-          message: "No hotel found",
+          message: res.__('addSubAdmin.error.noMatchingRecords'),
         });
       }
     } catch (err) {
@@ -1304,7 +1304,7 @@ exports.delete_sub_admin = async (req, res) => {
     if (!deleteSubAdmin) {
       res.send({
         code: constant.error_code,
-        message: "Unable to delete the sub admin",
+        message: res.__('addSubAdmin.error.subadminDeleteError'),
       });
     } else {
 
@@ -1322,7 +1322,7 @@ exports.delete_sub_admin = async (req, res) => {
 
       res.send({
         code: constant.success_code,
-        message: "Deleted",
+        message: res.__('addSubAdmin.success.subAdminAccountDeleted'),
       });
     }
   } catch (err) {
@@ -1351,7 +1351,7 @@ exports.restoreSubAdmin = async (req, res) => {
     if (!updateSubAdmin) {
       res.send({
         code: constant.error_code,
-        message: "Unable to delete the sub admin",
+        message: res.__('addSubAdmin.error.unableToRestore'),
       });
     } else {
 
@@ -1367,16 +1367,16 @@ exports.restoreSubAdmin = async (req, res) => {
 
       sendAccountReactivationEmail(updateSubAdmin);
 
-      res.send({
-        code: constant.success_code,
-        message: "Account restored successfully",
-      });
+      return res.send({
+                        code: constant.success_code,
+                        message: res.__('addSubAdmin.success.subAdminAccountRestored'),
+                      });
     }
   } catch (err) {
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
   }
 }
 
@@ -1396,25 +1396,6 @@ exports.search_company = async (req, res) => {
     let data = req.body;
     let query = req.query.role ? req.query.role : "COMPANY";
     let searchUser = await USER.aggregate([
-      // {
-      //     $match: {
-      //         $and: [
-      //             { role: query }, { is_deleted: false }, { created_by: new mongoose.Types.ObjectId(req.userId) },
-      //             {
-      //                 $or: [
-      //                     { 'first_name': { '$regex': req.body.name, '$options': 'i' } },
-      //                     { 'last_name': { '$regex': req.body.name, '$options': 'i' } },
-      //                     { 'email': { '$regex': req.body.name, '$options': 'i' } },
-      //                     // { 'email': { '$regex': req.body.name, '$options': 'i' } },
-      //                     { 'phone': { '$regex': req.body.name, '$options': 'i' } },
-
-      //                 ]
-      //             }
-      //         ]
-
-      //     }
-
-      // },
       {
         $lookup: {
           from: "agencies",
@@ -1498,12 +1479,12 @@ exports.search_company = async (req, res) => {
     if (!searchUser) {
       res.send({
         code: constant.error_code,
-        message: "Unable to search the user",
+        message: res.__('addSubAdmin.error.noUserFound'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('addSubAdmin.success.companyListRetrieved'),
         result: searchUser,
       });
     }
@@ -1524,7 +1505,7 @@ exports.companyRevenueDetails = async (req, res) => {
 
     return res.send({
       code: constant.error_code,
-      message: "Invalid company",
+      message:  res.__('addSubAdmin.error.invalidCompany'),
     });
   }
   
@@ -1589,7 +1570,7 @@ exports.driverRevenueDetails = async (req, res) => {
 
     return res.send({
       code: constant.error_code,
-      message: "Invalid company",
+      message: res.__('addSubAdmin.error.invalidCompany'),
     });
   }
   
@@ -1650,12 +1631,12 @@ exports.hotelRevenueDetails = async (req, res) => {
   let hotelId = new mongoose.Types.ObjectId(req.params.hotel_id);
   let hotelData = await USER.findOne({ role: constant.ROLES.HOTEL, _id: hotelId });
 
-  console.log('hotel_revenue_details-----')
+  
   if (!hotelId || !hotelData) {
 
     return res.send({
       code: constant.error_code,
-      message: "Invalid hotel",
+      message: res.__('addSubAdmin.error.invalidHotel'),
     });
   }
   
@@ -1834,9 +1815,9 @@ const createBarChartDateData = async (req) => {
 
   let list = [];
   const monthNames = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
+                          "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                      ];
 
   if (req.body.dateFilter == 'this_year') {
 
@@ -2290,12 +2271,12 @@ exports.companyList = async (req, res) => {
     if (!searchUser) {
       res.send({
         code: constant.error_code,
-        message: "Unable to search the user",
+        message: res.__('addSubAdmin.error.noMatchingRecords'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('addSubAdmin.success.companyListRetrieved'),
         totalCount: totalCount,
         totalDocuments:totalDocuments,
         totalPages:totalPages,
@@ -2484,12 +2465,12 @@ exports.companyListByRevenue = async (req, res) => {
     if (!searchUser) {
       res.send({
         code: constant.error_code,
-        message: "Unable to search the user",
+        message: res.__('addSubAdmin.error.noMatchingRecords'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('addSubAdmin.success.companyListRetrieved'),
         totalCount: totalCount,
         totalDocuments:totalDocuments,
         totalPages:totalPages,
@@ -2670,14 +2651,14 @@ exports.driverListByRevenue = async (req, res) => {
     if (!searchUser) {
       res.send({
         code: constant.error_code,
-        message: "Unable to search the user",
+        message: res.__('addSubAdmin.error.noMatchingRecords'),
       });
     } else {
 
       
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('addSubAdmin.success.driverListRetrieved'),
         totalCount: totalCount,
         totalDocuments:totalDocuments,
         totalPages:totalPages,
@@ -2842,12 +2823,12 @@ exports.tipListByRevenue = async (req, res) => {
     if (!results) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__('getTrip.error.noTripFound'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('getTrip.success.tripListRetrieved'),
         totalCount :  get_trip[0]?.metadata[0]?.total | 0,
         result: results,
         criteria
@@ -3010,12 +2991,12 @@ exports.companyTripListRevenue = async (req, res) => {
     if (!results) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__('getTrip.error.noTripFound'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('getTrip.success.tripListRetrieved'),
         totalCount :  get_trip[0]?.metadata[0]?.total | 0,
         result: results,
         criteria
@@ -3034,13 +3015,13 @@ exports.companyHotelList = async (req, res) => {
   try {
     let data = req.body;
     let companyId = req.params.company_id;
-    let companydata = await USER.findOne({ role: "COMPANY", _id: companyId });
+    let companydata = await USER.findOne({ role: constant.ROLES.COMPANY, _id: companyId });
 
     if (!companyId || !companydata) {
 
       return res.send({
         code: constant.error_code,
-        message: "Invalid company",
+        message: res.__('addSubAdmin.error.invalidCompany'),
       });
     } 
 
@@ -3146,12 +3127,12 @@ exports.companyHotelList = async (req, res) => {
     if (!searchUser) {
       res.send({
         code: constant.error_code,
-        message: "Unable to search the user",
+        message: res.__('addSubAdmin.error.noUserFound'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('addSubAdmin.success.hotelListRetrieved'),
         totalCount : totalCount,
         totalPages : totalPages,
         result: results,
@@ -3168,24 +3149,22 @@ exports.companyHotelList = async (req, res) => {
 
 exports.access_search_company = async (req, res) => {
   try {
-    if (req.user.role == "DRIVER") {
+    if (req.user.role == constant.ROLES.DRIVER) {
       let is_driver_has_company_access = await isDriverHasCompanyAccess(
-        req.user,
-        req.body.company_id
-      );
+                                                                          req.user,
+                                                                          req.body.company_id
+                                                                        );
 
       if (!is_driver_has_company_access) {
-        res.send({
-          code: constant.ACCESS_ERROR_CODE,
-          message: "The company's access has been revoked",
-        });
-
-        return;
+        return res.send({
+                          code: constant.ACCESS_ERROR_CODE,
+                          message: res.__('auth.error.companyAccessWithdrawn'),
+                        });
       }
     }
 
     let data = req.body;
-    let query = req.query.role ? req.query.role : "COMPANY";
+    let query = req.query.role ? req.query.role : constant.ROLES.COMPANY;
     let searchUser = await USER.aggregate([
       {
         $lookup: {
@@ -3245,12 +3224,12 @@ exports.access_search_company = async (req, res) => {
     if (!searchUser) {
       res.send({
         code: constant.error_code,
-        message: "Unable to search the user",
+        message: res.__('addSubAdmin.error.noUserFound'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('addSubAdmin.success.companyListRetrieved'),
         result: searchUser,
       });
     }
@@ -3269,21 +3248,18 @@ exports.send_request_trip = async (req, res) => {
     if (!check_user) {
       res.send({
         code: constant.error_code,
-        message: "No user found with this ID",
+        message: res.__('addSubAdmin.error.noUserFound'),
       });
     } else {
       data.created_by = check_user._id;
       data.status = false;
-      data.trip_id = randToken.generate(
-        4,
-        "1234567890abcdefghijklmnopqrstuvxyz"
-      );
+      data.trip_id = randToken.generate(4, "1234567890abcdefghijklmnopqrstuvxyz");
       data.trip_id = "T" + "-" + data.trip_id;
       let save_data = await TRIP(data).save();
       if (!save_data) {
         res.send({
           code: constant.error_code,
-          message: "Unable to create the request",
+          message: res.__('getTrip.error.unableToCreateTripRequest'),
         });
       } else {
         var transporter = nodemailer.createTransport(emailConstant.credentials);
@@ -3452,7 +3428,7 @@ exports.send_request_trip = async (req, res) => {
 
         res.send({
           code: constant.success_code,
-          message: "Saved",
+          message: res.__('getTrip.success.tripRequestCreated'),
           result: save_data,
         });
       }
@@ -3471,7 +3447,7 @@ exports.favoriteDriver = async (req, res) => {
     if (!driver) {
       return res.send({
         code: constant.error_code,
-        message: "Driver not found",
+        message: res.__('getDriverDetail.error.unableToFetchDriverDetails'),
       });
     }
     const user = req.user;
@@ -3479,13 +3455,13 @@ exports.favoriteDriver = async (req, res) => {
       await user.updateOne({ $push: { favoriteDrivers: driverId } });
       return res.send({
         code: constant.success_code,
-        message: "Driver Added successfully in favorite driver",
+        message: res.__('favoriteDriver.success.driverAdded'),
       });
     } else {
       await user.updateOne({ $pull: { favoriteDrivers: driverId } });
       return res.send({
         code: constant.success_code,
-        message: "Driver removed successfully from favorite driver",
+        message: res.__('favoriteDriver.success.driverRemoved'),
       });
     }
   } catch (err) {
@@ -3507,7 +3483,7 @@ exports.update_account_access = async (req, res) => {
     if (!driver) {
       return res.send({
                         code: constant.error_code,
-                        message: "Driver not found",
+                        message: res.__('getDriverDetail.error.unableToFetchDriverDetails'),
                       });
     }
 
@@ -3515,7 +3491,7 @@ exports.update_account_access = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: `You are not permitted to assign account access to yourself.`,
+                        message: res.__('updateAccountAccess.error.selfAssignNotAllowed'),
                       });
     }
 
@@ -3532,15 +3508,15 @@ exports.update_account_access = async (req, res) => {
       if (req?.body?.status == constant.ACCOUNT_SHARE_REVOKED) {
 
         user_detail.company_account_access =user_detail.company_account_access.filter((data) =>data?.driver_id?.toString() != req.body?.driver_id?.toString());
-        mesage_data = "Account revoked successfully from the driver";
+        mesage_data = res.__('updateAccountAccess.success.accountRevokedSuccess');
         driver.company_account_access = driver.company_account_access.filter((data) => data?.company_id?.toString() != req.user._id?.toString());
 
         if (driver_token != "") {
 
           const response = await sendNotification(
                                                     driver_token,
-                                                    `The shared account has been revoked By ${company_detials.company_name}`,
-                                                    `Account Revoked`,
+                                                    res.__('updateAccountAccess.success.accountRevokedByCompanyMessage', {company_name: company_detials.company_name}),
+                                                    res.__('updateAccountAccess.success.accountRevokedByCompanyTitle'),
                                                     company_detials
                                                   );
         }
@@ -3557,13 +3533,13 @@ exports.update_account_access = async (req, res) => {
         if (is_company_already_exist.length == 0)
           driver?.company_account_access.push({ company_id: req.user._id }); // Updated if Id is not already exist
 
-        mesage_data = "Account shared successfully with the driver";
+        mesage_data = res.__('updateAccountAccess.success.accountShareSuccess');
 
         if (driver_token != "") {
           const response = await sendNotification(
                                                     driver_token,
-                                                    `${company_detials.company_name} has shared the account with you`,
-                                                    `Account Shared`,
+                                                   res.__('updateAccountAccess.success.accountSharedByCompanyMessage', {company_name: company_detials.company_name}),
+                                                    res.__('updateAccountAccess.success.accountSharedByCompanyTitle'),
                                                     company_detials
                                                   );
         }
@@ -3583,7 +3559,7 @@ exports.update_account_access = async (req, res) => {
       if (!updatedUser) {
         return res.send({
                           code: constant.error_code,
-                          message: "User not found",
+                          message: res.__('addSubAdmin.error.noUserFound'),
                         });
       } else {
         return res.send({
@@ -3596,7 +3572,7 @@ exports.update_account_access = async (req, res) => {
     } else {
       return res.send({
                         code: constant.error_code,
-                        message: "You didn't have access for this.",
+                        message: res.__('updateAccountAccess.error.accessDenied'),
                       });
     }
   } catch (error) {
@@ -3617,7 +3593,7 @@ exports.updatePartnerAccountAccess = async (req, res) => {
     if (!driver) {
       return res.send({
                         code: constant.error_code,
-                        message: "Driver not found",
+                        message: res.__('updateAccountAccess.error.driverNotFound'),
                       });
     }
 
@@ -3625,7 +3601,7 @@ exports.updatePartnerAccountAccess = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: `You are not permitted to assign partner account access to yourself.`,
+                        message: res.__('updateAccountAccess.error.selfAssignPartnerAccountNotAllowed'),
                         re:req.user
                       });
     }
@@ -3648,7 +3624,7 @@ exports.updatePartnerAccountAccess = async (req, res) => {
 
         // Remove partner driver id from company account
         user_detail.parnter_account_access = user_detail.parnter_account_access.filter((data) =>data?.driver_id?.toString() != req.body?.driver_id?.toString());
-        mesage_data = "Account revoked successfully from the driver";
+        mesage_data = res.__('updateAccountAccess.success.accountRevokedSuccess');
 
         // Remove partner company id from driver account
         driver.parnter_account_access = driver.parnter_account_access.filter((data) => data?.company_id?.toString() != req.user._id?.toString());
@@ -3659,8 +3635,8 @@ exports.updatePartnerAccountAccess = async (req, res) => {
 
             const response = await sendNotification(
                                                       driverDeviceToken,
-                                                      `Shared Account revoked By ${company_detials.company_name}`,
-                                                      `Account Revoked`,
+                                                      res.__('updateAccountAccess.success.accountRevokedByCompanyMessage' ,{company_name: company_detials.company_name}),
+                                                      res.__('updateAccountAccess.success.accountRevokedByCompanyTitle'),
                                                       company_detials
                                                     );
         }
@@ -3679,13 +3655,13 @@ exports.updatePartnerAccountAccess = async (req, res) => {
         // If company partner not already exist then add it into driver account
         if (is_company_already_exist.length == 0) driver?.parnter_account_access.push({ company_id: req.user._id }); // Updated if Id is not already exist
 
-        mesage_data = "Account shared successfully with the driver";
+        mesage_data = res.__('updateAccountAccess.success.accountShareSuccess');
 
         if (driverDeviceToken != "" && driverDeviceToken != null) {
           const response = await sendNotification(
                                                     driverDeviceToken,
-                                                    `${company_detials.company_name} shared the account with you`,
-                                                    `Account Shared`,
+                                                   res.__('updateAccountAccess.success.accountSharedByCompanyMessage' ,{company_name: company_detials.company_name}),
+                                                     res.__('updateAccountAccess.success.accountSharedByCompanyTitle'),
                                                     company_detials
                                                   );
         }
@@ -3708,7 +3684,7 @@ exports.updatePartnerAccountAccess = async (req, res) => {
       if (!updatedUser) {
         return res.send({
                           code: constant.error_code,
-                          message: "User not found",
+                          message: res.__('addSubAdmin.error.noUserFound'),
                         });
       } else {
         return res.send({
@@ -3721,7 +3697,7 @@ exports.updatePartnerAccountAccess = async (req, res) => {
     } else {
       return res.send({
                         code: constant.error_code,
-                        message: "You didn't have access for this.",
+                        message: res.__('updateAccountAccess.error.accessDenied'),
                       });
     }
   } catch (error) {
@@ -3746,7 +3722,7 @@ exports.get_driver_list = async (req, res) => {
     if (driver_list.length == 0) {
       return res.send({
         code: constant.error_code,
-        message: "No driver found",
+        message: res.__('addSubAdmin.error.noUserFound'),
       });
     }
 
@@ -3796,7 +3772,7 @@ exports.getPartnerDriverList = async (req, res) => {
     if (driver_list.length == 0) {
       return res.send({
         code: constant.error_code,
-        message: "No driver found",
+        message: res.__('addSubAdmin.error.noUserFound'),
       });
     }
 
@@ -3829,7 +3805,7 @@ exports.getPartnerDriverList = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: 'No data found',
+                        message: res.__('addSubAdmin.error.noDriversFound'),
                       });
     }
     

@@ -113,6 +113,15 @@
             "driverRestored": "Driver has been successfully restored."
         }
     },
+    "favoriteDriver": {
+        "error": {
+            "driverNotExist": "he specified driver does not exist"
+        },
+        "success": {
+            "driverAdded": "Driver has been successfully added to favorites.",
+            "driverRemoved": "Driver has been successfully removed from favorites."
+        }
+    },
     "getDriverDetail": {
         "error": {
             "unableToFetchDriverDetails": "An error occurred while fetching driver details."
@@ -188,11 +197,15 @@
     },
     "getTrip": {
         "error": {
-            "unableToRetrieveTrip": "An error occurred while fetching trips."
+            "unableToRetrieveTrip": "An error occurred while fetching trips.",
+            "noTripFound": "No trips found for the specified criteria.",
+            "unableToCreateTripRequest": "An error occurred while creating the trip request."
         },
         "success": {
             "tripDataRetrieved": "Trip details retrieved successfully",
-            "dashboardCountsRetrieved": "Dashboard counts retrieved successfully."
+            "dashboardCountsRetrieved": "Dashboard counts retrieved successfully.",
+            "tripListRetrieved": "Trip list has been successfully fetched.",
+            "tripRequestCreated": "Trip request has been created successfully."
         }
     },
     "noShowUser": {
@@ -422,10 +435,51 @@
     },
     "addSubAdmin": {
         "error": {
-            "invalidData": "The provided data is invalid. Please check and try again."
+            "invalidData": "The provided data is invalid. Please check and try again.",
+            "noMatchingRecords": "The system could not locate any matching records",
+            "noUserFound": "No record found with the provided details.",
+            "unableToupdate": "An error occurred while updating the user information. Please try again later.",
+            "subadminDeleteError": "An error occurred while deleting the sub-admin account. Please try again later.",
+            "unableToRestore": "An error occurred while restoring the sub-admin account. Please try again later.",
+            "invalidCompany": "The specified company is invalid or does not exist. Please verify the company details and try again.",
+            "invalidHotel": "The specified hotel is invalid or does not exist. Please verify the Hotel ID and try again."
         },
         "success": {
-            "subAdminAdded": "Sub-admin has been added successfully."
+            "subAdminAdded": "Sub-admin has been added successfully.",
+            "infoRetrievedSuccess": "User information retrieved successfully.",
+            "subAdminUpdated": "User information has been updated successfully.",
+            "subAdminAccountDeleted": "Sub-admin account has been deleted successfully.",
+            "subAdminAccountRestored": "Sub-admin account has been restored successfully.",
+            "companyListRetrieved": "Company list has been retrieved successfully.",
+            "driverListRetrieved": "Driver list has been retrieved successfully.",
+            "hotelListRetrieved": "Hotel list has been retrieved successfully."
+        }
+    },
+    "getAdminDetail": {
+        "error": {
+            "noAdminsFound": "No administrators found. Please check the provided details or try again later.",
+            "deleteError": "An error occurred while deleting the admin account. Please try again later."
+        },
+        "success": {
+            "adminAccountUpdated": "Admin account has been updated successfully",
+            "adminAccountDeleted": "Admin account has been deleted successfully."
+        }
+    },
+    "updateAccountAccess": {
+        "error": {
+            "selfAssignNotAllowed": "Self-assignment of account access is not permitted",
+            "selfAssignPartnerAccountNotAllowed": "You are not permitted to assign partner account access to yourself.",
+            "accessDenied": "You are not permitted to access this section",
+            "driverNotFound": "The specified driver does not exist or is not registered in the system",
+            "noDriversFound": "No drivers found"
+        },
+        "success": {
+            "accountRevokedSuccess": "Account revoked successfully from the driver",
+            "accountShareSuccess": "Account shared successfully with the driver",
+            "accountRevokedByCompanyMessage": "{{company_name}} has withdrawn access to the shared account",
+            "accountSharedByCompanyMessage": "{{company_name}} has shared the account with you",
+            "accountRevokedByCompanyTitle": "Account Revoked",
+            "accountSharedByCompanyTitle": "Account Shared"
         }
     }
 }
