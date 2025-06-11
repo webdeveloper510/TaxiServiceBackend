@@ -46,13 +46,13 @@ const tripIsBooked = async (tripId, driver_info, io) => {
   try {
     const tripById = await trip_model.findOne({
                                                 _id: tripId,
-                                                trip_status: "Accepted",
+                                                trip_status: constant.TRIP_STATUS.ACCEPTED,
                                               });
 
     if (tripById) {
       const updateDriver = await driver_model.findByIdAndUpdate( tripById.driver_name, { is_available: true } );
       tripById.driver_name = null;
-      tripById.trip_status = "Pending";
+      tripById.trip_status = constant.TRIP_STATUS.PENDING;
       await tripById.save();
 
       // for driver app side to close the pop-up------ this will apply for the app only
@@ -311,7 +311,7 @@ exports.add_trip = async (req, res) => {
     if (data?.commission && data?.commission?.commission_value != 0) {
       
       let commission = data.commission.commission_value;
-      if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
+      if ( data.commission.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE && data.commission.commission_value > 0 ) {
         commission = (data.price * data.commission.commission_value) / 100;
       }
 
@@ -389,7 +389,7 @@ exports.add_trip = async (req, res) => {
 
 exports.access_add_trip = async (req, res) => {
   try {
-    if (req.user.role == "DRIVER") {
+    if (req.user.role == constant.ROLES.DRIVER) {
       let is_driver_has_company_access = await isDriverHasCompanyAccess(
         req.user,
         req.body.created_by_company_id
@@ -442,7 +442,7 @@ exports.access_add_trip = async (req, res) => {
       if (data?.commission && data?.commission?.commission_value != 0) {
         
         let commission = data.commission.commission_value;
-        if ( data.commission.commission_type === "Percentage" && data.commission.commission_value > 0 ) {
+        if ( data.commission.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE && data.commission.commission_value > 0 ) {
           commission = (Number(data.price) * data.commission.commission_value) / 100;
         }
 
@@ -809,12 +809,12 @@ exports.get_trip = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__('getTrip.error.noTripFound'),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__('getTrip.success.tripListRetrieved'),
         total: total,
         page: page,
         limit: limit,
@@ -835,18 +835,18 @@ exports.companyGetTrip = async (req, res) => {
   try {
     let data = req.body;
     let companyId = req.body.company_id;
-    let companydata = await USER.findOne({ role: "COMPANY", _id: companyId });
+    let companydata = await USER.findOne({ role: constant.ROLES.COMPANY, _id: companyId });
 
     if (!companyId || !companydata) {
 
       return res.send({
         code: constant.error_code,
-        message: "Invalid company",
+        message: res.__("companyGetFares.error.invalidCompany"),
       });
     } 
       
     let mid = new mongoose.Types.ObjectId(companyId);
-    let getIds = await USER.find({ role: "HOTEL", created_by: companyId });
+    let getIds = await USER.find({ role: constant.ROLES.HOTEL, created_by: companyId });
 
     let search_value = data.comment ? data.comment : "";
     let ids = [];
@@ -1073,12 +1073,12 @@ exports.companyGetTrip = async (req, res) => {
     if (!results) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noTripFound"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripListRetrieved"),
         dateQuery:dateQuery,
         result: results[0]?.data || [],
         metadata: {
@@ -1106,7 +1106,7 @@ exports.driverGetTrip = async (req, res) => {
 
       return res.send({
         code: constant.error_code,
-        message: "Invalid driver",
+        message: res.__("getDrivers.error.noDriverFound"),
       });
     } 
    
@@ -1232,12 +1232,12 @@ exports.driverGetTrip = async (req, res) => {
     if (!results) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noTripFound"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripListRetrieved"),
         dateQuery:dateQuery,
         result: results[0]?.data || [],
         metadata: {
@@ -1265,7 +1265,7 @@ exports.HotelGetTrip = async (req, res) => {
 
       return res.send({
         code: constant.error_code,
-        message: "Invalid hotel",
+        message: res.__("addSubAdmin.error.invalidHotel"),
       });
     } 
       
@@ -1392,12 +1392,12 @@ exports.HotelGetTrip = async (req, res) => {
     if (!results) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noTripFound"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripListRetrieved"),
         dateQuery:dateQuery,
         metadata: {
           total: metadata.total,
@@ -1418,7 +1418,7 @@ exports.HotelGetTrip = async (req, res) => {
 
 exports.get_access_trip = async (req, res) => {
   try {
-    if (req.user.role == "DRIVER") {
+    if (req.user.role == constant.ROLES.DRIVER) {
       let is_driver_has_company_access = await isDriverHasCompanyAccess(
         req.user,
         req.body.company_id
@@ -1427,7 +1427,7 @@ exports.get_access_trip = async (req, res) => {
       if (!is_driver_has_company_access) {
         res.send({
           code: constant.ACCESS_ERROR_CODE,
-          message: "The company's access has been revoked",
+          message: res.__("addTrip.error.companyAccessRevoked"),
         });
 
         return;
@@ -1439,10 +1439,10 @@ exports.get_access_trip = async (req, res) => {
     let check_company = USER.findById(req.body.company_id);
 
     if (!check_company && check_company?.is_deleted == true) {
-      res.send({
-        code: constant.error_code,
-        message: "Invalid company",
-      });
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__("companyGetFares.error.invalidCompany"),
+                      });
     }
     
     const page = parseInt(data.page) || 1; // Default to page 1 if not provided
@@ -1548,7 +1548,7 @@ exports.get_access_trip = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noTripFound"),
         activePlans: getActivePaidPlans.length > 0 ? true  : false,
         hasSpecialPlan: hasSpecialPlan?.is_special_plan_active ? true: false
       });
@@ -1556,7 +1556,7 @@ exports.get_access_trip = async (req, res) => {
       
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripListRetrieved"),
         result: get_trip,
         totalCount: totalCount,
         activePlans: getActivePaidPlans.length > 0 ? true  : false,
@@ -1580,14 +1580,14 @@ exports.get_all_access_trip = async (req, res) => {
     if (companyIds.length == 0) {
       return res.send({
                         code: constant.error_code,
-                        message: "No data found",
+                        message:res.__("getTrip.error.noDataFound"),
                         result : []
                       });
     }
 
     let filteredCompanyId = [];
 
-    // remove the driver who doesn't have the asctive payed plan
+    // remove the driver who doesn't have the active payed plan
     for (let value of companyIds) {
       const checkUserSpecialPlan = await USER.findOne({_id: value , is_special_plan_active: true});
       
@@ -1706,12 +1706,12 @@ exports.get_all_access_trip = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noTripFound")
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripListRetrieved"),
         totalCount: totalCount,
         result: get_trip
       });
@@ -1794,12 +1794,12 @@ exports.get_trip_for_hotel = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noTripFound"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripListRetrieved"),
         result: get_trip,
       });
     }
@@ -1913,12 +1913,12 @@ exports.get_recent_trip = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noTripFound"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripListRetrieved"),
         result: get_trip,
       });
     }
@@ -2072,12 +2072,12 @@ exports.get_recent_trip_super = async (req, res) => {
     if (!results) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noTripFound"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripListRetrieved"),
         totalCount :  get_trip[0]?.metadata[0]?.total | 0,
         result: results,
         
@@ -2155,12 +2155,12 @@ exports.get_trip_by_company = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noTripFound"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripListRetrieved"),
         result: get_trip,
       });
     }
@@ -2247,13 +2247,13 @@ exports.check_trip_request = async (req, res) => {
     } else {
       res.send({
         code: constant.error_code,
-        message: "No trip request found",
+        message: res.__("getTrip.error.noTripRequestFound"),
       });
     }
   } else {
     res.send({
       code: constant.error_code,
-      message: "Invalid driver",
+      message: res.__("getDrivers.error.inValidDriver"),
     });
   }
 };
@@ -2268,7 +2268,7 @@ exports.alocate_driver = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        message: "Invalid trip ID",
+                        message: res.__("getTrip.error.inValidTrip"),
                       });
     }
 
@@ -2277,7 +2277,7 @@ exports.alocate_driver = async (req, res) => {
     if (!driver_full_info) {
       return res.send({
                         code: constant.error_code,
-                        message: "This driver is not valid",
+                        message: res.__("getDrivers.error.inValidDriver"),
                       });
       
     }
@@ -2285,7 +2285,7 @@ exports.alocate_driver = async (req, res) => {
     if (driver_full_info?.is_blocked) {
       return res.send({
                         code: constant.error_code,
-                        message: "This driver has been bocked by the administration.",
+                        message: res.__("getDrivers.error.driverBlocked"),
                       });
     }
 
@@ -2318,7 +2318,7 @@ exports.alocate_driver = async (req, res) => {
       if (!update_trip) {
         return res.send({
                           code: constant.error_code,
-                          message: `The system was unable to assign the driver.`,
+                          message: res.__("getDrivers.error.unableToAssignDriver"),
                         });
       } 
 
@@ -2329,7 +2329,7 @@ exports.alocate_driver = async (req, res) => {
         emitTripAssignedToSelf(update_trip , req.companyPartnerAccess , driver_full_info , req.io , )
         return res.send({
                         code: constant.success_code,
-                        message: "Driver allocated successfully",
+                        message:  res.__("getDrivers.success.allocatedDriver"),
                         // data: { trip: update_trip, company: req.user },
                       }); 
       }
@@ -2347,8 +2347,8 @@ exports.alocate_driver = async (req, res) => {
         if (token_value) {
           await sendNotification(
                                   token_value,
-                                  `A new trip (ID: T-${update_trip.trip_id}) is available. Accept within ${process.env.TRIP_POP_UP_SHOW_TIME} seconds to assign it to your account.`,
-                                  `Trip Offer: Action Required`,
+                                  res.__("getTrip.success.tripOfferMessage" , {trip_id: update_trip.trip_id , TRIP_POP_UP_SHOW_TIME: process.env.TRIP_POP_UP_SHOW_TIME}),
+                                  res.__("getTrip.success.tripOfferTitle"),
                                   {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
                                 );
 
@@ -2357,8 +2357,8 @@ exports.alocate_driver = async (req, res) => {
         if (web_token_value) {
           await sendNotification(
                                   web_token_value,
-                                  `A new trip (ID: T-${update_trip.trip_id}) is available. Accept within ${process.env.TRIP_POP_UP_SHOW_TIME} seconds to assign it to your account.`,
-                                  `Trip Offer: Action Required`,
+                                  res.__("getTrip.success.tripOfferMessage" , {trip_id: update_trip.trip_id , TRIP_POP_UP_SHOW_TIME: process.env.TRIP_POP_UP_SHOW_TIME}),
+                                  res.__("getTrip.success.tripOfferTitle"),
                                   {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
                                 );
         }
@@ -2408,7 +2408,7 @@ exports.alocate_driver = async (req, res) => {
       
       return res.send({
                         code: constant.success_code,
-                        message: "Driver allocated successfully",
+                        message: res.__("getDrivers.success.allocatedDriver"),
                         // data: { trip: update_trip, company: req.user },
                       });
       
@@ -2426,12 +2426,12 @@ exports.alocate_driver = async (req, res) => {
       if (!update_trip) {
         return res.send({
                           code: constant.error_code,
-                          message: "Unable to allocate the driver",
+                          message: res.__("getDrivers.error.unableToAssignDriver")
                         });
       } else {
         return res.send({
                           code: constant.success_code,
-                          message: "Cancelled successfully",
+                          message: res.__("getTrip.success.tripCancelled"),
                         });
       }
     }
@@ -2447,7 +2447,7 @@ exports.access_alocate_driver = async (req, res) => {
   try {
     let data = req.body;
 
-    if (req.user.role == "DRIVER") {
+    if (req.user.role == constant.ROLES.DRIVER) {
       let is_driver_has_company_access = await isDriverHasCompanyAccess(
                                                                           req.user,
                                                                           req.body.company_id
@@ -2456,13 +2456,13 @@ exports.access_alocate_driver = async (req, res) => {
       if (!is_driver_has_company_access) {
         return res.send({
                           code: constant.ACCESS_ERROR_CODE,
-                          message: "The company's access has been revoked",
+                          message: res.__("updateAccountAccess.error.accessRevoked"),
                         });
       }
     } else {
       return res.send({
                           code: constant.ACCESS_ERROR_CODE,
-                          message:`You are not authorized to perform this action.`,
+                          message: res.__("updateAccountAccess.error.accessDenied"),
                         });
     }
 
@@ -2472,7 +2472,7 @@ exports.access_alocate_driver = async (req, res) => {
     if (!check_trip) {
       return res.send({
                         code: constant.error_code,
-                        message: "Trip not found. Please check the trip ID and try again.",
+                        message: res.__("getTrip.error.tripNotFound"),
                       });
     }
 
@@ -2481,7 +2481,7 @@ exports.access_alocate_driver = async (req, res) => {
     if (!driver_full_info) {
       return res.send({
                         code: constant.error_code,
-                        message: "Driver not available",
+                        message: res.__("getDrivers.error.noneAvailable")
                       });
       
     }
@@ -2489,11 +2489,11 @@ exports.access_alocate_driver = async (req, res) => {
     if (driver_full_info?.is_blocked) {
       return res.send({
                         code: constant.error_code,
-                        message: "This driver has been bocked by the administration.",
+                        message: res.__("getDrivers.error.driverBlocked"),
                       });
     }
 
-    if (data.status != "Canceled") {
+    if (data.status != constant.TRIP_STATUS.CANCELED) {
 
       const driverStatus = await canDriverOperate(driver_full_info._id);
 
@@ -2522,7 +2522,7 @@ exports.access_alocate_driver = async (req, res) => {
       if (!update_trip) {
         return res.send({
                           code: constant.error_code,
-                          message: `The system was unable to assign the driver.`,
+                          message: res.__("getDrivers.error.unableToAssignDriver"),
                         });
       }
 
@@ -2534,7 +2534,7 @@ exports.access_alocate_driver = async (req, res) => {
 
         return res.send({
                         code: constant.success_code,
-                        message: "Driver allocated successfully",
+                        message: res.__("getDrivers.success.allocatedDriver"),
                         // data: { trip: update_trip, company: req.user },
                       }); 
       }
@@ -2550,8 +2550,8 @@ exports.access_alocate_driver = async (req, res) => {
         if (token_value) {
 
           await sendNotification( token_value, 
-                                `A new trip (ID: T-${update_trip.trip_id}) is available. Accept within ${process.env.TRIP_POP_UP_SHOW_TIME} seconds to assign it to your account.`,
-                                `Trip Offer: Action Required`, 
+                                  res.__("getTrip.success.tripOfferMessage" , {trip_id: update_trip.trip_id , TRIP_POP_UP_SHOW_TIME: process.env.TRIP_POP_UP_SHOW_TIME}),
+                                  res.__("getTrip.success.tripOfferTitle"),
                                 {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
                               );
         }
@@ -2559,8 +2559,8 @@ exports.access_alocate_driver = async (req, res) => {
         if (web_token_value) {
           await sendNotification(
                                   web_token_value,
-                                  `A new trip (ID: T-${update_trip.trip_id}) is available. Accept within ${process.env.TRIP_POP_UP_SHOW_TIME} seconds to assign it to your account.`,
-                                  `Trip Offer: Action Required`,
+                                  res.__("getTrip.success.tripOfferMessage" , {trip_id: update_trip.trip_id , TRIP_POP_UP_SHOW_TIME: process.env.TRIP_POP_UP_SHOW_TIME}),
+                                  res.__("getTrip.success.tripOfferTitle"),
                                   {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
                                 );
         }
@@ -2613,7 +2613,7 @@ exports.access_alocate_driver = async (req, res) => {
 
       return res.send({
                         code: constant.success_code,
-                        message: "Driver allocated successfully",
+                        message: res.__("getDrivers.success.allocatedDriver"),
                         // data: { trip: update_trip, company: req.user }
                       });
       
@@ -2631,13 +2631,13 @@ exports.access_alocate_driver = async (req, res) => {
       if (!update_trip) {
         return res.send({
                           code: constant.error_code,
-                          message: "Unable to allocate the driver",
+                          message: res.__("getDrivers.error.unableToAssignDriver"),
                         });
 
       } else {
         return res.send({
                           code: constant.success_code,
-                          message: "Cancelled successfully",
+                          message: res.__("getTrip.success.tripCancelled"),
                         });
       }
     }
@@ -2659,7 +2659,7 @@ exports.get_trip_detail = async (req, res) => {
     if (!tripExist) {
       return res.send({
         code: constant.error_code,
-        message: "Trip not found",
+        message: res.__("getTrip.error.noTripFound"),
       });
     }
 
@@ -2772,13 +2772,13 @@ exports.get_trip_detail = async (req, res) => {
     if (!getData[0]) {
       res.send({
         code: constant.error_code,
-        message: "Invalid ID",
+        message: res.__("getTrip.error.noTripFound"),
       });
     } else {
       let getUser = await AGENCY.findOne({ user_id: getData[0].created_by });
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripDataRetrieved"),
         result: getData[0],
         hotelName: getUser ? getUser.company_name : "N/A",
       });
@@ -2795,7 +2795,7 @@ exports.access_get_trip_detail = async (req, res) => {
   try {
     let data = req.body;
 
-    if (req.user.role == "DRIVER") {
+    if (req.user.role == constant.ROLES.DRIVER) {
       let is_driver_has_company_access = await isDriverHasCompanyAccess(
         req.user,
         req.params.company_id
@@ -2804,7 +2804,7 @@ exports.access_get_trip_detail = async (req, res) => {
       if (!is_driver_has_company_access) {
         return res.send({
           code: constant.ACCESS_ERROR_CODE,
-          message: "The company's access has been revoked",
+          message: res.__("updateAccountAccess.error.accessRevoked")
         });
       }
     }
@@ -2916,13 +2916,13 @@ exports.access_get_trip_detail = async (req, res) => {
     if (!getData[0]) {
       res.send({
         code: constant.error_code,
-        message: "Invalid ID",
+        message: res.__("getTrip.error.noTripFound"),
       });
     } else {
       let getUser = await AGENCY.findOne({ user_id: getData[0].created_by });
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripDataRetrieved"),
         result: getData[0],
         hotelName: getUser ? getUser.company_name : "N/A",
       });
@@ -2994,7 +2994,7 @@ exports.calculatePrice = async (req, res) => {
     if (!fareDetail) {
       return res.send({
                         code: constant.error_code,
-                        message: `No fare availabe for selected type`,
+                        message: res.__("getFare.error.nofareAvailable"),
                         d: {car_type_id: car_type_id , created_by: companyId}
                       });
     }
@@ -3005,7 +3005,7 @@ exports.calculatePrice = async (req, res) => {
     if(element.status === 'ZERO_RESULTS') {
       return res.send({
                         code: constant.error_code,
-                        message: `We couldn’t calculate the route. Ensure you’ve entered detailed addresses, including street and city etc.`
+                        message: res.__("getTrip.error.calculationFailed")
                       });
     }
 
@@ -3097,7 +3097,7 @@ exports.get_counts_dashboard = async (req, res) => {
     let data = req.body;
 
     let mid = new mongoose.Types.ObjectId(req.userId);
-    let getIds = await USER.find({ role: "HOTEL", created_by: req.userId });
+    let getIds = await USER.find({ role: constant.ROLES.HOTEL, created_by: req.userId });
 
     let search_value = data.comment ? data.comment : "";
     let ids = [];
@@ -3111,7 +3111,7 @@ exports.get_counts_dashboard = async (req, res) => {
         $match: {
           $and: [
             { status: true },
-            { trip_status: "Booked" },
+            { trip_status: constant.TRIP_STATUS.BOOKED },
             { is_deleted: false },
           ],
         },
@@ -3122,7 +3122,7 @@ exports.get_counts_dashboard = async (req, res) => {
         $match: {
           $and: [
             { status: true },
-            { trip_status: "Completed" },
+            { trip_status: constant.TRIP_STATUS.COMPLETED },
             { is_deleted: false },
           ],
         },
@@ -3133,7 +3133,7 @@ exports.get_counts_dashboard = async (req, res) => {
         $match: {
           $and: [
             { status: true },
-            { trip_status: "Pending" },
+            { trip_status: constant.TRIP_STATUS.PENDING },
             { is_deleted: false },
           ],
         },
@@ -3144,16 +3144,17 @@ exports.get_counts_dashboard = async (req, res) => {
         $match: {
           $and: [
             { status: true },
-            { trip_status: "Canceled" },
+            { trip_status: constant.TRIP_STATUS.CANCELED },
             { is_deleted: false },
           ],
         },
       },
     ]);
-    let companyCount = await USER.find({ role: "COMPPANY" }).countDocuments();
+    let companyCount = await USER.find({ role: constant.ROLES.COMPANY }).countDocuments();
+
     res.send({
       code: constant.success_code,
-      message: "success",
+      message: res.__("getTrip.success.dashboardCountSuccess"),
       result: {
         bookedTrips: bookedTrip.length,
         cancelTrips: cancelTrip.length,
@@ -3190,7 +3191,7 @@ exports.add_trip1 = async (req, res) => {
     if (!checkCompanyId) {
       res.send({
         code: constant.error_code,
-        message: "Invalid company ID",
+        message: res.__("companyGetFares.error.invalidCompany"),
       });
     }
 
@@ -3476,19 +3477,19 @@ exports.add_trip1 = async (req, res) => {
       client.messages.create({
         to: data.phone,
         from: "+3197010204679",
-        body: "Your booking has been created",
+        body: res.__("getTrip.success.tripBookingCreated"),
       });
     }
 
     if (!add_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to create the trip",
+        message: res.__("addTrip.error.unableToCreateTrip"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Saved Successfully",
+        message: res.__("addTrip.success.tripAdded"),
         result: add_trip,
       });
     }
@@ -3502,18 +3503,16 @@ exports.add_trip1 = async (req, res) => {
 
 exports.check_company_id = async (req, res) => {
   try {
-    let checkCompanyId = await AGENCY.findOne({
-      company_id: req.params.company_id,
-    });
+    let checkCompanyId = await AGENCY.findOne({ company_id: req.params.company_id,});
     if (!checkCompanyId) {
       res.send({
         code: constant.error_code,
-        message: "Invalid company ID",
+        message: res.__("companyGetFares.error.invalidCompany"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("addSubAdmin.success.infoRetrievedSuccess"),
         result: checkCompanyId,
       });
     }

@@ -91,10 +91,16 @@
     },
     "getDrivers": {
         "error": {
-            "noDriversFoundForAgencyUser": "No drivers are associated with the agency user."
+            "noDriversFoundForAgencyUser": "No drivers are associated with the agency user.",
+            "noDriverFound": "No driver found in the system.",
+            "inValidDriver": "The provided driver ID is invalid or does not exist.",
+            "driverBlocked": "The driver has been blocked by administration.",
+            "unableToAssignDriver": "An error occurred while assigning the driver. Please try again later.",
+            "noneAvailable": "No drivers are currently available for assignment."
         },
         "success": {
-            "driverListRetrieved": "Driver list has been successfully fetched."
+            "driverListRetrieved": "Driver list has been successfully fetched.",
+            "allocatedDriver": "Driver has been successfully assigned."
         }
     },
     "getActiveDrivers": {
@@ -198,14 +204,23 @@
     "getTrip": {
         "error": {
             "unableToRetrieveTrip": "An error occurred while fetching trips.",
-            "noTripFound": "No trips found for the specified criteria.",
-            "unableToCreateTripRequest": "An error occurred while creating the trip request."
+            "noTripFound": "No relevant trip data found in the system",
+            "unableToCreateTripRequest": "An error occurred while creating the trip request.",
+            "noDataFound": "No records available.",
+            "noTripRequestFound": "No trip request found.",
+            "inValidTrip": "The specified trip does not exist in our system. Please verify the trip and try again.",
+            "calculationFailed": "We couldn’t calculate the route. Ensure you’ve entered detailed addresses, including street and city etc."
         },
         "success": {
             "tripDataRetrieved": "Trip details retrieved successfully",
             "dashboardCountsRetrieved": "Dashboard counts retrieved successfully.",
             "tripListRetrieved": "Trip list has been successfully fetched.",
-            "tripRequestCreated": "Trip request has been created successfully."
+            "tripRequestCreated": "Trip request has been created successfully.",
+            "tripOfferTitle": "Trip Offer: Action Required",
+            "tripOfferMessage": "A new trip (ID: T-{{trip_id}}) is available. Accept within {{IP_POP_UP_SHOW_TIME}} seconds to assign it to your account.",
+            "tripCancelled": "The trip has been cancelled successfully.",
+            "dashboardCountSuccess": "Dashboard counts retrieved successfully.",
+            "tripBookingCreated": "Your booking has been created."
         }
     },
     "noShowUser": {
@@ -327,7 +342,8 @@
     "getFare": {
         "error": {
             "invalidUser": "Unauthorized access attempt detected",
-            "noDataFound": "No records available."
+            "noDataFound": "No records available.",
+            "nofareAvailable": "No fare available for selected type."
         },
         "success": {
             "fareRetrieved": "Fare retrieved successfully."
@@ -471,7 +487,8 @@
             "selfAssignPartnerAccountNotAllowed": "You are not permitted to assign partner account access to yourself.",
             "accessDenied": "You are not permitted to access this section",
             "driverNotFound": "The specified driver does not exist or is not registered in the system",
-            "noDriversFound": "No drivers found"
+            "noDriversFound": "No drivers found",
+            "accessRevoked": "The company's access has been revoked"
         },
         "success": {
             "accountRevokedSuccess": "Account revoked successfully from the driver",
