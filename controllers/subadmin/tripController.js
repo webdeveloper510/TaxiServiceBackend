@@ -70,13 +70,13 @@ exports.get_trip = async (req, res) => {
     let search_value = data.comment ? data.comment : "";
     let dateQuery = await dateFilter(data );
 
-    if (req.params.status == "Pending") {
+    if (req.params.status == constant.TRIP_STATUS.PENDING) {
       query = [
         { created_by: mid, status: true },
         {
           $or: [
             { trip_status: req.params.status },
-            { trip_status: "Accepted" },
+            { trip_status: constant.TRIP_STATUS.ACCEPTED },
           ],
         },
         {
