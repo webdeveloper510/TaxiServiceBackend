@@ -524,6 +524,7 @@
     "getVehicle": {
         "error": {
             "vehicleNameAlreadyInUse": "The specified vehicle type already exists.",
+            "invalidVehicle": "The specified vehicle is invalid or does not exist. Please verify and try again.",
             "invalidVehicleType": "The specified vehicle type is invalid or does not exist. Please verify and try again.",
             "vehicleNumberAlreadyInUse": "This vehicle number is already registered",
             "unableToAddVehicle": "An error occurred while adding the vehicle. Try again later or contact support if needed.",
@@ -535,7 +536,7 @@
         "success": {
             "getVehicleType": "Vehicle types retrieved successfully.",
             "carTypeAdded": "Car type has been added successfully.",
-            "vehicleListRetrieved": "Vehicle list has been successfully fetched.",
+            "vehicleListRetrieved": "Record has been successfully fetched.",
             "vehicleAdded": "Vehicle has been added successfully",
             "vehicleUpdated": "The vehicle has been updated successfully.",
             "vehicleDeleted": "The vehicle has been deleted successfully."

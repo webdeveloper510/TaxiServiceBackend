@@ -35,12 +35,12 @@ exports.get_vehicle_types = async (req, res) => {
         if (!get_data) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the data"
+                message: res.__("getVehicle.error.noVehicleFound")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("getVehicle.success.vehicleListRetrieved"),
                 result: get_data
             })
         }
@@ -60,7 +60,7 @@ exports.add_vehicle = async (req, res) => {
             if (checkVehicle) {
                 res.send({
                     code: constant.error_code,
-                    message: "Vehicle is already exist with this vehicle number"
+                    message: res.__("getVehicle.error.vehicleNumberAlreadyInUse")
                 })
                 return;
             }
@@ -70,12 +70,12 @@ exports.add_vehicle = async (req, res) => {
             if (!save_data) {
                 res.send({
                     code: constant.error_code,
-                    message: "Unable to create the vehicle"
+                    message: res.__("getVehicle.error.unableToAddVehicle")
                 })
             } else {
                 res.send({
                     code: constant.success_code,
-                    message: "Created Successfully",
+                    message: res.__("getVehicle.success.vehicleAdded"),
                     result: save_data
                 })
             }
@@ -95,12 +95,12 @@ exports.get_vehicles = async (req, res) => {
         if (!get_vehicle) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the details"
+                message: res.__("getVehicle.error.noVehicleFound")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("getVehicle.success.vehicleListRetrieved"),
                 result: get_vehicle
             })
         }
@@ -118,12 +118,12 @@ exports.get_vehicle_detail = async (req, res) => {
         if (!getData) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the details"
+                message: res.__("getVehicle.error.noVehicleFound")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("getVehicle.success.vehicleListRetrieved"),
                 result: getData
             })
         }
@@ -144,7 +144,7 @@ exports.edit_vehicle = async (req, res) => {
         if (!check_vehicle) {
             res.send({
                 code: constant.error_code,
-                message: "Invalid ID"
+                message: res.__("getVehicle.error.invalidVehicle")
             })
             return;
         }
@@ -152,12 +152,12 @@ exports.edit_vehicle = async (req, res) => {
         if (!updateVehicle) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to update the details"
+                message: res.__("getVehicle.error.updateFailed")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Updated successfully",
+                message: res.__("getVehicle.success.vehicleUpdated"),
                 result: updateVehicle
             })
         }
@@ -182,12 +182,12 @@ exports.delete_vehicle = async(req,res)=>{
         if(!deleteOption){
             res.send({
                 code:constant.error_code,
-                message:"Unable to Delete Vehicle"
+                message: res.__("getVehicle.error.deleteFailed"),
             })
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Deleted"
+                message: res.__("getVehicle.success.vehicleDeleted"),
             })
         }
     }catch(err){
