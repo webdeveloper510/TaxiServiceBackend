@@ -10,7 +10,7 @@ exports.add_fare = async (req, res) => {
         if (checkFare) {
             res.send({
                 code: constant.error_code,
-                message: "You already added fare this vehicle type"
+                message: res.__("addFare.error.fareAlreadyExistsForVehicleType")
             })
             return;
         }
@@ -19,12 +19,12 @@ exports.add_fare = async (req, res) => {
         if(!save_data){
             res.send({
                 code:constant.error_code,
-                message:"Unable to create the fare"
+                message: res.__("addFare.error.unableToAddFare")
             })
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Saved successfully",
+                message: res.__("addFare.success.fareAdded"),
                 result:save_data
             })
         }
@@ -43,12 +43,12 @@ exports.get_fares = async(req,res)=>{
         if(!getData){
             res.send({
                 code:constant.error_code,
-                message:"No Data Found"
+                message: res.__("getFare.error.noDataFound")
             })
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Successfully fetched",
+                message: res.__("getFare.success.fareRetrieved"),
                 result:getData
             })
         }
@@ -67,12 +67,12 @@ exports.get_fare_detail = async(req,res)=>{
         if(!getFareDetail){
             res.send({
                 code:constant.error_code,
-                message:"Unable to fetch the details"
+                message: res.__("getFare.error.noDataFound")
             })
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Success",
+                message: res.__("getFare.success.fareRetrieved"),
                 resizeTo:getFareDetail
             })
         }
@@ -98,12 +98,12 @@ exports.delete_fare = async(req,res)=>{
         if(!delete_fare){
             res.send({
                 code:constant.error_code,
-                message:"Unable to delete the fare"
+                message: res.__("deleteFares.error.unableToDeleteFare")
             })
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Deleted Successfully"
+                message: res.__("deleteFares.success.fareDeleted")
             })
         }
     }catch(err){
@@ -123,12 +123,12 @@ exports.edit_fare = async(req,res)=>{
         if(!update_fare){
             res.send({
                 code:constant.error_code,
-                message:"Unable to update the fare"
+                message: res.__("addFare.error.unableToAddFare")
             })
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Updated successfully",
+                message: res.__("addFare.success.fareUpdated"),
                 result:update_fare
             })
         }
