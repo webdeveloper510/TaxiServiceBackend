@@ -12,7 +12,7 @@ exports.add_sub_admin = async (req, res) => {
         if (checkEmail) {
             res.send({
                 code: constant.error_code,
-                message: "Email is already registered"
+                message:  res.__("addDriver.error.emailAlreadyInUse")
             })
             return;
         }
@@ -20,7 +20,7 @@ exports.add_sub_admin = async (req, res) => {
         if (checkPhone) {
             res.send({
                 code: constant.error_code,
-                message: "Phone Number is already exist"
+                message: res.__("addDriver.error.phoneAlreadyInUse")
             })
             return;
         }
@@ -32,13 +32,13 @@ exports.add_sub_admin = async (req, res) => {
         if (!save_data) {
             res.send({
                 code: constant.error_code,
-                message: 'Something went wrong'
+                message: res.__("addDriver.error.saveFailed")
             })
         } else {
             let jwtToken = jwt.sign({ userId: save_data._id, email: save_data.email, role: save_data.role }, process.env.JWTSECRET, { expiresIn: '365d' })
             res.send({
                 code: constant.success_code,
-                message: 'Sub admin added successfully',
+                message: res.__("addSubAdmin.success.subAdminAdded"),
                 result: save_data,
                 jwtToken: jwtToken
             })
@@ -59,12 +59,12 @@ exports.get_sub_admins = async (req, res) => {
         if (!get_data) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the data"
+                message: res.__("addSubAdmin.error.noUserFound")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("addSubAdmin.success.companyListRetrieved"),
                 result: get_data
             })
         }
@@ -83,12 +83,12 @@ exports.get_sub_admin_detail = async (req, res) => {
         if (!check_detail) {
             res.send({
                 code: constant.error_code,
-                message: "Unable to fetch the detail"
+                message: res.__("addSubAdmin.error.noUserFound")
             })
         } else {
             res.send({
                 code: constant.success_code,
-                message: "Success",
+                message: res.__("addSubAdmin.success.infoRetrievedSuccess"),
                 result: check_detail
             })
         }
@@ -109,7 +109,7 @@ exports.edit_sub_admin = async (req, res) => {
         if (!checkSubAdmin) {
             res.send({
                 code: constant.error_code,
-                message: "Invalid ID"
+                message: res.__("addSubAdmin.error.invalidData")
             })
             return;
         }
@@ -117,12 +117,12 @@ exports.edit_sub_admin = async (req, res) => {
         if(!update_data){
             res.send({
                 code:constant.error_code,
-                message:"Unable to update the data"
+                message: res.__("addSubAdmin.error.unableToupdate")
             })
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Updated successfull",
+                message: res.__("addSubAdmin.success.subAdminUpdated"),
                 result:update_data
             })
         }
@@ -149,12 +149,12 @@ exports.delete_sub_admin = async(req,res)=>{
         if(!deleteSubAdmin){
             res.send({
                 code:constant.error_code,
-                message:"Unable to delete the sub admin"
+                message: res.__("addSubAdmin.error.subadminDeleteError")
             })
         }else{
             res.send({
                 code:constant.success_code,
-                message:"Deleted"
+                message: res.__("addSubAdmin.success.subAdminAccountDeleted")
             })
         }
 
