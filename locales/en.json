@@ -551,5 +551,26 @@
             "userBlocked": "The {{role}} has been blocked successfully.",
             "userUnblocked": "The user{{role}} has been unblocked successfully."
         }
+    },
+    "priceUpload": {
+        "error": {
+            "accessDenied": "You are not allowed to performed this action.",
+            "noDataFound": "No data found in the uploaded file.",
+            "invalidFileType": "The uploaded file type is not supported. Please upload a valid file.",
+            "invalidPriceType": "The price type is invalid. Please ensure it is one of the supported types.",
+            "fileUploadFailed": "An error occurred while uploading the file. Please try again later.",
+            "fileNotFound": "The specified file could not be found.",
+            "invalidFileFormat": "The uploaded file format is invalid. Please ensure it meets the required specifications.",
+            "missingColumns": "`Missing required columns: {{columns}}. Please ensure the file contains all necessary columns.",
+            "unexpectedExtraColumns": "Unexpected extra columns found:: {{columns}}. Please remove them and try again.",
+            "emptyRowFields": "Row {{row_no}} has an empty value for {{field}}.",
+            "inValidAmount": "`Row {{row_no}} has an invalid 'Amount'. It must be a number (integer or decimal)",
+            "noPricefound": "No price found in the system"
+        },
+        "success": {
+            "fileUploaded": "The file has been uploaded successfully.",
+            "fileProcessed": "The file has been processed successfully.",
+            "priceUpdated": "The price has been updated successfully."
+        }
     }
 }

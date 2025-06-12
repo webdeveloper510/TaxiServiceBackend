@@ -15,7 +15,7 @@ exports.priceUpload = async (req, res) => {
             if (err) {
                 return res.send({
                                     code: constant.error_code,
-                                    message: `File upoaded failed`,
+                                    message: res.__("priceUpload.error.fileUploadFailed")
                                 });
             }
 
@@ -23,21 +23,21 @@ exports.priceUpload = async (req, res) => {
 
                 return res.send({
                                     code: constant.error_code,
-                                    message: `You are not allowed to performed this action`,
+                                    message: res.__("priceUpload.error.accessDenied")
                                 });
             }
 
             if (!req.file) {
                 return res.send({
                                     code: constant.error_code,
-                                    message: `No file upoad`,
+                                    message: res.__("priceUpload.error.fileNotFound")
                                 });
             }
 
             if (req.body.upload_price_type == undefined || req.body.upload_price_type == '') {
                 return res.send({
                                     code: constant.error_code,
-                                    message: `Invalid upload price type`,
+                                    message: res.__("priceUpload.error.invalidPriceType")
                                 });
             }
 
@@ -53,7 +53,7 @@ exports.priceUpload = async (req, res) => {
             if (jsonData.length === 0) {
                 return res.send({
                     code: constant.error_code,
-                    message: "Empty file or no data found.",
+                    message: res.__("priceUpload.error.noDataFound")
                 });
             }
 
@@ -87,14 +87,14 @@ exports.priceUpload = async (req, res) => {
             if (missingColumns.length > 0) {
                 return res.send({
                     code: constant.error_code,
-                    message: `Missing required columns: ${missingColumns.join(", ")}`
+                    message: res.__("priceUpload.error.missingColumns", { columns: missingColumns.join(", ") })
                 });
             }
 
             if (extraColumns.length > 0) {
                 return res.send({
                     code: constant.error_code,
-                    message: `Unexpected extra columns found: ${extraColumns.join(", ")}`
+                    message:  res.__("priceUpload.error.unexpectedExtraColumns", { columns: extraColumns.join(", ") })
                 });
             }
 
@@ -107,7 +107,7 @@ exports.priceUpload = async (req, res) => {
                     if (!row[field] || row[field].toString()?.trim() === "") {
                         return res.send({
                             code: constant.error_code,
-                            message: `Row ${i + 2} has an empty value for '${field}'.`
+                            message: res.__("priceUpload.error.emptyRowFields", { row_no: i + 2, field: field })
                         });
                     }
                 }
@@ -117,7 +117,7 @@ exports.priceUpload = async (req, res) => {
                 if (!row["Amount"] || isNaN(row["Amount"])) {
                     return res.send({
                         code: constant.error_code,
-                        message: `Row ${i + 2} has an invalid 'Amount'. It must be a number (integer or decimal).`
+                        message: res.__("priceUpload.error.inValidAmount", { row_no: i + 2 })
                     });
                 }
             }
@@ -162,7 +162,7 @@ exports.priceUpload = async (req, res) => {
 
             return res.json({
                 code: constant.success_code,
-                message: "File processed successfully",
+                message: res.__("priceUpload.success.fileProcessed")
             });
         });
         
@@ -313,21 +313,21 @@ exports.upateUploadedPrice = async (req, res) => {
                                                                 );
                 return  res.send({
                                     code: constant.success_code,
-                                    message: `Data updated successfuly`,
+                                    message: res.__("priceUpload.success.priceUpdated"),
                                     });
                 
                 
-            }else {
+            } else {
 
                 return  res.send({
                                     code: constant.error_code,
-                                    message: `Data not found`,
+                                    message: res.__("priceUpload.error.noPricefound")
                                 });
             }
         } else {
             return res.send({
                 code: constant.error_code,
-                message: `You are not allowed to performed this action`,
+                message: res.__("priceUpload.error.accessDenied")
             });
         }
         
