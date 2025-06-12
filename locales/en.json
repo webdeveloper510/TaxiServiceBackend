@@ -93,6 +93,7 @@
         "error": {
             "noDriversFoundForAgencyUser": "No drivers are associated with the agency user.",
             "noDriverFound": "No driver found in the system.",
+            "noDriverFoundForAgency": "No drivers found for the agency user.",
             "inValidDriver": "The provided driver ID is invalid or does not exist.",
             "driverBlocked": "The driver has been blocked by administration.",
             "unableToAssignDriver": "An error occurred while assigning the driver. Please try again later.",
@@ -489,7 +490,8 @@
             "accessDenied": "You are not permitted to access this section",
             "driverNotFound": "The specified driver does not exist or is not registered in the system",
             "noDriversFound": "No drivers found",
-            "accessRevoked": "The company's access has been revoked"
+            "accessRevoked": "The company's access has been revoked",
+            "accessNotAssigned": "No company account access has been assigned to you."
         },
         "success": {
             "accountRevokedSuccess": "Account revoked successfully from the driver",

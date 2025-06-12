@@ -69,12 +69,12 @@ exports.add_driver = async (req, res) => {
       if (!save_driver) {
         res.send({
           code: constant.error_code,
-          message: "Unable to save the data",
+          message: res.__("addDriver.error.saveFailed"),
         });
       } else {
         res.send({
           code: constant.success_code,
-          message: "Driver created successfully",
+          message: res.__("addDriver.success.driverCreated"),
           result: save_driver,
         });
       }
@@ -99,13 +99,13 @@ exports.remove_driver = async (req, res) => {
       removedDriver.save();
       res.send({
         code: constant.success_code,
-        message: "Driver deleted successfully",
+        message: res.__("deleteDriver.success.driverDeleted"),
         result: removedDriver,
       });
     } else {
       res.send({
         code: constant.error_code,
-        message: "Driver not found",
+        message: res.__("getDrivers.error.noDriverFound"),
       });
     }
   } catch (err) {
@@ -131,7 +131,7 @@ exports.get_driver_detail = async (req, res) => {
     if (!driver) {
       res.send({
         code: constant.error_code,
-        message: "Unable to fetch the detail",
+        message: res.__("getDriverDetail.error.unableToFetchDriverDetails"),
       });
     } else {
       let currentDate = new Date();
@@ -189,7 +189,7 @@ exports.get_driver_detail = async (req, res) => {
 
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getDriverDetail.success.driverDetailsFetched"),
         partner_access: partnerCompanyAccess,
         result,
         totalActiveTrips,
@@ -228,13 +228,13 @@ exports.get_drivers = async (req, res) => {
     if (drivers) {
       res.send({
         code: constant.success_code,
-        message: "Driver list retrieved successfully",
+        message: res.__("getDrivers.success.driverListRetrieved"),
         result: drivers,
       });
     } else {
       res.send({
         code: constant.error_code,
-        message: "No drivers found for the agency user",
+        message: res.__("getDrivers.error.noDriverFoundForAgency"),
       });
     }
   } catch (err) {
@@ -299,7 +299,7 @@ exports.reset_password = async (req, res) => {
     if (!check_id) {
       res.send({
         code: constant.success_code,
-        message: "Invalid ID",
+        message: res.__("getDrivers.error.noDriverFound"),
       });
       return;
     }
@@ -310,7 +310,7 @@ exports.reset_password = async (req, res) => {
     if (!check_password) {
       res.send({
         code: constant.error_code,
-        message: "Old password is not correct",
+        message: res.__("resetPassword.error.incorrectOldPassword"),
       });
     } else {
       let values = {
@@ -327,12 +327,12 @@ exports.reset_password = async (req, res) => {
       if (!updateData) {
         res.send({
           code: constant.error_code,
-          message: "Unable to update the password",
+          message: res.__("resetPassword.error.passwordUpdateFailed"),
         });
       } else {
         res.send({
           code: constant.success_code,
-          message: "Updated successfully",
+          message: res.__("resetPassword.success.passwordReset"),
           checking: updateData.password,
         });
       }
@@ -491,7 +491,7 @@ exports.get_trips_for_driver = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noDataFound")
       });
     } else {
       let currentDate = new Date();
@@ -502,11 +502,11 @@ exports.get_trips_for_driver = async (req, res) => {
       );
       const totalActiveTrips = await TRIP.find({
         driver_name: req.userId,
-        trip_status: "Active",
+        trip_status: constant.TRIP_STATUS.ACTIVE,
       }).countDocuments();
       const totalUnpaidTrips = await TRIP.find({
         driver_name: req.userId,
-        trip_status: "Completed",
+        trip_status: constant.TRIP_STATUS.COMPLETED,
         is_paid: false,
         drop_time: {
           $lte: startOfCurrentWeek,
@@ -515,13 +515,13 @@ exports.get_trips_for_driver = async (req, res) => {
 
       const totalReachedTrip = await TRIP.find({
         driver_name: req.userId,
-        trip_status: "Reached",
+        trip_status: constant.TRIP_STATUS.REACHED,
         is_paid: false,
       }).countDocuments();
 
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripDataRetrieved"),
         result: get_trip,
         totalActiveTrips,
         totalUnpaidTrips,
@@ -656,7 +656,7 @@ exports.get_trips_for_drivers = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noDataFound"),
       });
     } else {
       let currentDate = new Date();
@@ -667,11 +667,11 @@ exports.get_trips_for_drivers = async (req, res) => {
       );
       const totalActiveTrips = await TRIP.find({
         driver_name: req.userId,
-        trip_status: "Active",
+        trip_status: constant.TRIP_STATUS.ACTIVE,
       }).countDocuments();
       const totalUnpaidTrips = await TRIP.find({
         driver_name: req.userId,
-        trip_status: "Completed",
+        trip_status: constant.TRIP_STATUS.COMPLETED,
         is_paid: false,
         drop_time: {
           $lte: startOfCurrentWeek,
@@ -680,13 +680,13 @@ exports.get_trips_for_drivers = async (req, res) => {
 
       const totalReachedTrip = await TRIP.find({
         driver_name: req.userId,
-        trip_status: "Reached",
+        trip_status: constant.TRIP_STATUS.REACHED,
         is_paid: false,
       }).countDocuments();
 
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripDataRetrieved"),
         result: get_trip,
         totalActiveTrips,
         totalUnpaidTrips,
@@ -836,7 +836,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
     if (!get_trip) {
       res.send({
         code: constant.error_code,
-        message: "Unable to get the trips",
+        message: res.__("getTrip.error.noDataFound"),
         activePlans: getActivePaidPlans.length > 0 ? true  : false
       });
     } else {
@@ -851,13 +851,13 @@ exports.getAllTripsForDrivers = async (req, res) => {
 
       const totalActiveTrips = await  TRIP.find({
                                                   driver_name: id,
-                                                  trip_status: "Active",
+                                                  trip_status: constant.TRIP_STATUS.ACTIVE,
                                                 })
                                           .countDocuments();
 
       const totalUnpaidTrips = await TRIP.find({
                                                 driver_name: id,
-                                                trip_status: "Completed",
+                                                trip_status: constant.TRIP_STATUS.COMPLETED,
                                                 is_paid: false,
                                                 drop_time: {
                                                   $lte: startOfCurrentWeek,
@@ -867,7 +867,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
 
       const totalReachedTrip = await TRIP.find({
                                                 driver_name: id,
-                                                trip_status: "Reached",
+                                                trip_status: constant.TRIP_STATUS.REACHED,
                                                 is_paid: false,
                                                 under_cancellation_review: false
                                               })
@@ -881,7 +881,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
 
       return res.send({
                         code: constant.success_code,
-                        message: "Success",
+                        message: res.__("getTrip.success.tripDataRetrieved"),
                         activePlans: getActivePaidPlans.length > 0 ? true  : false,
                         totalCount: totalCount,
                         result: get_trip,
@@ -982,7 +982,7 @@ exports.login = async (req, res) => {
     if (!check_phone) {
       res.send({
         code: constant.error_code,
-        message: "Invalid Credentials",
+        message: res.__("userLogin.error.incorrectCredentials"),
       });
       return;
     }
@@ -994,7 +994,7 @@ exports.login = async (req, res) => {
     if (!check_password) {
       res.send({
         code: constant.error_code,
-        message: "Invalid Credentials",
+        message: res.__("userLogin.error.incorrectCredentials"),
       });
     } else {
       let jwtToken = jwt.sign(
@@ -1009,7 +1009,7 @@ exports.login = async (req, res) => {
       );
       res.send({
         code: constant.success_code,
-        message: "Login Successfully",
+        message: res.__("userLogin.success.loginWelcome"),
         result: updateData,
         jwtToken: jwtToken,
       });
@@ -1029,7 +1029,7 @@ exports.verify_otp = async (req, res) => {
     if (!check_id) {
       res.send({
         code: constant.error_code,
-        message: "Something went wrong, please try again",
+        message: res.__("getDrivers.error.noDriverFound"),
       });
     } else {
       let jwtToken = jwt.sign({ userId: check_id._id }, process.env.JWTSECRET, {
@@ -1043,12 +1043,12 @@ exports.verify_otp = async (req, res) => {
       if (!updateData) {
         res.send({
           code: constant.error_code,
-          message: "Unable to process the request",
+          message: res.__("getDrivers.error.unbaleToUpdate"),
         });
       } else {
         res.send({
           code: constant.success_code,
-          message: "Login Successfully",
+          message: res.__("userLogin.success.loginWelcome"),
           result: updateData,
         });
       }
@@ -1069,7 +1069,7 @@ exports.get_reports = async (req, res) => {
       query = [
         { status: true },
         { is_paid: true },
-        { trip_status: "Completed" },
+        { trip_status: constant.TRIP_STATUS.COMPLETED },
 
         { driver_name: new mongoose.Types.ObjectId(req.userId) },
       ];
@@ -1077,7 +1077,7 @@ exports.get_reports = async (req, res) => {
       query = [
         { status: true },
         { is_paid: true },
-        { trip_status: "Completed" },
+        { trip_status: constant.TRIP_STATUS.COMPLETED },
         { driver_name: new mongoose.Types.ObjectId(req.userId) },
         {
           pickup_date_time: {
@@ -1093,7 +1093,7 @@ exports.get_reports = async (req, res) => {
     });
     const totalPrice = get_data.reduce((sum, obj) => {
       let commission = obj?.commission?.commission_value || 0;
-      if (obj?.commission?.commission_type === "Percentage") {
+      if (obj?.commission?.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE) {
         commission = (obj.price / 100) * obj.commission.commission_value;
       }
       return sum + obj.price - commission;
@@ -1101,12 +1101,12 @@ exports.get_reports = async (req, res) => {
     if (!get_data) {
       res.send({
         code: constant.error_code,
-        message: "Unable to fetch the details",
+        message: res.__("getTrip.error.noDataFound"),
       });
     } else {
       res.send({
         code: constant.success_code,
-        message: "Success",
+        message: res.__("getTrip.success.tripDataRetrieved"),
         result: {
           trips: get_data.length,
           earning: totalPrice,
@@ -1170,7 +1170,7 @@ exports.company_access_list = async (req, res) => {
     } else {
       res.send({
         code: constant.error_code,
-        message: "You dont have any access",
+        message: res.__("updateAccountAccess.error.accessNotAssigned"),
       });
     }
   } catch (err) {
@@ -1202,15 +1202,15 @@ exports.favoriteDriver = async (req, res) => {
       // await user.save();
       await DRIVER.updateOne( { _id: user._id },  { $set: {favoriteDrivers: user.favoriteDrivers} }  );
       return res.send({
-        code: constant.success_code,
-        message: "Driver added successfully to favorite drivers",
-      });
+                        code: constant.success_code,
+                        message: res.__("favoriteDriver.success.driverAdded"),
+                      });
     } else {
       user.favoriteDrivers = user.favoriteDrivers.filter(id => !id.equals( driverId ));
       await DRIVER.updateOne( { _id: user._id },  { $set: {favoriteDrivers: user.favoriteDrivers} }  );
       return res.send({
         code: constant.success_code,
-        message: "Driver removed successfully from favorite driver",
+        message: res.__("favoriteDriver.success.driverRemoved"),
       });
     }
   } catch (err) {
@@ -1274,13 +1274,13 @@ exports.getDriverList = async (req, res) => {
       
       return res.send({
                         code: constant.success_code,
-                        message: "Driver list retrieved successfully",
+                        message: res.__("getDrivers.success.driverListRetrieved"),
                         result: result,
                       });
     } else {
       return res.send({
                         code: constant.error_code,
-                        message: "No drivers found for the agency user",
+                        message: res.__("getDrivers.error.noDriverFoundForAgency"),
                       });
     }
   } catch (err) {
