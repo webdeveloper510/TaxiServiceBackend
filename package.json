@@ -21,6 +21,7 @@
     "geolib": "^3.3.4",
     "http": "0.0.1-security",
     "http-errors": "~1.6.3",
+    "i18n": "^0.15.1",
     "iban": "^0.0.14",
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.29.4",

@@ -1,0 +1,77 @@
+{
+    "auth": {
+        "error": {
+            "tokenError": "Your session has expired or the token is invalid. Please log in again.",
+            "authTokenVerificationFailed": "Authentication token verification failed. Please re-authenticate",
+            "tokenExpired": "Your session has expired. Please log in again",
+            "blockedByAdmin": "Your account has been blocked by the administration. Please contact support for assistance",
+            "companyAccessWithdrawn": "The company has withdrawn access to the account"
+        }
+    },
+    "addDriver": {
+        "error": {
+            "nickNameAlreadyInUse": "Unfortunately, this nickname is taken. Please use a different nickname.",
+            "emailAlreadyInUse": "Email address is already associated with an existing account",
+            "phoneAlreadyInUse": "This phone number is already associated with an existing account",
+            "emailRegisteredAsCompany": "This email is already registered under a Company account. Please sign in to proceed with driver registration",
+            "phoneRegisteredAsCompany": "This phone is already registered under a Company account. Please sign in to proceed with driver registration",
+            "saveFailed": "An error occurred while saving your data. Please try again."
+        },
+        "success": {
+            "driverCreated": "Driver account has been created successfully."
+        }
+    },
+    "updateDriver": {
+        "error": {
+            "driverNotFound": "The requested driver could not be located.",
+            "emailExistsWithAnotherAccount": "This email is linked to another account. Please choose a different email.",
+            "phoneExistsWithAnotherAccount": "This phone is linked to another account. Please choose a different phone.",
+            "cannotGoOfflineWithActiveTrip": "You can't go offline while you have an active trip in progress. Please complete the trip first."
+        },
+        "success": {
+            "driverAccountUpdated": "Driver account has been updated successfully",
+            "emailDocumentUnderReviewConetnt": {
+                "welcomeToIDispatch": "Welcome to iDispatch!",
+                "driverRegistrationUnderReview": "Thank you for registering as a driver with us. Your driver profile is currently under review. Once approved, you will receive an email notification and be able to log in. We appreciate your patience.",
+                "visitAccountAndManage": "Start Managing Your Account"
+            }
+        }
+    },
+    "getTokenDetail": {
+        "error": {
+            "unableToFetchDetail": "Unable to retrieve the details at this time. Please try again later."
+        },
+        "success": {
+            "informationRetrieved": "Information retrieved successfully."
+        }
+    },
+    "addTrip": {
+        "error": {
+            "noActivePlanForTripCreation": "Trip creation is not allowed without an active plan. Please subscribe to a plan first.",
+            "unableToCreateTrip": "An error occurred while creating the trip. Please try again later.",
+            "companyAccessRevoked": "Access for the company has been revoked",
+            "invalidOrNonexistentCompany": "The specified company is invalid or does not exist"
+        },
+        "socket": {
+            "tripCreatedRefresh": "A new trip has been created. Kindly refresh to load the latest information."
+        },
+        "success": {
+            "tripAdded": "The trip has been created successfully"
+        }
+    },
+    "editTrip": {
+        "error": {
+            "noActivePlanForTripCreation": "Trip creation is not allowed without an active plan. Please subscribe to a plan first.",
+            "unableToUpdateTrip": "An error occurred while updating the trip. Please try again later.",
+            "companyAccessRevoked": "Access for the company has been revoked",
+            "invalidOrNonexistentCompany": "The specified company is invalid or does not exist"
+        },
+        "socket": {
+            "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",
+            "tripRetrivedByCompany": "Your trip request has been retrieved by the company."
+        },
+        "success": {
+            "tripUpdated": "The trip has been updated successfully"
+        }
+    }
+}

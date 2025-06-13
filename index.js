@@ -45,6 +45,8 @@ const jwt = require("jsonwebtoken");
 const constant = require("./config/constant.js");
 const httpServer = http.createServer(app);
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const i18n = require('./i18n');
+
 // view engine setup
 
 // Apply raw body parser specifically for Stripe webhook
@@ -397,6 +399,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
 
 
 app.use(logger("dev"));
+app.use(i18n.init);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -408,6 +411,11 @@ const io = new Server(httpServer, {
                                   }
                       );
 app.use((req, res, next) => {
+  console.log*('turning----')
+  const lang = req.query.lang || req.headers['accept-language'];
+  if (lang) {
+    req.setLocale(lang);
+  }
   req.io = io; // Set the io object in the request object
   next();
 });
@@ -428,6 +436,7 @@ app.get('/', (req, res) => {
 });
 
 app.use(function (err, req, res, next) {
+  
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
@@ -453,8 +462,8 @@ app.post( "/send-notification", async (req, res) => {
 app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
-    
-    initiateWeeklyCompanyPayouts(res);
+    res.json({ message: res.__('addDriver.error.nickNameAlreadyInUse') });
+    // initiateWeeklyCompanyPayouts(res);
     return 
     const balance = await stripe.balance.retrieve();
     let availableBalance = balance?.available[0]?.amount || 0;
