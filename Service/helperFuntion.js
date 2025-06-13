@@ -148,8 +148,8 @@ exports.stripeOnboardingAccountLink = async (accountId , user_id) => {
   try {
       const accountLink = await stripe.accountLinks.create({
           account: accountId,
-          refresh_url: `https://idispatch.nl/bank-account-verification-pending/${user_id}`,
-          return_url: `https://idispatch.nl/bank-account-verification-completed/${user_id}`,
+          refresh_url: `${process.env.BASEURL}/bank-account-verification-pending/${user_id}`,
+          return_url: `${process.env.BASEURL}/bank-account-verification-completed/${user_id}`,
           type: 'account_onboarding',
       });
 
@@ -1458,7 +1458,7 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
                 <tr>
                 <td class="">
                 <div class="">
-                <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://idispatch.nl/login">Visit Account and Start Managing</a>
+                <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.BASEURL}/login">Visit Account and Start Managing</a>
                 </div>
                 <br>
 
@@ -1509,7 +1509,7 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
                   <tr>
                   <td class="">
                   <div class="">
-                  <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://idispatch.nl/login">Visit Account and Start Managing</a>
+                  <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.BASEURL}/login">Visit Account and Start Managing</a>
                   </div>
                   <br>
                   </td>

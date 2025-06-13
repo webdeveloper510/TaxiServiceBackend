@@ -3365,7 +3365,7 @@ exports.add_trip1 = async (req, res) => {
                                         style="border-bottom: 1px solid #cccccc38"
                                       >
                                         <td class="">
-                                            <img style="width: 40%;" src="https://idispatch.nl/static/media/taxi-logo.561c5ba100d503dd91d6.png" />
+                                            <img style="width: 40%;" src="${process.env.BASEURL}/static/media/taxi-logo.561c5ba100d503dd91d6.png" />
                                         </td>
                                       </tr>
                                       <tr class="">
@@ -3431,7 +3431,7 @@ exports.add_trip1 = async (req, res) => {
                                                 width: 350px;
                                                 -webkit-text-size-adjust: none;
                                               "
-                                              href="https://idispatch.nl/login"
+                                              href="${process.env.BASEURL}/login"
                                               >Visit Account to check</a
                                             >
                                           </div>

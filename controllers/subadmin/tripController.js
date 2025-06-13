@@ -601,9 +601,9 @@ exports.driverCancelTripDecision = async (req, res) => {
 
     if (!tripDetails.under_cancellation_review) {
       return res.send({
-                      code: constant.error_code,
-                      message: res.__('driverCancelTripReason.error.tripNotUnderCancellationReview'),
-                    });
+                        code: constant.error_code,
+                        message: res.__('driverCancelTripReason.error.tripNotUnderCancellationReview'),
+                      });
     }
 
     let tripDecisionData =  {

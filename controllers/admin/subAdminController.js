@@ -359,7 +359,7 @@ exports.add_sub_admin = async (req, res) => {
                     <tr>
                     <td class="">
                     <div class="">
-                    <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://idispatch.nl/login">Visit Account and Start Managing</a>
+                    <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.BASEURL}/login">Visit Account and Start Managing</a>
                     </div>
                      <br>
                     </td>
@@ -617,7 +617,7 @@ exports.add_admin = async (req, res) => {
                     <tr>
                     <td class="">
                     <div class="">
-                    <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://idispatch.nl/login">Visit Account and Start Managing</a>
+                    <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.BASEURL}/login">Visit Account and Start Managing</a>
                     </div>
                      <br>
                     </td>
@@ -3399,7 +3399,7 @@ exports.send_request_trip = async (req, res) => {
                     <tr>
                     <td class="">
                     <div class="">
-                    <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="https://idispatch.nl/login">Visit Account and Start Managing</a>
+                    <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.BASEURL}/login">Visit Account and Start Managing</a>
                     </div>
                      <br>
                     </td>
