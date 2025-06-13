@@ -369,7 +369,7 @@ exports.get_vehicle_detail = async (req, res) => {
         } else {
             res.send({
                 code: constant.success_code,
-                message: res.__("getVehicle.success.vehicleListRetrieved"),,
+                message: res.__("getVehicle.success.vehicleListRetrieved"),
                 result: getData
             })
         }

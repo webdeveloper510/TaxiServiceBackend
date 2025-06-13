@@ -125,7 +125,7 @@ exports.get_vehicle_detail = async (req, res) => {
                 code: constant.success_code,
                 message: res.__("getVehicle.success.vehicleListRetrieved"),
                 result: getData
-            })
+            }) 
         }
     } catch (err) {
         res.send({
