@@ -455,6 +455,261 @@ exports.login = async (req, res) => {
   }
 };
 
+exports.appLogin = async (req, res) => {
+console.log('get it inoto-----------')
+  try {
+
+    let currentDate = new Date();
+    let startOfCurrentWeek = new Date(currentDate);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    startOfCurrentWeek.setDate(
+      startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+    ); // Set to Monday of current week
+    let data = req.body;
+    const deviceToken = data.deviceToken;
+    const webDeviceToken = data.webDeviceToken;
+    const roleType = data.roleType;
+
+    if (roleType === constants.ROLES.COMPANY) {
+      
+      let userData = await USER.findOne({
+                                        $and: [
+                                          {
+                                            $or: [
+                                              { email: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+                                              { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+                                            ],
+                                          },
+                                          {
+                                            is_deleted: false,
+                                          },
+                                        ],
+                                      });
+
+      if (userData?.is_blocked) {
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('userLogin.error.companyAccessRestricted')
+                        });
+      }
+
+      let checkPassword = await bcrypt.compare( data.password, userData.password );
+
+      if (!checkPassword) {
+        return res.send({
+                          code: constants.error_code,
+                          message: res.__('userLogin.error.incorrectCredentials'),
+                        });
+      }
+
+      // Update token
+      if (deviceToken) {
+        await Promise.all([
+                            driver_model.updateMany({ deviceToken }, { deviceToken: null }),
+                            user_model.updateMany({ deviceToken }, { deviceToken: null }),
+                          ]);
+      }
+
+      let jwtToken = jwt.sign(
+                                { 
+                                  userId: userData._id,
+                                  companyPartnerAccess: false
+                                },
+                                process.env.JWTSECRET,
+                                { expiresIn: "365d" }
+                              );
+
+      let updateData =  {
+                          jwtTokenMobile: jwtToken,
+                          lastUsedTokenMobile: new Date(),
+                          deviceToken: deviceToken,
+                        }
+
+      await USER.findByIdAndUpdate( userData._id, { $set: updateData }, { new: true });
+
+      // Update device token imn driver profile if compmany has driver account also
+      if (userData.isDriver) {
+
+        let updateDriverdata = {
+                                  deviceToken: deviceToken,
+                                  jwtTokenMobile: null,
+                                }
+        
+        await DRIVER.findOneAndUpdate(
+                                        {_id: userData.driverId},
+                                        updateDriverdata,
+                                        { 
+                                          new: true,     // Return the updated document
+                                          upsert: false, // Do not create a new document if none is found
+                                        }
+                                      )
+      }
+
+      const getData = await USER.aggregate([
+                                            {
+                                              $match: { _id: new mongoose.Types.ObjectId(userData._id) },
+                                            },
+                                            {
+                                              $lookup: {
+                                                from: "agencies",
+                                                localField: "_id",
+                                                foreignField: "user_id",
+                                                as: "company_detail",
+                                              },
+                                            },
+                                            { $unwind: "$company_detail" },
+                                          ]);
+
+      return res.send({
+                        code: constants.success_code,
+                        message: res.__('userLogin.success.loginWelcome'),
+                        result: getData[0] ? getData[0] : userData,
+                        jwtToken: jwtToken,
+                      });
+      
+
+    } else if (roleType === constants.ROLES.DRIVER) {
+      
+      let driverDetail  = await DRIVER.findOne({
+                                                $and: [
+                                                  {
+                                                    $or: [
+                                                      { email: { $regex: data.email, $options: "i" } },
+                                                      { phone: { $regex: data.email, $options: "i" } },
+                                                    ],
+                                                  },
+                                                  {
+                                                    is_deleted: false,
+                                                  },
+                                                ],
+                                              });
+
+      
+      if (!driverDetail) {
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('userLogin.error.incorrectCredentials'),
+                        });
+      } else if (driverDetail?.is_blocked) {
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('userLogin.error.accessRestricted')
+                        });
+      } else {
+
+        let checkPassword = await bcrypt.compare(
+                                                data.password,
+                                                driverDetail.password
+                                              );
+
+        if (!checkPassword) {
+          return res.send({
+                            code: constants.error_code,
+                            message: res.__('userLogin.error.incorrectCredentials')
+                          });
+        
+        }
+        const completedTrips = await trip_model.find({
+                                                      driver_name: driverDetail._id,
+                                                      trip_status: "Completed",
+                                                      is_paid: false,
+                                                    })
+                                                    .countDocuments();
+
+        const totalUnpaidTrips = await trip_model.find({
+                                                        driver_name: driverDetail._id,
+                                                        trip_status: "Completed",
+                                                        is_paid: false,
+                                                        drop_time: {
+                                                          $lte: startOfCurrentWeek,
+                                                        },
+                                                      })
+                                                      .countDocuments();
+
+        const totalActiveTrips = await trip_model.find({
+                                                          driver_name: driverDetail._id,
+                                                          trip_status: "Active",
+                                                        })
+                                                        .countDocuments();
+
+        await Promise.all([
+                            driver_model.updateMany(
+                                                      {
+                                                        deviceToken,
+                                                      },
+                                                      {
+                                                        deviceToken: null,
+                                                      }
+                                                    ),
+                            user_model.updateMany(
+                                                    {
+                                                      deviceToken,
+                                                    },
+                                                    {
+                                                      deviceToken: null,
+                                                    }
+                                                  ),
+                          ]);
+
+        let jwtToken =  jwt.sign(
+                              { 
+                                userId: driverDetail._id,
+                                companyPartnerAccess: false
+                              },
+                              process.env.JWTSECRET,
+                              { expiresIn: "365d" }
+                            );
+        
+        const updateDriver = { 
+          is_login: true,
+          jwtTokenMobile: jwtToken,
+          lastUsedTokenMobile: new Date(),
+          deviceToken:deviceToken
+        };
+
+        let updateLogin = await DRIVER.findOneAndUpdate(
+                                                          { _id: driverDetail._id },
+                                                          { $set: updateDriver },
+                                                          { new: true }
+                                                        );
+        if (updateLogin?.isCompany) {
+
+          let updateUserDeviceToken = await USER.findOneAndUpdate(
+                                                                    { _id: updateLogin.driver_company_id },
+                                                                    { $set: {deviceToken: deviceToken} },
+                                                                    { new: true }
+                                                                  );
+        }
+
+        let check_data2 = updateLogin.toObject();
+        check_data2.role = "DRIVER";
+        check_data2.totalTrips = completedTrips;
+        check_data2.totalUnpaidTrips = totalUnpaidTrips;
+        check_data2.totalActiveTrips = totalActiveTrips;
+
+        return res.send({
+                          code: constants.success_code,
+                          message: res.__('userLogin.success.loginWelcome'),
+                          result: check_data2,
+                          jwtToken: jwtToken,
+                        });
+                
+      }
+    } else {
+      return res.send({
+        code: constants.error_code,
+        message: res.__('userLogin.error.incorrectCredentials')
+      });
+    }
+
+  } catch (err) {
+    return res.send({
+                      code: constants.error_code,
+                      message: err.message,
+                    });
+  }
+}
+
 exports.getIosAppVersion = async (req, res) => {
   const appId = 6476204096;
   const url = `https://itunes.apple.com/lookup?id=${appId}`;
