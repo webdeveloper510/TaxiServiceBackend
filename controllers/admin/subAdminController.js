@@ -438,31 +438,30 @@ exports.add_admin = async (req, res) => {
 
     }
     let checkDEmail = await DRIVER.findOne({
-      email: data.email,
-      is_deleted: false,
-    });
+                                              email: data.email,
+                                              is_deleted: false,
+                                            });
     if (checkDEmail) {
-      res.send({
-        code: constant.error_code,
-        message: res.__('addDriver.error.emailAlreadyInUse'),
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addDriver.error.emailAlreadyInUse'),
+                      });
+      
     }
     let checkPhone = await USER.findOne({
-      phone: data.phone,
-      is_deleted: false,
-    });
+                                          phone: data.phone,
+                                          is_deleted: false,
+                                        });
+
     if (checkPhone) {
-      res.send({
-        code: constant.error_code,
-        message: res.__('addDriver.error.phoneAlreadyInUse'),
-      });
-      return;
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addDriver.error.phoneAlreadyInUse'),
+                      });
+      
     }
-    let passwordEmail = randToken.generate(
-      8,
-      "1234567890abcdefghijklmnopqrstuvxyz"
-    );
+    let passwordEmail = randToken.generate( 8, "1234567890abcdefghijklmnopqrstuvxyz");
+    
     // let passwordEmail = "Test@123"
     let hashedPassword = await bcrypt.hashSync(passwordEmail, 10);
     data.password = hashedPassword;
