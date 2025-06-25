@@ -408,12 +408,12 @@ exports.smsPaymentValidateSession = async (req, res) => {
         }
 
        
-        if (smsRechargeDetail.status == constant.SMS_RECHARGE_STATUS.PAID) {
-            return res.json({ 
-                code: constant.error_code,
-                message: res.__('payment.error.sessionAlreadyPaid')
-            });
-        }
+        // if (smsRechargeDetail.status == constant.SMS_RECHARGE_STATUS.PAID) {
+        //     return res.json({ 
+        //         code: constant.error_code,
+        //         message: res.__('payment.error.sessionAlreadyPaid')
+        //     });
+        // }
 
         const session = await stripe.checkout.sessions.retrieve(checkoutSessionId); // getting session details
         const invoice = await stripe.invoices.retrieve(session.invoice); // get invoice details  based on session

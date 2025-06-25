@@ -340,7 +340,7 @@ exports.login = async (req, res) => {
                             code: constants.OTP_CODE,
                             message: res.__('userLogin.success.otpSent', { phone: check_data.phone.slice(-4)}),
                             uniqueId: uniqueId,
-                            OTP: OTP,
+                            OTP: process.env.IS_SMS_FUNCTIONALITY_ACTIVE ? "" : OTP, // when it will be false then we will send OTP manually to frontend
                           });
 
         } else {
