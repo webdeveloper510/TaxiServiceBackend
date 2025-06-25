@@ -183,7 +183,7 @@ const driver = new Schema(
       },
       coordinates: {
         type: [Number],
-        default: [null, null],
+        default: [0, 0],
       },
     },
     is_login: {

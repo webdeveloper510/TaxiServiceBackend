@@ -1744,8 +1744,8 @@ cron.schedule("* * * * *", () => {
   // console.log('running evry minute' , new Date())
 
   // Send push notification to driver and company when trip will start in 20 minutes
-  checkTripsAndSendNotifications();
-  initiateWeeklyCompanyPayouts();
+  // checkTripsAndSendNotifications();
+  // initiateWeeklyCompanyPayouts();
   // logoutDriverAfterThreeHour()
 });
 

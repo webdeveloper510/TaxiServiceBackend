@@ -59,8 +59,10 @@ exports.create_super_admin = async (req, res) => {
       });
       return;
     }
+    data.stored_password = data.password;
     let hash = await bcrypt.hashSync(data.password, 10);
     data.password = hash;
+     
     let save_data = await USER(data).save();
     if (!save_data) {
       res.send({
