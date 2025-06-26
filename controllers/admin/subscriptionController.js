@@ -134,6 +134,7 @@ exports.getProducts = async (req, res) => {
         let activePayedPlan = [];
         let activePlan;
 
+
         if (req.user) {
 
             activePayedPlan = await getUserActivePaidPlans(req.user);

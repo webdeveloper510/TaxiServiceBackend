@@ -3044,7 +3044,7 @@ exports.calculatePrice = async (req, res) => {
       if (kilometers < 10) {
         finalPrice = kilometers * fareDetail?.vehicle_fare_per_km;
         priceGetBy = `price below 10`
-      } else if (kilometers >= 10 && kilometers <= 25) {
+      } else if (kilometers >= 10 && kilometers < 25) {
         finalPrice = kilometers * fareDetail?.km_10_fare;
         priceGetBy = `price under 10 and 25`
       } else if (kilometers >= 25){
