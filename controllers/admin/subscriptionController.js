@@ -398,10 +398,7 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
 exports.smsPaymentValidateSession = async (req, res) => {
     try{
 
-        return res.json({ 
-                                code: constant.success_code,
-                                message: res.__('payment.success.paymentProcessed'),
-                            });
+        
 
         const checkoutSessionId = req.body.session_id;
         const smsRechargeDetail = await SMS_RECHARGE_MODEL.findOne({checkoutSessionId:checkoutSessionId});
@@ -421,8 +418,27 @@ exports.smsPaymentValidateSession = async (req, res) => {
             });
         }
 
-        const session = await stripe.checkout.sessions.retrieve(checkoutSessionId); // getting session details
-        const invoice = await stripe.invoices.retrieve(session.invoice); // get invoice details  based on session
+        let session;
+        let invoice = null;
+        let retries = 3;
+
+        for (let i = 0; i < retries; i++) {
+            session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+            if (session.invoice) {
+                invoice = await stripe.invoices.retrieve(session.invoice);
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 2000)); // wait 2 seconds
+        }
+
+        if (!invoice) {
+            return res.json({
+                code: constant.error_code,
+                message: "Invoice is still being generated. Please try again shortly.",
+            });
+        }
+        // session = await stripe.checkout.sessions.retrieve(checkoutSessionId); // getting session details
+        // invoice = await stripe.invoices.retrieve(session.invoice); // get invoice details  based on session
         
         if (session.payment_status == 'paid') {
 
