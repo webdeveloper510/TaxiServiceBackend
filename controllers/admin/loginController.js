@@ -333,16 +333,16 @@ exports.login = async (req, res) => {
           await check_data.save();
           await sendSms({
             to: check_data.phone,
-            message: res.__('userLogin.success.otpMessage', { first_name: check_data.first_name , last_name: check_data.last_name})
+            message: res.__('userLogin.success.otpMessage', { first_name: check_data.first_name , last_name: check_data.last_name , OTP:OTP })
           });
 
           setTimeout(() => { removeOTPAfter5Minutes(uniqueId); }, 120 * 1000); // 120 seconds ( 2 minutes)
-
+          
           return res.send({
                             code: constants.OTP_CODE,
                             message: res.__('userLogin.success.otpSent', { phone: check_data.phone.slice(-4)}),
                             uniqueId: uniqueId,
-                            OTP: process.env.IS_SMS_FUNCTIONALITY_ACTIVE ? "" : OTP, // when it will be false then we will send OTP manually to frontend
+                            OTP: process.env.IS_SMS_FUNCTIONALITY_ACTIVE == `true` ? "" : OTP, // when it will be false then we will send OTP manually to frontend
                           });
 
         } else {
@@ -844,7 +844,7 @@ exports.resend_login_otp = async (req, res) => {
           return res.send({
             code: constants.OTP_CODE,
             message: res.__('userLogin.success.otpSent' , {phone: check_data.phone.slice(-4)}),
-            OTP: OTP,
+            OTP: process.env.IS_SMS_FUNCTIONALITY_ACTIVE == `true` ? "" : OTP, // when it will be false then we will send OTP manually to frontend,
             uniqueId: uniqueId,
           });
         } else {

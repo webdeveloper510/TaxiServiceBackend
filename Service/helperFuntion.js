@@ -253,7 +253,7 @@ exports.sendSms = async (data) => {
                     to: data.to,
                     from: "+3197010204679",
                   }; 
-    if (process.env.IS_SMS_FUNCTIONALITY_ACTIVE) {
+    if (process.env.IS_SMS_FUNCTIONALITY_ACTIVE == `true`) {
       const message = await client.messages.create(payload);
     }
     // const message = await client.messages.create(payload);
