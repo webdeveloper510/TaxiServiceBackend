@@ -338,9 +338,6 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
 
     try {
 
-        console.log('success sms buy url-------' , `${process.env.FRONTEND_URL}/sms-payment-success?session_id={CHECKOUT_SESSION_ID}`)
-        console.log('failure sms buy url-------' , `${process.env.FRONTEND_URL}/sms-payment-fail`)
-
         const smsPrice  = req.body.smsPrice;
         const customerId  = req.user.stripeCustomerId;
         const session = await stripe.checkout.sessions.create({
@@ -421,6 +418,8 @@ exports.smsPaymentValidateSession = async (req, res) => {
         let session;
         let invoice = null;
         let retries = 3;
+
+        // Invoice takes time to generate after completion the payment so We are trying to get invoice untill it will be generated
 
         for (let i = 0; i < retries; i++) {
             session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
