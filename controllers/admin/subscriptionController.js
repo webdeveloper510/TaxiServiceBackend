@@ -338,7 +338,9 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
 
     try {
 
-    
+        console.log('success sms buy url-------' , `${process.env.FRONTEND_URL}/sms-payment-success?session_id={CHECKOUT_SESSION_ID}`)
+        console.log('failure sms buy url-------' , `${process.env.FRONTEND_URL}/sms-payment-fail`)
+        
         const smsPrice  = req.body.smsPrice;
         const customerId  = req.user.stripeCustomerId;
         const session = await stripe.checkout.sessions.create({
