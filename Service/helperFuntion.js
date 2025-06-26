@@ -258,10 +258,10 @@ exports.sendSms = async (data) => {
     }
     // const message = await client.messages.create(payload);
     return true
-    console.log('message------' , message)
+   
     return message
   } catch (error) {
-    console.log('error-------' , error)
+    console.log('sendSms -----error-------' , error)
   }
 };
 
