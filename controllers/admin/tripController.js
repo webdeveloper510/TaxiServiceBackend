@@ -307,6 +307,7 @@ exports.add_trip = async (req, res) => {
     if (!data.price) {
       data.price = (fare_per_km * Number(distance)).toFixed(2);
     }
+    
 
     if (data?.commission && data?.commission?.commission_value != 0) {
       
