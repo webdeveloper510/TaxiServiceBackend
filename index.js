@@ -1740,7 +1740,7 @@ const get20thMinuteRangeUTC = async () => {
 
 // Schedule the task using cron for every minute
 cron.schedule("* * * * *", () => {
-
+  console.log("hitting per minute-------")
   // console.log('running evry minute' , new Date())
 
   // Send push notification to driver and company when trip will start in 20 minutes
