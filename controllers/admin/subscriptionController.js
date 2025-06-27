@@ -343,7 +343,7 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['ideal'],
             mode: 'payment',  //isSubscription ? "subscription" : "payment",
-            success_url: `${process.env.FRONTEND_URL}/sms-payment-success?session_id={CHECKOUT_SESSION_ID}`, // Redirect after payment success
+            success_url: `${process.env.FRONTEND_URL}/sms-payment-success/{CHECKOUT_SESSION_ID}`, // Redirect after payment success
             cancel_url: `${process.env.FRONTEND_URL}/sms-payment-fail`, // Redirect if the user cancels
             // customer_email: req.body.email, // Optional
             customer: customerId,
