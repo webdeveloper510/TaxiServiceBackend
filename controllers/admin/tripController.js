@@ -3052,12 +3052,14 @@ exports.calculatePrice = async (req, res) => {
         finalPrice = kilometers * fareDetail?.km_25_fare;
         priceGetBy = `price above 25`
       }
+
+      if (finalPrice < fareDetail?.minimum_fare) {
+        finalPrice = fareDetail?.minimum_fare;
+        priceGetBy = `minimum price`
+      }
     }
 
-    if (finalPrice < fareDetail?.minimum_fare) {
-      finalPrice = fareDetail?.minimum_fare;
-      priceGetBy = `minimum price`
-    }
+    
     finalPrice = finalPrice < fareDetail?.minimum_fare ? fareDetail?.minimum_fare : finalPrice
     if (element.status === 'OK') {
 
