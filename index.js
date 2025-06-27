@@ -12,6 +12,7 @@ const cors = require("cors");
 const agency_model = require("./models/user/agency_model.js");
 const LOGS = require("./models/user/logs_model"); // Import the Driver model
 const SETTING_MODEL = require('./models/user/setting_model');
+const CAR_TYPE_MODEL = require('./models/admin/car_type_model');
 var apiRouter = require("./routes/index.js");
 const { Server } = require("socket.io");
 const { driverDetailsByToken, 
@@ -578,6 +579,7 @@ const PORT = process.env.PORT;
 httpServer.listen(PORT, async() => {
     console.log(`app listening at http://localhost:${PORT}`)
     await SETTING_MODEL.seedDefaults();
+    await CAR_TYPE_MODEL.seedDefaults();
   }
 );
 

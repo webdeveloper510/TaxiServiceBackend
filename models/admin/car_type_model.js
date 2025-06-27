@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
-
+const CONSTANT = require("../../config/constant");
 const cartypes = new Schema({
     name:{
         type:String,
@@ -21,5 +21,20 @@ const cartypes = new Schema({
         default:null
     }
 },{timestamps:true})
+
+// 🔥 Static method to seed default settings for car types
+cartypes.statics.seedDefaults = async function () {
+  const defaultcarTypes = CONSTANT.ADMIN_CAR_TYPE_SEED;
+
+  for (const type of defaultcarTypes) {
+    const exists = await this.findOne({ key: type.name });
+    if (!exists) {
+      await this.create(type);
+      console.log(`✅ Seeded setting: ${type.name}`);
+    } else {
+      console.log(`ℹ️ Skipped (already exists): ${type.name}`);
+    }
+  }
+};
 
 module.exports = mongoose.model('cartypes',cartypes)
