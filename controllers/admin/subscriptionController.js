@@ -417,7 +417,7 @@ exports.smsPaymentValidateSession = async (req, res) => {
 
         let session;
         let invoice = null;
-        let retries = 3;
+        let retries = 10;
 
         // Invoice takes time to generate after completion the payment so We are trying to get invoice untill it will be generated
 

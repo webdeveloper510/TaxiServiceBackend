@@ -17,7 +17,7 @@ const settings = new Schema({
     
 
 },{timestamps:true})
-console.log('vijay setting model')
+
 // 🔥 Static method to seed default settings
 settings.statics.seedDefaults = async function () {
   const defaultSettings = CONSTANT.ADMIN_SETTINGS_SEED;

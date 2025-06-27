@@ -19,6 +19,24 @@ module.exports={
             value: '20'
         },
     ],
+    ADMIN_CAR_TYPE_SEED: [
+        { 
+            name: 'car', 
+            passangerLimit: 4
+        },
+        { 
+            name: 'van', 
+            passangerLimit: 8
+        },
+        { 
+            name: 'luxury', 
+            passangerLimit: 4
+        },
+        { 
+            name: 'wagon', 
+            passangerLimit: 4
+        },
+    ],
     ROLES: {
         COMPANY: 'COMPANY',
         SUPER_ADMIN: 'SUPER_ADMIN',
