@@ -9,6 +9,16 @@ module.exports={
     ACCOUNT_SHARE_INVOKED: "INVOKED",
     ACCESS_ERROR_CODE: 202,
     NETHERLANDS_COUNTRY_CODE: `+31`,
+    ADMIN_SETTINGS_SEED: [
+        { 
+            key: 'commision', 
+            value: '10' 
+        },
+        { 
+            key: 'pre_notification_time', 
+            value: '20'
+        },
+    ],
     ROLES: {
         COMPANY: 'COMPANY',
         SUPER_ADMIN: 'SUPER_ADMIN',

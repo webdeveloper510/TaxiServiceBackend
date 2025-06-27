@@ -11,6 +11,7 @@ const http = require("http");
 const cors = require("cors");
 const agency_model = require("./models/user/agency_model.js");
 const LOGS = require("./models/user/logs_model"); // Import the Driver model
+const SETTING_MODEL = require('./models/user/setting_model');
 var apiRouter = require("./routes/index.js");
 const { Server } = require("socket.io");
 const { driverDetailsByToken, 
@@ -36,7 +37,6 @@ const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
 const SUBSCRIPTION_MODEL = require("./models/user/subscription_model");
-const SETTING_MODEL = require("./models/user/setting_model");
 const PLANS_MODEL = require("./models/admin/plan_model");
 const mongoose = require("mongoose");
 var app = express();
@@ -575,9 +575,10 @@ app.use((req, res, next) => {
 
 
 const PORT = process.env.PORT;
-httpServer.listen(PORT, () =>
-  console.log(`app listening at http://localhost:${PORT}`)
-
+httpServer.listen(PORT, async() => {
+    console.log(`app listening at http://localhost:${PORT}`)
+    await SETTING_MODEL.seedDefaults();
+  }
 );
 
 
