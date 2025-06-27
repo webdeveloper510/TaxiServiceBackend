@@ -423,6 +423,7 @@ exports.smsPaymentValidateSession = async (req, res) => {
 
         for (let i = 0; i < retries; i++) {
             session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+            console.log('invoice try count----' , i)
             if (session.invoice) {
                 invoice = await stripe.invoices.retrieve(session.invoice);
                 break;
