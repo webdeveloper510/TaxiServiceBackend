@@ -2669,7 +2669,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                         </p>
 
                         <p>
-                          You can track your trip booking via this link : <a hreaf="${bookingTrackLink}">Track link </a>
+                          You can track your trip booking via this link : <a href="${bookingTrackLink}">Track link </a>
                         </p>
 
                         <p class="footer">
