@@ -2551,7 +2551,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
-
+    const bookingTrackLink = `${process.env.BASEURL}/booking-details/${tripDetail?._id}/${tripDetail?.created_by_company_id}`
     const options = {
       day: '2-digit',
       month: 'long',
@@ -2666,6 +2666,10 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                         <p class="footer">
                           This request has been registered with number <strong>${tripDetail?.customerDetails?.phone}</strong>. <br>
                           If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
+                        </p>
+
+                        <p>
+                          You can track your trip booking via this link : <a hreaf="${bookingTrackLink}">Track link </a>
                         </p>
 
                         <p class="footer">
