@@ -300,12 +300,11 @@ exports.upateUploadedPrice = async (req, res) => {
 
                 let updateData = {}
 
-                if (data?.amount) updateData.amount = data?.amount;
+                if ('amount' in data) updateData.amount = data?.amount;
 
-                if (data?.status) updateData.status = data?.status;
+                if ('status' in data) updateData.status = data.status;
 
-                if (data?.visible_to_hotel) updateData.visible_to_hotel = data?.visible_to_hotel;
-                
+                if ('visible_to_hotel' in data) updateData.visible_to_hotel = data.visible_to_hotel;
                 
                 const isUpdateData = await PRICE_MODEL.updateOne(
                                                                     { _id: id }, // Filter condition
