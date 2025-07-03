@@ -571,7 +571,10 @@
         "success": {
             "fileUploaded": "The file has been uploaded successfully.",
             "fileProcessed": "The file has been processed successfully.",
-            "priceUpdated": "The price has been updated successfully."
+            "priceUpdated": "The price has been updated successfully.",
+            "statusUpdated": "Status has been updated successfully",
+            "visibilityUpdated": "Visibility has been updated successfully"
+
         }
     }
 }

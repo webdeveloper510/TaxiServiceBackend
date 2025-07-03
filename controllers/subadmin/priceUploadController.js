@@ -295,16 +295,28 @@ exports.upateUploadedPrice = async (req, res) => {
             let data = req.body;
             const id = req.params.id;
             const uploadedPriceId = await PRICE_MODEL.findOne({_id: id , user_id: req.userId});
-            
+            let message = ``;
             if (uploadedPriceId) {
 
                 let updateData = {}
 
-                if ('amount' in data) updateData.amount = data?.amount;
+                if ('amount' in data) {
 
-                if ('status' in data) updateData.status = data.status;
+                    updateData.amount = data?.amount;
+                    message = res.__("priceUpload.success.priceUpdated");
+                }
 
-                if ('visible_to_hotel' in data) updateData.visible_to_hotel = data.visible_to_hotel;
+                if ('status' in data) {
+
+                    updateData.status = data.status;
+                    message = res.__("priceUpload.success.statusUpdated");
+                }
+
+                if ('visible_to_hotel' in data) {
+
+                    updateData.visible_to_hotel = data.visible_to_hotel;
+                    message = res.__("priceUpload.success.visibilityUpdated");
+                }
                 
                 const isUpdateData = await PRICE_MODEL.updateOne(
                                                                     { _id: id }, // Filter condition
@@ -312,8 +324,8 @@ exports.upateUploadedPrice = async (req, res) => {
                                                                 );
                 return  res.send({
                                     code: constant.success_code,
-                                    message: res.__("priceUpload.success.priceUpdated"),
-                                    });
+                                    message: message,
+                                });
                 
                 
             } else {
