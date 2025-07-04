@@ -3050,10 +3050,10 @@ exports.calculatePrice = async (req, res) => {
         finalPrice = kilometers * fareDetail?.vehicle_fare_per_km;
         priceGetBy = `price below 10`
       } else if (kilometers >= 10 && kilometers < 25) {
-        finalPrice = kilometers * fareDetail?.km_10_fare;
+        finalPrice = (9 * fareDetail?.vehicle_fare_per_km) + ( ( kilometers - 9 )* fareDetail?.km_10_fare);
         priceGetBy = `price under 10 and 25`
       } else if (kilometers >= 25){
-        finalPrice = kilometers * fareDetail?.km_25_fare;
+        finalPrice = (9 * fareDetail?.vehicle_fare_per_km) + (15 * fareDetail?.km_10_fare) + ((kilometers - 24 ) * fareDetail?.km_25_fare);
         priceGetBy = `price above 25`
       }
 
@@ -3070,7 +3070,7 @@ exports.calculatePrice = async (req, res) => {
       return res.send({
         code: constant.success_code,
         kilometers,
-        finalPrice,
+        finalPrice: finalPrice.toFixed(2),
         priceGetBy,
         distanceText: element.distance.text,       // e.g., "25.4 km"
         distanceMeters: element.distance.value,    // e.g., 25400
