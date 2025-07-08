@@ -26,9 +26,9 @@ settings.statics.seedDefaults = async function () {
     const exists = await this.findOne({ key: setting.key });
     if (!exists) {
       await this.create(setting);
-      console.log(`✅ Seeded setting: ${setting.key}`);
+      // console.log(`✅ Seeded setting: ${setting.key}`);
     } else {
-      console.log(`ℹ️ Skipped (already exists): ${setting.key}`);
+      // console.log(`ℹ️ Skipped (already exists): ${setting.key}`);
     }
   }
 };

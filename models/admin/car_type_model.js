@@ -30,9 +30,9 @@ cartypes.statics.seedDefaults = async function () {
     const exists = await this.findOne({ key: type.name });
     if (!exists) {
       await this.create(type);
-      console.log(`✅ Seeded setting: ${type.name}`);
+      // console.log(`✅ Seeded setting: ${type.name}`);
     } else {
-      console.log(`ℹ️ Skipped (already exists): ${type.name}`);
+      // console.log(`ℹ️ Skipped (already exists): ${type.name}`);
     }
   }
 };
