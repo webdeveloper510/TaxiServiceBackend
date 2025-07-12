@@ -39,7 +39,6 @@ exports.tripCommissionPayment = async (req, res) => {
       if ( trip_by_id.commission.commission_type === "Percentage" && trip_by_id.commission.commission_value > 0 ) {
         commission = (trip_by_id.price * trip_by_id.commission.commission_value) / 100;
       }
-      commission = commission + trip_by_id?.child_seat_price + trip_by_id?.payment_method_price
       commission = commission.toFixed(2);
 
       const paymentResult = await initiateStripePayment( trip_by_id, parseInt(commission * 100) );

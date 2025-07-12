@@ -2624,7 +2624,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                         <table>
                           <tr>
                             <td><strong>Pick up time:</strong></td>
-                            <td>${pickUpTime} (${TimeZoneId})</td>
+                            <td>${pickUpTime} (Time-zone:- ${TimeZoneId})</td>
                           </tr>
                           <tr>
                             <td><strong>Departure location:</strong></td>
