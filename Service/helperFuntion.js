@@ -2862,7 +2862,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Remark for driver:</strong></td>
-                            <td>${tripDetail?.customerDetails?.name}</td>
+                            <td>${tripDetail?.comment}</td>
                           </tr>
                         </table>
 
