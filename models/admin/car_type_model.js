@@ -28,7 +28,7 @@ cartypes.statics.seedDefaults = async function () {
 
   for (const type of defaultcarTypes) {
     const exists = await this.findOne({ name: type.name });
-    console.log('{ key: type.name }----' ,{ name: type.name } , exists)
+   
     if (!exists) {
       await this.create(type);
       console.log(`✅ Seeded setting: ${type.name}`);

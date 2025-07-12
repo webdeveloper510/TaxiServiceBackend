@@ -564,6 +564,8 @@ exports.add_trip_link = async (req, res) => {
     if (isRetrunBooking) {
       
       add_return_trip = await TRIP(return_ticket_data).save();
+
+      // Email will be sent though this function internally
       emitNewTripAddedByCustomer(add_return_trip , req.io)
     }
     
@@ -573,10 +575,11 @@ exports.add_trip_link = async (req, res) => {
     
     if (data?.created_by_company_id) {
       const companyDetail = await user_model.findById(data?.created_by_company_id);
-      sendBookingConfirmationEmail(add_trip)
-      if (isRetrunBooking) {
-        sendBookingConfirmationEmail(add_trip)
-      }
+      // sendBookingConfirmationEmail(add_trip)
+      // if (isRetrunBooking) {
+      //   console.log('add_return_trip-------' , add_return_trip)
+      //   sendBookingConfirmationEmail(add_return_trip)
+      // }
       if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
         sendTripUpdateToCustomerViaSMS(add_trip , constant.SMS_EVENTS.TRIP_CREATE);
 

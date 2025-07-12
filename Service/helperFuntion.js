@@ -2567,10 +2567,12 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     // Remove " at " and split properly
     const formattedClean = formatted.replace(' at ', ' - ');
 
-    const pickUpTime = `${formattedClean} hour`;
+    const converteddateTimeValues = await this.convertToCustomFormat(tripDetail?.trip_from?.address , tripDetail?.pickup_date_time);
     const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2)
    
-    const bodyHtml =  `
+    const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
+    const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : ""
+   const bodyHtml =  `
                        <style>
                         body {
                           font-family: Arial, sans-serif;
@@ -2622,7 +2624,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                         <table>
                           <tr>
                             <td><strong>Pick up time:</strong></td>
-                            <td>${pickUpTime}</td>
+                            <td>${pickUpTime} (${TimeZoneId})</td>
                           </tr>
                           <tr>
                             <td><strong>Departure location:</strong></td>
@@ -2651,7 +2653,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Phone number:</strong></td>
-                            <td>${tripDetail?.customerDetails?.phone}</td>
+                            <td>+${tripDetail?.customerDetails?.countryCode} - ${tripDetail?.customerDetails?.phone}</td>
                           </tr>
                           <tr>
                             <td><strong>Email:</strong></td>
@@ -2659,7 +2661,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Remark for driver:</strong></td>
-                            <td>${tripDetail?.customerDetails?.name}</td>
+                            <td>${tripDetail?.comment}</td>
                           </tr>
                         </table>
 
@@ -2697,6 +2699,42 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     console.error("Error sendBookingConfirmationEmail:",  error.message);
     throw error;
   }
+}
+
+exports.convertToCustomFormat = async (address, utcDateTime) => {
+  const timeZone = await this.getTimeZoneIdFromAddress(address , utcDateTime);
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "long",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+
+  const parts = formatter.formatToParts(utcDateTime);
+  const day = parts.find(p => p.type === 'day').value;
+  const month = parts.find(p => p.type === 'month').value;
+  const year = parts.find(p => p.type === 'year').value;
+  const hour = parts.find(p => p.type === 'hour').value;
+  const minute = parts.find(p => p.type === 'minute').value;
+
+  const finalFormat = `${day} ${month} ${year} - ${hour}:${minute}`;
+  console.log(finalFormat , timeZone);
+  return  { finalFormat , timeZone }
+}
+
+exports.getTimeZoneIdFromAddress = async (address , utcDateTime) => {
+  const geoRes = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${process.env.GOOGLE_MAP_KEY}`);
+  const geoData = await geoRes.json();
+  if (!geoData.results.length) throw new Error("Address not found");
+  const { lat, lng } = geoData.results[0].geometry.location;
+
+  const timestamp = Math.floor(utcDateTime.getTime() / 1000);
+  const tzRes = await fetch(`https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${lng}&timestamp=${timestamp}&key=${process.env.GOOGLE_MAP_KEY}`);
+  const tzData = await tzRes.json();
+  return tzData.timeZoneId; // e.g. "Asia/Kolkata"
 }
 
 exports.sendBookingCancelledEmail = async (tripDetail) => { 
