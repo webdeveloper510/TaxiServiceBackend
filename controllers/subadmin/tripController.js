@@ -9,7 +9,15 @@ const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const { sendNotification } = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess } = require("../../Service/helperFuntion");
-const {partnerAccountRefreshTrip , noShowTrip , willCompanyPayCommissionOnTrip , dateFilter , sendBookingUpdateDateTimeEmail , sendTripUpdateToCustomerViaSMS} = require("../../Service/helperFuntion");
+const {
+  partnerAccountRefreshTrip , 
+  noShowTrip , 
+  willCompanyPayCommissionOnTrip , 
+  dateFilter , 
+  sendBookingUpdateDateTimeEmail , 
+  sendTripUpdateToCustomerViaSMS ,
+  sendBookingCancelledEmail 
+} = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 
@@ -466,6 +474,11 @@ exports.edit_trip = async (req, res) => {
       if (update_trip?.trip_status == constant.TRIP_STATUS.ACTIVE || update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
         await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true}, option);
+      }
+
+      // When company wants to cancel or delete the trip then customer will be notify
+      if (data?.trip_status == constant.TRIP_STATUS.CANCELED && update_trip?.customerDetails?.email) {
+        sendBookingCancelledEmail(update_trip)
       }
 
       

@@ -2571,7 +2571,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2)
    
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
-    const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : ""
+    const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
    const bodyHtml =  `
                        <style>
                         body {
@@ -2765,8 +2765,12 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
     // Remove " at " and split properly
     const formattedClean = formatted.replace(' at ', ' - ');
 
-    const pickUpTime = `${formattedClean} hour`;
-    const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2)
+    const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2);
+
+    const converteddateTimeValues = await this.convertToCustomFormat(tripDetail?.trip_from?.address , tripDetail?.pickup_date_time);
+   
+    const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
+    const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
     const bodyHtml =  `
                        <style>
                         body {
@@ -2821,7 +2825,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                         <table>
                           <tr>
                             <td><strong>Pick up time:</strong></td>
-                            <td>${pickUpTime}</td>
+                            <td>${pickUpTime} (Time-zone:- ${TimeZoneId})</td>
                           </tr>
                           <tr>
                             <td><strong>Departure location:</strong></td>
