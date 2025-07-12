@@ -680,8 +680,6 @@ exports.driverCancelTripDecision = async (req, res) => {
         device_token = driverCompany.deviceToken ? driverCompany.deviceToken : null;
       }
 
-      
-      
       if (driver_data?.socketId) {
         req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
           message: message,
@@ -814,6 +812,11 @@ exports.driverCancelTripDecision = async (req, res) => {
           }
         }
       }
+    }
+
+    // notify the customer that his trip has been cancelled
+    if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED && tripDetails?.customerDetails?.email) {
+      sendBookingCancelledEmail(tripDetails)
     }
 
     return res.send({
