@@ -1326,7 +1326,7 @@ exports.update_driver = async (req, res) => {
 
         let successMessage = "";
 
-        if (Object.keys(updates).length == 3 && updates.hasOwnProperty("is_special_plan_active")) {
+        if (Object.keys(updates).length == 3 && "is_special_plan_active" in updates) {
 
           successMessage = updatedDriver?.is_special_plan_active ? res.__('updateDriver.success.driverSpecialPlanActivated') : res.__('updateDriver.success.driverSpecialPlanDeactivated');
         } else {
