@@ -40,13 +40,13 @@ const twilio = require("twilio");
 const { Sms } = require("twilio/lib/twiml/VoiceResponse");
 
 const tripIsBooked = async (tripId, driver_info, io) => {
-
+  
   const driver_full_info = await driver_model.findOne({ _id: driver_info._id, });
 
   try {
     const tripById = await trip_model.findOne({
                                                 _id: tripId,
-                                                trip_status: constant.TRIP_STATUS.ACCEPTED,
+                                                trip_status: constant.TRIP_STATUS.APPROVED,
                                               });
 
     if (tripById) {
