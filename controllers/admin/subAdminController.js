@@ -1036,13 +1036,7 @@ exports.edit_sub_admin = async (req, res) => {
 
       
       let criteria2 = { user_id: update_data._id };
-      let update_data_meta = await AGENCY.findOneAndUpdate(
-        criteria2,
-        data,
-        option
-      );
-
-      
+      let update_data_meta = await AGENCY.findOneAndUpdate( criteria2, data, option);
 
       // Update his driver info as well like email , phone and password 
       if (checkSubAdmin?.isDriver == true) {
@@ -1056,6 +1050,14 @@ exports.edit_sub_admin = async (req, res) => {
         await DRIVER.findOneAndUpdate({ _id: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } , updateDriver_data , option)
       }
       
+      let successMessage = "";
+      console.log('chekcing-------' ,req.body ,Object.keys(req.body).length , req.body.hasOwnProperty("is_special_plan_active"))
+      if (Object.keys(data).length == 2 && data.hasOwnProperty("is_special_plan_active")) {
+
+        successMessage = update_data?.is_special_plan_active ? res.__('addSubAdmin.success.companySpecialPlanActivated') : res.__('addSubAdmin.success.companySpecialPlanDeactivated');
+      } else {
+        successMessage = res.__('addSubAdmin.success.subAdminUpdated');
+      }
 
       if (!update_data) {
         res.send({
@@ -1065,7 +1067,7 @@ exports.edit_sub_admin = async (req, res) => {
       } else {
         res.send({
           code: constant.success_code,
-          message: res.__('addSubAdmin.success.subAdminUpdated'),
+          message: successMessage,
           result: update_data,
         });
       }

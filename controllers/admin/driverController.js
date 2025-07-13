@@ -1323,9 +1323,19 @@ exports.update_driver = async (req, res) => {
 
           await transporter.sendMail(mailOptions);
         }
+
+        let successMessage = "";
+
+        if (Object.keys(updates).length == 3 && updates.hasOwnProperty("is_special_plan_active")) {
+
+          successMessage = updatedDriver?.is_special_plan_active ? res.__('updateDriver.success.driverSpecialPlanActivated') : res.__('updateDriver.success.driverSpecialPlanDeactivated');
+        } else {
+          successMessage = res.__('updateDriver.success.driverAccountUpdated');
+        }
+
         res.send({
           code: constant.success_code,
-          message: res.__('updateDriver.success.driverAccountUpdated'),
+          message: successMessage,
           result: updatedDriver,
         });
       }

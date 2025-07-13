@@ -151,7 +151,9 @@
                 "welcomeToIDispatch": "Welcome to iDispatch!",
                 "driverRegistrationUnderReview": "Thank you for registering as a driver with us. Your driver profile is currently under review. Once approved, you will receive an email notification and be able to log in. We appreciate your patience.",
                 "visitAccountAndManage": "Start Managing Your Account"
-            }
+            },
+            "driverSpecialPlanActivated": "The special plan for the driver has been successfully activated.",
+            "driverSpecialPlanDeactivated": "The special plan for the driver has been successfully deactivated."
         }
     },
     "getTokenDetail": {
@@ -470,7 +472,9 @@
             "subAdminAccountRestored": "Sub-admin account has been restored successfully.",
             "companyListRetrieved": "Company list has been retrieved successfully.",
             "driverListRetrieved": "Driver list has been retrieved successfully.",
-            "hotelListRetrieved": "Hotel list has been retrieved successfully."
+            "hotelListRetrieved": "Hotel list has been retrieved successfully.",
+            "companySpecialPlanActivated": "The special plan for the company has been successfully activated.",
+            "companySpecialPlanDeactivated": "The special plan for the company has been successfully deactivated."
         }
     },
     "getAdminDetail": {
