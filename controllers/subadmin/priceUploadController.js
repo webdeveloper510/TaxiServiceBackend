@@ -202,7 +202,7 @@ exports.getUploadedPrice = async (req, res) => {
         }
 
         const totalCount = await PRICE_MODEL.countDocuments(searchQuery);
-        console.log('searchQuery--------' , searchQuery)
+        
         const allPriceList = await PRICE_MODEL.find(searchQuery).skip(skip).limit(limit).sort({ departure_place: 1 });
         return  res.send({
             code: constant.success_code,
@@ -220,6 +220,46 @@ exports.getUploadedPrice = async (req, res) => {
                         });
     }
     
+}
+
+exports.deleteUploadedPrice = async (req, res) => {
+    try {
+
+        let data = req.body;
+        let searchQuery = { user_id: req.userId  , price_type: data?.upload_price_type};
+        await PRICE_MODEL.deleteMany(searchQuery);
+        return  res.send({
+            code: constant.success_code,
+            message: res.__("priceUpload.success.priceDeleted")
+            
+        });
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.disabledUploadedPrices = async (req, res) => {
+    try {
+
+        let data = req.body;
+        const isUpdateData = await PRICE_MODEL.updateOne(
+                                                            { user_id: req.userId }, // Filter condition
+                                                            { $set: {status: data.status , price_type: data?.upload_price_type} } // Fields to update
+                                                        );
+        return  res.send({
+            code: constant.success_code,
+            message: res.__("priceUpload.success.priceUpdated")
+            
+        });
+    } catch (err) {
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
 }
 
 exports.getAllUploadedPrice = async (req, res) => {
