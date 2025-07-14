@@ -203,7 +203,7 @@ exports.getUploadedPrice = async (req, res) => {
 
         const totalCount = await PRICE_MODEL.countDocuments(searchQuery);
         console.log('searchQuery--------' , searchQuery)
-        const allPriceList = await PRICE_MODEL.find(searchQuery).skip(skip).limit(limit).sort({ arrival_place: 1 });
+        const allPriceList = await PRICE_MODEL.find(searchQuery).skip(skip).limit(limit).sort({ departure_place: 1 });
         return  res.send({
             code: constant.success_code,
             allPriceList: allPriceList,
