@@ -195,17 +195,33 @@ exports.access_get_fares = async (req, res) => {
         },
         { is_deleted: false },
       ],
-    }).sort({ createdAt: -1 });
-    if (!getData) {
-      res.send({
+    }).populate({
+                  path: 'car_type_id',      // populate the field
+                  match: { is_deleted: false }, // optional filter to exclude deleted car types
+                  select: `passangerLimit`
+                })
+    .sort({ createdAt: -1 });
+
+    let result = await getData.map(fare => {
+                                    const plain = fare.toObject(); // convert Mongoose document to plain JS object
+
+                                    if (plain.car_type_id) {
+                                      plain.passangerLimit = plain.car_type_id.passangerLimit;
+                                      plain.car_type_id = plain.car_type_id._id;
+                                    }
+
+                                    return plain;
+                                  });
+    if (!result) {
+      return res.send({
         code: constant.error_code,
         message: res.__('companyGetFares.error.noDataFound')
       });
     } else {
-      res.send({
+      return res.send({
         code: constant.success_code,
         message: res.__('companyGetFares.success.fareRetrieved'),
-        result: getData,
+        result: result,
       });
     }
   } catch (err) {
