@@ -245,7 +245,8 @@ exports.disabledUploadedPrices = async (req, res) => {
     try {
 
         let data = req.body;
-        const isUpdateData = await PRICE_MODEL.updateOne(
+        
+        const isUpdateData = await PRICE_MODEL.updateMany(
                                                             { user_id: req.userId }, // Filter condition
                                                             { $set: {status: data.status , price_type: data?.upload_price_type} } // Fields to update
                                                         );
