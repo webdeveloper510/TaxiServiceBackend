@@ -21,6 +21,7 @@
     "userLogin": {
         "error": {
             "accessRestricted": "Your access has been restricted by the administration. Please reach out to the admin team for support.",
+            "accountDeleted": "Your account has been deleted by the admin. If you believe this is a mistake, please reach out to our support team",
             "companyAccessRestricted": "Your compnay's access has been restricted by the administration. For further assistance, please contact the administrative",
             "incorrectCredentials": "The credentials you entered are incorrect.",
             "noPhoneLinked": "OTP cannot be sent as there is no phone number linked to your account.For further assistance,Please reach out to the admin team for support",
@@ -78,7 +79,8 @@
             "unableToUpdateVerification": "An error occurred while updating verification."
         },
         "success": {
-            "verificationUpdated": "Verification updated successfully.."
+            "verificationUpdated": "Verification updated successfully",
+            "verificationRejected": "Document verification rejected successfully"
         }
     },
     "deleteDriver": {
@@ -469,6 +471,7 @@
             "infoRetrievedSuccess": "User information retrieved successfully.",
             "subAdminUpdated": "User information has been updated successfully.",
             "subAdminAccountDeleted": "Sub-admin account has been deleted successfully.",
+            "hotelAccountDeleted": "Hotel account has been deleted successfully.",
             "subAdminAccountRestored": "Sub-admin account has been restored successfully.",
             "companyListRetrieved": "Company list has been retrieved successfully.",
             "driverListRetrieved": "Driver list has been retrieved successfully.",

@@ -1420,9 +1420,10 @@ exports.sendEmailMissingInfoStripeOnboaring = async (accountId , missingFields) 
 exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
 
   let bodyHtml = ``;
-
+  let subject = ``;
   if (randomPasword ) {
 
+    subject = `Welcome mail`;
     bodyHtml =  `
                 <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="margin-top: 30px;margin-bottom: 10px;border-radius: 10px;box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);background:#ccc;">
                 <tbody><tr>
@@ -1476,66 +1477,49 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
               `;
   } else {
     
-     bodyHtml =  `
-                  <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="margin-top: 30px;margin-bottom: 10px;border-radius: 10px;box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);background:#ccc;">
-                  <tbody><tr>
-                  <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
-                  <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
-                  <tbody><tr>
-                  <td align="center" class="" valign="top">
-                  <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
-                  <tbody style="margin-top: 5px;">
-                    <tr class="" style="border-bottom: 1px solid #cccccc38;">
-                  <td class="">
-                  </td>
-                  </tr>
-                  <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
-                  <tr>
-                  <td>
-                  <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
-                  <td class="" style="color:#444; font-weight: 400;"><br>
-                  <br><br>
-                  Welcome to iDispatch!
+    subject = `Complete Your Driver Registration`;
+    bodyHtml =  `<!DOCTYPE html>
+                  <html>
+                    <head>
+                      <meta charset="UTF-8" />
+                      <title>Complete Your Driver Registration</title>
+                    </head>
+                    <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px; margin: 0;">
+                      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1);">
+                        <h2 style="color: #2c3e50;">Complete Your Driver Registration – Just One Step Left!</h2>
+                        <p>Dear <strong> ${driverInfo.first_name} ${driverInfo.last_name} </strong>,</p>
 
-                  We're pleased to inform you that Step 1 of your registration is successfully completed. Next in line is Step 2, where we kindly ask you to upload necessary details and documents. Following this, our team will promptly review your submission.<br>
-                  <br>
-                    Your login credentials are provided below:
-                  <br>
-                  <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${driverInfo.email}</span>
-                  <br>
-                  <br><br>
-                  <br></td>
-                  </tr>
-                  </tbody></table></center>
-                  </td>
-                  </tr>
-                  <tr>
-                  <td class="">
-                  <div class="">
-                  <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.BASEURL}/login">Visit Account and Start Managing</a>
-                  </div>
-                  <br>
-                  </td>
-                  </tr>
-                  </tbody>
+                        <p>Thank you for starting your registration with us!</p>
 
-                    </table>
+                        <p>We’ve successfully received your basic details including your name, email, and profile information.</p>
 
-                  <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="force-full-width" style="margin: 0 auto; margin-bottom: 5px:">
-                  <tbody>
-                  <tr>
-                  <td class="" style="color:#444;
-                                      ">
-                  
-                    </td>
-                  </tr>
-                  </tbody></table></td>
-                  </tr>
-                  </tbody></table></center>
-                  </td>
-                  </tr>
-                  </tbody></table>
-                `;
+                        <p>
+                          To complete your driver registration and get started, please upload the required documents and provide your address details:
+                        </p>
+
+                        <ul>
+                          <li>✅ Government-issued ID</li>
+                          <li>✅ Driving License</li>
+                          <li>✅ KVK Number</li>
+                          <li>✅ VAT Number</li>
+                          <li>✅ Driving License</li>
+                          <li>✅ Country, City, and Full Address</li>
+                        </ul>
+
+                        <p style="margin-top: 20px;">
+                          You can complete this step by logging into your account using the link below:
+                        </p>
+
+                        <p>If you have any questions or need assistance, feel free to contact us at <a href="mailto:[support email]">${process.env.SUPPORT_EMIAL}</a>.</p>
+
+                        <p style="margin-top: 30px;">We’re excited to have you on board!</p>
+
+                        <p>Best regards,<br />
+                        <strong>Idispatch Mobility</strong> Team</p>
+                      </div>
+                    </body>
+                  </html>
+                  `;
   }
   
   let template = ` ${bodyHtml}`
@@ -1543,7 +1527,8 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
   var transporter = nodemailer.createTransport(emailConstant.credentials);
   var mailOptions = {
                       from: emailConstant.from_email,
-                      to: driverInfo.email,
+                      // to: driverInfo.email,
+                      to: `vsingh@codenomad.net`,
                       subject: `Welcome mail`,
                       html: `${await this.emailHeader()} ${template} ${await this.emailFooter()}`,
                     };

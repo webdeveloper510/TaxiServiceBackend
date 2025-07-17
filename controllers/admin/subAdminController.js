@@ -1323,7 +1323,7 @@ exports.delete_sub_admin = async (req, res) => {
 
       res.send({
         code: constant.success_code,
-        message: res.__('addSubAdmin.success.subAdminAccountDeleted'),
+        message: deleteSubAdmin?.role == constant.ROLES.HOTEL ? res.__('addSubAdmin.success.hotelAccountDeleted'): res.__('addSubAdmin.success.subAdminAccountDeleted'),
       });
     }
   } catch (err) {

@@ -116,13 +116,19 @@ exports.login = async (req, res) => {
                                               { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
                                             ],
                                           },
-                                          {
-                                            is_deleted: false,
-                                          },
+                                          // {
+                                          //   is_deleted: false,
+                                          // },
                                         ],
                                       })
 
 
+    if (userData?.is_deleted) {
+      return res.send({
+                          code: constant.error_code,
+                          message: res.__('userLogin.error.accountDeleted')
+                        });
+    }
     // If user is blocked by admin or super admin
     if (userData && userData.role != "SUPER_ADMIN" && (userData?.is_blocked) ) {
 

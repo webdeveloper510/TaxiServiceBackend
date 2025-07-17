@@ -99,7 +99,8 @@ exports.add_driver = async (req, res) => {
     if (checkNickName) {
       return res.send({
                         code: constant.error_code,
-                        message: res.__('addDriver.error.nicknameAlreadyInUse'),
+                        message: res.__('addDriver.error.nickNameAlreadyInUse'),
+                        
                       });
     }
     if (check_other1) {
@@ -157,6 +158,8 @@ exports.add_driver = async (req, res) => {
                       message: res.__('addDriver.error.saveFailed')
                     });
     } else {
+
+      console.log('driver created------')
       // mail
       let sendEmail = await sendEmailDriverCreation(save_driver , null);
       return res.send({
@@ -1774,7 +1777,7 @@ exports.rejectVerification = async (req, res) => {
 
     res.send({
       code: constant.success_code,
-      message: res.__('updateVerification.success.verificationUpdated'),
+      message: res.__('updateVerification.success.verificationRejected'),
     });
   } catch (err) {
     res.send({
