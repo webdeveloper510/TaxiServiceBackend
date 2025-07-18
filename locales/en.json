@@ -573,7 +573,8 @@
             "unexpectedExtraColumns": "Unexpected extra columns found:: {{columns}}. Please remove them and try again.",
             "emptyRowFields": "Row {{row_no}} has an empty value for {{field}}.",
             "inValidAmount": "`Row {{row_no}} has an invalid 'Amount'. It must be a number (integer or decimal)",
-            "noPricefound": "No price found in the system"
+            "noPricefound": "No price found in the system",
+            "invalidZipcode": "An invalid ZIP code was found in row {{row_no}} under the {{field}} column"
         },
         "success": {
             "fileUploaded": "The file has been uploaded successfully.",

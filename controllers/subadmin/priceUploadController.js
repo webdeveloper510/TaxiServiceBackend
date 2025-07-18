@@ -59,29 +59,10 @@ exports.priceUpload = async (req, res) => {
 
            let  requiredColumns =  Object.values(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.ZIP_CODE_UPLOAD_TYPE_REQUIRED_COLUMNS : constant.ADDRESS_UPLOAD_TYPE_REQUIRED_COLUMNS);
            let  requiredFields =  Object.values(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.ZIP_CODE_UPLOAD_TYPE_REQUIRED_FIELDS : constant.ADDRESS_UPLOAD_TYPE_REQUIRED_FIELDS);
-            console.log('requiredColumns-------' , requiredColumns)
-        //  requiredColumns = [
-        //         "Departure place",
-        //         "Arrival place",
-        //         "Number of persons",
-        //         "Amount",
-        //         "Vehicle type"
-        //     ];
-
-        //      requiredFields = [
-        //         "Departure place",
-        //         "Arrival place",
-        //         "Number of persons",
-        //         "Vehicle type"
-        //     ];
-
+        
             // Get column names from the sheet
             const sheetColumns = Object.keys(jsonData[0]);
-            
-            // Check for missing columns
             const missingColumns = requiredColumns.filter(col => !sheetColumns.includes(col));
-
-            // Check for extra columns
             const extraColumns = sheetColumns.filter(col => !requiredColumns.includes(col));
 
             if (missingColumns.length > 0) {
@@ -98,6 +79,11 @@ exports.priceUpload = async (req, res) => {
                 });
             }
 
+            // ✅ ZIP code validator for NL
+            const isValidNetherlandsZipcode = (zip) => {
+                const zipRegex = /^[1-9][0-9]{3}\s?[A-Z]{2}$/;
+                return zipRegex.test(zip?.toString().toUpperCase().trim());
+            };
 
             // Validate each row for empty values
             for (let i = 0; i < jsonData.length; i++) {
@@ -119,6 +105,26 @@ exports.priceUpload = async (req, res) => {
                         code: constant.error_code,
                         message: res.__("priceUpload.error.inValidAmount", { row_no: i + 2 })
                     });
+                }
+
+                // ✅ Check ZIP code format if NL
+                if ( req.body.upload_price_type === constant.UPLOADED_PRICE_TYPE.ZIP_CODE ) {
+                    const departureZip = row["Departure Zipcode"]?.toString().toUpperCase().trim();
+                    const arrivalZip = row["Arrival Zipcode"]?.toString().toUpperCase().trim();
+
+                    if (!isValidNetherlandsZipcode(departureZip)) {
+                    return res.send({
+                        code: constant.error_code,
+                        message: res.__("priceUpload.error.invalidZipcode", { row_no: i + 2, field: "Departure Zipcode" })
+                    });
+                    }
+
+                    if (!isValidNetherlandsZipcode(arrivalZip)) {
+                    return res.send({
+                        code: constant.error_code,
+                        message: res.__("priceUpload.error.invalidZipcode", { row_no: i + 2, field: "Arrival Zipcode" })
+                    });
+                    }
                 }
             }
             
