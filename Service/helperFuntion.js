@@ -2557,6 +2557,29 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
    
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
+
+    let childSeatPrice = ``;
+    let payment_method_price = ``;
+    let flighDetail = ``;
+    if (tripDetail?.child_seat_price) {
+
+      childSeatPrice = `<tr>
+                            <td><strong>Child seat:</strong></td>
+                            <td>yes ( €${tripDetail?.child_seat_price} included in the price )</td>
+                          </tr>`
+    }
+
+    if (tripDetail?.payment_method_price) {
+      payment_method_price = ` ( € ${tripDetail?.payment_method_price} included in the price)`
+    }
+
+    if (tripDetail?.customerDetails?.flightNumber) {
+      flighDetail = `<tr>
+                        <td><strong>Flight Number:</strong></td>
+                        <td> ${tripDetail?.customerDetails?.flightNumber}</td>
+                      </tr>`
+    }
+
    const bodyHtml =  `
                        <style>
                         body {
@@ -2619,6 +2642,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                             <td><strong>Arrival location:</strong></td>
                             <td>${tripDetail?.trip_to?.address}</td>
                           </tr>
+                          
                           <tr>
                             <td><strong>Type of car:</strong></td>
                             <td>${tripDetail?.car_type} - ${tripDetail?.passengerCount} passengers</td>
@@ -2629,9 +2653,12 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Payment method:</strong></td>
-                            <td>${tripDetail?.pay_option}</td>
+                            <td>${tripDetail?.pay_option} ${payment_method_price}</td>
                           </tr>
-                          
+
+                          ${childSeatPrice}
+                          ${flighDetail}
+
                           <tr>
                             <td><strong>Name client:</strong></td>
                             <td>${tripDetail?.customerDetails?.name}</td>
