@@ -464,12 +464,12 @@ exports.companyTransaction = async (req, res) => {
     const dueCommisionFromCompletedTrips = await getTotalPayment(dateQuery , { is_company_paid: false ,  created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
     const recieveCommisionsFromCompletedTrips = await getTotalPayment(dateQuery , { is_company_paid: true , created_by_company_id: new mongoose.Types.ObjectId(req.userId)} , `companyPaymentAmount` , false);
     
-    const totalTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , ...dateQuery});
-    const totalBookedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.BOOKED , ...dateQuery});
-    const totalPendingTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.PENDING , ...dateQuery});
-    const totalActiveTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.ACTIVE , ...dateQuery});
-    const totalCompletedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.COMPLETED , ...dateQuery});
-    const totalActivePickupTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.REACHED , ...dateQuery});
+    const totalTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , is_deleted: false , ...dateQuery});
+    const totalBookedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.BOOKED ,  is_deleted: false , ...dateQuery});
+    const totalPendingTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.PENDING , is_deleted: false ,  ...dateQuery});
+    const totalActiveTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.ACTIVE ,  is_deleted: false , ...dateQuery});
+    const totalCompletedTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.COMPLETED , is_deleted: false ,  ...dateQuery});
+    const totalActivePickupTrips  = await TRIP.countDocuments({created_by_company_id: new mongoose.Types.ObjectId(req.userId) , trip_status: constant.TRIP_STATUS.REACHED ,  is_deleted: false , ...dateQuery});
 
     return res.send({
                       code: constant.success_code,
