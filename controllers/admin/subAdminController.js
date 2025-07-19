@@ -600,7 +600,7 @@ exports.add_admin = async (req, res) => {
                     <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
                     <td class="" style="color:#444; font-weight: 400;"><br>
                     <br><br>
-                      You have successfully been registered to use iDispatch as a <em>Super Admin </em><br>
+                      You have successfully been registered to use iDispatch as a <em>Admin </em><br>
                      <br>
                       Your login credentials are provided below:
                     <br>

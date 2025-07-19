@@ -108,21 +108,26 @@ exports.login = async (req, res) => {
     const mobile = data?.platform == "mobile";
 
     let check_data;
-    let userData = await USER.findOne({
-                                        $and: [
-                                          {
-                                            $or: [
-                                              { email: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
-                                              { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
-                                            ],
-                                          },
-                                          // {
-                                          //   is_deleted: false,
-                                          // },
-                                        ],
-                                      })
+    let userData = await USER.findOne(
+                                        { email: data.email }, // Exact match on content
+                                        null,
+                                        { collation: { locale: 'en', strength: 2 } } // Case-insensitive
+                                      // {
+                                      //   $and: [
+                                      //     {
+                                      //       $or: [
+                                      //         { email: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+                                      //         { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+                                      //       ],
+                                      //     },
+                                      //     // {
+                                      //     //   is_deleted: false,
+                                      //     // },
+                                      //   ],
+                                      // }
+                                    )
 
-
+    console.log('userData-----' , userData  , data)                        
     if (userData?.is_deleted) {
       return res.send({
                           code: constant.error_code,
