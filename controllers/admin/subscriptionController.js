@@ -410,8 +410,10 @@ exports.smsPaymentValidateSession = async (req, res) => {
        
         if (smsRechargeDetail.status == constant.SMS_RECHARGE_STATUS.PAID) {
             return res.json({ 
-                code: constant.error_code,
-                message: res.__('payment.error.sessionAlreadyPaid')
+                code: constant.success_code,
+                // code: constant.error_code,
+                // message: res.__('payment.error.sessionAlreadyPaid')
+                message: res.__('payment.success.paymentProcessed'),
             });
         }
 
