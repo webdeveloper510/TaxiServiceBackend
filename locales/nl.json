@@ -1,0 +1,589 @@
+{
+  "auth": {
+    "error": {
+      "tokenError": "Uw sessie is verlopen of het token is ongeldig. Log alstublieft opnieuw in.",
+      "authTokenVerificationFailed": "Verificatie van het authenticatietoken is mislukt. Gelieve opnieuw te authenticeren.",
+      "tokenExpired": "Uw sessie is verlopen. Log alstublieft opnieuw in.",
+      "blockedByAdmin": "Uw account is geblokkeerd door de administratie. Neem contact op met de ondersteuning voor hulp.",
+      "companyAccessWithdrawn": "Het bedrijf heeft de toegang tot het account ingetrokken."
+    }
+  },
+  "createSuperAdmin": {
+    "error": {
+      "emailAlreadyInUse": "Het e-mailadres is al gekoppeld aan een bestaand account.",
+      "phoneAlreadyInUse": "Dit telefoonnummer is al gekoppeld aan een bestaand account.",
+      "saveFailed": "Er is een fout opgetreden bij het opslaan van uw gegevens. Probeer het opnieuw."
+    },
+    "success": {
+      "accountCreated": "Account is succesvol aangemaakt."
+    }
+  },
+  "userLogin": {
+    "error": {
+      "accessRestricted": "Uw toegang is beperkt door de administratie. Neem contact op met het beheerteam voor ondersteuning.",
+      "accountDeleted": "Uw account is verwijderd door de beheerder. Neem contact op met ons ondersteuningsteam als u denkt dat dit een vergissing is.",
+      "companyAccessRestricted": "De toegang van uw bedrijf is beperkt door de administratie. Neem voor verdere assistentie contact op met de administratie.",
+      "incorrectCredentials": "De ingevoerde inloggegevens zijn onjuist.",
+      "noPhoneLinked": "Er kan geen OTP worden verzonden omdat er geen telefoonnummer aan uw account is gekoppeld. Neem voor assistentie contact op met het beheerteam.",
+      "appVersionNotFound": "App-versie niet gevonden."
+    },
+    "success": {
+      "loginWelcome": "Welkom terug! U bent nu ingelogd.",
+      "otpMessage": "Hallo {{first_name}} {{last_name}}, uw OTP voor inloggen is {{OTP}}. Voer deze code in om uw inlog te voltooien. Deze OTP verloopt over 5 minuten.",
+      "otpSent": "We hebben de OTP verzonden naar uw geregistreerde mobiel nummer eindigend op ......{{phone}}."
+    }
+  },
+  "loginOtpVerify": {
+    "error": {
+      "invalidOtp": "De ingevoerde OTP is ongeldig.",
+      "requestExpired": "Dit verzoek is niet langer geldig. Gelieve opnieuw te verifiëren.",
+      "roleValidationFailed": "Rolvalidatie is mislukt. Neem contact op met de ondersteuning als het probleem zich blijft voordoen.",
+      "invalidEmail": "Het ingevoerde e-mailadres is ongeldig."
+    },
+    "success": {
+      "otpVerified": "OTP succesvol geverifieerd."
+    }
+  },
+  "sendOtp": {
+    "error": {
+      "invalidInput": "De ingevoerde gegevens zijn ongeldig.",
+      "otpSendFailed": "We kunnen de OTP momenteel niet verzenden. Probeer het later opnieuw."
+    },
+    "success": {
+      "otpSentToContact": "Een eenmalig wachtwoord (OTP) is verzonden naar uw geregistreerde contact.",
+      "otpSent": "De verificatiecode is verzonden naar uw geregistreerde contact."
+    }
+  },
+  "addDriver": {
+    "error": {
+      "nickNameAlreadyInUse": "Deze bijnaam is helaas al in gebruik. Kies een andere bijnaam.",
+      "emailAlreadyInUse": "Het e-mailadres is al gekoppeld aan een bestaand account.",
+      "phoneAlreadyInUse": "Dit telefoonnummer is al gekoppeld aan een bestaand account.",
+      "emailRegisteredAsCompany": "Dit e-mailadres is al geregistreerd voor een Bedrijfsaccount. Log in om door te gaan met de registratie als bestuurder.",
+      "phoneRegisteredAsCompany": "Dit telefoonnummer is al geregistreerd voor een Bedrijfsaccount. Log in om door te gaan met de registratie als bestuurder.",
+      "companyHasOwnDriver": "Dit bedrijf heeft al een eigen bestuurder.",
+      "driverHasOwnCompany": "Deze bestuurder heeft al een eigen bedrijf.",
+      "saveFailed": "Er is een fout opgetreden bij het opslaan van uw gegevens. Probeer het opnieuw.",
+      "hotelIdAlreadyExists": "Er bestaat al een record met deze Hotel-ID.",
+      "emailLinkedToInactiveAccount": "Dit e-mailadres is al gekoppeld aan een inactief account (verwijderde gebruiker).",
+      "emailAssociatedWithDeletedDriver": "Dit e-mailadres ({{email}}) is gekoppeld aan een eerder verwijderde bestuurder. Herstel de bestuurder vanuit de lijst met verwijderde accounts in plaats van een nieuw account aan te maken."
+    },
+    "success": {
+      "driverCreated": "Bestuurdersaccount is succesvol aangemaakt.",
+      "subAdminAdded": "Het subbeheerder-account is succesvol aangemaakt.",
+      "superAdminAdded": "Het hoofdbeheerder-account is succesvol aangemaakt."
+    }
+  },
+  "updateVerification": {
+    "error": {
+      "unableToUpdateVerification": "Er is een fout opgetreden bij het bijwerken van de verificatie."
+    },
+    "success": {
+      "verificationUpdated": "Verificatie succesvol bijgewerkt.",
+      "verificationRejected": "Documentverificatie succesvol afgewezen."
+    }
+  },
+  "deleteDriver": {
+    "error": {
+      "unableToDeleteDriver": "Er is een fout opgetreden bij het verwijderen van de bestuurder."
+    },
+    "success": {
+      "driverDeleted": "Bestuurder is succesvol verwijderd."
+    }
+  },
+  "getDrivers": {
+    "error": {
+      "noDriversFoundForAgencyUser": "Er zijn geen bestuurders gekoppeld aan deze agency-gebruiker.",
+      "noDriverFound": "Geen bestuurder gevonden in het systeem.",
+      "noDriverFoundForAgency": "Geen bestuurders gevonden voor de agency-gebruiker.",
+      "inValidDriver": "De opgegeven bestuurder-ID is ongeldig of bestaat niet.",
+      "driverBlocked": "De bestuurder is geblokkeerd door de administratie.",
+      "unableToAssignDriver": "Er is een fout opgetreden bij het toewijzen van de bestuurder. Probeer het later opnieuw.",
+      "noneAvailable": "Er zijn momenteel geen bestuurders beschikbaar voor toewijzing.",
+      "unbaleToUpdate": "Er is een fout opgetreden bij het bijwerken van de bestuurder. Probeer het later opnieuw."
+    },
+    "success": {
+      "driverListRetrieved": "Bestuurderslijst succesvol opgehaald.",
+      "allocatedDriver": "Bestuurder is succesvol toegewezen."
+    }
+  },
+  "getActiveDrivers": {
+    "error": {
+      "noActiveDriversFound": "Er zijn op dit moment geen actieve bestuurders beschikbaar."
+    },
+    "success": {
+      "activeDriversFound": "Actieve bestuurders zijn beschikbaar."
+    }
+  },
+  "restoreDriver": {
+    "error": {
+      "driverNotExist": "De opgegeven bestuurder bestaat niet."
+    },
+    "success": {
+      "driverRestored": "Bestuurder is succesvol hersteld."
+    }
+  },
+  "favoriteDriver": {
+    "error": {
+      "driverNotExist": "De opgegeven bestuurder bestaat niet."
+    },
+    "success": {
+      "driverAdded": "Bestuurder succesvol toegevoegd aan favorieten.",
+      "driverRemoved": "Bestuurder succesvol verwijderd uit favorieten."
+    }
+  },
+  "getDriverDetail": {
+    "error": {
+      "unableToFetchDriverDetails": "Er is een fout opgetreden bij het ophalen van de bestuurdersgegevens."
+    },
+    "success": {
+      "driverDetailsFetched": "Bestuurdersgegevens succesvol opgehaald."
+    }
+  },
+  "updateDriver": {
+    "error": {
+      "driverNotFound": "De gevraagde bestuurder kon niet worden gevonden.",
+      "emailExistsWithAnotherAccount": "Dit e-mailadres is gekoppeld aan een ander account. Kies een ander e-mailadres.",
+      "phoneExistsWithAnotherAccount": "Dit telefoonnummer is gekoppeld aan een ander account. Kies een ander nummer.",
+      "cannotGoOfflineWithActiveTrip": "U kunt niet offline gaan terwijl er een actieve rit bezig is. Voltooi eerst de rit."
+    },
+    "success": {
+      "driverAccountUpdated": "Bestuurdersaccount succesvol bijgewerkt.",
+      "emailDocumentUnderReviewConetnt": {
+        "welcomeToIDispatch": "Welkom bij iDispatch!",
+        "driverRegistrationUnderReview": "Bedankt voor uw registratie als bestuurder. Uw profiel wordt momenteel beoordeeld. Na goedkeuring ontvangt u een e-mail en kunt u inloggen. Dank voor uw geduld.",
+        "visitAccountAndManage": "Beheer uw account"
+      },
+      "driverSpecialPlanActivated": "Het speciale abonnement voor de bestuurder is succesvol geactiveerd.",
+      "driverSpecialPlanDeactivated": "Het speciale abonnement voor de bestuurder is succesvol gedeactiveerd."
+    }
+  },
+  "getTokenDetail": {
+    "error": {
+      "unableToFetchDetail": "De gegevens kunnen momenteel niet worden opgehaald. Probeer het later opnieuw."
+    },
+    "success": {
+      "informationRetrieved": "Informatie succesvol opgehaald."
+    }
+  },
+  "addTrip": {
+    "error": {
+      "noActivePlanForTripCreation": "Er kan geen rit worden aangemaakt zonder een actief abonnement. Abonneer u eerst.",
+      "unableToCreateTrip": "Er is een fout opgetreden bij het aanmaken van de rit. Probeer het later opnieuw.",
+      "companyAccessRevoked": "De toegang voor het bedrijf is ingetrokken.",
+      "invalidOrNonexistentCompany": "Het opgegeven bedrijf is ongeldig of bestaat niet."
+    },
+    "socket": {
+      "tripCreatedRefresh": "Er is een nieuwe rit aangemaakt. Vernieuw om de laatste informatie te laden."
+    },
+    "success": {
+      "tripAdded": "De rit is succesvol aangemaakt."
+    }
+  },
+  "editTrip": {
+    "error": {
+      "noActivePlanForTripCreation": "Er kan geen rit worden aangemaakt zonder een actief abonnement. Abonneer u eerst.",
+      "unableToUpdateTrip": "Er is een fout opgetreden bij het bijwerken van de rit. Probeer het later opnieuw.",
+      "companyAccessRevoked": "De toegang voor het bedrijf is ingetrokken.",
+      "invalidOrNonexistentCompany": "Het opgegeven bedrijf is ongeldig of bestaat niet."
+    },
+    "socket": {
+      "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",
+      "tripRetrivedByCompany": "Uw ritverzoek is opgehaald door het bedrijf."
+    },
+    "notification": {
+      "tripRetrievedByCompanyMessage": "Rit ({{trip_id}}) is opgehaald door het bedrijf.",
+      "tripRetrievedByCompanyTitle": "Rit opgehaald."
+    },
+    "success": {
+      "tripUpdated": "De rit is succesvol bijgewerkt."
+    }
+  },
+  "deleteTrip": {
+    "error": {
+      "unableToDeleteTrip": "Er is een fout opgetreden bij het verwijderen van de rit."
+    },
+    "success": {
+      "deletedSuccessfully": "De rit is succesvol verwijderd."
+    }
+  },
+  "getTrip": {
+    "error": {
+      "unableToRetrieveTrip": "Er is een fout opgetreden bij het ophalen van ritten.",
+      "noTripFound": "Geen relevante ritgegevens gevonden in het systeem.",
+      "unableToCreateTripRequest": "Er is een fout opgetreden bij het aanmaken van het ritverzoek.",
+      "noDataFound": "Geen gegevens beschikbaar.",
+      "noTripRequestFound": "Geen ritverzoeken gevonden.",
+      "inValidTrip": "De opgegeven rit bestaat niet in ons systeem. Controleer de rit en probeer het opnieuw.",
+      "calculationFailed": "We konden de route niet berekenen. Zorg ervoor dat u volledige adressen invoert, inclusief straat en plaats."
+    },
+    "success": {
+      "tripDataRetrieved": "Ritgegevens succesvol opgehaald.",
+      "dashboardCountsRetrieved": "Dashboardtotalen succesvol opgehaald.",
+      "tripListRetrieved": "Ritlijst succesvol opgehaald.",
+      "tripRequestCreated": "Ritverzoek succesvol aangemaakt.",
+      "tripOfferTitle": "Ritaanbod: Actie vereist",
+      "tripOfferMessage": "Er is een nieuwe rit (ID: T-{{trip_id}}) beschikbaar. Accepteer binnen {{IP_POP_UP_SHOW_TIME}} seconden om de rit aan uw account toe te wijzen.",
+      "tripCancelled": "De rit is succesvol geannuleerd.",
+      "dashboardCountSuccess": "Dashboardtotalen succesvol opgehaald.",
+      "tripBookingCreated": "Uw boeking is aangemaakt."
+    }
+  },
+  "noShowUser": {
+    "success": {
+      "driverUnableToLocateCustomer": "De bestuurder kon de klant niet vinden op de opgegeven locatie voor rit-ID: {{trip_id}}."
+    }
+  },
+  "convertIntoDriver": {
+    "error": {
+      "unableToSaveData": "Er is een fout opgetreden bij het opslaan van de gegevens."
+    },
+    "success": {
+      "driverCreated": "Bestuurder is succesvol aangemaakt."
+    }
+  },
+  "switchProfile": {
+    "switchToDriver": {
+      "error": {
+        "noDriverProfile": "U heeft geen bestuurdersprofiel.",
+        "driverBlocked": "De bestuurder is geblokkeerd. Als u denkt dat dit een fout is, neem dan contact op met de ondersteuning."
+      },
+      "success": {
+        "profileSwitched": "Profiel succesvol gewisseld."
+      }
+    },
+    "switchToCompanyPertner": {
+      "error": {
+        "noDriverProfile": "U heeft geen bestuurdersprofiel.",
+        "companyBlocked": "Dit bedrijf is geblokkeerd door de administratie.",
+        "noPartnerAccessToCompany": "U heeft geen partnertoegang tot dit bedrijf."
+      },
+      "success": {
+        "profileSwitched": "Profiel succesvol gewisseld."
+      }
+    },
+    "switchToCompany": {
+      "error": {
+        "noCompanyProfile": "U heeft geen bedrijfsprofiel.",
+        "CompanyBlocked": "Het bedrijf is geblokkeerd. Als u denkt dat dit een fout is, neem dan contact op met de ondersteuning."
+      },
+      "success": {
+        "profileSwitched": "Profiel succesvol gewisseld."
+      }
+    }
+  },
+  "driverCancelTripReason": {
+    "error": {
+      "invalidTrip": "Deze rit is ongeldig of niet langer beschikbaar.",
+      "tripNotUnderCancellationReview": "Deze rit staat momenteel niet onder annuleringscontrole.",
+      "tripUnderCancellationReview": "Deze rit wordt al beoordeeld voor annulering."
+    },
+    "socket": {
+      "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",
+      "tripCancelLationApproved": "Uw annuleringsverzoek voor rit-ID {{trip_id}} is goedgekeurd door het bedrijf.",
+      "tripCancelLationRejected": "Het bedrijf heeft uw annuleringsverzoek voor rit-ID {{trip_id}} afgewezen. Ga alstublieft door met de geplande rit.",
+      "tripCancelLationStatusMessage": "Annuleringsverzoek voor rit {{trip_id}} is {{tripDecisionStatus}}.",
+      "tripCancellationStatusTitle": "Update annuleringsverzoek"
+    },
+    "success": {
+      "tripCancellationUpdated": "Het annuleringsverzoek voor de rit is succesvol bijgewerkt.",
+      "tripCancellationRequestSubmitted": "Het annuleringsverzoek voor de rit is succesvol ingediend. Het bedrijf beoordeelt de reden en zal u binnenkort informeren."
+    }
+  },
+  "customerCancelTrip": {
+    "error": {
+      "invalidTrip": "Deze rit is ongeldig of niet langer beschikbaar.",
+      "tripAlreadyCancelledByUser": "Deze rit is al geannuleerd door de gebruiker."
+    },
+    "socket": {
+      "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",
+      "tripCancelledByCustomer": "Rit is geannuleerd door {{customerName}}.",
+      "tripCancellationRejected": "Het bedrijf heeft uw annuleringsverzoek voor rit-ID {{trip_id}} afgewezen. Ga alstublieft door met de geplande rit.",
+      "tripCancellationStatusMessage": "Annuleringsverzoek voor rit {{trip_id}} is {{tripDecisionStatus}}.",
+      "tripCancellationStatusTitle": "Update annuleringsverzoek"
+    },
+    "notification": {
+      "tripCancelledByCustomerMessage": "Rit-ID {{trip_id}} is geannuleerd door klant ({{customerName}}).",
+      "tripCancelledByCustomerTitle": "Rit ({{trip_id}}) geannuleerd door klant.",
+      "tripCancelledByCustomerForCompanyAccessTitle": "Rit: {{trip_id}} (Bedrijfstoegang: {{company_name}}) geannuleerd door klant.",
+      "tripCancelledByCustomerForPartnerAccessTitle": "Rit: {{trip_id}} (Partneraccount: {{company_name}}) geannuleerd door klant."
+    },
+    "success": {
+      "tripCancellationSubmitted": "Uw annuleringsverzoek is ingediend."
+    }
+  },
+  "addAgency": {
+    "error": {
+      "unableToSaveData": "Er is een fout opgetreden bij het opslaan van de gegevens.",
+      "dataSaved": "Gegevens zijn succesvol opgeslagen."
+    },
+    "success": {
+      "dataSaved": "Gegevens zijn succesvol opgeslagen."
+    }
+  },
+  "updateLocation": {
+    "error": {
+      "unableToUpdateLocation": "Er is een fout opgetreden bij het bijwerken van de locatie."
+    },
+    "success": {
+      "locationUpdated": "Locatie succesvol bijgewerkt."
+    }
+  },
+  "logout": {
+    "success": {
+      "logout": "U bent succesvol uitgelogd."
+    }
+  },
+  "addFare": {
+    "error": {
+      "invalidCarType": "Het opgegeven voertuigtype is ongeldig of bestaat niet. Controleer en probeer opnieuw.",
+      "fareAlreadyExistsForVehicleType": "Voor dit voertuigtype is al een tarief toegevoegd.",
+      "unableToAddFare": "Er is een fout opgetreden bij het toevoegen van het tarief. Probeer het later opnieuw of neem contact op met de ondersteuning."
+    },
+    "success": {
+      "fareAdded": "Tarief succesvol toegevoegd.",
+      "fareUpdated": "Het tarief is succesvol bijgewerkt."
+    }
+  },
+  "getFare": {
+    "error": {
+      "invalidUser": "Ongeautoriseerde toegang gedetecteerd.",
+      "noDataFound": "Geen gegevens beschikbaar.",
+      "nofareAvailable": "Geen tarief beschikbaar voor het geselecteerde type."
+    },
+    "success": {
+      "fareRetrieved": "Tarief succesvol opgehaald."
+    }
+  },
+  "companyGetFares": {
+    "error": {
+      "invalidCompany": "Het opgegeven bedrijf is ongeldig of bestaat niet. Controleer de bedrijfsgegevens en probeer opnieuw.",
+      "noDataFound": "Geen gegevens beschikbaar."
+    },
+    "success": {
+      "fareRetrieved": "Tarief succesvol opgehaald."
+    }
+  },
+  "deleteFares": {
+    "error": {
+      "unableToDeleteFare": "Er is een fout opgetreden bij het verwijderen van het tarief. Neem contact op met de ondersteuning als het probleem aanhoudt."
+    },
+    "success": {
+      "fareDeleted": "Het tarief is succesvol verwijderd."
+    }
+  },
+  "adminSetting": {
+    "error": {},
+    "success": {
+      "settingsUpdated": "Uw instellingen zijn succesvol opgeslagen."
+    }
+  },
+  "forgot_password": {
+    "error": {
+      "emailNotFound": "Het ingevoerde e-mailadres is niet gekoppeld aan een account.",
+      "passwordUpdateFailed": "We konden uw wachtwoord niet bijwerken. Neem contact op met de ondersteuning als het probleem aanhoudt."
+    },
+    "success": {
+      "passwordUpdated": "Uw wachtwoord is succesvol bijgewerkt."
+    }
+  },
+  "resetPassword": {
+    "error": {
+      "userNotFound": "We konden geen gebruiker vinden met de opgegeven informatie.",
+      "incorrectOldPassword": "Het oude wachtwoord komt niet overeen met onze gegevens.",
+      "passwordUpdateFailed": "We konden uw wachtwoord niet bijwerken. Neem contact op met de ondersteuning als het probleem aanhoudt."
+    },
+    "success": {
+      "passwordReset": "Uw wachtwoord is succesvol opnieuw ingesteld."
+    }
+  },
+  "saveFeedback": {
+    "error": {
+      "saveFailed": "We konden uw gegevens niet opslaan. Probeer het later opnieuw of neem contact op met de ondersteuning."
+    },
+    "success": {
+      "feedbackSaved": "Uw feedback is succesvol opgeslagen."
+    }
+  },
+  "getFeedback": {
+    "success": {
+      "feedbackRetrieved": "Uw feedback is succesvol opgehaald."
+    }
+  },
+  "tripCommissionPayment": {
+    "error": {
+      "invalidTrip": "De opgegeven rit bestaat niet in ons systeem. Controleer de rit-ID en probeer opnieuw.",
+      "tripCommissionAlreadyPaid": "De commissie voor deze rit is al betaald.",
+      "paymentFailed": "We konden uw betaling niet verwerken. Probeer het later opnieuw of neem contact op met de ondersteuning."
+    },
+    "success": {
+      "paymentLinkGenerated": "Uw betalingslink is succesvol gegenereerd. Gebruik de link om de betaling te voltooien."
+    }
+  },
+  "failedTripPay": {
+    "error": {
+      "invalidTrip": "De opgegeven rit bestaat niet in ons systeem. Controleer de rit-ID en probeer opnieuw.",
+      "paymentFailed": "We konden uw betaling niet verwerken. Probeer het later opnieuw of neem contact op met de ondersteuning."
+    }
+  },
+  "successTripPay": {
+    "error": {
+      "invalidTrip": "De opgegeven rit bestaat niet in ons systeem. Controleer de rit-ID en probeer opnieuw.",
+      "tripCommissionAlreadyPaid": "De commissie voor deze rit is al betaald.",
+      "paymentFailed": "We konden uw betaling niet verwerken. Probeer het later opnieuw of neem contact op met de ondersteuning.",
+      "notPaidYet": "De betaling is momenteel niet voltooid."
+    },
+    "success": {
+      "paymentPaid": "Uw betaling is succesvol verwerkt."
+    }
+  },
+  "payCompany": {
+    "error": {
+      "amountMustBePositive": "Het bedrag moet een numerieke waarde groter dan nul zijn.",
+      "invalidCompany": "Er is geen overeenkomend bedrijf in onze administratie gevonden.",
+      "amountExceedsBalance": "Het bedrag overschrijdt het beschikbare saldo. Voer een geldig bedrag in."
+    },
+    "success": {
+      "commissionPaid": "Bedrijfscommissie is succesvol betaald."
+    }
+  },
+  "adminUpdatePayment": {
+    "error": {
+      "tripAlreadyPaid": "Deze rit is al betaald."
+    },
+    "success": {
+      "tripPaymentUpdated": "Ritbetaling succesvol bijgewerkt."
+    }
+  },
+  "addSubAdmin": {
+    "error": {
+      "invalidData": "De verstrekte gegevens zijn ongeldig. Controleer en probeer opnieuw.",
+      "noMatchingRecords": "Het systeem kon geen overeenkomende records vinden.",
+      "noUserFound": "Geen record gevonden met de opgegeven details.",
+      "unableToupdate": "Er is een fout opgetreden bij het bijwerken van de gebruikersinformatie. Probeer het later opnieuw.",
+      "subadminDeleteError": "Er is een fout opgetreden bij het verwijderen van het subbeheerder-account. Probeer het later opnieuw.",
+      "unableToRestore": "Er is een fout opgetreden bij het herstellen van het subbeheerder-account. Probeer het later opnieuw.",
+      "invalidCompany": "Het opgegeven bedrijf is ongeldig of bestaat niet. Controleer de bedrijfsgegevens en probeer opnieuw.",
+      "invalidHotel": "Het opgegeven hotel is ongeldig of bestaat niet. Controleer de Hotel-ID en probeer opnieuw."
+    },
+    "success": {
+      "subAdminAdded": "Subbeheerder succesvol toegevoegd.",
+      "infoRetrievedSuccess": "Gebruikersinformatie succesvol opgehaald.",
+      "subAdminUpdated": "Gebruikersinformatie succesvol bijgewerkt.",
+      "subAdminAccountDeleted": "Subbeheerder-account succesvol verwijderd.",
+      "hotelAccountDeleted": "Hotelaccount succesvol verwijderd.",
+      "subAdminAccountRestored": "Subbeheerder-account succesvol hersteld.",
+      "companyListRetrieved": "Bedrijvenlijst succesvol opgehaald.",
+      "driverListRetrieved": "Bestuurderslijst succesvol opgehaald.",
+      "hotelListRetrieved": "Hotellijst succesvol opgehaald.",
+      "companySpecialPlanActivated": "Het speciale abonnement voor het bedrijf is succesvol geactiveerd.",
+      "companySpecialPlanDeactivated": "Het speciale abonnement voor het bedrijf is succesvol gedeactiveerd."
+    }
+  },
+  "getAdminDetail": {
+    "error": {
+      "noAdminsFound": "Geen beheerders gevonden. Controleer de opgegeven details of probeer later opnieuw.",
+      "deleteError": "Er is een fout opgetreden bij het verwijderen van het beheerder-account. Probeer het later opnieuw."
+    },
+    "success": {
+      "adminAccountUpdated": "Beheerder-account succesvol bijgewerkt.",
+      "adminAccountDeleted": "Beheerder-account succesvol verwijderd."
+    }
+  },
+  "updateAccountAccess": {
+    "error": {
+      "selfAssignNotAllowed": "Zelftoewijzing van accounttoegang is niet toegestaan.",
+      "selfAssignPartnerAccountNotAllowed": "U mag uzelf geen partneraccounttoegang toewijzen.",
+      "accessDenied": "U hebt geen toestemming om dit gedeelte te openen.",
+      "driverNotFound": "De opgegeven bestuurder bestaat niet of is niet geregistreerd in het systeem.",
+      "noDriversFound": "Geen bestuurders gevonden.",
+      "accessRevoked": "De toegang van het bedrijf is ingetrokken.",
+      "accessNotAssigned": "Er is geen bedrijfstoegang aan u toegewezen."
+    },
+    "success": {
+      "accountRevokedSuccess": "Accounttoegang succesvol ingetrokken van de bestuurder.",
+      "accountShareSuccess": "Account succesvol gedeeld met de bestuurder.",
+      "accountRevokedByCompanyMessage": "{{company_name}} heeft de toegang tot het gedeelde account ingetrokken.",
+      "accountSharedByCompanyMessage": "{{company_name}} heeft het account met u gedeeld.",
+      "accountRevokedByCompanyTitle": "Toegang ingetrokken",
+      "accountSharedByCompanyTitle": "Account gedeeld"
+    }
+  },
+  "payment": {
+    "error": {
+      "invalidPlan": "De geselecteerde abonnementsoptie is ongeldig. Kies een geldige optie.",
+      "invalidOrExpiredSession": "De sessie-ID is ongeldig of verlopen.",
+      "sessionAlreadyPaid": "De betaling voor deze sessie is al voltooid.",
+      "paymentFailed": "We konden uw betaling niet verwerken. Probeer het later opnieuw of neem contact op met de ondersteuning.",
+      "noTopupHistory": "Uw opwaardeergeschiedenis verschijnt hier zodra u een betaling heeft gedaan.",
+      "subscriptionNotFound": "Het opgegeven abonnement bestaat niet of is ongeldig.",
+      "noActivePaidPlan": "U heeft geen actief betaald abonnement. Abonneer u om deze functie te gebruiken.",
+      "accountAlreadyAttached": "Het account van de gebruiker is al gekoppeld.",
+      "bankAccountVerificationPending": "De verificatie van uw bankrekening is nog in behandeling.",
+      "accountNotConnected": "De gebruiker heeft geen gekoppeld Stripe-account op het platform."
+    },
+    "success": {
+      "paymentProcessed": "De betaling is succesvol ontvangen.",
+      "subscriptionCancelled": "Uw abonnement is succesvol geannuleerd.",
+      "accountLinkSuccess": "Uw bankrekening is succesvol gekoppeld aan het platform."
+    }
+  },
+  "getVehicle": {
+    "error": {
+      "vehicleNameAlreadyInUse": "Het opgegeven voertuigtype bestaat al.",
+      "invalidVehicle": "Het opgegeven voertuig is ongeldig of bestaat niet. Controleer en probeer opnieuw.",
+      "invalidVehicleType": "Het opgegeven voertuigtype is ongeldig of bestaat niet. Controleer en probeer opnieuw.",
+      "vehicleNumberAlreadyInUse": "Dit voertuignummer is al geregistreerd.",
+      "unableToAddVehicle": "Er is een fout opgetreden bij het toevoegen van het voertuig. Probeer het later opnieuw of neem contact op met de ondersteuning.",
+      "noVehicleFound": "Geen voertuig gevonden in het systeem.",
+      "getVehicleFailed": "Er is een fout opgetreden bij het ophalen van het voertuig. Probeer het later opnieuw.",
+      "updateFailed": "Er is een fout opgetreden bij het bijwerken van het voertuig. Probeer het later opnieuw.",
+      "deleteFailed": "Er is een fout opgetreden bij het verwijderen van het voertuig. Probeer het later opnieuw."
+    },
+    "success": {
+      "getVehicleType": "Voertuigtypen succesvol opgehaald.",
+      "carTypeAdded": "Voertuigtype succesvol toegevoegd.",
+      "vehicleListRetrieved": "Record succesvol opgehaald.",
+      "vehicleAdded": "Voertuig succesvol toegevoegd.",
+      "vehicleUpdated": "Voertuig succesvol bijgewerkt.",
+      "vehicleDeleted": "Voertuig succesvol verwijderd."
+    }
+  },
+  "blockedUser": {
+    "error": {
+      "inValidRoleType": "Rol {{role}} is geen geldige enumwaarde.",
+      "unableToBlockUser": "Er is een fout opgetreden bij het blokkeren van de gebruiker. Probeer het later opnieuw.",
+      "unableToUnblockUser": "Er is een fout opgetreden bij het deblokkeren van de gebruiker. Probeer het later opnieuw."
+    },
+    "success": {
+      "userBlocked": "De {{role}} is succesvol geblokkeerd.",
+      "userUnblocked": "De gebruiker {{role}} is succesvol gedeblokkeerd."
+    }
+  },
+  "priceUpload": {
+    "error": {
+      "accessDenied": "U mag deze actie niet uitvoeren.",
+      "noDataFound": "Geen gegevens gevonden in het geüploade bestand.",
+      "invalidFileType": "Het geüploade bestandstype wordt niet ondersteund. Upload een geldig bestand.",
+      "invalidPriceType": "Het prijstype is ongeldig. Zorg ervoor dat het een ondersteund type is.",
+      "fileUploadFailed": "Er is een fout opgetreden bij het uploaden van het bestand. Probeer het later opnieuw.",
+      "fileNotFound": "Het opgegeven bestand is niet gevonden.",
+      "invalidFileFormat": "Het geüploade bestandsformaat is ongeldig. Controleer of het aan de vereiste specificaties voldoet.",
+      "missingColumns": "Ontbrekende vereiste kolommen: {{columns}}. Zorg ervoor dat het bestand alle vereiste kolommen bevat.",
+      "unexpectedExtraColumns": "Onverwachte extra kolommen gevonden: {{columns}}. Verwijder deze en probeer opnieuw.",
+      "emptyRowFields": "Rij {{row_no}} bevat een lege waarde voor {{field}}.",
+      "inValidAmount": "Rij {{row_no}} bevat een ongeldige 'Amount'. Dit moet een getal zijn (geheel of decimaal).",
+      "noPricefound": "Geen prijs gevonden in het systeem.",
+      "invalidZipcode": "Er is een ongeldige postcode gevonden in rij {{row_no}} in de kolom {{field}}.",
+      "badRequest":  "Bedverzoek"
+    },
+    "success": {
+      "fileUploaded": "Het bestand is succesvol geüpload.",
+      "fileProcessed": "Het bestand is succesvol verwerkt.",
+      "priceUpdated": "De prijs is succesvol bijgewerkt.",
+      "priceDeleted": "De prijs is succesvol verwijderd.",
+      "statusUpdated": "Status succesvol bijgewerkt.",
+      "visibilityUpdated": "Zichtbaarheid succesvol bijgewerkt."
+    }
+  }
+}

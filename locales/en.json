@@ -574,7 +574,8 @@
             "emptyRowFields": "Row {{row_no}} has an empty value for {{field}}.",
             "inValidAmount": "`Row {{row_no}} has an invalid 'Amount'. It must be a number (integer or decimal)",
             "noPricefound": "No price found in the system",
-            "invalidZipcode": "An invalid ZIP code was found in row {{row_no}} under the {{field}} column"
+            "invalidZipcode": "An invalid ZIP code was found in row {{row_no}} under the {{field}} column",
+            "badRequest":  "Bed Request"
         },
         "success": {
             "fileUploaded": "The file has been uploaded successfully.",

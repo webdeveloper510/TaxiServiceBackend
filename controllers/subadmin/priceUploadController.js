@@ -253,8 +253,8 @@ exports.disabledUploadedPrices = async (req, res) => {
         let data = req.body;
         
         const isUpdateData = await PRICE_MODEL.updateMany(
-                                                            { user_id: req.userId }, // Filter condition
-                                                            { $set: {status: data.status , price_type: data?.upload_price_type} } // Fields to update
+                                                            { user_id: req.userId , price_type: data?.upload_price_type}, // Filter condition
+                                                            { $set: {status: data.status  } } // Fields to update
                                                         );
         return  res.send({
             code: constant.success_code,
@@ -388,6 +388,54 @@ exports.upateUploadedPrice = async (req, res) => {
                 message: res.__("priceUpload.error.accessDenied")
             });
         }
+        
+    } catch (error) {
+        console.error('Error getUploadedPrice:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+    }
+}
+
+exports.updateAllPriceVisibility = async (req, res) => {
+
+    try {
+
+
+        let data = req.body;
+
+        if ('visible_to_hotel' in data  && 'upload_price_type' in data?.upload_price_type) {
+
+            const uploadedPrice = await PRICE_MODEL.find({ user_id: req.userId , price_type: data?.upload_price_type});
+           
+            if (uploadedPrice) {
+
+                let updateData =  {visible_to_hotel : data.visible_to_hotel };
+                
+                const isUpdateData = await PRICE_MODEL.updateMany(
+                                                                    { user_id: req.userId  , price_type: data?.upload_price_type}, // Filter condition
+                                                                    { $set: updateData } // Fields to update
+                                                                );
+                return  res.send({
+                                    code: constant.success_code,
+                                    message: res.__("priceUpload.success.visibilityUpdated"),
+                                });
+            } else {
+
+                return  res.send({
+                                    code: constant.error_code,
+                                    message: res.__("priceUpload.error.noPricefound")
+                                });
+            }
+        } else {
+            return  res.send({
+                                code: constant.error_code,
+                                message: res.__("priceUpload.error.badRequest")
+                            });
+        }
+        
+        
         
     } catch (error) {
         console.error('Error getUploadedPrice:', error.message);
