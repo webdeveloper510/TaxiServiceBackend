@@ -405,7 +405,7 @@ exports.updateAllPriceVisibility = async (req, res) => {
 
         let data = req.body;
 
-        if ('visible_to_hotel' in data  && 'upload_price_type' in data?.upload_price_type) {
+        if ('visible_to_hotel' in data  && 'upload_price_type' in data) {
 
             const uploadedPrice = await PRICE_MODEL.find({ user_id: req.userId , price_type: data?.upload_price_type});
            
