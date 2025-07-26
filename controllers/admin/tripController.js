@@ -38,6 +38,7 @@ const nodemailer = require("nodemailer");
 const emailConstant = require("../../config/emailConstant");
 const twilio = require("twilio");
 const { Sms } = require("twilio/lib/twiml/VoiceResponse");
+const similarity = require('string-similarity');
 
 const tripIsBooked = async (tripId, driver_info, io) => {
   
@@ -3021,33 +3022,80 @@ exports.calculatePrice = async (req, res) => {
     
     let searchQuery = { user_id: companyId  , vehicle_type: vehicleType};
     
-    // if (number_of_person <= 4) {
-    //   searchQuery.number_of_person = { $lte: 4 };
-    // } else if (number_of_person > 4 && number_of_person <= 8) {
-    //   searchQuery.number_of_person = { $gt: 4, $lte: 8 };
-    // }
+    if (number_of_person <= 4) {
+      searchQuery.number_of_person = { $lte: 4 };
+    } else if (number_of_person > 4 && number_of_person <= 8) {
+      searchQuery.number_of_person = { $gt: 4, $lte: 8 };
+    }
 
     // get the uploaded price based on 
+    // console.log('searchQuery---' , searchQuery)
     const alluploadedPriceList = await PRICE_MODEL.find(searchQuery);
+    // console.log('alluploadedPriceList---' , alluploadedPriceList)
+    // console.log('alluploadedPriceList---' , alluploadedPriceList)
+    // console.log('origin---' , origin)
+    // console.log('destination---' , destination)
 
-    const matchingRoutes = alluploadedPriceList?.filter((route) => {
-                                                                      const routeFrom = route?.departure_place?.toLowerCase().trim();
-                                                                      const routeTo = route?.arrival_place?.toLowerCase().trim();
-                                                                      const originLower = origin.toLowerCase().trim();
-                                                                      const destinationLower = destination.toLowerCase().trim();
+    const cleanString = (str) => str.normalize('NFKC').replace(/\u202F/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+    const originLower = cleanString(origin);
+    const destinationLower = cleanString(destination);
+    console.log('originLower--------' ,originLower);
+    console.log('destinationLower--------' ,destinationLower);
 
+    let matchingRoutes = []
+    let directMatch =  await alluploadedPriceList?.filter((route) => {
+                                                                      const routeFrom = cleanString(route?.departure_place || '');
+                                                                      const routeTo = cleanString(route?.arrival_place || '');
+                                                                        
                                                                       return (
                                                                         (originLower.includes(routeFrom) && destinationLower.includes(routeTo)) ||
-                                                                        (routeFrom.includes(originLower) && routeTo.includes(destinationLower)) ||
+                                                                        (routeFrom.includes(originLower) && routeTo.includes(destinationLower))
+                                                                      );
+                                                                    });
+
+    
+    let reverseMatch =  await alluploadedPriceList?.filter((route) => {
+                                                                      const routeFrom = cleanString(route?.departure_place || '');
+                                                                      const routeTo = cleanString(route?.arrival_place || '');
+                                                                        
+                                                                      return (
                                                                         (originLower.includes(routeTo) && destinationLower.includes(routeFrom)) ||
                                                                         (routeTo.includes(originLower) && routeFrom.includes(destinationLower))
                                                                       );
                                                                     });
+
+    matchingRoutes = [ ...directMatch  , reverseMatch];
+
+    // If we didn't get the result with excat matching then we will use similer matching functionality
+    if (matchingRoutes?.length == 0) {
+
+      let bestMatch = await alluploadedPriceList.find(route => {
+                                                        const dbFrom = cleanString(route.departure_place);
+                                                        const dbTo = cleanString(route.arrival_place);
+
+                                                        const scoreA = 
+                                                          similarity.compareTwoStrings(originLower, dbFrom) > 0.8 &&
+                                                          similarity.compareTwoStrings(destinationLower, dbTo) > 0.8;
+
+                                                        const scoreB = 
+                                                          similarity.compareTwoStrings(originLower, dbTo) > 0.8 &&
+                                                          similarity.compareTwoStrings(destinationLower, dbFrom) > 0.8;
+
+                                                        return scoreA || scoreB;
+                                                      });
+      
+      if (bestMatch) {
+        matchingRoutes.push(bestMatch)
+      }
+      
+    }
+    
     let finalPrice = 0;
     let priceGetBy = null;                               
     if (matchingRoutes?.length > 0) {
       finalPrice = matchingRoutes[0].amount;
-      priceGetBy = `uploaded price`
+      priceGetBy = `uploaded price`;
+
     } else {
       if (kilometers < 10) {
         finalPrice = kilometers * fareDetail?.vehicle_fare_per_km;

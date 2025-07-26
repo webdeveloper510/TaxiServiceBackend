@@ -35,6 +35,7 @@
     "path": "^0.12.7",
     "rand-token": "^1.0.1",
     "socket.io": "^4.7.2",
+    "string-similarity": "^4.0.4",
     "stripe": "^14.5.0",
     "twilio": "^5.2.2",
     "xlsx": "^0.18.5"
