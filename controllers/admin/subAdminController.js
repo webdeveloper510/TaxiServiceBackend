@@ -1051,8 +1051,8 @@ exports.edit_sub_admin = async (req, res) => {
       }
       
       let successMessage = "";
-      console.log('chekcing-------' ,req.body ,Object.keys(req.body).length , req.body.hasOwnProperty("is_special_plan_active"))
-      if (Object.keys(data).length == 2 && data.hasOwnProperty("is_special_plan_active")) {
+      // console.log('chekcing-------' ,req.body ,Object.keys(req.body).length , req.body.hasOwnProperty("is_special_plan_active"))
+      if (Object.keys(data).length == 2 && Object.prototype.hasOwnProperty.call(data, "is_special_plan_active")) {
 
         successMessage = update_data?.is_special_plan_active ? res.__('addSubAdmin.success.companySpecialPlanActivated') : res.__('addSubAdmin.success.companySpecialPlanDeactivated');
       } else {
@@ -2251,6 +2251,7 @@ exports.companyList = async (req, res) => {
               { $arrayElemAt: ["$driver_info.last_name", 0] },
             ],
           },
+          is_driver_deleted: { $arrayElemAt: ["$driver_info.is_deleted", 0] }
         },
       },
       {
