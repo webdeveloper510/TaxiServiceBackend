@@ -3064,11 +3064,12 @@ exports.calculatePrice = async (req, res) => {
                                                                       );
                                                                     });
 
-    matchingRoutes = [ ...directMatch  , reverseMatch];
+    matchingRoutes = [ ...directMatch  , ...reverseMatch];
+
 
     // If we didn't get the result with excat matching then we will use similer matching functionality
     if (matchingRoutes?.length == 0) {
-
+      
       let bestMatch = await alluploadedPriceList.find(route => {
                                                         const dbFrom = cleanString(route.departure_place);
                                                         const dbTo = cleanString(route.arrival_place);
@@ -3089,14 +3090,19 @@ exports.calculatePrice = async (req, res) => {
       }
       
     }
+
+    
     
     let finalPrice = 0;
     let priceGetBy = null;                               
     if (matchingRoutes?.length > 0) {
       finalPrice = matchingRoutes[0].amount;
       priceGetBy = `uploaded price`;
-
+      
     } else {
+
+      
+
       if (kilometers < 10) {
         finalPrice = kilometers * fareDetail?.vehicle_fare_per_km;
         priceGetBy = `price below 10`
@@ -3117,7 +3123,7 @@ exports.calculatePrice = async (req, res) => {
     
     finalPrice = finalPrice < fareDetail?.minimum_fare ? fareDetail?.minimum_fare : finalPrice
     if (element.status === 'OK') {
-
+      
       return res.send({
         code: constant.success_code,
         kilometers,
