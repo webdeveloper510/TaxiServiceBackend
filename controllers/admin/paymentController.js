@@ -421,10 +421,46 @@ exports.adminTransaction = async (req, res) => {
     const driversNetEarning = await getTotalPayment(dateQuery , {} , `driverPaymentAmount` , false);
     
     
-    const countDriversWithPendingDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false , ...dateQuery});
-    const countDriversWithPaidDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true , ...dateQuery});
+    // const countDriversWithPendingDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false , ...dateQuery});
+    // const countDriversWithPaidDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true , ...dateQuery});
 
+    // const countDriversWithPendingDues  = await TRIP.find({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false , ...dateQuery});
+    // const countDriversWithPaidDues  = await TRIP.find({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true , ...dateQuery});
+    const uniqueUnpaidTripDrivers = await TRIP.aggregate([
+                                                {
+                                                  $match: {
+                                                    trip_status: constant.TRIP_STATUS.COMPLETED,
+                                                    is_paid: false,
+                                                    ...dateQuery
+                                                  }
+                                                },
+                                                {
+                                                  $group: {
+                                                    _id: "$driver_name" // group by driver to get unique drivers
+                                                  }
+                                                }
+                                              ]);
 
+const countDriversWithPendingDues = uniqueUnpaidTripDrivers.length;
+const unpaidDriverIds = uniqueUnpaidTripDrivers.map(d => d._id);
+
+const uniquePaidTripDrivers = await TRIP.aggregate([
+                                                {
+                                                  $match: {
+                                                    trip_status: constant.TRIP_STATUS.COMPLETED,
+                                                    is_paid: true,
+                                                    driver_name: { $nin: unpaidDriverIds },
+                                                    ...dateQuery
+                                                  }
+                                                },
+                                                {
+                                                  $group: {
+                                                    _id: "$driver_name" // group by driver to get unique drivers
+                                                  }
+                                                }
+                                              ]);
+
+const countDriversWithPaidDues = uniquePaidTripDrivers.length;
 
     res.send({
               code: constant.success_code,

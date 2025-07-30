@@ -45,7 +45,7 @@ exports.add_sub_admin = async (req, res) => {
 
     let checkEmail = await USER.findOne({
                                           email: { $regex: new RegExp(`^${data.email}$`, 'i') }, // Case-insensitive match
-                                          is_deleted: false,
+                                          // is_deleted: false,
                                         });
 
     if (checkEmail) {
@@ -74,7 +74,7 @@ exports.add_sub_admin = async (req, res) => {
     }
     let checkPhone = await USER.findOne({
                                           phone: data.phone,
-                                          is_deleted: false,
+                                          // is_deleted: false,
                                         });
                                         
     if (checkPhone) {
@@ -86,7 +86,7 @@ exports.add_sub_admin = async (req, res) => {
 
     let checkDriverPhone = await DRIVER.findOne({
                                                   phone: data.phone, 
-                                                  is_deleted: false,
+                                                  // is_deleted: false,
                                                   ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
                                                     ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
                                                     : {}), 
