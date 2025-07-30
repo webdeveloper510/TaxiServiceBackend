@@ -446,7 +446,6 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
     for (let admin of superAdminData) {
 
-
       // for partner app side
       if (admin?.webSocketId) {
         
@@ -1527,8 +1526,7 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
   var transporter = nodemailer.createTransport(emailConstant.credentials);
   var mailOptions = {
                       from: emailConstant.from_email,
-                      // to: driverInfo.email,
-                      to: `vsingh@codenomad.net`,
+                      to: driverInfo.email,
                       subject: `Welcome mail`,
                       html: `${await this.emailHeader()} ${template} ${await this.emailFooter()}`,
                     };
