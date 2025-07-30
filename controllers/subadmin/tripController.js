@@ -667,7 +667,7 @@ exports.driverCancelTripDecision = async (req, res) => {
     if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
       message = res.__('driverCancelTripReason.socket.tripCancellationApproved' , {trip_id: tripDetails?.trip_id})
     } else {
-      message = res.__('driverCancelTripReason.socket.tripCancellationRejected' , {trip_id: tripDetails?.trip_id})
+      message = res.__('driverCancelTripReason.socket.tripCancelLationRejected' , {trip_id: tripDetails?.trip_id})
     }
       // Send notification to the driver and inform by the socket but company and driver are same person then no notification or pop-up will be show
     if ( (tripDetails?.driver_name.toString() != req.user?.driverId?._id.toString()) ||  req.companyPartnerAccess) {
@@ -680,12 +680,25 @@ exports.driverCancelTripDecision = async (req, res) => {
         device_token = driverCompany.deviceToken ? driverCompany.deviceToken : null;
       }
 
+      const isDriverHasAccess = await isDriverHasCompanyAccess(driver_data , tripDetails.created_by_company_id)
+      console.log('isDriverHasAccess--------------' , isDriverHasAccess)
+
+
       if (driver_data?.socketId) {
         req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
           message: message,
           tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
           tripDetails:tripDetails
         });
+
+        
+
+        // If driver doesn't have company acces then we can refresh the trip from driver side because he will be refreshed by partnerAccountRefreshTrip function
+        if (!isDriverHasAccess) {
+
+          console.log('refreshTrip--------------socketId' , driver_data?.socketId)
+          await req.io.to(driver_data?.socketId).emit("refreshTrip", { message: message } )
+        }
       }
 
       if (driver_data?.webSocketId) {
@@ -695,6 +708,12 @@ exports.driverCancelTripDecision = async (req, res) => {
                                                                                       tripDetails:tripDetails
                                                                                     }
                                                 );
+
+        if (!isDriverHasAccess) {
+          console.log('refreshTrip--------------')
+          await req.io.to(driver_data?.webSocketId).emit("refreshTrip", { message: message } )
+        }
+        
       }
       
       if (device_token) {
