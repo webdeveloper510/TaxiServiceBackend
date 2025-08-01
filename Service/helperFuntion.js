@@ -2929,7 +2929,10 @@ exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
         message = `Dear customer, your driver is on the way to pick you up for your scheduled trip (${tripDetail?.trip_id}) with ${companyAgencyDetail?.company_name}. Check the updated details at ${companyAgencyDetail?.company_name}. Visit ${process.env.BASEURL}/booking-details/${id}/${companyId}`;
       }
       
-      const phone = companyDetail?.phone;
+      const phone = `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`;
+
+      console.log('phone-------' , phone);
+
       const isSendSms    = await this.sendSms({to: phone , message:message});
 
 
