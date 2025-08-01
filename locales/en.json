@@ -280,9 +280,9 @@
         },
         "socket": {
             "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",
-            "tripCancelLationApproved": "Your cancellation request for Trip ID {{trip_id}} has been approved by the company.",
-            "tripCancelLationRejected": "The company has rejected your cancellation request for Trip ID {{trip_id}}. Kindly continue with the scheduled trip.",
-            "tripCancelLationStatusMessage": "Trip {{trip_id}} cancellation request has been {{tripDecisionStatus}}",
+            "tripCancellationApproved": "Your cancellation request for Trip ID {{trip_id}} has been approved by the company.",
+            "tripCancellationRejected": "The company has rejected your cancellation request for Trip ID {{trip_id}}. Kindly continue with the scheduled trip.",
+            "tripCancellationStatusMessage": "Trip {{trip_id}} cancellation request has been {{tripDecisionStatus}}",
             "tripCancellationStatusTitle": "Trip Cancellation Request Update"
         },
         "success": {
@@ -575,7 +575,7 @@
             "inValidAmount": "`Row {{row_no}} has an invalid 'Amount'. It must be a number (integer or decimal)",
             "noPricefound": "No price found in the system",
             "invalidZipcode": "An invalid ZIP code was found in row {{row_no}} under the {{field}} column",
-            "badRequest":  "Bed Request"
+            "badRequest": "Bed Request"
         },
         "success": {
             "fileUploaded": "The file has been uploaded successfully.",
@@ -584,7 +584,6 @@
             "priceDeleted": "The price has been deleted successfully.",
             "statusUpdated": "Status has been updated successfully",
             "visibilityUpdated": "Visibility has been updated successfully"
-
         }
     }
 }

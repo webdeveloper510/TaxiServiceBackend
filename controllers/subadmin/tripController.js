@@ -667,7 +667,7 @@ exports.driverCancelTripDecision = async (req, res) => {
     if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
       message = res.__('driverCancelTripReason.socket.tripCancellationApproved' , {trip_id: tripDetails?.trip_id})
     } else {
-      message = res.__('driverCancelTripReason.socket.tripCancelLationRejected' , {trip_id: tripDetails?.trip_id})
+      message = res.__('driverCancelTripReason.socket.tripCancellationRejected' , {trip_id: tripDetails?.trip_id})
     }
       // Send notification to the driver and inform by the socket but company and driver are same person then no notification or pop-up will be show
     if ( (tripDetails?.driver_name.toString() != req.user?.driverId?._id.toString()) ||  req.companyPartnerAccess) {

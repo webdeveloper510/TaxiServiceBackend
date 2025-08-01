@@ -280,9 +280,9 @@
     },
     "socket": {
       "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",
-      "tripCancelLationApproved": "Uw annuleringsverzoek voor rit-ID {{trip_id}} is goedgekeurd door het bedrijf.",
-      "tripCancelLationRejected": "Het bedrijf heeft uw annuleringsverzoek voor rit-ID {{trip_id}} afgewezen. Ga alstublieft door met de geplande rit.",
-      "tripCancelLationStatusMessage": "Annuleringsverzoek voor rit {{trip_id}} is {{tripDecisionStatus}}.",
+      "tripCancellationApproved": "Uw annuleringsverzoek voor rit-ID {{trip_id}} is goedgekeurd door het bedrijf.",
+      "tripCancellationRejected": "Het bedrijf heeft uw annuleringsverzoek voor rit-ID {{trip_id}} afgewezen. Ga alstublieft door met de geplande rit.",
+      "tripCancellationStatusMessage": "Annuleringsverzoek voor rit {{trip_id}} is {{tripDecisionStatus}}.",
       "tripCancellationStatusTitle": "Update annuleringsverzoek"
     },
     "success": {
@@ -575,7 +575,7 @@
       "inValidAmount": "Rij {{row_no}} bevat een ongeldige 'Amount'. Dit moet een getal zijn (geheel of decimaal).",
       "noPricefound": "Geen prijs gevonden in het systeem.",
       "invalidZipcode": "Er is een ongeldige postcode gevonden in rij {{row_no}} in de kolom {{field}}.",
-      "badRequest":  "Bedverzoek"
+      "badRequest": "Bedverzoek"
     },
     "success": {
       "fileUploaded": "Het bestand is succesvol geüpload.",
