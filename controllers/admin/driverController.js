@@ -860,7 +860,7 @@ exports.get_drivers_super = async (req, res) => {
         ];
       }
       
-    } else if (offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.INRIDE) { // When user wnats in ride drivers
+    } else if (offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.INRIDE) { // When user wants in ride drivers
       query.is_available = false;
       query.status = true;
       query.is_login = true;
