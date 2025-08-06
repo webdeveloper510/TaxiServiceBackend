@@ -280,8 +280,8 @@
         },
         "socket": {
             "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",
-            "tripCancellationApproved": "Your cancellation request for Trip ID {{trip_id}} has been approved by the company.",
-            "tripCancellationRejected": "The company has rejected your cancellation request for Trip ID {{trip_id}}. Kindly continue with the scheduled trip.",
+            "tripCancellationApproved": "Your cancellation request for Trip ID {{trip_id}} has been approved by the {{updatedBy}}.",
+            "tripCancellationRejected": "The {{updatedBy}} has rejected your cancellation request for Trip ID {{trip_id}}. Kindly continue with the scheduled trip.",
             "tripCancellationStatusMessage": "Trip {{trip_id}} cancellation request has been {{tripDecisionStatus}}",
             "tripCancellationStatusTitle": "Trip Cancellation Request Update"
         },
@@ -470,9 +470,9 @@
             "subAdminAdded": "Sub-admin has been added successfully.",
             "infoRetrievedSuccess": "User information retrieved successfully.",
             "subAdminUpdated": "User information has been updated successfully.",
-            "subAdminAccountDeleted": "Sub-admin account has been deleted successfully.",
+            "subAdminAccountDeleted": "Company account has been deleted successfully.",
             "hotelAccountDeleted": "Hotel account has been deleted successfully.",
-            "subAdminAccountRestored": "Sub-admin account has been restored successfully.",
+            "subAdminAccountRestored": "Company account has been restored successfully.",
             "companyListRetrieved": "Company list has been retrieved successfully.",
             "driverListRetrieved": "Driver list has been retrieved successfully.",
             "hotelListRetrieved": "Hotel list has been retrieved successfully.",

@@ -641,10 +641,12 @@ exports.driverCancelTripDecision = async (req, res) => {
                               },
                               reviewed_by_role: null
                             }
-    
+    let updatedBy = ''
     if (req.user?.role == constant.ROLES.COMPANY || req.user?.role == constant.ROLES.ADMIN || req.user?.role == constant.ROLES.SUPER_ADMIN) {
 
       tripDecisionData.reviewed_by_role = req.companyPartnerAccess ? constant.ROLES.DRIVER : req.user?.role;
+
+      updatedBy = req.user?.role == constant.ROLES.ADMIN || req.user?.role == constant.ROLES.SUPER_ADMIN ? 'Admin' : 'Company'
       
       if (req.companyPartnerAccess ) {// if driver has company's partner access
         tripDecisionData.reviewer_action.reviewed_by_driver_partner =  req.CompanyPartnerDriverId;
@@ -677,9 +679,9 @@ exports.driverCancelTripDecision = async (req, res) => {
     let message = '';
 
     if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
-      message = res.__('driverCancelTripReason.socket.tripCancellationApproved' , {trip_id: tripDetails?.trip_id})
+      message = res.__('driverCancelTripReason.socket.tripCancellationApproved' , {trip_id: tripDetails?.trip_id , updatedBy: updatedBy})
     } else {
-      message = res.__('driverCancelTripReason.socket.tripCancellationRejected' , {trip_id: tripDetails?.trip_id})
+      message = res.__('driverCancelTripReason.socket.tripCancellationRejected' , {trip_id: tripDetails?.trip_id , updatedBy: updatedBy})
     }
       // Send notification to the driver and inform by the socket but company and driver are same person then no notification or pop-up will be show
     if ( (tripDetails?.driver_name.toString() != req.user?.driverId?._id.toString()) ||  req.companyPartnerAccess) {

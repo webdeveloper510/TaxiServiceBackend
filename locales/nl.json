@@ -280,8 +280,8 @@
     },
     "socket": {
       "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",
-      "tripCancellationApproved": "Uw annuleringsverzoek voor rit-ID {{trip_id}} is goedgekeurd door het bedrijf.",
-      "tripCancellationRejected": "Het bedrijf heeft uw annuleringsverzoek voor rit-ID {{trip_id}} afgewezen. Ga alstublieft door met de geplande rit.",
+      "tripCancellationApproved": "Je annuleringsverzoek voor rit-ID {{trip_id}} is goedgekeurd door {{updatedBy}}.",
+      "tripCancellationRejected": "{{updatedBy}} heeft je annuleringsverzoek voor rit-ID {{trip_id}} afgewezen. Gelieve door te gaan met de geplande rit.",
       "tripCancellationStatusMessage": "Annuleringsverzoek voor rit {{trip_id}} is {{tripDecisionStatus}}.",
       "tripCancellationStatusTitle": "Update annuleringsverzoek"
     },
@@ -470,9 +470,9 @@
       "subAdminAdded": "Subbeheerder succesvol toegevoegd.",
       "infoRetrievedSuccess": "Gebruikersinformatie succesvol opgehaald.",
       "subAdminUpdated": "Gebruikersinformatie succesvol bijgewerkt.",
-      "subAdminAccountDeleted": "Subbeheerder-account succesvol verwijderd.",
+      "subAdminAccountDeleted": "bedrijfsaccount succesvol verwijderd.",
       "hotelAccountDeleted": "Hotelaccount succesvol verwijderd.",
-      "subAdminAccountRestored": "Subbeheerder-account succesvol hersteld.",
+      "subAdminAccountRestored": "bedrijfsaccount  succesvol hersteld.",
       "companyListRetrieved": "Bedrijvenlijst succesvol opgehaald.",
       "driverListRetrieved": "Bestuurderslijst succesvol opgehaald.",
       "hotelListRetrieved": "Hotellijst succesvol opgehaald.",

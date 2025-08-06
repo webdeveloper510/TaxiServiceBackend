@@ -2984,7 +2984,7 @@ exports.calculatePrice = async (req, res) => {
     const car_type_id = data?.car_type_id;
     const number_of_person = data?.number_of_person;
     let companyId = null;
-
+    let isHotel = false;
     if (req?.params?.companyId) { // for booking and driver account access
       companyId = req?.params?.companyId;
 
@@ -2994,6 +2994,7 @@ exports.calculatePrice = async (req, res) => {
         companyId = req?.user?._id;
       } else if (req?.user?.role == constant.ROLES.HOTEL) {
         companyId = req?.user?.created_by._id;
+        isHotel = true;
       }
     }
     
@@ -3020,8 +3021,12 @@ exports.calculatePrice = async (req, res) => {
 
     let kilometers = element.distance.value / 1000;
     
-    let searchQuery = { user_id: companyId  , vehicle_type: vehicleType};
+    let searchQuery = { user_id: companyId  , vehicle_type: vehicleType , status: true}; //status: true means price is enabled
     
+    if (isHotel) {
+      searchQuery.visible_to_hotel = true;
+    }
+
     if (number_of_person <= 4) {
       searchQuery.number_of_person = { $lte: 4 };
     } else if (number_of_person > 4 && number_of_person <= 8) {
