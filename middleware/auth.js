@@ -58,6 +58,10 @@ verifyToken = async (req, res, next) => {
             updateLastUse.lastUsedToken = new Date();
           }
           await user_model.updateOne({ _id: user._id }, updateLastUse);
+
+          if (user?.isDriver) {
+            await driver_model.updateOne({ _id: user.driverId._id }, updateLastUse);
+          }
         }
 
        
