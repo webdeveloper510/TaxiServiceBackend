@@ -440,7 +440,7 @@ exports.smsPaymentValidateSession = async (req, res) => {
         //     });
         // }
 
-        
+
         // session = await stripe.checkout.sessions.retrieve(checkoutSessionId); // getting session details
         // invoice = await stripe.invoices.retrieve(session.invoice); // get invoice details  based on session
         
@@ -449,8 +449,8 @@ exports.smsPaymentValidateSession = async (req, res) => {
             let option = { new: true };
             let updatedData =   {
                                     status: constant.SMS_RECHARGE_STATUS.PAID,
-                                    hosted_invoice_url:invoice.hosted_invoice_url,
-                                    invoice_pdf:invoice.invoice_pdf
+                                    // hosted_invoice_url:invoice.hosted_invoice_url,
+                                    // invoice_pdf:invoice.invoice_pdf
                                 };
             await SMS_RECHARGE_MODEL.findOneAndUpdate({checkoutSessionId :checkoutSessionId } , updatedData , option);
 
