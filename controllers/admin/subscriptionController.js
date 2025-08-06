@@ -420,25 +420,27 @@ exports.smsPaymentValidateSession = async (req, res) => {
         let session;
         let invoice = null;
         let retries = 10;
-
+        session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
         // Invoice takes time to generate after completion the payment so We are trying to get invoice untill it will be generated
 
-        for (let i = 0; i < retries; i++) {
-            session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
-            console.log('invoice try count----' , i)
-            if (session.invoice) {
-                invoice = await stripe.invoices.retrieve(session.invoice);
-                break;
-            }
-            await new Promise(resolve => setTimeout(resolve, 2000)); // wait 2 seconds
-        }
+        // for (let i = 0; i < retries; i++) {
+        //     session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+        //     console.log('invoice try count----' , i)
+        //     if (session.invoice) {
+        //         invoice = await stripe.invoices.retrieve(session.invoice);
+        //         break;
+        //     }
+        //     await new Promise(resolve => setTimeout(resolve, 2000)); // wait 2 seconds
+        // }
 
-        if (!invoice) {
-            return res.json({
-                code: constant.error_code,
-                message: "Invoice is still being generated. Please try again shortly.",
-            });
-        }
+        // if (!invoice) {
+        //     return res.json({
+        //         code: constant.error_code,
+        //         message: "Invoice is still being generated. Please try again shortly.",
+        //     });
+        // }
+
+        
         // session = await stripe.checkout.sessions.retrieve(checkoutSessionId); // getting session details
         // invoice = await stripe.invoices.retrieve(session.invoice); // get invoice details  based on session
         
