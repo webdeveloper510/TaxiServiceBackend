@@ -458,6 +458,9 @@ exports.smsPaymentValidateSession = async (req, res) => {
             
             userDetails.sms_balance = (userDetails?.sms_balance ? userDetails?.sms_balance : 0) + smsRechargeDetail.price;
             await USER_MODEL.findOneAndUpdate({_id: userDetails._id}, {$set: {sms_balance: userDetails.sms_balance}} , { new: true })
+
+            // get inoice for sms payment
+            setTimeout(() => { getSmsPaymentInvoice(checkoutSessionId); }, 20 * 1000); // 20 seconds after
             return res.json({ 
                                 code: constant.success_code,
                                 message: res.__('payment.success.paymentProcessed'),
@@ -477,6 +480,51 @@ exports.smsPaymentValidateSession = async (req, res) => {
                     message: error.message,
                 });
     }
+}
+
+const getSmsPaymentInvoice = async (checkoutSessionId) => {
+
+    try {
+
+        const smsRechargeDetail = await SMS_RECHARGE_MODEL.findOne({checkoutSessionId:checkoutSessionId});
+        let session;
+        let invoice = null;
+        let retries = 10;
+
+        // Invoice takes time to generate after completion the payment so We are trying to get invoice untill it will be generated
+
+        for (let i = 0; i < retries; i++) {
+            session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+            console.log('invoice try count----' , i)
+            if (session.invoice) {
+                invoice = await stripe.invoices.retrieve(session.invoice);
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 2000)); // wait 2 seconds
+        }
+
+        if (!invoice) {
+            console.log({
+                code: constant.error_code,
+                message: "Invoice is still being generated. Please try again shortly.",
+            });
+        }
+
+        if (session.payment_status == 'paid') {
+
+            let option = { new: true };
+            let updatedData =   { 
+                                    hosted_invoice_url:invoice.hosted_invoice_url,
+                                    invoice_pdf:invoice.invoice_pdf
+                                };
+
+                                console.log('sms invoices---' , updatedData)
+            await SMS_RECHARGE_MODEL.findOneAndUpdate({checkoutSessionId :checkoutSessionId } , updatedData , option);
+        }
+    } catch (error) {
+        console.error('Error getSmsPaymentInvoice error:', error.message);
+    }
+    
 }
 
 exports.smsRecharges = async (req, res) => {
