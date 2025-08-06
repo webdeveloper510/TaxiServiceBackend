@@ -353,8 +353,8 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
                                 currency: 'eur', // or 'usd', etc.
                                 unit_amount: Number(smsPrice) * 100, // in cents: €2.00 = 200 cents
                                 product_data: {
-                                name: 'SMS Top-up (100 Credits)',
-                                description: 'Top-up credits for SMS feature'
+                                name: `SMS Top-up (${smsPrice} Credits)`,
+                                description: `Top-up credits for SMS feature (€ ${smsPrice})`
                                 },
                             },
                             quantity: 1,
