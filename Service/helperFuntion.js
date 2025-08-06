@@ -2931,8 +2931,6 @@ exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
       
       const phone = `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`;
 
-      console.log('phone-------' , phone);
-
       const isSendSms    = await this.sendSms({to: phone , message:message});
 
 

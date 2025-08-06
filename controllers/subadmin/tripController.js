@@ -430,6 +430,8 @@ exports.edit_trip = async (req, res) => {
       });
     } else {
 
+      let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
+
       // When Date and time will be updated then customer will be notify
       if (data?.pickup_date_time && new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
         
@@ -455,7 +457,6 @@ exports.edit_trip = async (req, res) => {
       // when company send the trip to the driver for accepting and company want to cancel in between before accepying the driver
       if (data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data?.trip_status == constant.TRIP_STATUS.APPROVED) {
         
-        let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
         req.io.to(driver_data.socketId).emit("popUpClose", { message: res.__('editTrip.socket.tripRetrivedByCompany')})
       }
 
@@ -473,7 +474,7 @@ exports.edit_trip = async (req, res) => {
 
       if (update_trip?.trip_status == constant.TRIP_STATUS.ACTIVE || update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true}, option);
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true}, option); // set driver as not available
       }
 
       // When company wants to cancel or delete the trip then customer will be notify
@@ -481,11 +482,22 @@ exports.edit_trip = async (req, res) => {
         sendBookingCancelledEmail(update_trip)
       }
 
-      
-
       // refresh trip functionality for the drivers who have account access as partner
       
       partnerAccountRefreshTrip(trip_data.created_by_company_id , res.__('editTrip.socket.tripChangedRefresh'), req.io);
+
+      if (driver_data) {
+        const isDriverHasAccess = await isDriverHasCompanyAccess(driver_data , trip_data.created_by_company_id);
+
+        // If driver doesn't have company acces then we can refresh the trip from driver side because he will be refreshed by partnerAccountRefreshTrip function
+        if (!isDriverHasAccess) {
+
+          console.log('refreshTrip--------------socketId' , driver_data?.socketId)
+          await req.io.to(driver_data?.socketId).emit("refreshTrip", { message: '' } )
+        }
+      }
+      
+
       return res.send({
                         code: constant.success_code,
                         message: res.__('editTrip.success.tripUpdated'),
