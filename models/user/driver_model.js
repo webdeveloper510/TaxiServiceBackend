@@ -121,7 +121,7 @@ const driver = new Schema(
       type: String,
       default: "",
     },
-    is_available: {
+    is_available: { // when driver wants to show self as not available
       type: Boolean,
       default: true,
     },
@@ -146,7 +146,7 @@ const driver = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
     },
-    status: {
+    status: { // driver will show or not on map
       type: Boolean,
       default: true,
     },
@@ -187,6 +187,10 @@ const driver = new Schema(
       },
     },
     is_login: {
+      type: Boolean,
+      default: false,
+    },
+    is_in_ride: { // when driver will be not availabe during active ride means that driver is on ride
       type: Boolean,
       default: false,
     },

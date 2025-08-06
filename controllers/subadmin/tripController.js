@@ -471,16 +471,22 @@ exports.edit_trip = async (req, res) => {
         }
       }
 
-      // When driver is going to take the customer or he has been start the trip from starting point
-      if (update_trip?.trip_status == constant.TRIP_STATUS.ACTIVE || update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
+      // When driver is going to take the customer 
+      if (update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , is_available: false}, option); // set driver as not available
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true}, option); 
+      }
+
+      //  he has been start the trip from starting point after taking the customer
+      if (update_trip?.trip_status == constant.TRIP_STATUS.ACTIVE) {
+
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , is_available: false , is_in_ride: true}, option); 
       }
 
       // When driver will be complete his trip
       if (data?.trip_status == constant.TRIP_STATUS.COMPLETED) {
 
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {is_available: true}, option); // set driver as not available
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {is_available: true , is_in_ride: false}, option); // set driver as not available
       }
 
       // When company wants to cancel or delete the trip then customer will be notify

@@ -864,6 +864,7 @@ exports.get_drivers_super = async (req, res) => {
       query.is_available = false;
       query.status = true;
       query.is_login = true;
+      query.is_in_ride = true;
     }
 
     if (selectedType === constant.DRIVER_STATUS.VERIFIED) {
