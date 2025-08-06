@@ -1343,6 +1343,7 @@ exports.update_driver = async (req, res) => {
         });
       }
     } catch (err) {
+      console.log('update driver error --------------' , error)
       res.send({
         code: constant.error_code,
         message: err.message,

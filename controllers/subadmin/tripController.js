@@ -417,7 +417,6 @@ exports.edit_trip = async (req, res) => {
           data.companyPaymentAmount = 0;
           data.driverPaymentAmount = Number(data.price).toFixed(2);
         }
-        
       }
     }
     
