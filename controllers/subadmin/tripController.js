@@ -563,7 +563,7 @@ exports.noShowUser = async (req, res) => {
 
 exports.driverCancelTrip = async (req, res) => {
   try{
-
+    
     let data = req.body;
     let criteria = { _id: req.params.id };
     let tripInfo = await TRIP.findOne(criteria);
@@ -583,7 +583,7 @@ exports.driverCancelTrip = async (req, res) => {
     }
 
 
-    // Saving the trip cancel reson and its request info
+    // Saving the trip cancel reason and its request info
     const trip_cancellation_request_data = {
       trip_id: tripInfo._id,
       driver_id: req.userId,
@@ -605,7 +605,11 @@ exports.driverCancelTrip = async (req, res) => {
     }
     
     let update_trip = await TRIP.findOneAndUpdate(criteria, updateData, option); 
-    console.log('update_trip---' ,update_trip)
+    // let updateDriverData = {}
+    // if (update_trip.trip_status == constant.TRIP_STATUS.REACHED) {
+    //   await DRIVER.findOneAndUpdate({_id: tripInfo?.driver_name}, {status: true , is_available: false , is_in_ride: true}, option); 
+    // }
+    
     partnerAccountRefreshTrip(tripInfo.created_by_company_id , res.__('driverCancelTripReason.socket.tripChangedRefresh'), req.io);
       
     return res.send({

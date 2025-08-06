@@ -3044,9 +3044,7 @@ exports.calculatePrice = async (req, res) => {
     const cleanString = (str) => str.normalize('NFKC').replace(/\u202F/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
     const originLower = cleanString(origin);
     const destinationLower = cleanString(destination);
-    console.log('originLower--------' ,originLower);
-    console.log('destinationLower--------' ,destinationLower);
-
+    
     let matchingRoutes = []
     let directMatch =  await alluploadedPriceList?.filter((route) => {
                                                                       const routeFrom = cleanString(route?.departure_place || '');
@@ -3096,8 +3094,6 @@ exports.calculatePrice = async (req, res) => {
       
     }
 
-    
-    
     let finalPrice = 0;
     let priceGetBy = null;                               
     if (matchingRoutes?.length > 0) {
