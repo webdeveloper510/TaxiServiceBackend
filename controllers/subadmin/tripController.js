@@ -16,7 +16,8 @@ const {
   dateFilter , 
   sendBookingUpdateDateTimeEmail , 
   sendTripUpdateToCustomerViaSMS ,
-  sendBookingCancelledEmail 
+  sendBookingCancelledEmail ,
+  getDistanceAndDuration
 } = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");

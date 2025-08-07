@@ -561,6 +561,11 @@ exports.add_trip_link = async (req, res) => {
     delete data?.is_return_booking;
     delete data?.return_booking;
 
+    let origin = `${ data.trip_from.lat},${data.trip_from.log}`;
+    let destination = `${data.trip_to.lat},${data.trip_to.log}`;
+    let distanceInfo = await getDistanceAndDuration(origin , destination)
+    data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
+
   //  res.send({
   //       code: constant.error_code,
   //       message: "Unable to create the trip",
@@ -571,6 +576,11 @@ exports.add_trip_link = async (req, res) => {
     emitNewTripAddedByCustomer(add_trip , req.io);
     let add_return_trip = null;
     if (isRetrunBooking) {
+
+      let origin = `${ data.return_booking.trip_from.lat},${data.return_booking.trip_from.log}`;
+      let destination = `${data.return_booking.trip_to.lat},${data.return_booking.trip_to.log}`;
+      let distanceInfo = await getDistanceAndDuration(origin , destination)
+      data.return_booking.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
       
       add_return_trip = await TRIP(return_ticket_data).save();
 
