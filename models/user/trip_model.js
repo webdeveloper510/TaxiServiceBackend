@@ -102,6 +102,10 @@ const trip = new Schema({
         type:mongoose.Schema.Types.ObjectId,ref:'vehicles',
         default:null
     },
+    trip_distance:{
+        type: String,
+        default: null
+    },
     trip_from:{
         type:{},
         default:{}

@@ -419,6 +419,13 @@ exports.edit_trip = async (req, res) => {
         }
       }
     }
+
+    if (data?.trip_from) {
+      const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
+      const destination = `${data.trip_to.lat},${data.trip_to.log}`;
+      let distanceInfo = await getDistanceAndDuration(origin , destination)
+      data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
+    }
     
    
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
@@ -1184,6 +1191,14 @@ exports.access_edit_trip = async (req, res) => {
       }
       
     }
+
+    if (data?.trip_from) {
+      const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
+      const destination = `${data.trip_to.lat},${data.trip_to.log}`;
+      let distanceInfo = await getDistanceAndDuration(origin , destination)
+      data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
+    }
+    
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
     if (!update_trip) {
       res.send({

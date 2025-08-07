@@ -291,23 +291,27 @@ exports.add_trip = async (req, res) => {
     data.series_id  = '';
 
     data.trip_id = "T" + "-" + data.trip_id;
-    let distance = ( geolib.getDistance( {
-                                            latitude: data.trip_from.log,
-                                            longitude: data.trip_from.lat,
-                                          },
-                                          {
-                                            latitude: data.trip_to.log,
-                                            longitude: data.trip_to.lat,
-                                          }
-                                        ) * 0.00062137
-                                      ).toFixed(2);
+    // let distances = ( geolib.getDistance( {
+    //                                         latitude: data.trip_from.lat,
+    //                                         longitude: data.trip_from.log,
+    //                                       },
+    //                                       {
+    //                                         latitude: data.trip_to.lat,
+    //                                         longitude: data.trip_to.log,
+    //                                       }
+    //                                     ) * 0.621371
+    //                                   ).toFixed(2);
+    const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
+    const destination = `${data.trip_to.lat},${data.trip_to.log}`;
+    let distanceInfo = await getDistanceAndDuration(origin , destination)
+    data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
 
     let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
     let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10;
 
-    if (!data.price) {
-      data.price = (fare_per_km * Number(distance)).toFixed(2);
-    }
+    // if (!data.price) {
+    //   data.price = (fare_per_km * Number(distance)).toFixed(2);
+    // }
     
 
     if (data?.commission && data?.commission?.commission_value != 0) {
@@ -424,24 +428,28 @@ exports.access_add_trip = async (req, res) => {
       data.series_id = '';
 
       data.trip_id = "T" + "-" + data.trip_id;
-      let distance = (geolib.getDistance(
-                                          {
-                                            latitude: data.trip_from.log,
-                                            longitude: data.trip_from.lat,
-                                          },
-                                          {
-                                            latitude: data.trip_to.log,
-                                            longitude: data.trip_to.lat,
-                                          }
-                                        ) * 0.00062137
-                      ).toFixed(2);
+      // let distance = (geolib.getDistance(
+      //                                     {
+      //                                       latitude: data.trip_from.log,
+      //                                       longitude: data.trip_from.lat,
+      //                                     },
+      //                                     {
+      //                                       latitude: data.trip_to.log,
+      //                                       longitude: data.trip_to.lat,
+      //                                     }
+      //                                   ) * 0.00062137
+      //                 ).toFixed(2);
 
       let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
       let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10;
-      if (!data.price) {
-        data.price = (fare_per_km * Number(distance)).toFixed(2);
-      }
+      // if (!data.price) {
+      //   data.price = (fare_per_km * Number(distance)).toFixed(2);
+      // }
 
+      const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
+      const destination = `${data.trip_to.lat},${data.trip_to.log}`;
+      let distanceInfo = await getDistanceAndDuration(origin , destination)
+      data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
 
       if (data?.commission && data?.commission?.commission_value != 0) {
         
