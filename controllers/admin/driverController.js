@@ -1153,7 +1153,7 @@ exports.update_driver = async (req, res) => {
         }
       }
 
-      if (updates?.password != '' && updates?.password !== undefined) {
+      if (updates?.password != '' && updates?.password !== undefined && updates?.password !== 'undefined') {
         
         updates.stored_password = updates.password;
         updates.password = await bcrypt.hashSync(updates.password, 10);
