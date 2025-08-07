@@ -1135,8 +1135,7 @@ exports.update_driver = async (req, res) => {
           return res.send({
                             code: constant.error_code,
                             message: res.__('updateDriver.error.emailExistsWithAnotherAccount')
-                          });
-          
+                          }); 
         }
       }
       if (updates.phone != existingDriver.phone) {
