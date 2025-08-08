@@ -1190,7 +1190,7 @@ exports.update_driver = async (req, res) => {
       }
 
       if (updatedDriver) {
-        if (req.body.isDocUploaded) {
+        if (req.body.isDocUploaded || (existingDriver.profile_image == '' && existingDriver.profile_image == '' && updatedDriver.profile_image != '' && updatedDriver.profile_image != '' && (req.user.role == constant.ROLES.SUPER_ADMIN || req.user.role == constant.ROLES.ADMIN))) {
           var transporter = nodemailer.createTransport( emailConstant.credentials );
           var mailOptions = {
             from: emailConstant.from_email,
