@@ -14,6 +14,10 @@ const fare = new Schema({
         type:Number,
         default:'0'
     },
+    start_fare:{
+        type:Number,
+        default:'0'
+    },
     minimum_fare:{
         type:Number,
         default:'0'
@@ -35,6 +39,10 @@ const fare = new Schema({
         default:'0'
     },
     km_25_fare:{
+        type:Number,
+        default:'0'
+    },
+    per_minute_fare:{
         type:Number,
         default:'0'
     },
