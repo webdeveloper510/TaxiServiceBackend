@@ -1162,6 +1162,11 @@ exports.update_driver = async (req, res) => {
         delete updates.password
       }
 
+      if (existingDriver.driver_documents == '' && updatedDriver.driver_documents != '' && (req.user.role == constant.ROLES.SUPER_ADMIN || req.user.role == constant.ROLES.ADMIN)) {
+        updates.isVerified = true;
+        updates.isDocUploaded = true;
+      }
+
       
       const isDriverOnRide = await TRIP.findOne({driver_name: driverId , trip_status: { $in: [ constant.TRIP_STATUS.REACHED , constant.TRIP_STATUS.ACTIVE] } });
       
@@ -1190,7 +1195,7 @@ exports.update_driver = async (req, res) => {
       }
 
       if (updatedDriver) {
-        if (req.body.isDocUploaded || (existingDriver.profile_image == '' && existingDriver.profile_image == '' && updatedDriver.profile_image != '' && updatedDriver.profile_image != '' && (req.user.role == constant.ROLES.SUPER_ADMIN || req.user.role == constant.ROLES.ADMIN))) {
+        if (req.body.isDocUploaded || (existingDriver.driver_documents == '' && updatedDriver.driver_documents != '' && (req.user.role == constant.ROLES.SUPER_ADMIN || req.user.role == constant.ROLES.ADMIN))) {
           var transporter = nodemailer.createTransport( emailConstant.credentials );
           var mailOptions = {
             from: emailConstant.from_email,
