@@ -1162,7 +1162,7 @@ exports.update_driver = async (req, res) => {
         delete updates.password
       }
 
-      if (existingDriver.driver_documents == '' && updatedDriver.driver_documents != '' && (req.user.role == constant.ROLES.SUPER_ADMIN || req.user.role == constant.ROLES.ADMIN)) {
+      if (existingDriver.driver_documents == '' && req.body.driver_documents != '' && (req.user.role == constant.ROLES.SUPER_ADMIN || req.user.role == constant.ROLES.ADMIN)) {
         updates.isVerified = true;
         updates.isDocUploaded = true;
       }
@@ -1351,7 +1351,7 @@ exports.update_driver = async (req, res) => {
         });
       }
     } catch (err) {
-      console.log('update driver error --------------' , error)
+      console.log('update driver error --------------' , err)
       res.send({
         code: constant.error_code,
         message: err.message,
