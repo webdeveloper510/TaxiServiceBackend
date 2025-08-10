@@ -2977,8 +2977,15 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
 
     if (!tripDetail?.customerDetails?.email) return true;
 
-    // const subject = `Your Trip is Starting Soon – Driver En Route: # ${tripDetail?.trip_id}`;
-    const subject = `Trip Rescheduled – Please Review New Details: # ${tripDetail?.trip_id}`;
+    let subject = ``;
+
+    if (tripDetail?.trip_status == constant.TRIP_STATUS.REACHED) {
+      subject = `Your Trip is Starting Soon – Driver En Route: # ${tripDetail?.trip_id}`;
+    } else {
+      subject = `Trip Rescheduled – Please Review New Details: # ${tripDetail?.trip_id}`;
+    }
+    
+   
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
@@ -3000,7 +3007,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
       }
     }
     
-  
+  console.log('driverDetail------' , driverDetail)
     const options = {
       day: '2-digit',
       month: 'long',
