@@ -848,6 +848,7 @@ exports.get_drivers_super = async (req, res) => {
     if (offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.ONLINE) {
       query.status = true;
       query.is_login = true;
+      query.is_in_ride = false;
     } else if(offline_online_check == constant.DRIVER_OFFLINE_ONLINE_STATUS.OFFLINE){ // When user wnats online drivers
 
       if (query?.$or) {
