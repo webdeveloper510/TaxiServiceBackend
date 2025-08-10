@@ -444,7 +444,7 @@ exports.edit_trip = async (req, res) => {
         
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for update date time trip
+        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request) { // check if company turned on sms feature for update date time trip
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
         }
