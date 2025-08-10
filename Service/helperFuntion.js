@@ -2677,7 +2677,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                         </table>
 
                         <p class="footer">
-                          This request has been registered with number <strong>${tripDetail?.customerDetails?.phone}</strong>. <br>
+                          This request has been registered with number <strong>${customerPhone}</strong>. <br>
                           If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
                         </p>
 
@@ -2757,6 +2757,8 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
     let email = tripDetail?.customerDetails?.email;
    
     const subject = `Your ride has been canceled # ${tripDetail?.trip_id}`;
+    let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`: '';
+
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
@@ -2865,7 +2867,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Phone number:</strong></td>
-                            <td>${tripDetail?.customerDetails?.phone}</td>
+                            <td>${customerPhone}</td>
                           </tr>
                           <tr>
                             <td><strong>Email:</strong></td>
@@ -2878,7 +2880,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
                         </table>
 
                         <p class="footer">
-                          This request has been registered with number <strong>${tripDetail?.customerDetails?.phone}</strong>. <br>
+                          This request has been registered with number <strong>${customerPhone}</strong>. <br>
                           If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
                         </p>
 
@@ -3112,7 +3114,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
                         </table>
 
                         <p class="footer">
-                          This request has been registered with number <strong>${tripDetail?.customerDetails?.phone}</strong>. <br>
+                          This request has been registered with number <strong>${customerPhone}</strong>. <br>
                           If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
                         </p>
 
