@@ -832,7 +832,8 @@ exports.emitTripAcceptedByDriver = async(tripDetail , driverDetails , currentSoc
       }
 
       if (tripDetail?.customerDetails?.email) {
-        this.sendBookingConfirmationEmail(tripDetail);
+        // this.sendBookingConfirmationEmail(tripDetail);
+        this.sendBookingUpdateDateTimeEmail(tripDetail);
       }
 
   } catch (error) {
