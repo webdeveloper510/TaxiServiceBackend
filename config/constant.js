@@ -56,6 +56,11 @@ module.exports={
         NO_SHOW: 'NoShow',// when user will not be present at the trip start location
         CUSTOMER_CENCEL: 'CustomerCancel', // When customer cancelled the trip
     },
+    TRIP_DELETED_BY: {
+        COMPANY: "COMPANY",
+        HOTEL: "HOTEL",
+        USER: "USER",
+    },
     TRIP_CANCELLATION_REQUEST_STATUS: {
         PENDING: 'Pending',
         APPROVED: 'Accepted',
