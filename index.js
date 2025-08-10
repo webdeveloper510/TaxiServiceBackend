@@ -1309,7 +1309,7 @@ io.on("connection", (socket) => {
                                                     }
                               );
         
-        emitTripAcceptedByDriver(trip , driverBySocketId , socket.id , io)
+        emitTripAcceptedByDriver(update_trip , driverBySocketId , socket.id , io)
         return
 
         let user = await user_model.findById(trip.created_by_company_id);
