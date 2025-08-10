@@ -255,7 +255,6 @@ exports.sendSms = async (data) => {
                   }; 
     if (process.env.IS_SMS_FUNCTIONALITY_ACTIVE == `true`) {
       const message = await client.messages.create(payload);
-      console.log('message------' , message)
     }
     // const message = await client.messages.create(payload);
     return true
@@ -2930,8 +2929,9 @@ exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
         message = `Dear customer, your driver is on the way to pick you up for your scheduled trip (${tripDetail?.trip_id}) with ${companyAgencyDetail?.company_name}. Check the updated details at ${companyAgencyDetail?.company_name}. Visit ${process.env.BASEURL}/booking-details/${id}/${companyId}`;
       }
       
-      const phone = `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`;
-      console.log('phone------' , phone);
+      let phone = `${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`;
+      phone = phone.startsWith('+') ? phone :  `+${phone}`;
+      
       const isSendSms    = await this.sendSms({to: phone , message:message});
 
 
