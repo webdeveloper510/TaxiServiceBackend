@@ -117,7 +117,7 @@ module.exports={
         NOT_REQUIRED: 'NOT_REQUIRED' // or 'ZERO_DUE' or 'EXEMPTED' when driver will not pay any commision
     },
     PAYOUT_TANSFER_STATUS: {
-        PENDING: `PENDING`,
+        PENDING: `PENDING`, // initiated
         IN_TRANSIT: `IN_TRANSIT`,
         PAID: `PAID`,
         FAILED: `FAILED`,

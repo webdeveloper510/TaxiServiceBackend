@@ -648,6 +648,8 @@ exports.get_trips_for_drivers = async (req, res) => {
             ],
           },
           trip_id: 1,
+          hosted_invoice_url:1,
+          invoice_pdf:1
         },
       },
     ]).sort({ createdAt: -1 });
