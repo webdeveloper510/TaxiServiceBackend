@@ -2529,7 +2529,8 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: tripDetail?.created_by_company_id });
     let email = tripDetail?.customerDetails?.email;
    
-    
+    let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`: '';
+
     const subject = `Your order confirmation # ${tripDetail?.trip_id}`;
 
     const dateString = tripDetail?.pickup_date_time;
@@ -2663,7 +2664,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Phone number:</strong></td>
-                            <td>+${tripDetail?.customerDetails?.countryCode} - ${tripDetail?.customerDetails?.phone}</td>
+                            <td>${customerPhone}</td>
                           </tr>
                           <tr>
                             <td><strong>Email:</strong></td>
@@ -2985,7 +2986,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
       subject = `Trip Rescheduled – Please Review New Details: # ${tripDetail?.trip_id}`;
     }
     
-   
+   let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`: '';
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
@@ -3007,7 +3008,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
       }
     }
     
-  console.log('driverDetail------' , driverDetail)
+ 
     const options = {
       day: '2-digit',
       month: 'long',
@@ -3096,7 +3097,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
                           </tr>
                           <tr>
                             <td><strong>Phone number:</strong></td>
-                            <td>${tripDetail?.customerDetails?.phone}</td>
+                            <td>${customerPhone}</td>
                           </tr>
                           <tr>
                             <td><strong>Email:</strong></td>
