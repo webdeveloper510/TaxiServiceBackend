@@ -833,7 +833,7 @@ exports.emitTripAcceptedByDriver = async(tripDetail , driverDetails , currentSoc
 
       if (tripDetail?.customerDetails?.email) {
         // this.sendBookingConfirmationEmail(tripDetail);
-        this.sendBookingUpdateDateTimeEmail(tripDetail);
+        this.sendBookingUpdateDriverAllocationEmail(tripDetail)
       }
 
   } catch (error) {
@@ -2967,6 +2967,178 @@ exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
   } catch (error) {
 
     console.error("Error sendTripUpdateToCustomerViaSMS:",  error.message);
+    throw error;
+  }
+}
+
+exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => { 
+
+  try {
+
+    const companyDetails = await user_model.findOne({ _id: tripDetail?.created_by_company_id });
+    const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: tripDetail?.created_by_company_id });
+    let email = tripDetail?.customerDetails?.email;
+
+    if (!tripDetail?.customerDetails?.email) return true;
+
+    let subject = ``;
+
+    subject = `Driver Confirmed for Your Booking: # ${tripDetail?.trip_id}`;
+    
+    
+   let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`: '';
+
+    const dateString = tripDetail?.pickup_date_time;
+    const date = new Date(dateString);
+    let driverDetail = ``;
+
+    if (tripDetail?.driver_name) {
+
+      const driverInfo = await driver_model.findById(tripDetail?.driver_name);
+      let driverName = driverInfo?.first_name ? driverInfo?.first_name : ``;
+      driverName += driverInfo?.last_name.length > 2 ? ' '+driverInfo?.last_name.slice(0, 2) + "..." : '';
+
+      if (driverName) {
+        driverDetail = `
+                        <tr>
+                          <td><strong>Driver name:</strong></td>
+                          <td>${driverName}</td>
+                        </tr>  
+                      `
+      }
+    }
+    
+ 
+    const options = {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Europe/Amsterdam'
+    };
+
+    const formatted = date.toLocaleString('en-GB', options);
+
+    // Remove " at " and split properly
+    const formattedClean = formatted.replace(' at ', ' - ');
+
+    const pickUpTime = `${formattedClean} hour`;
+    const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2)
+
+    const bodyHtml =  `
+                       <style>
+                        body {
+                          font-family: Arial, sans-serif;
+                          color: #333;
+                          padding: 20px;
+                        }
+                        .container {
+                          max-width: 600px;
+                          margin: auto;
+                          border: 1px solid #ddd;
+                          padding: 20px;
+                          border-radius: 8px;
+                        }
+                        h2 {
+                          color: #007BFF;
+                        }
+                        table {
+                          width: 100%;
+                          margin-top: 20px;
+                          border-collapse: collapse;
+                        }
+                        td {
+                          padding: 8px 0;
+                        }
+                        .footer {
+                          margin-top: 30px;
+                          font-size: 14px;
+                          color: #555;
+                        }
+                      </style>
+                      <div class="container">
+                        <h2>Trip Update Notification: # ${tripDetail?.trip_id}</h2>
+
+                        <p>Dear Sir/Madam <strong>${tripDetail?.customerDetails?.name}</strong>,</p>
+
+                        <p>We want to inform you that your upcoming trip has been updated. Please review the revised trip details below:</p>
+
+                        <table>
+                          <tr>
+                            <td><strong>Pick up time:</strong></td>
+                            <td>${pickUpTime}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Departure location:</strong></td>
+                            <td>${tripDetail?.trip_from?.address}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Arrival location:</strong></td>
+                            <td>${tripDetail?.trip_to?.address}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Type of car:</strong></td>
+                            <td>${tripDetail?.car_type}  - ${tripDetail?.passengerCount} passengers</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Your taxi fare:</strong></td>
+                            <td>€${totalPrice}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Payment method:</strong></td>
+                            <td>${tripDetail?.pay_option}</td>
+                          </tr>
+                          
+                          <tr>
+                            <td><strong>Name client:</strong></td>
+                            <td>${tripDetail?.customerDetails?.name}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Phone number:</strong></td>
+                            <td>${customerPhone}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>${tripDetail?.customerDetails?.email}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Remark for driver:</strong></td>
+                            <td>${tripDetail?.customerDetails?.name}</td>
+                          </tr>
+
+                          ${driverDetail}
+                        </table>
+
+                        <p class="footer">
+                          This request has been registered with number <strong>${customerPhone}</strong>. <br>
+                          If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
+                        </p>
+
+                        <p class="footer">
+                          Kind regards,<br>
+                          <strong>${companyAgencyDetails?.company_name}</strong>
+                        </p>
+                      </div>
+
+
+                    `;
+    let template = ` ${bodyHtml}`
+  
+    var transporter = nodemailer.createTransport(emailConstant.credentials);
+    var mailOptions = {
+                        from: emailConstant.from_email,
+                        to: email,
+                        subject: subject,
+                        html: template
+                      };
+    let sendEmail = await transporter.sendMail(mailOptions);
+    return sendEmail
+
+  } catch (error) {
+
+    console.error("Error sendBookingUpdateDateTimeEmail:",  error.message);
     throw error;
   }
 }
