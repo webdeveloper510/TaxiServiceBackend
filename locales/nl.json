@@ -306,7 +306,8 @@
       "tripCancelledByCustomerMessage": "Rit-ID {{trip_id}} is geannuleerd door klant ({{customerName}}).",
       "tripCancelledByCustomerTitle": "Rit ({{trip_id}}) geannuleerd door klant.",
       "tripCancelledByCustomerForCompanyAccessTitle": "Rit: {{trip_id}} (Bedrijfstoegang: {{company_name}}) geannuleerd door klant.",
-      "tripCancelledByCustomerForPartnerAccessTitle": "Rit: {{trip_id}} (Partneraccount: {{company_name}}) geannuleerd door klant."
+      "tripCancelledByCustomerForPartnerAccessTitle": "Rit: {{trip_id}} (Partneraccount: {{company_name}}) geannuleerd door klant.",
+      "customercancellTrip": "Uw rit is compleet - geannuleerd"
     },
     "success": {
       "tripCancellationSubmitted": "Uw annuleringsverzoek is ingediend."

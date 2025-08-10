@@ -306,7 +306,8 @@
             "tripCancelledByCustomerMessage": "Trip ID {{trip_id}} has been cancelled by customer ({{customerName}}).",
             "tripCancelledByCustomerTitle": "Trip ({{trip_id}}) Canceled by Customer.",
             "tripCancelledByCustomerForCompanyAccessTitle": "Trip: {{trip_id}}( Company Access:- {{company_name}} Canceled by Customer.",
-            "tripCancelledByCustomerForPartnerAccessTitle": "Trip: {{trip_id}}( Partner Account:- {{company_name}} Canceled by Customer."
+            "tripCancelledByCustomerForPartnerAccessTitle": "Trip: {{trip_id}}( Partner Account:- {{company_name}} Canceled by Customer.",
+            "customercancellTrip": "Your trip has been successfully cancelled"
         },
         "success": {
             "tripCancellationSubmitted": "Your trip cancellation request has been submitted."

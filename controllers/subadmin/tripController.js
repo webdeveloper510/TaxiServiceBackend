@@ -1076,7 +1076,7 @@ exports.customerCancelTrip = async (req , res) => {
       }
     return res.send({
       code: constant.success_code,
-      message: res.__('customerCancelTrip.notification.tripCancelledByCustomerForPartnerAccessTitle')
+      message: res.__('customerCancelTrip.notification.customercancellTrip')
     });
   } catch (err) {
     console.log('customerCancelTrip------', err)
