@@ -2995,7 +2995,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
 
       const driverInfo = await driver_model.findById(tripDetail?.driver_name);
       let driverName = driverInfo?.first_name ? driverInfo?.first_name : ``;
-      driverName += driverInfo?.last_name.length > 2 ? driverInfo?.last_name.slice(0, 2) + "..." : '';
+      driverName += driverInfo?.last_name.length > 2 ? ' '+driverInfo?.last_name.slice(0, 2) + "..." : '';
 
       if (driverName) {
         driverDetail = `
