@@ -3024,8 +3024,11 @@ exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => {
     // Remove " at " and split properly
     const formattedClean = formatted.replace(' at ', ' - ');
 
-    const pickUpTime = `${formattedClean} hour`;
+    const converteddateTimeValues = await this.convertToCustomFormat(tripDetail?.trip_from?.address , tripDetail?.pickup_date_time);
     const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2)
+   
+    const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
+    const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
 
     const bodyHtml =  `
                        <style>
@@ -3068,7 +3071,7 @@ exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => {
                         <table>
                           <tr>
                             <td><strong>Pick up time:</strong></td>
-                            <td>${pickUpTime}</td>
+                            <td>${pickUpTime} (Time-zone:- ${TimeZoneId})</td>
                           </tr>
                           <tr>
                             <td><strong>Departure location:</strong></td>
@@ -3199,8 +3202,11 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
     // Remove " at " and split properly
     const formattedClean = formatted.replace(' at ', ' - ');
 
-    const pickUpTime = `${formattedClean} hour`;
+    const converteddateTimeValues = await this.convertToCustomFormat(tripDetail?.trip_from?.address , tripDetail?.pickup_date_time);
     const totalPrice = (tripDetail?.price + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(2)
+   
+    const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
+    const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
 
     const bodyHtml =  `
                        <style>
@@ -3243,7 +3249,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
                         <table>
                           <tr>
                             <td><strong>Pick up time:</strong></td>
-                            <td>${pickUpTime}</td>
+                            <td>${pickUpTime} (Time-zone:- ${TimeZoneId})</td>
                           </tr>
                           <tr>
                             <td><strong>Departure location:</strong></td>
