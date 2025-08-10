@@ -377,6 +377,7 @@ exports.add_trip = async (req, res) => {
         const companyDetail = await user_model.findById(data?.created_by_company_id);
 
         if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
+          console.log('sending sms---------')
           sendTripUpdateToCustomerViaSMS(data , constant.SMS_EVENTS.TRIP_CREATE);
         }
       }
