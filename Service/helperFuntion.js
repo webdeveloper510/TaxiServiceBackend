@@ -2977,7 +2977,8 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
 
     if (!tripDetail?.customerDetails?.email) return true;
 
-    const subject = `Your Trip is Starting Soon – Driver En Route: # ${tripDetail?.trip_id}`;
+    // const subject = `Your Trip is Starting Soon – Driver En Route: # ${tripDetail?.trip_id}`;
+    const subject = `Trip Rescheduled – Please Review New Details: # ${tripDetail?.trip_id}`;
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);

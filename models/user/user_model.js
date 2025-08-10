@@ -115,10 +115,6 @@ const user = new Schema(
                           text:{ type: String, default: CONSTANT.PAY_OPTION.ON_ACCOUNT }
                         }
         },
-        show_upload_price_to_hotel: {
-          type: Boolean,
-          default: false
-        },
         online_cancellation_time: {
           type: Number,
           default: 0
