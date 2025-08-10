@@ -255,6 +255,7 @@ exports.sendSms = async (data) => {
                   }; 
     if (process.env.IS_SMS_FUNCTIONALITY_ACTIVE == `true`) {
       const message = await client.messages.create(payload);
+      console.log('message------' , message)
     }
     // const message = await client.messages.create(payload);
     return true
