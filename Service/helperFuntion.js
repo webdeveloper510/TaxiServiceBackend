@@ -2982,7 +2982,25 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
+    let driverDetail = ``;
 
+    if (tripDetail?.driver_name) {
+
+      const driverInfo = await driver_model.findById(tripDetail?.driver_name);
+      let driverName = driverInfo?.first_name ? driverInfo?.first_name : ``;
+      driverName += driverInfo?.last_name.length > 2 ? driverInfo?.last_name.slice(0, 2) + "..." : '';
+
+      if (driverName) {
+        driverDetail = `
+                        <tr>
+                          <td><strong>Driver name:</strong></td>
+                          <td>${driverName}</td>
+                        </tr>  
+                      `
+      }
+    }
+    
+  
     const options = {
       day: '2-digit',
       month: 'long',
@@ -3081,6 +3099,8 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
                             <td><strong>Remark for driver:</strong></td>
                             <td>${tripDetail?.customerDetails?.name}</td>
                           </tr>
+
+                          ${driverDetail}
                         </table>
 
                         <p class="footer">
