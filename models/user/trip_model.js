@@ -214,6 +214,24 @@ const trip = new Schema({
         enum: TRIP_STATUS_ENUM,
         default:CONSTANT.TRIP_STATUS.PENDING
     },
+    trip_cancelled_by_role: {
+        type: String,
+        enum: Object.values(TRIP_DELETED_BY_ROLE),
+        default: null
+    },
+    
+    trip_cancelled_by: {
+        type: mongoose.Schema.Types.ObjectId,
+        refPath: "trip_cancelled_by_ref", // dynamic ref based on role
+        default: null
+    },
+    
+// This tells Mongoose which collection to look at
+    trip_cancelled_by_ref: {
+        type: String,
+        enum: ["driver", "user"],
+        default: null
+    },
     stripe_payment: {
         payment_intent_id: {
             type: String,

@@ -910,7 +910,12 @@ exports.customerCancelTrip = async (req , res) => {
                       });
     }
 
-    await TRIP.findOneAndUpdate(criteria, {$set:{trip_status: constant.TRIP_STATUS.CUSTOMER_CENCEL , driver_name: null , under_cancellation_review: false}}, {new: true});
+    await TRIP.findOneAndUpdate(criteria, {$set:{
+                                                  trip_status: constant.TRIP_STATUS.CANCELED , 
+                                                  // driver_name: null , 
+                                                  trip_cancelled_by_role: constant.TRIP_DELETED_BY_ROLE.USER,
+                                                  under_cancellation_review: false
+                                                }}, {new: true});
 
    
     // const driverById = await DRIVER.findOne({ _id: tripInfo?.driver_name });
