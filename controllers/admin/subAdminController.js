@@ -48,6 +48,11 @@ exports.add_sub_admin = async (req, res) => {
                                           // is_deleted: false,
                                         });
 
+    let checkUserName = await USER.findOne({
+                                              user_name: { $regex: new RegExp(`^${data.user_name}$`, 'i') }, // Case-insensitive match
+                                              // is_deleted: false,
+                                            });
+
     if (checkEmail) {
       return res.send({
                         code: constant.error_code,
@@ -55,16 +60,37 @@ exports.add_sub_admin = async (req, res) => {
                       });
     }
 
-    // Cheked Email in driver table if comapany already rigestered as a driver then match email except the driver that is already created. 
-    let checkDriverEmail = await DRIVER.findOne({
-                                                  email: { $regex: new RegExp(`^${data.email}$`, 'i') }, // Case-insensitive match
-                                                  is_deleted: false,
+    if (checkUserName) {
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addSubAdmin.error.userNameAlreadyExists'),
+                      });
+    }
+
+    let checkDriverUsername = await DRIVER.findOne({
+                                                  email: { $regex: new RegExp(`^${data.user_name}$`, 'i') }, // Case-insensitive match
+                                                  // is_deleted: false,
                                                   ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
                                                     ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
                                                     : {}), 
                                                 });
 
-   
+    if (checkDriverUsername) {
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addSubAdmin.error.userNameAlreadyExists'),
+                      });
+    }
+
+    // Cheked Email in driver table if comapany already rigestered as a driver then match email except the driver that is already created. 
+    let checkDriverEmail = await DRIVER.findOne({
+                                                  email: { $regex: new RegExp(`^${data.email}$`, 'i') }, // Case-insensitive match
+                                                  // is_deleted: false,
+                                                  ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
+                                                    ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
+                                                    : {}), 
+                                                });
+
     if (checkDriverEmail) {
 
       return res.send({
@@ -72,6 +98,7 @@ exports.add_sub_admin = async (req, res) => {
                         message: res.__('addDriver.error.emailAlreadyInUse'),
                       });
     }
+
     let checkPhone = await USER.findOne({
                                           phone: data.phone,
                                           // is_deleted: false,

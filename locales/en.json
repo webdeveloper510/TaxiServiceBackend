@@ -461,6 +461,7 @@
             "invalidData": "The provided data is invalid. Please check and try again.",
             "noMatchingRecords": "The system could not locate any matching records",
             "noUserFound": "No record found with the provided details.",
+            "userNameAlreadyExists": "The username is already taken.",
             "unableToupdate": "An error occurred while updating the user information. Please try again later.",
             "subadminDeleteError": "An error occurred while deleting the sub-admin account. Please try again later.",
             "unableToRestore": "An error occurred while restoring the sub-admin account. Please try again later.",

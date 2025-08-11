@@ -185,6 +185,9 @@ const trip = new Schema({
             },
             flightNumber: {
                 type:String,
+            },
+            hotelRoomNumber: {
+                type:String,
             }
         }
     },

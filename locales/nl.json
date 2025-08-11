@@ -461,6 +461,7 @@
       "invalidData": "De verstrekte gegevens zijn ongeldig. Controleer en probeer opnieuw.",
       "noMatchingRecords": "Het systeem kon geen overeenkomende records vinden.",
       "noUserFound": "Geen record gevonden met de opgegeven details.",
+      "userNameAlreadyExists": "De gebruikersnaam is al in gebruik.",
       "unableToupdate": "Er is een fout opgetreden bij het bijwerken van de gebruikersinformatie. Probeer het later opnieuw.",
       "subadminDeleteError": "Er is een fout opgetreden bij het verwijderen van het subbeheerder-account. Probeer het later opnieuw.",
       "unableToRestore": "Er is een fout opgetreden bij het herstellen van het subbeheerder-account. Probeer het later opnieuw.",

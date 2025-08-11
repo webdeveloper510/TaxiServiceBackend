@@ -13,6 +13,13 @@ const user = new Schema(
       type: String,
       default: "",
     },
+    user_name: {
+      type: String,
+      default: "",
+      unique: true, // ensures MongoDB index is unique
+      // required: true, // optional: force this field to be provided
+      trim: true, // optional: remove spaces before/after
+    },
     favoriteDrivers: {
       type: [{ type: Schema.Types.ObjectId, ref: "driver" }],
       default: [],
