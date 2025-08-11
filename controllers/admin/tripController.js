@@ -1722,6 +1722,7 @@ exports.get_all_access_trip = async (req, res) => {
             ],
           },
           trip_id: 1,
+          car_type: 1
         },
       },
       // Pagination: skip and limit
