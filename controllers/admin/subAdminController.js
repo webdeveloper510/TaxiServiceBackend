@@ -68,7 +68,7 @@ exports.add_sub_admin = async (req, res) => {
     }
 
     let checkDriverUsername = await DRIVER.findOne({
-                                                  email: { $regex: new RegExp(`^${data.user_name}$`, 'i') }, // Case-insensitive match
+                                                  user_name: { $regex: new RegExp(`^${data.user_name}$`, 'i') }, // Case-insensitive match
                                                   // is_deleted: false,
                                                   ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
                                                     ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
@@ -1014,6 +1014,24 @@ exports.edit_sub_admin = async (req, res) => {
       data.logo = req?.file?.location ? req.file.location : checkSubAdmin.logo;
       // let update_data = await USER.findOneAndUpdate(criteria, data, option)
       // let criteria2 = { user_id: update_data._id }
+
+      if (checkSubAdmin.user_name != data.user_name) {
+        let checkUsername = await USER.findOne({user_name: data.user_name,});
+        let checkDriverUsername = await DRIVER.findOne({
+                                                        nickName: data.user_name,
+                                                        ...(checkSubAdmin?.isDriver == true ? { _id: { $ne: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } } : {}),
+                                                      });
+        if (checkUsername || checkDriverUsername) {
+          return res.send({
+            code: constant.error_code,
+            message: res.__('addSubAdmin.error.userNameAlreadyExists'),
+          });
+        }
+      }
+
+        
+      
+
       if (checkSubAdmin.email != data.email) {
         let check_email = await USER.findOne({email: data.email,});
         let checkEmailInDrivers = await DRIVER.findOne({
@@ -1026,8 +1044,6 @@ exports.edit_sub_admin = async (req, res) => {
                             message: res.__('addDriver.error.emailAlreadyInUse'),
                           });
         }
-
-
       }
 
       if (checkSubAdmin.phone != data.phone) {
