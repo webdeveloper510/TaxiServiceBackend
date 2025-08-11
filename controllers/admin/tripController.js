@@ -3135,9 +3135,26 @@ exports.calculatePrice = async (req, res) => {
         priceGetBy = `price above 25`
       }
 
+      
+      // get total minutes for path
+      const durationText = element?.duration?.text
+      let totalMinutes = 0;
+
+      // Extract hours
+      const hoursMatch = durationText.match(/(\d+)\s*hour/);
+      if (hoursMatch) {
+          totalMinutes += parseInt(hoursMatch[1], 10) * 60;
+      }
+
+      // Extract minutes
+      const minutesMatch = durationText.match(/(\d+)\s*min/);
+      if (minutesMatch) {
+          totalMinutes += parseInt(minutesMatch[1], 10);
+      }
+
       // start price will include here
       finalPrice = finalPrice + (fareDetail?.start_fare || 0);
-      finalPrice = finalPrice + parseInt((element?.duration?.text || 0));
+      finalPrice = finalPrice + (totalMinutes * fareDetail?.per_minute_fare || 0); // add price for per minute fare
 
       if (finalPrice < fareDetail?.minimum_fare) {
         finalPrice = fareDetail?.minimum_fare;
