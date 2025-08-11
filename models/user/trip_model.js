@@ -219,6 +219,10 @@ const trip = new Schema({
         enum: Object.values(TRIP_DELETED_BY_ROLE),
         default: null
     },
+    trip_cancelled_user_name: {
+        type: String,
+        default: null
+    },
     
     trip_cancelled_by: {
         type: mongoose.Schema.Types.ObjectId,
@@ -226,7 +230,7 @@ const trip = new Schema({
         default: null
     },
     
-// This tells Mongoose which collection to look at
+    // This tells Mongoose which collection to look at
     trip_cancelled_by_ref: {
         type: String,
         enum: ["driver", "user"],
