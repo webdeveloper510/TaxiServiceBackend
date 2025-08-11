@@ -429,9 +429,11 @@ exports.edit_trip = async (req, res) => {
     }
 
     if (data?.trip_status == constant.TRIP_STATUS.CANCELED) {
-      data.trip_cancelled_by_role = constant.TRIP_CANCELLED_BY_ROLE.COMPANY;
-      data.trip_cancelled_by = req.userId;
-      data.trip_cancelled_by_ref = 'user';
+      
+      data.trip_cancelled_by_role = req.companyPartnerAccess ? constant.TRIP_CANCELLED_BY_ROLE.PARTNER_ACCESS : constant.TRIP_CANCELLED_BY_ROLE.COMPANY;
+      data.trip_cancelled_by = req.companyPartnerAccess ? req.CompanyPartnerDriverId : req.userId;
+      data.trip_cancelled_by_ref = req.companyPartnerAccess ? 'driver' : 'user';
+      data.cancelled_at = new Date();
     }
     
    
@@ -920,6 +922,7 @@ exports.customerCancelTrip = async (req , res) => {
                                                   trip_status: constant.TRIP_STATUS.CANCELED , 
                                                   // driver_name: null , 
                                                   trip_cancelled_by_role: constant.TRIP_DELETED_BY_ROLE.USER,
+                                                  cancelled_at : new Date(),
                                                   under_cancellation_review: false
                                                 }}, {new: true});
 
@@ -1209,6 +1212,14 @@ exports.access_edit_trip = async (req, res) => {
       const destination = `${data.trip_to.lat},${data.trip_to.log}`;
       let distanceInfo = await getDistanceAndDuration(origin , destination)
       data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
+    }
+
+    if (data?.trip_status == constant.TRIP_STATUS.CANCELED) {
+      
+      data.trip_cancelled_by_role = constant.TRIP_CANCELLED_BY_ROLE.COMPANY_PARTIAL_ACCESS;
+      data.trip_cancelled_by =  req.userId;
+      data.trip_cancelled_by_ref = 'driver' ;
+      data.cancelled_at = new Date();
     }
     
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);

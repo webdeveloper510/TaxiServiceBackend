@@ -224,6 +224,10 @@ const trip = new Schema({
         type: String,
         default: null
     },
+    cancelled_at: {
+        type: Date ,
+        default: null,
+    },
     
     trip_cancelled_by: {
         type: mongoose.Schema.Types.ObjectId,
