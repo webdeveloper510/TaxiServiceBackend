@@ -3123,7 +3123,7 @@ exports.calculatePrice = async (req, res) => {
     } else {
 
       
-
+      
       if (kilometers < 10) {
         finalPrice = kilometers * fareDetail?.vehicle_fare_per_km;
         priceGetBy = `price below 10`
@@ -3134,6 +3134,10 @@ exports.calculatePrice = async (req, res) => {
         finalPrice = (9 * fareDetail?.vehicle_fare_per_km) + (15 * fareDetail?.km_10_fare) + ((kilometers - 24 ) * fareDetail?.km_25_fare);
         priceGetBy = `price above 25`
       }
+
+      // start price will include here
+      finalPrice = finalPrice + (fareDetail?.start_fare || 0);
+      finalPrice = finalPrice + parseInt((element?.duration?.text || 0));
 
       if (finalPrice < fareDetail?.minimum_fare) {
         finalPrice = fareDetail?.minimum_fare;
