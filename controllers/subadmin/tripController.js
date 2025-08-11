@@ -427,6 +427,12 @@ exports.edit_trip = async (req, res) => {
       let distanceInfo = await getDistanceAndDuration(origin , destination)
       data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
     }
+
+    if (data?.trip_status == constant.TRIP_STATUS.CANCELED) {
+      data.trip_cancelled_by_role = constant.TRIP_CANCELLED_BY_ROLE.COMPANY;
+      data.trip_cancelled_by = req.userId;
+      data.trip_cancelled_by_ref = 'user';
+    }
     
    
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);

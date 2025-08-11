@@ -53,10 +53,10 @@ module.exports={
         COMPLETED: 'Completed', // When driver reached to the destination
         CANCELED: 'Canceled', //  When compnay cancelled the trip from driver
         PENDING: 'Pending', // When trip is created
-        NO_SHOW: 'NoShow',// when user will not be present at the trip start location
-        // CUSTOMER_CENCEL: 'CustomerCancel', // When customer cancelled the trip
+        NO_SHOW: 'NoShow',// when user will not be present at the trip start location // CUSTOMER_CENCEL: 'CustomerCancel', // When customer cancelled the trip
+        
     },
-    TRIP_DELETED_BY_ROLE: {
+    TRIP_CANCELLED_BY_ROLE: {
         COMPANY: "COMPANY",
         HOTEL: "HOTEL",
         USER: "USER", // who will ride the trip with driver ... main user

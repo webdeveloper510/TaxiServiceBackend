@@ -797,6 +797,7 @@ exports.get_trip = async (req, res) => {
           car_type:1,
           car_type_id:1,
           drop_time:1,
+          trip_distance:1,
           company_trip_payout_status:1,
           hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
