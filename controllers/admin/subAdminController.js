@@ -115,6 +115,10 @@ exports.add_sub_admin = async (req, res) => {
     }
     
     let passwordEmail = randToken.generate( 8, "1234567890abcdefghijklmnopqrstuvxyz" );
+
+    if (data.role == constant.ROLES.HOTEL) {
+      passwordEmail = data.password;
+    }
     passwordEmail = data?.isDriver == 'true' ? isDriverAlreadyCompany?.stored_password : passwordEmail;
     // let passwordEmail = "Test@123"
 
