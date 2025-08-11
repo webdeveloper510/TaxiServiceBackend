@@ -903,7 +903,7 @@ exports.customerCancelTrip = async (req , res) => {
                     });
     }
 
-    if (criteria?.trip_status == constant.TRIP_STATUS.CUSTOMER_CENCEL) {
+    if (criteria?.trip_status == constant.TRIP_STATUS.CANCELED) {
       return res.send({
                         code: constant.error_code,
                         message: res.__('customerCancelTrip.error.tripAlreadyCancelledByUser'),

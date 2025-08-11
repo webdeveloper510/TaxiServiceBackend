@@ -8,6 +8,7 @@ const TRIP_STATUS_ENUM = Object.values(CONSTANT.TRIP_STATUS);
 const NAVIGATION_MODE_ENUM = Object.values(CONSTANT.NAVIGATION_MODE);
 const BOOKING_SOURCE_ENUM = Object.values(CONSTANT.BOOKING_SOURCE);
 const TRIP_COMMISSION_TYPE_ENUM = Object.values(CONSTANT.TRIP_COMMISSION_TYPE);
+const TRIP_DELETED_BY_ROLE = Object.values(CONSTANT.TRIP_DELETED_BY_ROLE);
 
 const trip = new Schema({
     driver_name:{
