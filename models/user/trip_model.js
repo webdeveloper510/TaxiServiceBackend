@@ -217,7 +217,7 @@ const trip = new Schema({
     },
     trip_cancelled_by_role: {
         type: String,
-        enum: Object.values(TRIP_DELETED_BY_ROLE),
+        enum: [...Object.values(TRIP_DELETED_BY_ROLE), null],
         default: null
     },
     trip_cancelled_user_name: {
@@ -234,7 +234,7 @@ const trip = new Schema({
     // This tells Mongoose which collection to look at
     trip_cancelled_by_ref: {
         type: String,
-        enum: ["driver", "user"],
+        enum: ["driver", "user" , null],
         default: null
     },
     stripe_payment: {
