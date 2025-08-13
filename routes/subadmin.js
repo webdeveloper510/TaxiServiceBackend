@@ -27,6 +27,7 @@ router.post('/driver_cancel_trip_requests',[verifyToken],tripController.driverCa
 router.post('/customer_cancel_trip' , tripController.customerCancelTrip)
 router.put('/no-show-user/:id',[verifyToken],tripController.noShowUser)
 router.put('/access_edit_trip/:id/:company_id',[verifyToken],tripController.access_edit_trip)
+router.put('/access_update_trip/:id/:company_id',[verifyToken],tripController.access_update_trip)
 router.delete('/delete_trip/:id',[verifyToken],tripController.delete_trip)
 router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 
