@@ -423,14 +423,6 @@ exports.update_trip = async (req , res) => {
       data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
     }
 
-    if (data?.trip_status == constant.TRIP_STATUS.CANCELED) {
-      
-      data.trip_cancelled_by_role = req.companyPartnerAccess ? constant.TRIP_CANCELLED_BY_ROLE.PARTNER_ACCESS : constant.TRIP_CANCELLED_BY_ROLE.COMPANY;
-      data.trip_cancelled_by = req.companyPartnerAccess ? req.CompanyPartnerDriverId : req.userId;
-      data.trip_cancelled_by_ref = req.companyPartnerAccess ? 'driver' : 'user';
-      data.cancelled_at = new Date();
-    }
-
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
     if (!update_trip) {
       res.send({
@@ -1239,6 +1231,105 @@ exports.driverCancelTripRequests = async (req, res) => {
                       code: constant.error_code,
                       message: err.message,
                     });
+  }
+}
+
+exports.access_update_trip = async (req , res) => {
+  try {
+    let data = req.body;
+
+    if (req.user.role == constant.ROLES.DRIVER) {
+
+      let is_driver_has_company_access = await isDriverHasCompanyAccess( req.user, req.params.company_id );
+
+      if (!is_driver_has_company_access) {
+
+        return res.send({
+                          code: constant.ACCESS_ERROR_CODE,
+                          message: res.__('editTrip.error.companyAccessRevoked'),
+                        });
+      }
+    }
+
+    let criteria = { _id: req.params.id };
+    let trip_data = await TRIP.findOne(criteria);
+
+    let option = { new: true };
+    data.status = true;
+
+    if (data?.commission && data?.commission?.commission_value != 0) {
+
+      let commission = data.commission.commission_value;
+      if ( data.commission.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE && data.commission.commission_value > 0 ) {
+        commission = (data.price * data.commission.commission_value) / 100;
+      }
+
+      const companyDetails = await USER.findById(trip_data?.created_by_company_id);
+      if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan){
+
+        return res.send({
+                          code: constant.error_code,
+                          result: res.__('editTrip.error.noActivePlanForTripCreation'),
+                        });
+      }
+      const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
+
+      
+      data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((Number(commission) * parseFloat(adminCommision.value)) / 100 || 0).toFixed(2);
+      // data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
+      data.companyPaymentAmount = (Number(commission) - Number(data.superAdminPaymentAmount)).toFixed(2);
+      data.driverPaymentAmount = (Number(data.price) - data.companyPaymentAmount - data.superAdminPaymentAmount).toFixed(2);
+
+    } else {
+
+      if (data?.price) {
+        data.superAdminPaymentAmount = 0;
+        data.companyPaymentAmount = 0;
+        
+        data.driverPaymentAmount = Number(data.price).toFixed(2)
+      }
+      
+    }
+
+    if (data?.trip_from) {
+      const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
+      const destination = `${data.trip_to.lat},${data.trip_to.log}`;
+      let distanceInfo = await getDistanceAndDuration(origin , destination)
+      data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
+    }
+
+    
+    let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
+    if (!update_trip) {
+      res.send({
+        code: constant.error_code,
+        message: res.__('editTrip.error.unableToUpdateTrip'),
+      });
+    } else {
+      // When Date and time will be updated then customer will be notify
+      if (data?.pickup_date_time && new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
+        
+        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
+        const companyDetail = await USER.findById(data?.created_by_company_id);
+        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for update date time trip
+          
+          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
+        }
+      }
+    }
+
+    return res.send({
+                        code: constant.success_code,
+                        message: res.__('editTrip.success.tripUpdated'),
+                        result: update_trip,
+                      });
+
+  
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
   }
 }
 
