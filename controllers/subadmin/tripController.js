@@ -469,7 +469,7 @@ exports.edit_trip = async (req, res) => {
     let option = { new: true };
     data.status = true;
 
-    if (data?.vehicle_type) { // when commission will be changed 
+    if (data?.car_type) { // when commission will be changed 
 
       if (data?.commission && data?.commission?.commission_value != 0) {
       
@@ -612,10 +612,13 @@ exports.edit_trip = async (req, res) => {
         }
       }
       
-
+      let responseMessage = res.__('editTrip.success.tripUpdated');
+      if (data?.trip_status == constant.TRIP_STATUS.CANCELED) { // change the message when trip is canceled
+        responseMessage = res.__('getTrip.success.tripCancelled');
+      }
       return res.send({
                         code: constant.success_code,
-                        message: res.__('editTrip.success.tripUpdated'),
+                        message: responseMessage,
                         result: update_trip,
                       });
     }
@@ -1421,11 +1424,13 @@ exports.access_edit_trip = async (req, res) => {
         
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for update date time trip
+        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request) { // check if company turned on sms feature for update date time trip
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
         }
       }
+
+
 
       // When driver will go to for pick the customer (On the way) then customer will be notify
       if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
