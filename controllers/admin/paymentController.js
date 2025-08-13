@@ -442,6 +442,7 @@ exports.adminTransaction = async (req, res) => {
                                                 }
                                               ]);
 
+console.log('dateQuery-------', uniqueUnpaidTripDrivers)
 const countDriversWithPendingDues = uniqueUnpaidTripDrivers.length;
 const unpaidDriverIds = uniqueUnpaidTripDrivers.map(d => d._id);
 
@@ -460,7 +461,7 @@ const uniquePaidTripDrivers = await TRIP.aggregate([
                                                   }
                                                 }
                                               ]);
-
+console.log('dateQuery-------' ,dateQuery , uniquePaidTripDrivers)
 const countDriversWithPaidDues = uniquePaidTripDrivers.length;
 
     res.send({
