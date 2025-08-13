@@ -415,7 +415,6 @@ exports.adminTransaction = async (req, res) => {
     const commisionPaidToCompany = await getTotalPayment(dateQuery , {is_paid: true , is_company_paid: true } , `companyPaymentAmount` , false);
     const companyCommisionToBePaid = await getTotalPayment(dateQuery , { is_company_paid: false } , `companyPaymentAmount` , false);
 
-    console.log('checking---------------')
     const dueCommisionFromDrivers = await getTotalPayment(dateQuery , { is_paid: false } , `driverPaymentAmount` , true);
     
     const recieveCommisionFromDrivers = await getTotalPayment(dateQuery , { is_paid: true} , `driverPaymentAmount` , true);
@@ -611,9 +610,7 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
       }
     };
   }
-
-  console.log('matchCriteria---------------' , matchCriteria)
-
+  
   const totalPayment = await TRIP.aggregate([
     {
         $match: matchCriteria
