@@ -419,6 +419,7 @@ exports.adminTransaction = async (req, res) => {
     
     const recieveCommisionFromDrivers = await getTotalPayment(dateQuery , { is_paid: true} , `driverPaymentAmount` , true);
 
+    console.log('cgheckinf----------------')
     const driversNetEarning = await getTotalPayment(dateQuery , {} , `driverPaymentAmount` , false);
     
     
@@ -574,6 +575,7 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
 
   let groupStage ;
 
+  console.log('🚀 ~matchCriteria------------', matchCriteria)
   if (revenueOnly) {
     groupStage = {
       $group: {

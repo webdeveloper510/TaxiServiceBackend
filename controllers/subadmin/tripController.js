@@ -175,6 +175,7 @@ exports.get_trip = async (req, res) => {
             ],
           },
           trip_id: 1,
+          trip_distance:1,
         },
       },
     ]).sort({ createdAt: -1 });
