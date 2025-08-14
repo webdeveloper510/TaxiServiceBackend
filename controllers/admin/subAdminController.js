@@ -3040,7 +3040,13 @@ exports.tipListByRevenue = async (req, res) => {
           is_paid:1,
           superAdminPaymentAmount:1,
           companyPaymentAmount:1,
-          driverPaymentAmount:1,
+          driverPaymentAmount:{
+                                  $add: [
+                                    { $ifNull: ["$driverPaymentAmount", 0] },
+                                    { $ifNull: ["$child_seat_price", 0] },
+                                    { $ifNull: ["$payment_method_price", 0] }
+                                  ]
+                                },
           price:1,
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
           driver_id: { $arrayElemAt: ["$driver._id", 0] },
