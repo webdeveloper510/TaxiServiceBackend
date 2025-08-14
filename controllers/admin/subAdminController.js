@@ -1015,13 +1015,14 @@ exports.edit_sub_admin = async (req, res) => {
       // let update_data = await USER.findOneAndUpdate(criteria, data, option)
       // let criteria2 = { user_id: update_data._id }
 
-      if (checkSubAdmin.user_name != data.user_name) {
+      if (checkSubAdmin.user_name != data?.user_name && data?.user_name) {
         let checkUsername = await USER.findOne({user_name: data.user_name,});
         let checkDriverUsername = await DRIVER.findOne({
                                                         nickName: data.user_name,
                                                         ...(checkSubAdmin?.isDriver == true ? { _id: { $ne: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } } : {}),
                                                       });
         if (checkUsername || checkDriverUsername) {
+          console.log("User with this username already exists");
           return res.send({
             code: constant.error_code,
             message: res.__('addSubAdmin.error.userNameAlreadyExists'),
