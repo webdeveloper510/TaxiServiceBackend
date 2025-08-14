@@ -318,7 +318,7 @@ exports.edit_fare = async (req, res) => {
       car_type_id: checkCarType._id,
       vehicle_fare_per_km: data.vehicle_fare_per_km,
       minimum_fare: data.minimum_fare,
-      price_per_min: data.price_per_min,
+      per_minute_fare: data.per_minute_fare,
       waiting_fare: data.waiting_fare,
       km_10_fare: data.km_10_fare,
       km_25_fare:data.km_25_fare,
