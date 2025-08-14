@@ -322,6 +322,7 @@ exports.edit_fare = async (req, res) => {
       waiting_fare: data.waiting_fare,
       km_10_fare: data.km_10_fare,
       km_25_fare:data.km_25_fare,
+      start_fare: data.start_fare
     }
     let update_fare = await FARE.findByIdAndUpdate(criteria, {$set:updateData}, option);
     if (!update_fare) {
