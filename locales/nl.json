@@ -577,7 +577,9 @@
       "inValidAmount": "Rij {{row_no}} bevat een ongeldige 'Amount'. Dit moet een getal zijn (geheel of decimaal).",
       "noPricefound": "Geen prijs gevonden in het systeem.",
       "invalidZipcode": "Er is een ongeldige postcode gevonden in rij {{row_no}} in de kolom {{field}}.",
-      "badRequest": "Bedverzoek"
+      "badRequest": "Bedverzoek",
+      "invalidVehicleType": "Er is een ongeldig voertuigtype gevonden in rij {{row_no}} onder de kolom {{field}}. Alleen {{valid_types}} zijn toegestaan.",
+      "inValidNumberOfPersons": "Rij {{row_no}} heeft een ongeldig 'Aantal personen'. Het moet een positief getal zijn."
     },
     "success": {
       "fileUploaded": "Het bestand is succesvol geüpload.",

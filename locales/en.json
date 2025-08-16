@@ -577,7 +577,9 @@
             "inValidAmount": "`Row {{row_no}} has an invalid 'Amount'. It must be a number (integer or decimal)",
             "noPricefound": "No price found in the system",
             "invalidZipcode": "An invalid ZIP code was found in row {{row_no}} under the {{field}} column",
-            "badRequest": "Bed Request"
+            "badRequest": "Bad Request",
+            "invalidVehicleType": "An invalid vehicle type was found in row {{row_no}} under the {{field}} column. Only {{valid_types}} are allowed.",
+            "inValidNumberOfPersons": "Row {{row_no}} has an invalid 'Number of persons'. It must be a positive number."
         },
         "success": {
             "fileUploaded": "The file has been uploaded successfully.",
