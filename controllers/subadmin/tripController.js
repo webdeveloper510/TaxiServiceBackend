@@ -384,21 +384,34 @@ exports.update_trip = async (req , res) => {
     let option = { new: true };
     data.status = true;
 
+    let  isCommisionPay;
+        
+    if (req.user.role == constant.ROLES.HOTEL) {
+      const companyDetail = await USER.findById(data.created_by_company_id);
+
+      if (!companyDetail) {
+        return res.send({
+                        code: constant.error_code,
+                        result: res.__('addSubAdmin.error.invalidCompany')
+                      });
+      }
+      isCommisionPay = await willCompanyPayCommissionOnTrip(companyDetail);
+    } else {
+      isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
+    }
+
+    if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan && req.user.role !== constant.ROLES.HOTEL){
+
+      return res.send({
+                        code: constant.error_code,
+                        result: res.__('editTrip.error.noActivePlanForTripCreation'),
+                      });
+    }
+
     if (data?.commission && data?.commission?.commission_value != 0) {
       let commission = data.commission.commission_value;
       if ( data.commission.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE && data.commission.commission_value > 0 ) {
         commission = (Number(data.price) * data.commission.commission_value) / 100;
-      }
-
-      const companyDetails = await USER.findById(trip_data?.created_by_company_id);
-      const isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
-
-      if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan){
-
-        return res.send({
-                          code: constant.error_code,
-                          result: res.__('editTrip.error.noActivePlanForTripCreation'),
-                        });
       }
 
       const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
