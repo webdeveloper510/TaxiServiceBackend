@@ -297,15 +297,23 @@ exports.add_trip = async (req, res) => {
     let distanceInfo = await getDistanceAndDuration(origin , destination)
     data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
 
-    // let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
-    // let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10;
+    let  isCommisionPay;
+    
+    if (req.user.role == constant.ROLES.HOTEL) {
+      const companyDetail = await USER.findById(data.created_by_company_id);
 
-    // if (!data.price) {
-    //   data.price = (fare_per_km * Number(distance)).toFixed(2);
-    // }
-
-    const isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
-
+      if (!companyDetail) {
+        return res.send({
+                        code: constant.error_code,
+                        result: res.__('addSubAdmin.error.invalidCompany')
+                      });
+      }
+      isCommisionPay = await willCompanyPayCommissionOnTrip(companyDetail);
+    } else {
+      isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
+    }
+    
+  
     
     if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan && req.user.role !== constant.ROLES.HOTEL){
 
