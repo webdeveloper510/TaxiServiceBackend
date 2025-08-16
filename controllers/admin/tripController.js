@@ -291,27 +291,29 @@ exports.add_trip = async (req, res) => {
     data.series_id  = '';
 
     data.trip_id = "T" + "-" + data.trip_id;
-    // let distances = ( geolib.getDistance( {
-    //                                         latitude: data.trip_from.lat,
-    //                                         longitude: data.trip_from.log,
-    //                                       },
-    //                                       {
-    //                                         latitude: data.trip_to.lat,
-    //                                         longitude: data.trip_to.log,
-    //                                       }
-    //                                     ) * 0.621371
-    //                                   ).toFixed(2);
+   
     const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
     const destination = `${data.trip_to.lat},${data.trip_to.log}`;
     let distanceInfo = await getDistanceAndDuration(origin , destination)
     data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
 
-    let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
-    let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10;
+    // let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
+    // let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10;
 
     // if (!data.price) {
     //   data.price = (fare_per_km * Number(distance)).toFixed(2);
     // }
+
+    const isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
+
+    
+    if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan && req.user.role !== constant.ROLES.HOTEL){
+
+      return res.send({
+                        code: constant.error_code,
+                        result: res.__('addTrip.error.noActivePlanForTripCreation')
+                      });
+    }
     
 
     if (data?.commission && data?.commission?.commission_value != 0) {
@@ -324,16 +326,7 @@ exports.add_trip = async (req, res) => {
       const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
 
       // const myPlans = await getUserActivePaidPlans(req.user);
-      const isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
-
       
-      if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan){
-
-        return res.send({
-                          code: constant.error_code,
-                          result: res.__('addTrip.error.noActivePlanForTripCreation')
-                        });
-      }
       
       if (isCommisionPay?.paidPlan) {
 

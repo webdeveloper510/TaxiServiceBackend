@@ -22,7 +22,7 @@
         }
 
         .header {
-            background-color: #0682ca !important;
+            background-color: #065f46;
             color: #ffffff;
             padding: 20px;
             text-align: center;
@@ -96,64 +96,92 @@
         <!-- Header -->
         <div class="header">
 
-            <h2>Ride Company</h2>
+            <h2>
+                <%= companyName %>
+            </h2>
         </div>
 
         <!-- Content -->
         <div class="content">
-            <h2>Booking Confirmation – Order #T-1030</h2>
-            <p>Dear Sunny Rana,</p>
+            <h2>Booking Confirmation – Order #<%= trip_id %>
+            </h2>
+            <p>Dear <%= customerName %>,</p>
             <p>Your taxi request has been received with the following information:</p>
 
             <table>
                 <tr>
                     <th>Pick-up Time</th>
-                    <td>01 August 2025 - 12:16 (Asia/Calcutta)</td>
+                    <td>
+                        <%= pickupTime %> (Time-zone:- <%= TimeZoneId %>)
+                    </td>
                 </tr>
                 <tr>
                     <th>Departure</th>
-                    <td>Sahibzada Ajit Singh Nagar, Punjab, India</td>
+                    <td>
+                        <%= departure %>
+                    </td>
                 </tr>
                 <tr>
                     <th>Arrival</th>
-                    <td>FRV2+Q4W, Lairu, Punjab 140501, India</td>
+                    <td>
+                        <%= arrival %>
+                    </td>
                 </tr>
                 <tr>
                     <th>Car Type</th>
-                    <td>Car - 1 passenger</td>
+                    <td>
+                        <%= carType %> - <%= passengerCount %> passenger
+                    </td>
                 </tr>
                 <tr>
                     <th>Fare</th>
-                    <td>€379.56</td>
+                    <td>€<%= fare %>
+                    </td>
                 </tr>
+
                 <tr>
-                    <th>Payment</th>
-                    <td>Cash</td>
+                    <th>Payment Method</th>
+                    <td>
+                        <%= paymentOption %>
+
+                            <% if (paymentMethodPrice) { %>
+                                ( € <%= paymentMethodPrice %> included in the price)
+                                    <% } %>
+                    </td>
                 </tr>
-                <tr>
-                    <th>Child Seat</th>
-                    <td>Yes (€2 included)</td>
-                </tr>
-                <tr>
-                    <th>Flight No.</th>
-                    <td>f123</td>
-                </tr>
+
+                <% if (childSeat) { %>
+                    <tr>
+                        <th>Child Seat</th>
+                        <td> yes ( €<%= childSeat %> included in the price ) </td>
+                    </tr>
+                    <% } %>
+
+                        <% if (flightNo) { %>
+                            <tr>
+                                <th>Flight No.</th>
+                                <td>
+                                    <%= flightNo %>
+                                </td>
+                            </tr>
+                            <% } %>
             </table>
 
             <div class="customer-info">
                 <p><strong>Customer Info</strong></p>
-                <p>Name: Sunny Rana<br>
-                    Phone: +818295353003<br>
-                    Email: sunnyr@domain.com</p>
+                <p>Name: <%= customerName %><br>
+                        Phone: <%= customerPhone %><br>
+                            Email: <%= customerEmail %>
+                </p>
             </div>
 
             <p>Thank you for choosing us!</p>
-            <a href="#" class="button">Track My Ride</a>
+            <a href="<%= trackUrl %>" class="button">Track My Ride</a>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            © 2025 Ride Company. All rights reserved.
+            © 2025 <%= companyName %>. All rights reserved.
         </div>
     </div>
 </body>

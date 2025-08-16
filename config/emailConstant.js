@@ -7,5 +7,5 @@ module.exports = {
             pass: process.env.userPassword,
         }
     },
-    from_email: "brainalywin@gmail.com",
+    from_email: "brainalywin@gmail.com"
 }

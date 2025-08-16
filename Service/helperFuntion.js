@@ -18,6 +18,8 @@ const nodemailer = require("nodemailer");
 const emailConstant = require("../config/emailConstant");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const IBAN = require('iban');
+const sendEmail = require("./email");
+
 // Initialize Twilio client
 const client = twilio(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
 
@@ -2703,8 +2705,40 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                         subject: subject,
                         html: template
                       };
-    let sendEmail = await transporter.sendMail(mailOptions);
-    return sendEmail
+
+    let bookingData = {
+      trip_id: tripDetail?.trip_id,
+      customerName: tripDetail?.customerDetails?.name,
+      customerPhone: customerPhone,
+      customerEmail: tripDetail?.customerDetails?.email,
+      pickupTime: pickUpTime,
+      TimeZoneId: TimeZoneId,
+      departure: tripDetail?.trip_from?.address,
+      arrival: tripDetail?.trip_to?.address,
+      carType: tripDetail?.car_type,
+      passengerCount: tripDetail?.passengerCount,
+      fare: totalPrice,
+      paymentOption: tripDetail?.pay_option,
+      paymentMethodPrice: payment_method_price,
+      childSeat: tripDetail?.child_seat_price,
+      flightNo: tripDetail?.customerDetails?.flightNumber,
+      driverRemark: tripDetail?.comment,
+      companyName: companyAgencyDetails?.company_name,
+      companyEmail: companyDetails?.email,
+      companyPhone: companyDetails?.phone,
+      companyLogoUrl: companyAgencyDetails?.logo_url,
+      trackUrl: bookingTrackLink
+    }
+    // let sendEmails = await transporter.sendMail(mailOptions);
+
+    const emailSent = await sendEmail(email, // Receiver email
+                                        subject, // Subject
+                                        "send_booking_confirmation_email", // Template name (without .ejs extension)
+                                        bookingData,
+                                        'nl',
+                                        []
+                                      )
+    return emailSent
 
   } catch (error) {
 
