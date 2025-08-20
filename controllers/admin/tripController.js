@@ -3036,7 +3036,7 @@ exports.calculatePrice = async (req, res) => {
     
     const element = await getDistanceAndDuration(origin, destination);
 
-    if(element.status === 'ZERO_RESULTS') {
+    if(element.status === 'ZERO_RESULTS' || element.status === 'NOT_FOUND') {
       return res.send({
                         code: constant.error_code,
                         message: res.__("getTrip.error.calculationFailed")

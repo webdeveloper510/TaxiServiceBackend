@@ -191,6 +191,8 @@ router.post("/create-ideal-checkout-session",[verifyToken] ,subscriptionControll
 router.post("/create-subscription",[verifyToken] ,subscriptionController.createSubscription);
 router.post("/cancel-subscription",[verifyToken] ,subscriptionController.cancelSubscription);
 router.get("/get-my-paid-plans",[verifyToken] ,subscriptionController.getMyPaidPlans);
+// router.post("/update_company_special_plan/:id",[verifyToken , adminAuth] ,subscriptionController.updateProducts);
+
 // router.post("/subscription_webhook" , subscriptionController.subscriptionWebhook);
 
 // Connected account Api's
