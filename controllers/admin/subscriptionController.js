@@ -712,7 +712,7 @@ exports.createSubscription = async (req, res) => {
             const invoiceId = createSubscription.latest_invoice.id;
 
             // Get payment intent ID
-            const paymentIntentId = createSubscription.latest_invoice.payment_intent.id;
+            const paymentIntentId = createSubscription.latest_invoice?.payment_intent?.id || null;
 
             // Get charge ID (if payment intent contains charges)
             const chargeId = createSubscription?.latest_invoice?.payment_intent?.charges?.data[0]?.id || null;
