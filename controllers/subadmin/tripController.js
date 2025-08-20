@@ -1507,7 +1507,7 @@ exports.delete_trip = async (req, res) => {
     let option = { new: true };
     let newValue = {
       $set: {
-        is_deleted: true,
+        trip_status: constant.TRIP_STATUS.CANCELED,
       },
     };
     let update_trip = await TRIP.findOneAndUpdate(criteria, newValue, option);
