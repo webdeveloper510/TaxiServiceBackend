@@ -407,8 +407,8 @@ exports.adminTransaction = async (req, res) => {
 
     let data = req.body;
     let dateQuery = await dateFilter(data );
-
-    const totalAmountPurchasedPlan = await getTotalPurchasedSubscriptionAmount();
+    
+    const totalAmountPurchasedPlan = await getTotalPurchasedSubscriptionAmount(dateQuery?.pickup_date_time);
     const paidTripCommisionOfAdmin = await getTotalPayment(dateQuery , {is_paid: true} , `superAdminPaymentAmount` , false);
     const DuesTripCommisionOfAdmin = await getTotalPayment(dateQuery , {is_paid: false} , `superAdminPaymentAmount` , false);
     
@@ -419,7 +419,7 @@ exports.adminTransaction = async (req, res) => {
     
     const recieveCommisionFromDrivers = await getTotalPayment(dateQuery , { is_paid: true} , `driverPaymentAmount` , true);
 
-    console.log('cgheckinf----------------')
+    // console.log('cgheckinf----------------')
     const driversNetEarning = await getTotalPayment(dateQuery , {} , `driverPaymentAmount` , false);
     
     
@@ -535,12 +535,16 @@ exports.companyTransaction = async (req, res) => {
 
 }
 
-const getTotalPurchasedSubscriptionAmount = async () => {
+const getTotalPurchasedSubscriptionAmount = async (dateQuery = undefined) => {
   try {
 
+    
     const totalAmount  = await SUBSCRIPTION_MODEL.aggregate([
                                                                 {
-                                                                    $match: { paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID }
+                                                                    $match: { 
+                                                                              paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID ,
+                                                                            ...(dateQuery && { createdAt: dateQuery })
+                                                                          }
                                                                 },
                                                                 {
                                                                     $group: {
@@ -577,7 +581,7 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
 
   let groupStage ;
 
-  console.log('🚀 ~matchCriteria------------', matchCriteria)
+  // console.log('🚀 ~matchCriteria------------', matchCriteria)
   if (revenueOnly) { // for drivers only where we will get recieved or pending commision from the drivers
     groupStage = {
       $group: {
@@ -589,7 +593,7 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
         }
       }
     };
-    console.log('inidese--')
+    
   } else if (amountKey === 'driverPaymentAmount') { // for driver net earning
     groupStage = {
       $group: {
