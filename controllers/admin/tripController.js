@@ -2727,6 +2727,14 @@ exports.get_trip_detail = async (req, res) => {
       },
       {
         $lookup: {
+          from: "users",
+          localField: "created_by_company_id",
+          foreignField: "_id",
+          as: "company",
+        },
+      },
+      {
+        $lookup: {
           from: "agencies",
           localField: "created_by",
           foreignField: "user_id",
@@ -2735,8 +2743,11 @@ exports.get_trip_detail = async (req, res) => {
       },
       {
         $project: {
-          phone: { $arrayElemAt: ["$hotel_info.phone", 0] },
-          email: { $arrayElemAt: ["$hotel_info.email", 0] },
+          // phone: { $arrayElemAt: ["$hotel_info.phone", 0] },
+          // email: { $arrayElemAt: ["$hotel_info.email", 0] },
+          phone: { $arrayElemAt: ["$company.phone", 0] },
+          email: { $arrayElemAt: ["$company.email", 0] },
+          countryCode: { $arrayElemAt: ["$company.countryCode", 0] },
           vehicle: { $arrayElemAt: ["$vehicle_info.vehicle_model", 0] },
           driverInfo: { $arrayElemAt: ["$driver_info", 0] },
           hotelImage: { $arrayElemAt: ["$hotel_info.profile_image", 0] },
