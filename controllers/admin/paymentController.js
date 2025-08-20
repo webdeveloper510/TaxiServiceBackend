@@ -426,44 +426,46 @@ exports.adminTransaction = async (req, res) => {
     // const countDriversWithPendingDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false , ...dateQuery});
     // const countDriversWithPaidDues  = await TRIP.countDocuments({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true , ...dateQuery});
 
-    // const countDriversWithPendingDues  = await TRIP.find({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false , ...dateQuery});
-    // const countDriversWithPaidDues  = await TRIP.find({trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true , ...dateQuery});
-    const uniqueUnpaidTripDrivers = await TRIP.aggregate([
-                                                {
-                                                  $match: {
-                                                    trip_status: constant.TRIP_STATUS.COMPLETED,
-                                                    is_paid: false,
-                                                    ...dateQuery
-                                                  }
-                                                },
-                                                {
-                                                  $group: {
-                                                    _id: "$driver_name" // group by driver to get unique drivers
-                                                  }
-                                                }
-                                              ]);
+    const countDriversWithPendingDues  = await TRIP.distinct("driver_name" ,{trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false , ...dateQuery});
+    const countDriversWithPaidDues  = await TRIP.distinct("driver_name" ,{trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: true , ...dateQuery});
+    console.log('countDriversWithPaidDues---' , countDriversWithPaidDues)
+    
+    // const uniqueUnpaidTripDrivers = await TRIP.aggregate([
+    //                                             {
+    //                                               $match: {
+    //                                                 trip_status: constant.TRIP_STATUS.COMPLETED,
+    //                                                 is_paid: false,
+    //                                                 ...dateQuery
+    //                                               }
+    //                                             },
+    //                                             {
+    //                                               $group: {
+    //                                                 _id: "$driver_name" // group by driver to get unique drivers
+    //                                               }
+    //                                             }
+    //                                           ]);
 
 
-const countDriversWithPendingDues = uniqueUnpaidTripDrivers.length;
-const unpaidDriverIds = uniqueUnpaidTripDrivers.map(d => d._id);
+    // const countDriversWithPendingDues = uniqueUnpaidTripDrivers.length;
+    // const unpaidDriverIds = uniqueUnpaidTripDrivers.map(d => d._id);
 
-const uniquePaidTripDrivers = await TRIP.aggregate([
-                                                {
-                                                  $match: {
-                                                    trip_status: constant.TRIP_STATUS.COMPLETED,
-                                                    is_paid: true,
-                                                    driver_name: { $nin: unpaidDriverIds },
-                                                    ...dateQuery
-                                                  }
-                                                },
-                                                {
-                                                  $group: {
-                                                    _id: "$driver_name" // group by driver to get unique drivers
-                                                  }
-                                                }
-                                              ]);
+    // const uniquePaidTripDrivers = await TRIP.aggregate([
+    //                                                 {
+    //                                                   $match: {
+    //                                                     trip_status: constant.TRIP_STATUS.COMPLETED,
+    //                                                     is_paid: true,
+    //                                                     driver_name: { $nin: unpaidDriverIds },
+    //                                                     ...dateQuery
+    //                                                   }
+    //                                                 },
+    //                                                 {
+    //                                                   $group: {
+    //                                                     _id: "$driver_name" // group by driver to get unique drivers
+    //                                                   }
+    //                                                 }
+    //                                               ]);
 
-const countDriversWithPaidDues = uniquePaidTripDrivers.length;
+    // const countDriversWithPaidDues = uniquePaidTripDrivers.length;
 
     res.send({
               code: constant.success_code,
@@ -474,8 +476,8 @@ const countDriversWithPaidDues = uniquePaidTripDrivers.length;
               companyCommisionToBePaid,
               dueCommisionFromDrivers,
               recieveCommisionFromDrivers,
-              countDriversWithPendingDues,
-              countDriversWithPaidDues,
+              countDriversWithPendingDues: countDriversWithPendingDues.length,
+              countDriversWithPaidDues: countDriversWithPaidDues.length,
               driversNetEarning
 
             });
@@ -576,7 +578,7 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
   let groupStage ;
 
   console.log('🚀 ~matchCriteria------------', matchCriteria)
-  if (revenueOnly) {
+  if (revenueOnly) { // for drivers only where we will get recieved or pending commision from the drivers
     groupStage = {
       $group: {
         _id: null,
@@ -587,7 +589,8 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
         }
       }
     };
-  } else if (amountKey === 'driverPaymentAmount') {
+    console.log('inidese--')
+  } else if (amountKey === 'driverPaymentAmount') { // for driver net earning
     groupStage = {
       $group: {
         _id: null,
@@ -620,6 +623,8 @@ const getTotalPayment = async (dateQuery = null , type = null  , amountKey = 'su
     },
     groupStage
   ]);
+
+  
 
   return totalPayment.length > 0 ? totalPayment[0].totalAmount.toFixed(2) : 0;
 };
