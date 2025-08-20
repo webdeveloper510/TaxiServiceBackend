@@ -101,7 +101,7 @@ exports.priceUpload = async (req, res) => {
                 }
 
                 // Validate "passanger field" field
-                if (!row["Number of persons"] || isNaN(row["Number of persons"]) || Number(row["Number of persons"]) < 0) {
+                if (!row["Number of persons"] || isNaN(row["Number of persons"]) || Number(row["Number of persons"]) < 0 || !Number.isInteger(Number(row["Number of persons"]))) {
                     return res.send({
                         code: constant.error_code,
                         message: res.__("priceUpload.error.inValidNumberOfPersons", { row_no: i + 2 })
