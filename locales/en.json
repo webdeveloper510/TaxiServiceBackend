@@ -466,7 +466,8 @@
             "subadminDeleteError": "An error occurred while deleting the sub-admin account. Please try again later.",
             "unableToRestore": "An error occurred while restoring the sub-admin account. Please try again later.",
             "invalidCompany": "The specified company is invalid or does not exist. Please verify the company details and try again.",
-            "invalidHotel": "The specified hotel is invalid or does not exist. Please verify the Hotel ID and try again."
+            "invalidHotel": "The specified hotel is invalid or does not exist. Please verify the Hotel ID and try again.",
+            "cantAssignSpecialPlan": "Unable to assign a special plan as the company already has an active paid subscription."
         },
         "success": {
             "subAdminAdded": "Sub-admin has been added successfully.",

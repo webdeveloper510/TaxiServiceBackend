@@ -466,7 +466,8 @@
       "subadminDeleteError": "Er is een fout opgetreden bij het verwijderen van het subbeheerder-account. Probeer het later opnieuw.",
       "unableToRestore": "Er is een fout opgetreden bij het herstellen van het subbeheerder-account. Probeer het later opnieuw.",
       "invalidCompany": "Het opgegeven bedrijf is ongeldig of bestaat niet. Controleer de bedrijfsgegevens en probeer opnieuw.",
-      "invalidHotel": "Het opgegeven hotel is ongeldig of bestaat niet. Controleer de Hotel-ID en probeer opnieuw."
+      "invalidHotel": "Het opgegeven hotel is ongeldig of bestaat niet. Controleer de Hotel-ID en probeer opnieuw.",
+      "cantAssignSpecialPlan": "Kan geen speciaal plan toewijzen omdat het bedrijf al een actief betaald abonnement heeft"
     },
     "success": {
       "subAdminAdded": "Subbeheerder succesvol toegevoegd.",

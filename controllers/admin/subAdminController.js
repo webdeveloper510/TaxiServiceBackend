@@ -14,7 +14,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
-const { sendNotification ,  getCityAndCountry} = require("../../Service/helperFuntion");
+const { sendNotification ,  getCityAndCountry , willCompanyPayCommissionOnTrip} = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess , dateFilter , createCustomAccount , sendAccountDeactivationEmail , sendAccountReactivationEmail} = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
@@ -1127,6 +1127,54 @@ exports.edit_sub_admin = async (req, res) => {
     });
   }
 };
+
+exports.assignSpecialPlan = async (req, res) => {
+  try {
+    let data = req.body;
+    let criteria = { _id: req.params.id  , role: constant.ROLES.COMPANY};
+    let option = { new: true };
+    let companyDetail = await USER.findOne(criteria);
+
+    if (!companyDetail) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addSubAdmin.error.noUserFound'),
+                      });
+    }
+
+    if (Object.prototype.hasOwnProperty.call(data, "is_special_plan_active")) {
+
+      const companyPlanDetails = await willCompanyPayCommissionOnTrip(companyDetail);
+
+      if (companyPlanDetails?.paidPlan && data.is_special_plan_active) { // If company already have any buyed plan then special can't be assign
+
+        return res.send({
+                        code: constant.error_code,
+                        message: res.__('addSubAdmin.error.cantAssignSpecialPlan'),
+                      });
+      }
+      let update_data = await USER.findOneAndUpdate(criteria, {is_special_plan_active: data.is_special_plan_active}, option);
+      return res.send({
+                          code: constant.success_code,
+                          message: data?.is_special_plan_active ? res.__('addSubAdmin.success.companySpecialPlanActivated') : res.__('addSubAdmin.success.companySpecialPlanDeactivated'),
+                          update_data,
+                        });
+    } else {
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('auth.error.authTokenVerificationFailed'),
+                      });
+    }
+    
+    
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
 
 exports.editHotel = async (req, res) => {
 
