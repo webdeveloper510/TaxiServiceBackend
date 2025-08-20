@@ -578,14 +578,14 @@ exports.add_trip_link = async (req, res) => {
     emitNewTripAddedByCustomer(add_trip , req.io);
     let add_return_trip = null;
     if (isRetrunBooking) {
-
-      let origin = `${ data.return_booking.trip_from.lat},${data.return_booking.trip_from.log}`;
-      let destination = `${data.return_booking.trip_to.lat},${data.return_booking.trip_to.log}`;
+       
+      let origin = `${ return_ticket_data.trip_from.lat},${return_ticket_data.trip_from.log}`;
+      let destination = `${return_ticket_data.trip_to.lat},${return_ticket_data.trip_to.log}`;
       let distanceInfo = await getDistanceAndDuration(origin , destination)
-      data.return_booking.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
-      
+      return_ticket_data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
+       
       add_return_trip = await TRIP(return_ticket_data).save();
-
+      
       // Email will be sent though this function internally
       emitNewTripAddedByCustomer(add_return_trip , req.io)
     }
