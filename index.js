@@ -102,6 +102,23 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
               console.log('paymentMethod.type---------------------------------------------------------' , paymentMethod.type);
 
+              if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
+
+                const planId = invoice.lines.data[0]?.price?.product;
+                const customerId = invoice?.customer;
+                const planDetails = await PLANS_MODEL.findOne({planId: planId});
+                const userDetails = await user_model.findOne({stripeCustomerId: customerId});
+                const driverDetails = await driver_model.findOne({stripeCustomerId: customerId});
+
+                const buyerInfo = userDetails ? userDetails : driverDetails;
+                const description = `Subscription to the "${planDetails?.name} (€${planDetails?.price})" Plan purchased by ${buyerInfo?.email} (Role: ${buyerInfo.role}) through card`;
+                console.log('description------------------------------------------------------------' , description)
+                await stripe.invoices.update(invoice.id, {
+                                                          description: description
+                                                        }
+                                          );
+              }
+
               // let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID });
               
               // if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
@@ -111,7 +128,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               // const planDetail = await PLANS_MODEL.findOne({planId: subscriptionExist?.planId});
               // let model = subscriptionExist?.role == constant.ROLES.COMPANY ? user_model : driver_model;
               // const buyerInfo = await model.findById(subscriptionExist?.role == constant.ROLES.COMPANY ? subscriptionExist?.purchaseByCompanyId : subscriptionExist?.purchaseByDriverId)
-              // const description = `Subscription to the "${planDetail?.name} (€${planDetail?.price})" Plan purchased by ${buyerInfo?.email} (Role: ${buyerInfo.role}) through card`;
+              
               
               // await stripe.invoices.update(invoice.id, {
               //                                             description: description
