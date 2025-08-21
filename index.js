@@ -88,7 +88,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               const invoice = event.data.object;
             console.log('invoice.finalized----------------------------------------------', invoice.description)
               // Only update if description is not already set
-              if (!invoice.description && invoice.description) {
+              if (invoice.description) {
               
                 console.log('invoice.description--------------------')
                 await stripe.invoices.update(invoice.id, {
