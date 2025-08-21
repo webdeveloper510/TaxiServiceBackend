@@ -92,8 +92,10 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               console.log('vijay  invoice.billing_reason----' ,invoice.billing_reason)
               let subscriptionId = invoice.subscription; // Subscription ID
 
+
+
               let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID });
-              console.log('subscriptionExist-----' , subscriptionExist)
+              console.log('subscriptionExist-----' , invoice.subscription)
               const planDetail = await PLANS_MODEL.findOne({planId: subscriptionExist?.planId});
               let model = subscriptionExist?.role == constant.ROLES.COMPANY ? user_model : driver_model;
               const buyerInfo = await model.findById(subscriptionExist?.role == constant.ROLES.COMPANY ? subscriptionExist?.purchaseByCompanyId : subscriptionExist?.purchaseByDriverId)
