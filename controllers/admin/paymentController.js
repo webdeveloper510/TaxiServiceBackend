@@ -41,7 +41,7 @@ exports.tripCommissionPayment = async (req, res) => {
       }
       commission = commission.toFixed(2);
 
-      const paymentResult = await initiateStripePayment( trip_by_id, parseInt(commission * 100) );
+      const paymentResult = await initiateStripePayment( trip_by_id, parseInt(commission * 100) , req);
       res.send({
                   code: constant.success_code,
                   result: paymentResult,

@@ -84,19 +84,6 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           const logEntry = new LOGS(logs_data);
           logEntry.save();
 
-          if (event.type === 'invoice.finalized') {
-              const invoice = event.data.object;
-            console.log('invoice.finalized----------------------------------------------', invoice.description)
-              // Only update if description is not already set
-              if (invoice.description) {
-              
-                console.log('invoice.description------------------------------------------------------------------------------------------------')
-                await stripe.invoices.update(invoice.id, {
-                  // description: invoice.metadata.invoice_description,
-                  description: invoice.description,
-                });
-              }
-            }
 
           if (event.type === 'invoice.payment_succeeded') {
             let invoice = event.data.object;

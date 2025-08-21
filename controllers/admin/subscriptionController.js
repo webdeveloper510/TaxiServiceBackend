@@ -366,11 +366,14 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
                                 tax_rates: [process.env.STRIPE_VAT_TAX_ID],
                             }
                         ],
+            payment_intent_data: {
+                                    description: `SMS Credit Top-Up (€${smsPrice}) purchased by ${req.user.email}`,   // 👈 goes to Payments tab
+                                },
             invoice_creation: {
                 enabled: true, // Enable invoice creation
-                invoice_data: {
-                                description: `One-time SMS top-up (€${smsPrice})`
-                            },
+                // invoice_data: {
+                //                 description: `One-time SMS top-up (€${smsPrice})`
+                //             },
             },
             
         });

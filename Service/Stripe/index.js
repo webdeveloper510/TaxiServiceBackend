@@ -2,7 +2,7 @@ const trip_model = require("../../models/user/trip_model");
 ///
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-exports.initiateStripePayment = async (trip, amount) => {
+exports.initiateStripePayment = async (trip, amount , req) => {
   try {
     const paymentIntent = await stripe.checkout.sessions.create({
       payment_method_types: ["ideal"],
@@ -20,6 +20,9 @@ exports.initiateStripePayment = async (trip, amount) => {
         },
       ],
       mode: "payment",
+      payment_intent_data: {
+                                description: `Commission fee for ride (Trip ID: ${trip.trip_id}) paid by ${req.user.email} (Role: ${req.user.role})`,   // 👈 goes to Payments tab
+                            },
       invoice_creation: {
         enabled: true, // Enable invoice creation
       },
