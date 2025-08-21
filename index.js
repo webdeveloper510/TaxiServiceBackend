@@ -85,8 +85,8 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           logEntry.save();
 
           if (event.type === 'invoice.created') { // only for subscription's description updation
-            console.log('invoice created here----')
-            
+            console.log('invoice created here-------------------------------------------')
+              let invoice = event.data.object;
             if (invoice.billing_reason === "subscription_create") {
 
               let subscriptionId = invoice.subscription; // Subscription ID
