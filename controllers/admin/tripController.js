@@ -630,6 +630,52 @@ exports.add_trip_link = async (req, res) => {
   }
 };
 
+exports.edit_trip_link = async (req, res) => {
+  try {
+    let data = req.body; 
+    const tripId = req.params.trip_id;
+
+    const tripDetails = await TRIP.findById(tripId);
+
+    if (!tripDetails) {
+      return res.send({
+                      code: constant.error_code,
+                      message: res.__('driverCancelTripReason.error.invalidTrip'),
+                    });
+    }
+
+    tripDetails.pick_up_date = data.pickup_date_time;
+    tripDetails.comment = data.comment;
+    
+   if (data.customerDetails) {
+      tripDetails.customerDetails.flightNumber = data.customerDetails.flightNumber;
+      tripDetails.customerDetails.phone = data.customerDetails.phone;
+      tripDetails.customerDetails.countryCode = data.customerDetails.countryCode;
+      tripDetails.customerDetails.name = data.customerDetails.name;
+    }
+
+    let update_trip = await tripDetails.save();
+    if (!update_trip) {
+      res.send({
+        code: constant.error_code,
+        message: res.__('editTrip.error.unableToUpdateTrip'),
+      });
+    }
+
+    return res.send({
+                      code: constant.success_code,
+                      message: res.__('editTrip.success.tripUpdated')
+                    });
+    
+    
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
 exports.get_trip = async (req, res) => {
   try {
     let data = req.body;

@@ -135,6 +135,7 @@ router.post("/access_add_trip", [verifyToken], tripController.access_add_trip);
 router.post("/add_trip1", tripController.add_trip1);
 router.get("/check_company_id/:company_id", tripController.check_company_id);
 router.post("/add_trip_link", tripController.add_trip_link);
+router.put("/edit_trip_link/:trip_id", tripController.edit_trip_link);
 router.post("/get_trip/:status", [verifyToken], tripController.get_trip);
 router.post("/company_get_trip/:status", [verifyToken], tripController.companyGetTrip);
 router.post("/driver_get_trip/:status", [verifyToken], tripController.driverGetTrip);
