@@ -84,20 +84,34 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           const logEntry = new LOGS(logs_data);
           logEntry.save();
 
-          if (event.type === 'invoice.created') {
+          if (event.type === 'invoice.created') { // only for subscription's description updation
             console.log('invoice created here----')
+            
+            if (invoice.billing_reason === "subscription_create") {
+
+              let subscriptionId = invoice.subscription; // Subscription ID
+
+              let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
+              const planDetail = await PLANS_MODEL.findOne({planId: subscriptionExist?.planId});
+              let model = subscriptionExist?.role == constant.ROLES.COMPANY ? user_model : driver_model;
+              const buyerInfo = await model.findById(subscriptionExist?.role == constant.ROLES.COMPANY ? subscriptionExist?.purchaseByCompanyId : subscriptionExist?.purchaseByDriverId)
+              const description = `Subscription to the "${planDetail?.name} (€${planDetail?.price})" Plan purchased by ${buyerInfo?.email} (Role: ${buyerInfo.role}) through card`;
+            
+              console.log('description------' , description);
+            } else if (invoice.billing_reason === "subscription_cycle") {
+
+            }
+            
           } else if (event.type === 'invoice.payment_succeeded') {
-            const invoice = event.data.object;
+            let invoice = event.data.object;
             let updateData;
 
             if (invoice.billing_reason === "subscription_create") {
 
               // Extract relevant information
-              const subscriptionId = invoice.subscription; // Subscription ID
+              let subscriptionId = invoice.subscription; // Subscription ID
 
               let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
-              
-
               
 
               let paymentIntentId = invoice.payment_intent;
