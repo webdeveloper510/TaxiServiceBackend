@@ -466,7 +466,8 @@
             "subadminDeleteError": "An error occurred while deleting the sub-admin account. Please try again later.",
             "unableToRestore": "An error occurred while restoring the sub-admin account. Please try again later.",
             "invalidCompany": "The specified company is invalid or does not exist. Please verify the company details and try again.",
-            "invalidHotel": "The specified hotel is invalid or does not exist. Please verify the Hotel ID and try again."
+            "invalidHotel": "The specified hotel is invalid or does not exist. Please verify the Hotel ID and try again.",
+            "cantAssignSpecialPlan": "Unable to assign a special plan as the company already has an active paid subscription."
         },
         "success": {
             "subAdminAdded": "Sub-admin has been added successfully.",
@@ -577,7 +578,9 @@
             "inValidAmount": "`Row {{row_no}} has an invalid 'Amount'. It must be a number (integer or decimal)",
             "noPricefound": "No price found in the system",
             "invalidZipcode": "An invalid ZIP code was found in row {{row_no}} under the {{field}} column",
-            "badRequest": "Bed Request"
+            "badRequest": "Bad Request",
+            "invalidVehicleType": "An invalid vehicle type was found in row {{row_no}} under the {{field}} column. Only {{valid_types}} are allowed.",
+            "inValidNumberOfPersons": "Row {{row_no}} has an invalid 'Number of persons'. It must be a positive number."
         },
         "success": {
             "fileUploaded": "The file has been uploaded successfully.",

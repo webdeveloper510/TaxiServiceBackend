@@ -84,18 +84,17 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           const logEntry = new LOGS(logs_data);
           logEntry.save();
 
+
           if (event.type === 'invoice.payment_succeeded') {
-            const invoice = event.data.object;
+            let invoice = event.data.object;
             let updateData;
 
             if (invoice.billing_reason === "subscription_create") {
 
               // Extract relevant information
-              const subscriptionId = invoice.subscription; // Subscription ID
+              let subscriptionId = invoice.subscription; // Subscription ID
 
               let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
-              
-
               
 
               let paymentIntentId = invoice.payment_intent;

@@ -14,7 +14,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const multer = require("multer");
 const path = require("path");
-const { sendNotification ,  getCityAndCountry} = require("../../Service/helperFuntion");
+const { sendNotification ,  getCityAndCountry , willCompanyPayCommissionOnTrip} = require("../../Service/helperFuntion");
 const { isDriverHasCompanyAccess , dateFilter , createCustomAccount , sendAccountDeactivationEmail , sendAccountReactivationEmail} = require("../../Service/helperFuntion");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../../config/cloudinary");
@@ -1127,6 +1127,77 @@ exports.edit_sub_admin = async (req, res) => {
     });
   }
 };
+
+exports.assignSpecialPlan = async (req, res) => {
+  try {
+    let data = req.body;
+    const role = data.role;
+
+    let Model;
+    if (role === constant.ROLES.COMPANY) {
+      Model = USER;
+    } else if (role === constant.ROLES.DRIVER) {
+      Model = DRIVER;
+    } else {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("blockedUser.error.inValidRoleType"),
+      });
+    }
+
+    const criteria = { _id: req.params.id, role }; // ensure role matches
+    const option = { new: true };
+
+    const entityDetail = await Model.findOne(criteria);
+
+
+    if (!entityDetail) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addSubAdmin.error.noUserFound'),
+                      });
+    }
+
+    if (Object.prototype.hasOwnProperty.call(data, "is_special_plan_active")) {
+
+     
+      const planDetails  = await willCompanyPayCommissionOnTrip(entityDetail);
+
+      if (planDetails ?.paidPlan && data.is_special_plan_active) {
+
+        // Already has paid plan → can't assign special
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__("addSubAdmin.error.cantAssignSpecialPlan"),
+                        });
+      }
+      
+      // Update document in respective collection
+      const update_data = await Model.findOneAndUpdate(
+                                                        criteria,
+                                                        { is_special_plan_active: data.is_special_plan_active },
+                                                        option
+                                                      );
+      return res.send({
+                          code: constant.success_code,
+                          message: data?.is_special_plan_active ? res.__('addSubAdmin.success.companySpecialPlanActivated') : res.__('addSubAdmin.success.companySpecialPlanDeactivated')
+                        });
+    } else {
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('auth.error.authTokenVerificationFailed'),
+                      });
+    }
+    
+    
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
 
 exports.editHotel = async (req, res) => {
 
@@ -2537,227 +2608,47 @@ exports.companyListByRevenue = async (req, res) => {
   }
 };
 
-// exports.driverListByRevenue = async (req, res) => {
-//   try {
-//     let data = req.body;
-//     const page = parseInt(data.page) || 1; // Get the page number from the request (default to 1 if not provided)
-//     const limit =  parseInt(data.limit); // Number of items per page
-//     const skip = (page - 1) * limit;
-    
-//     const searchText = req.body.name.trim();
-//     const searchWords = searchText.split(/\s+/);
-//     const isPaid = req.body?.commision_paid;
-
-//     let dateQuery = await dateFilter(data );
-
-    
-//     // Match criteria for filtering users
-    
-//     const matchCriteria = {
-//       $and: [
-//         {
-//           "trip_data": {
-//             $elemMatch: {
-//               trip_status: constant.TRIP_STATUS.COMPLETED,
-//               is_paid: isPaid,
-//               ...(dateQuery?.pickup_date_time ? dateQuery : {})
-//             }
-//           }
-//         },
-//       ]
-//     };
-
-//     const tripMatchExpr  = [
-//       { $eq: ["$trip_status", constant.TRIP_STATUS.COMPLETED] },
-//       { $eq: ["$is_paid", isPaid] }
-//     ];
-
-//     // If date filter is coming
-//     if (Object.keys(dateQuery).length !== 0) {
-      
-//       tripMatchExpr .push(
-//         { $gte: ["$pickup_date_time", new Date(dateQuery.pickup_date_time?.$gte) ] },
-//         { $lte: ["$pickup_date_time", new Date(dateQuery.pickup_date_time?.$lte) ] }
-//       );
-//     }
-
-//     const basePipeline = [
-//       {
-//         $lookup: {
-//           from: "trips",
-//           localField: "_id",
-//           foreignField: "driver_name",
-//           as: "trips",
-//           pipeline: [
-//             {
-//               $match: {
-//                 $expr: { $and: tripMatchExpr }
-//               }
-//             }
-//           ]
-//         }
-//       },
-//       {
-//         $match: {
-//           trips: { $elemMatch: { __v: 0 } }
-//         }
-//       },
-//       {
-//         $addFields: {
-//           total_paid_trip_amount: {
-//             $sum: {
-//               $map: {
-//                 input: "$trips",
-//                 as: "trip",
-//                 in: {
-//                   $subtract: [
-//                     { $ifNull: ["$$trip.price", 0] },
-//                     { $ifNull: ["$$trip.driverPaymentAmount", 0] }
-//                   ]
-//                 }
-//               }
-//             }
-//           }
-//         }
-//       },
-//       {
-//         $lookup: {
-//           from: "users",
-//           localField: "driver_company_id",
-//           foreignField: "_id",
-//           as: "meta"
-//         }
-//       },
-//       {
-//         $addFields: {
-//           driver_id: "$_id"
-//         }
-//       }
-//     ];
-
-    
-
-//     const totalCount = await DRIVER.aggregate([
-//       ...basePipeline,
-//       { $count: "total" }
-//     ]);
-
-//     // Calculate total pages
-//     const totalDocuments = totalCount[0]?.total || 0;
-//     const totalPages = Math.ceil(totalDocuments / limit);
-
-//     const searchUser = await DRIVER.aggregate([
-//       ...basePipeline,
-//       {
-//         $project: {
-//           _id: 1,
-//           first_name: 1,
-//           last_name: 1,
-//           email: 1,
-//           phone: 1,
-//           createdAt: 1,
-//           profile_image: 1,
-//           is_special_plan_active: 1,
-//           status: 1,
-//           is_deleted: 1,
-//           isCompany: 1,
-//           is_blocked: 1,
-//           total_paid_trip_amount: 1,
-//           driver_id:1,
-//           land: { $arrayElemAt: ["$meta.land", 0] },
-//           post_code: { $arrayElemAt: ["$meta.post_code", 0] },
-//           house_number: { $arrayElemAt: ["$meta.house_number", 0] },
-//           description: { $arrayElemAt: ["$meta.description", 0] },
-//           affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
-//           p_number: { $arrayElemAt: ["$meta.p_number", 0] },
-//           number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
-//           chamber_of_commerce_number: {
-//             $arrayElemAt: ["$meta.chamber_of_commerce_number", 0]
-//           },
-//           vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
-//           website: { $arrayElemAt: ["$meta.website", 0] },
-//           tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
-//           saluation: { $arrayElemAt: ["$meta.saluation", 0] },
-//           company_name: { $arrayElemAt: ["$meta.company_name", 0] },
-//           company_id: { $arrayElemAt: ["$meta.company_id", 0] },
-//           commision: { $arrayElemAt: ["$meta.commision", 0] },
-//           hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
-//           location: { $arrayElemAt: ["$meta.location", 0] },
-
-//           driver_name: {
-//             $concat: [
-//               { $arrayElemAt: ["$driver_info.first_name", 0] },
-//               " ",
-//               { $arrayElemAt: ["$driver_info.last_name", 0] }
-//             ]
-//           }
-//         }
-//       },
-//       { $sort: { createdAt: -1 } },
-//       { $skip: skip },
-//       { $limit: limit }
-//     ]);
-
-//     if (!searchUser) {
-//       res.send({
-//         code: constant.error_code,
-//         message: res.__('addSubAdmin.error.noMatchingRecords'),
-//       });
-//     } else {
-
-      
-//       res.send({
-//         code: constant.success_code,
-//         message: res.__('addSubAdmin.success.driverListRetrieved'),
-//         totalCount: totalCount,
-//         totalDocuments:totalDocuments,
-//         totalPages:totalPages,
-//         result: searchUser,
-//         tripMatchExpr 
-        
-//       });
-//     }
-//   } catch (err) {
-//     res.send({
-//       code: constant.error_code,
-//       message: err.message,
-//     });
-//   }
-// };
-
 exports.driverListByRevenue = async (req, res) => {
   try {
     let data = req.body;
-    const page = parseInt(data.page) || 1;
-    const limit = parseInt(data.limit);
+    const page = parseInt(data.page) || 1; // Get the page number from the request (default to 1 if not provided)
+    const limit =  parseInt(data.limit); // Number of items per page
     const skip = (page - 1) * limit;
-
-    const searchText = req.body.name?.trim() || "";
+    
+    const searchText = req.body.name.trim();
     const searchWords = searchText.split(/\s+/);
     const isPaid = req.body?.commision_paid;
 
-    let dateQuery = await dateFilter(data);
+    let dateQuery = await dateFilter(data );
 
-    // Build dynamic match expressions for paid & unpaid
-    let paidTripMatchExpr = [
-      { $eq: ["$$t.trip_status", constant.TRIP_STATUS.COMPLETED] },
-      { $eq: ["$$t.is_paid", true] }
+    
+    // Match criteria for filtering users
+    
+    const matchCriteria = {
+      $and: [
+        {
+          "trip_data": {
+            $elemMatch: {
+              trip_status: constant.TRIP_STATUS.COMPLETED,
+              is_paid: isPaid,
+              ...(dateQuery?.pickup_date_time ? dateQuery : {})
+            }
+          }
+        },
+      ]
+    };
+
+    const tripMatchExpr  = [
+      { $eq: ["$trip_status", constant.TRIP_STATUS.COMPLETED] },
+      { $eq: ["$is_paid", isPaid] }
     ];
 
-    let unpaidTripMatchExpr = [
-      { $eq: ["$$t.trip_status", constant.TRIP_STATUS.COMPLETED] },
-      { $eq: ["$$t.is_paid", false] }
-    ];
-
-    // Add date filter if provided
+    // If date filter is coming
     if (Object.keys(dateQuery).length !== 0) {
-      paidTripMatchExpr.push(
-        { $gte: ["$$t.pickup_date_time", new Date(dateQuery.pickup_date_time?.$gte)] },
-        { $lte: ["$$t.pickup_date_time", new Date(dateQuery.pickup_date_time?.$lte)] }
-      );
-      unpaidTripMatchExpr.push(
-        { $gte: ["$$t.pickup_date_time", new Date(dateQuery.pickup_date_time?.$gte)] },
-        { $lte: ["$$t.pickup_date_time", new Date(dateQuery.pickup_date_time?.$lte)] }
+      
+      tripMatchExpr .push(
+        { $gte: ["$pickup_date_time", new Date(dateQuery.pickup_date_time?.$gte) ] },
+        { $lte: ["$pickup_date_time", new Date(dateQuery.pickup_date_time?.$lte) ] }
       );
     }
 
@@ -2767,63 +2658,27 @@ exports.driverListByRevenue = async (req, res) => {
           from: "trips",
           localField: "_id",
           foreignField: "driver_name",
-          as: "trips"
+          as: "trips",
+          pipeline: [
+            {
+              $match: {
+                $expr: { $and: tripMatchExpr }
+              }
+            }
+          ]
         }
       },
       {
-        $addFields: {
-          hasPaidTrip: {
-            $gt: [
-              {
-                $size: {
-                  $filter: {
-                    input: "$trips",
-                    as: "t",
-                    cond: { $and: paidTripMatchExpr }
-                  }
-                }
-              },
-              0
-            ]
-          },
-          hasUnpaidTrip: {
-            $gt: [
-              {
-                $size: {
-                  $filter: {
-                    input: "$trips",
-                    as: "t",
-                    cond: { $and: unpaidTripMatchExpr }
-                  }
-                }
-              },
-              0
-            ]
-          }
+        $match: {
+          trips: { $elemMatch: { __v: 0 } }
         }
-      },
-      {
-        $match: isPaid === true
-          ? { hasPaidTrip: true, hasUnpaidTrip: false }
-          : { hasPaidTrip: false, hasUnpaidTrip: true }
       },
       {
         $addFields: {
           total_paid_trip_amount: {
             $sum: {
               $map: {
-                input: {
-                  $filter: {
-                    input: "$trips",
-                    as: "trip",
-                    cond: {
-                      $and: [
-                        { $eq: ["$$trip.trip_status", constant.TRIP_STATUS.COMPLETED] },
-                        { $eq: ["$$trip.is_paid", true] }
-                      ]
-                    }
-                  }
-                },
+                input: "$trips",
                 as: "trip",
                 in: {
                   $subtract: [
@@ -2851,11 +2706,14 @@ exports.driverListByRevenue = async (req, res) => {
       }
     ];
 
+    
+
     const totalCount = await DRIVER.aggregate([
       ...basePipeline,
       { $count: "total" }
     ]);
 
+    // Calculate total pages
     const totalDocuments = totalCount[0]?.total || 0;
     const totalPages = Math.ceil(totalDocuments / limit);
 
@@ -2876,7 +2734,7 @@ exports.driverListByRevenue = async (req, res) => {
           isCompany: 1,
           is_blocked: 1,
           total_paid_trip_amount: 1,
-          driver_id: 1,
+          driver_id:1,
           land: { $arrayElemAt: ["$meta.land", 0] },
           post_code: { $arrayElemAt: ["$meta.post_code", 0] },
           house_number: { $arrayElemAt: ["$meta.house_number", 0] },
@@ -2884,7 +2742,9 @@ exports.driverListByRevenue = async (req, res) => {
           affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
           p_number: { $arrayElemAt: ["$meta.p_number", 0] },
           number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
-          chamber_of_commerce_number: { $arrayElemAt: ["$meta.chamber_of_commerce_number", 0] },
+          chamber_of_commerce_number: {
+            $arrayElemAt: ["$meta.chamber_of_commerce_number", 0]
+          },
           vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
           website: { $arrayElemAt: ["$meta.website", 0] },
           tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
@@ -2894,6 +2754,7 @@ exports.driverListByRevenue = async (req, res) => {
           commision: { $arrayElemAt: ["$meta.commision", 0] },
           hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
           location: { $arrayElemAt: ["$meta.location", 0] },
+
           driver_name: {
             $concat: [
               { $arrayElemAt: ["$driver_info.first_name", 0] },
@@ -2908,31 +2769,241 @@ exports.driverListByRevenue = async (req, res) => {
       { $limit: limit }
     ]);
 
-    if (!searchUser || searchUser.length === 0) {
-      return res.send({
+    if (!searchUser) {
+      res.send({
         code: constant.error_code,
-        message: res.__('addSubAdmin.error.noMatchingRecords')
+        message: res.__('addSubAdmin.error.noMatchingRecords'),
+      });
+    } else {
+
+      
+      res.send({
+        code: constant.success_code,
+        message: res.__('addSubAdmin.success.driverListRetrieved'),
+        totalCount: totalCount,
+        totalDocuments:totalDocuments,
+        totalPages:totalPages,
+        result: searchUser,
+        tripMatchExpr 
+        
       });
     }
-
-    res.send({
-      code: constant.success_code,
-      message: res.__('addSubAdmin.success.driverListRetrieved'),
-      totalCount: totalCount,
-      totalDocuments,
-      totalPages,
-      result: searchUser,
-      paidTripMatchExpr,
-      unpaidTripMatchExpr
-    });
-
   } catch (err) {
     res.send({
       code: constant.error_code,
-      message: err.message
+      message: err.message,
     });
   }
 };
+
+// exports.driverListByRevenue = async (req, res) => {
+//   try {
+//     let data = req.body;
+//     const page = parseInt(data.page) || 1;
+//     const limit = parseInt(data.limit);
+//     const skip = (page - 1) * limit;
+
+//     const searchText = req.body.name?.trim() || "";
+//     const searchWords = searchText.split(/\s+/);
+//     const isPaid = req.body?.commision_paid;
+
+//     let dateQuery = await dateFilter(data);
+
+//     // Build dynamic match expressions for paid & unpaid
+//     let paidTripMatchExpr = [
+//       { $eq: ["$$t.trip_status", constant.TRIP_STATUS.COMPLETED] },
+//       { $eq: ["$$t.is_paid", true] }
+//     ];
+
+//     let unpaidTripMatchExpr = [
+//       { $eq: ["$$t.trip_status", constant.TRIP_STATUS.COMPLETED] },
+//       { $eq: ["$$t.is_paid", false] }
+//     ];
+
+//     // Add date filter if provided
+//     if (Object.keys(dateQuery).length !== 0) {
+//       paidTripMatchExpr.push(
+//         { $gte: ["$$t.pickup_date_time", new Date(dateQuery.pickup_date_time?.$gte)] },
+//         { $lte: ["$$t.pickup_date_time", new Date(dateQuery.pickup_date_time?.$lte)] }
+//       );
+//       unpaidTripMatchExpr.push(
+//         { $gte: ["$$t.pickup_date_time", new Date(dateQuery.pickup_date_time?.$gte)] },
+//         { $lte: ["$$t.pickup_date_time", new Date(dateQuery.pickup_date_time?.$lte)] }
+//       );
+//     }
+
+//     const basePipeline = [
+//       {
+//         $lookup: {
+//           from: "trips",
+//           localField: "_id",
+//           foreignField: "driver_name",
+//           as: "trips"
+//         }
+//       },
+//       {
+//         $addFields: {
+//           hasPaidTrip: {
+//             $gt: [
+//               {
+//                 $size: {
+//                   $filter: {
+//                     input: "$trips",
+//                     as: "t",
+//                     cond: { $and: paidTripMatchExpr }
+//                   }
+//                 }
+//               },
+//               0
+//             ]
+//           },
+//           hasUnpaidTrip: {
+//             $gt: [
+//               {
+//                 $size: {
+//                   $filter: {
+//                     input: "$trips",
+//                     as: "t",
+//                     cond: { $and: unpaidTripMatchExpr }
+//                   }
+//                 }
+//               },
+//               0
+//             ]
+//           }
+//         }
+//       },
+//       {
+//         $match: isPaid === true
+//           ? { hasPaidTrip: true, hasUnpaidTrip: false }
+//           : { hasPaidTrip: false, hasUnpaidTrip: true }
+//       },
+//       {
+//         $addFields: {
+//           total_paid_trip_amount: {
+//             $sum: {
+//               $map: {
+//                 input: {
+//                   $filter: {
+//                     input: "$trips",
+//                     as: "trip",
+//                     cond: {
+//                       $and: [
+//                         { $eq: ["$$trip.trip_status", constant.TRIP_STATUS.COMPLETED] },
+//                         { $eq: ["$$trip.is_paid", true] }
+//                       ]
+//                     }
+//                   }
+//                 },
+//                 as: "trip",
+//                 in: {
+//                   $subtract: [
+//                     { $ifNull: ["$$trip.price", 0] },
+//                     { $ifNull: ["$$trip.driverPaymentAmount", 0] }
+//                   ]
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       },
+//       {
+//         $lookup: {
+//           from: "users",
+//           localField: "driver_company_id",
+//           foreignField: "_id",
+//           as: "meta"
+//         }
+//       },
+//       {
+//         $addFields: {
+//           driver_id: "$_id"
+//         }
+//       }
+//     ];
+
+//     const totalCount = await DRIVER.aggregate([
+//       ...basePipeline,
+//       { $count: "total" }
+//     ]);
+//     console.log('totalCount------' , totalCount)
+//     const totalDocuments = totalCount[0]?.total || 0;
+//     const totalPages = Math.ceil(totalDocuments / limit);
+    
+//     const searchUser = await DRIVER.aggregate([
+//       ...basePipeline,
+//       {
+//         $project: {
+//           _id: 1,
+//           first_name: 1,
+//           last_name: 1,
+//           email: 1,
+//           phone: 1,
+//           createdAt: 1,
+//           profile_image: 1,
+//           is_special_plan_active: 1,
+//           status: 1,
+//           is_deleted: 1,
+//           isCompany: 1,
+//           is_blocked: 1,
+//           total_paid_trip_amount: 1,
+//           driver_id: 1,
+//           land: { $arrayElemAt: ["$meta.land", 0] },
+//           post_code: { $arrayElemAt: ["$meta.post_code", 0] },
+//           house_number: { $arrayElemAt: ["$meta.house_number", 0] },
+//           description: { $arrayElemAt: ["$meta.description", 0] },
+//           affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
+//           p_number: { $arrayElemAt: ["$meta.p_number", 0] },
+//           number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
+//           chamber_of_commerce_number: { $arrayElemAt: ["$meta.chamber_of_commerce_number", 0] },
+//           vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
+//           website: { $arrayElemAt: ["$meta.website", 0] },
+//           tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+//           saluation: { $arrayElemAt: ["$meta.saluation", 0] },
+//           company_name: { $arrayElemAt: ["$meta.company_name", 0] },
+//           company_id: { $arrayElemAt: ["$meta.company_id", 0] },
+//           commision: { $arrayElemAt: ["$meta.commision", 0] },
+//           hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
+//           location: { $arrayElemAt: ["$meta.location", 0] },
+//           driver_name: {
+//             $concat: [
+//               { $arrayElemAt: ["$driver_info.first_name", 0] },
+//               " ",
+//               { $arrayElemAt: ["$driver_info.last_name", 0] }
+//             ]
+//           }
+//         }
+//       },
+//       { $sort: { createdAt: -1 } },
+//       { $skip: skip },
+//       { $limit: limit }
+//     ]);
+
+//     if (!searchUser || searchUser.length === 0) {
+//       return res.send({
+//         code: constant.error_code,
+//         message: res.__('addSubAdmin.error.noMatchingRecords')
+//       });
+//     }
+
+//     res.send({
+//       code: constant.success_code,
+//       message: res.__('addSubAdmin.success.driverListRetrieved'),
+//       totalCount: totalCount,
+//       totalDocuments,
+//       totalPages,
+//       result: searchUser,
+//       paidTripMatchExpr,
+//       unpaidTripMatchExpr
+//     });
+
+//   } catch (err) {
+//     res.send({
+//       code: constant.error_code,
+//       message: err.message
+//     });
+//   }
+// };
 
 
 exports.tipListByRevenue = async (req, res) => {

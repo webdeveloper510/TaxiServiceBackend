@@ -972,7 +972,8 @@ exports.get_drivers_super = async (req, res) => {
           defaultVehicle:1,
           driver_documents:1,
           driver_company_name: 1, // Include company name
-          countryCode:1
+          countryCode:1,
+          is_in_ride: 1
         },
       },
       {

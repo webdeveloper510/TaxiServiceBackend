@@ -140,6 +140,7 @@ exports.getProducts = async (req, res) => {
             activePayedPlan = await getUserActivePaidPlans(req.user);
             activePlan = await getUserCurrentActivePayedPlan(req.user);
         }
+
        
         let plans = await PLANS_MODEL.find({status: true , forRoles: req?.user?.role}).lean();  // Use lean to get plain objects
 
@@ -295,6 +296,7 @@ exports.createIdealCheckoutSession = async (req, res) => {
                 }
             }
 
+            const description = `Subscription to the "${checkPlanExist?.name} (€${checkPlanExist?.price})" Plan purchased by ${req.user?.email} (Role: ${req.user.role})`;
             const session = await stripe.checkout.sessions.create({
                                                                     payment_method_types: ['ideal' , 'sepa_debit'],
                                                                     mode: 'subscription',  //isSubscription ? "subscription" : "payment",
@@ -302,6 +304,9 @@ exports.createIdealCheckoutSession = async (req, res) => {
                                                                     cancel_url: `${process.env.FRONTEND_URL}/subscription-payment-fail`, // Redirect if the user cancels
                                                                     // customer_email: req.body.email, // Optional
                                                                     customer: customerId,
+                                                                    subscription_data: {
+                                                                                            description: description
+                                                                                        },
                                                                     line_items: [
                                                                                     {
                                                                                         price: priceId, // Use Stripe's Price ID
@@ -349,20 +354,26 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
             customer: customerId,
             line_items: [
                             {
-                            price_data: {
-                                currency: 'eur', // or 'usd', etc.
-                                unit_amount: Number(smsPrice) * 100, // in cents: €2.00 = 200 cents
-                                product_data: {
-                                name: `SMS Top-up (${smsPrice} Credits)`,
-                                description: `Top-up credits for SMS feature (€ ${smsPrice})`
+                                price_data: {
+                                                currency: 'eur', // or 'usd', etc.
+                                                unit_amount: Number(smsPrice) * 100, // in cents: €2.00 = 200 cents
+                                                product_data: {
+                                                name: `SMS Top-up (${smsPrice} Credits)`,
+                                                description: `Top-up credits for SMS feature (€ ${smsPrice})`
+                                            },
                                 },
-                            },
-                            quantity: 1,
-                            tax_rates: [process.env.STRIPE_VAT_TAX_ID],
+                                quantity: 1,
+                                tax_rates: [process.env.STRIPE_VAT_TAX_ID],
                             }
                         ],
+            payment_intent_data: {
+                                    description: `SMS Credit Top-Up (€${smsPrice}) purchased by ${req.user.email}`,   // 👈 goes to Payments tab
+                                },
             invoice_creation: {
                 enabled: true, // Enable invoice creation
+                // invoice_data: {
+                //                 description: `One-time SMS top-up (€${smsPrice})`
+                //             },
             },
             
         });
@@ -380,7 +391,8 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
 
         return res.json({ 
             code: constant.success_code,
-            url: session.url
+            url: session.url,
+            // session
         });
     } catch (error) {
 
@@ -649,7 +661,6 @@ exports.createSubscription = async (req, res) => {
 
                 let activePlan = await getUserCurrentActivePayedPlan(req.user);
 
-                
                 //  If there will be any current subscription then it will be cancelled. and new susbcription will be add
                 if (activePlan) {
                     const subscriptionId = activePlan.subscriptionId
@@ -679,8 +690,11 @@ exports.createSubscription = async (req, res) => {
                                                                             default_payment_method: paymentMethodId, // Attach the saved payment method
                                                                             payment_behavior: 'default_incomplete',
                                                                             expand: ['latest_invoice.payment_intent'],
+                                                                            // metadata:   {
+                                                                            //                 description: `Subscription purchased for ${checkPlanExist?.name} Plan by ${req.user?.email} with ${req.user.role} role`
+                                                                            //             },
                                                                         });
-            
+           
             // Convert UNIX timestamps to JavaScript Date objects
             const startPeriod = new Date(createSubscription.current_period_start * 1000); // Convert to milliseconds
             const endPeriod = new Date(createSubscription.current_period_end * 1000);
@@ -708,23 +722,34 @@ exports.createSubscription = async (req, res) => {
             const newSubscription = new SUBSCRIPTION_MODEL(subscriptionData);
             await newSubscription.save();
 
-            // Get invoice ID
-            const invoiceId = createSubscription.latest_invoice.id;
+            // // Get invoice ID
+            // const invoiceId = createSubscription.latest_invoice.id;
 
-            // Get payment intent ID
-            const paymentIntentId = createSubscription.latest_invoice.payment_intent.id;
+            // // Get payment intent ID
+            const paymentIntentId = createSubscription.latest_invoice?.payment_intent?.id || null;
 
-            // Get charge ID (if payment intent contains charges)
-            const chargeId = createSubscription?.latest_invoice?.payment_intent?.charges?.data[0]?.id || null;
+            // // Get charge ID (if payment intent contains charges)
+            // const chargeId = createSubscription?.latest_invoice?.payment_intent?.charges?.data[0]?.id || null;
+
+            if (paymentIntentId) {
+                await stripe.paymentIntents.update(paymentIntentId, {
+                    description: `Subscription to the "${checkPlanExist?.name} (€${checkPlanExist?.price})" Plan purchased by ${req.user?.email} (Role: ${req.user.role})`,
+                    // metadata: {
+                    // tripId,
+                    // companyId,
+                    // userRole: req.user?.role,
+                    // },
+                });
+            }
             
             return res.send({
                                 code: constant.success_code,
-                                subscriptionId: createSubscription.id,
+                                // subscriptionId: createSubscription.id,
                                 clientSecret: createSubscription.latest_invoice.payment_intent.client_secret,
-                                invoiceId: invoiceId,
-                                paymentIntentId: paymentIntentId,
-                                chargeId: chargeId,
-                                createSubscription:createSubscription
+                                // invoiceId: invoiceId,
+                                // paymentIntentId: paymentIntentId,
+                                // chargeId: chargeId,
+                                // createSubscription:createSubscription
                             });
         } else {
             return  res.send({

@@ -291,27 +291,37 @@ exports.add_trip = async (req, res) => {
     data.series_id  = '';
 
     data.trip_id = "T" + "-" + data.trip_id;
-    // let distances = ( geolib.getDistance( {
-    //                                         latitude: data.trip_from.lat,
-    //                                         longitude: data.trip_from.log,
-    //                                       },
-    //                                       {
-    //                                         latitude: data.trip_to.lat,
-    //                                         longitude: data.trip_to.log,
-    //                                       }
-    //                                     ) * 0.621371
-    //                                   ).toFixed(2);
+   
     const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
     const destination = `${data.trip_to.lat},${data.trip_to.log}`;
     let distanceInfo = await getDistanceAndDuration(origin , destination)
     data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
 
-    let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
-    let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10;
+    let  isCommisionPay;
+    
+    if (req.user.role == constant.ROLES.HOTEL) {
+      const companyDetail = await USER.findById(data.created_by_company_id);
 
-    // if (!data.price) {
-    //   data.price = (fare_per_km * Number(distance)).toFixed(2);
-    // }
+      if (!companyDetail) {
+        return res.send({
+                        code: constant.error_code,
+                        result: res.__('addSubAdmin.error.invalidCompany')
+                      });
+      }
+      isCommisionPay = await willCompanyPayCommissionOnTrip(companyDetail);
+    } else {
+      isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
+    }
+    
+  
+    
+    if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan && req.user.role !== constant.ROLES.HOTEL){
+
+      return res.send({
+                        code: constant.error_code,
+                        result: res.__('addTrip.error.noActivePlanForTripCreation')
+                      });
+    }
     
 
     if (data?.commission && data?.commission?.commission_value != 0) {
@@ -324,16 +334,7 @@ exports.add_trip = async (req, res) => {
       const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
 
       // const myPlans = await getUserActivePaidPlans(req.user);
-      const isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
-
       
-      if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan){
-
-        return res.send({
-                          code: constant.error_code,
-                          result: res.__('addTrip.error.noActivePlanForTripCreation')
-                        });
-      }
       
       if (isCommisionPay?.paidPlan) {
 
@@ -577,14 +578,14 @@ exports.add_trip_link = async (req, res) => {
     emitNewTripAddedByCustomer(add_trip , req.io);
     let add_return_trip = null;
     if (isRetrunBooking) {
-
-      let origin = `${ data.return_booking.trip_from.lat},${data.return_booking.trip_from.log}`;
-      let destination = `${data.return_booking.trip_to.lat},${data.return_booking.trip_to.log}`;
+       
+      let origin = `${ return_ticket_data.trip_from.lat},${return_ticket_data.trip_from.log}`;
+      let destination = `${return_ticket_data.trip_to.lat},${return_ticket_data.trip_to.log}`;
       let distanceInfo = await getDistanceAndDuration(origin , destination)
-      data.return_booking.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
-      
+      return_ticket_data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
+       
       add_return_trip = await TRIP(return_ticket_data).save();
-
+      
       // Email will be sent though this function internally
       emitNewTripAddedByCustomer(add_return_trip , req.io)
     }
@@ -621,6 +622,53 @@ exports.add_trip_link = async (req, res) => {
         result: add_trip,
       });
     }
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
+exports.edit_trip_link = async (req, res) => {
+  try {
+    let data = req.body; 
+    const tripId = req.params.trip_id;
+
+    const tripDetails = await TRIP.findById(tripId);
+
+    if (!tripDetails) {
+      return res.send({
+                      code: constant.error_code,
+                      message: res.__('driverCancelTripReason.error.invalidTrip'),
+                    });
+    }
+
+    tripDetails.pick_up_date = data.pickup_date_time;
+    tripDetails.comment = data.comment;
+    
+   if (data.customerDetails) {
+      tripDetails.customerDetails.flightNumber = data.customerDetails.flightNumber;
+      tripDetails.customerDetails.phone = data.customerDetails.phone;
+      tripDetails.customerDetails.countryCode = data.customerDetails.countryCode;
+      tripDetails.customerDetails.name = data.customerDetails.name;
+    }
+
+    let update_trip = await tripDetails.save();
+    if (!update_trip) {
+      res.send({
+        code: constant.error_code,
+        message: res.__('editTrip.error.unableToUpdateTrip'),
+      });
+    }
+
+    return res.send({
+                      code: constant.success_code,
+                      message: res.__('editTrip.success.tripUpdated'),
+                      result: update_trip
+                    });
+    
+    
   } catch (err) {
     res.send({
       code: constant.error_code,
@@ -1564,6 +1612,9 @@ exports.get_access_trip = async (req, res) => {
           trip_id: 1,
         },
       },
+
+
+      { $sort: { createdAt: -1 } },
       // Pagination: skip and limit
       {
         $skip: (page - 1) * limit, // Skip documents for previous pages
@@ -1571,7 +1622,7 @@ exports.get_access_trip = async (req, res) => {
       {
         $limit: limit, // Limit the number of documents returned
       },
-    ]).sort({ createdAt: -1 });
+    ]);
 
     const getActivePaidPlans = await getCompanyActivePaidPlans(req.body.company_id);
     let hasSpecialPlan = await USER.findOne({_id: req.body.company_id});
@@ -2726,6 +2777,14 @@ exports.get_trip_detail = async (req, res) => {
       },
       {
         $lookup: {
+          from: "users",
+          localField: "created_by_company_id",
+          foreignField: "_id",
+          as: "company",
+        },
+      },
+      {
+        $lookup: {
           from: "agencies",
           localField: "created_by",
           foreignField: "user_id",
@@ -2734,8 +2793,11 @@ exports.get_trip_detail = async (req, res) => {
       },
       {
         $project: {
-          phone: { $arrayElemAt: ["$hotel_info.phone", 0] },
-          email: { $arrayElemAt: ["$hotel_info.email", 0] },
+          // phone: { $arrayElemAt: ["$hotel_info.phone", 0] },
+          // email: { $arrayElemAt: ["$hotel_info.email", 0] },
+          phone: { $arrayElemAt: ["$company.phone", 0] },
+          email: { $arrayElemAt: ["$company.email", 0] },
+          countryCode: { $arrayElemAt: ["$company.countryCode", 0] },
           vehicle: { $arrayElemAt: ["$vehicle_info.vehicle_model", 0] },
           driverInfo: { $arrayElemAt: ["$driver_info", 0] },
           hotelImage: { $arrayElemAt: ["$hotel_info.profile_image", 0] },
@@ -2919,6 +2981,7 @@ exports.access_get_trip_detail = async (req, res) => {
           passengerCount: 1,
           is_paid: 1,
           comment: 1,
+          payment_method_price:1
         },
       },
     ]);
@@ -3034,7 +3097,7 @@ exports.calculatePrice = async (req, res) => {
     
     const element = await getDistanceAndDuration(origin, destination);
 
-    if(element.status === 'ZERO_RESULTS') {
+    if(element.status === 'ZERO_RESULTS' || element.status === 'NOT_FOUND') {
       return res.send({
                         code: constant.error_code,
                         message: res.__("getTrip.error.calculationFailed")

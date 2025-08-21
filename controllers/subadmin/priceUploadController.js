@@ -19,7 +19,7 @@ exports.priceUpload = async (req, res) => {
                                 });
             }
 
-            if (!req.user.role == constant.ROLES.COMPANY) {
+            if (req.user.role !== constant.ROLES.COMPANY) {
 
                 return res.send({
                                     code: constant.error_code,
@@ -57,9 +57,11 @@ exports.priceUpload = async (req, res) => {
                 });
             }
 
-           let  requiredColumns =  Object.values(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.ZIP_CODE_UPLOAD_TYPE_REQUIRED_COLUMNS : constant.ADDRESS_UPLOAD_TYPE_REQUIRED_COLUMNS);
-           let  requiredFields =  Object.values(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.ZIP_CODE_UPLOAD_TYPE_REQUIRED_FIELDS : constant.ADDRESS_UPLOAD_TYPE_REQUIRED_FIELDS);
-        
+            let vehicleType = constant.ADMIN_CAR_TYPE_SEED.map(type => type.name.toLowerCase());
+            console.log('vehicleType----' , vehicleType);
+            let  requiredColumns =  Object.values(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.ZIP_CODE_UPLOAD_TYPE_REQUIRED_COLUMNS : constant.ADDRESS_UPLOAD_TYPE_REQUIRED_COLUMNS);
+            let  requiredFields =  Object.values(req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.ZIP_CODE_UPLOAD_TYPE_REQUIRED_FIELDS : constant.ADDRESS_UPLOAD_TYPE_REQUIRED_FIELDS);
+            
             // Get column names from the sheet
             const sheetColumns = Object.keys(jsonData[0]);
             const missingColumns = requiredColumns.filter(col => !sheetColumns.includes(col));
@@ -98,9 +100,24 @@ exports.priceUpload = async (req, res) => {
                     }
                 }
 
+                // Validate "passanger field" field
+                if (!row["Number of persons"] || isNaN(row["Number of persons"]) || Number(row["Number of persons"]) < 0 || !Number.isInteger(Number(row["Number of persons"]))) {
+                    return res.send({
+                        code: constant.error_code,
+                        message: res.__("priceUpload.error.inValidNumberOfPersons", { row_no: i + 2 })
+                    });
+                }
 
+                // validate vehicle type
+                if (!vehicleType.includes(row["Vehicle type"]?.toLowerCase()?.trim())) {
+                    return res.send({
+                        code: constant.error_code,
+                        message: res.__("priceUpload.error.invalidVehicleType", { row_no: i + 2  , field: "Vehicle type" , valid_types: vehicleType.toString()})
+                    });
+                }
+                
                 // Validate "Amount" field
-                if (!row["Amount"] || isNaN(row["Amount"])) {
+                if (!row["Amount"] || isNaN(row["Amount"]) || Number(row["Amount"]) < 0) {
                     return res.send({
                         code: constant.error_code,
                         message: res.__("priceUpload.error.inValidAmount", { row_no: i + 2 })
