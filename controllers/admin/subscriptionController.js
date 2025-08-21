@@ -708,23 +708,23 @@ exports.createSubscription = async (req, res) => {
             const newSubscription = new SUBSCRIPTION_MODEL(subscriptionData);
             await newSubscription.save();
 
-            // Get invoice ID
-            const invoiceId = createSubscription.latest_invoice.id;
+            // // Get invoice ID
+            // const invoiceId = createSubscription.latest_invoice.id;
 
-            // Get payment intent ID
-            const paymentIntentId = createSubscription.latest_invoice?.payment_intent?.id || null;
+            // // Get payment intent ID
+            // const paymentIntentId = createSubscription.latest_invoice?.payment_intent?.id || null;
 
-            // Get charge ID (if payment intent contains charges)
-            const chargeId = createSubscription?.latest_invoice?.payment_intent?.charges?.data[0]?.id || null;
+            // // Get charge ID (if payment intent contains charges)
+            // const chargeId = createSubscription?.latest_invoice?.payment_intent?.charges?.data[0]?.id || null;
             
             return res.send({
                                 code: constant.success_code,
-                                subscriptionId: createSubscription.id,
+                                // subscriptionId: createSubscription.id,
                                 clientSecret: createSubscription.latest_invoice.payment_intent.client_secret,
-                                invoiceId: invoiceId,
-                                paymentIntentId: paymentIntentId,
-                                chargeId: chargeId,
-                                createSubscription:createSubscription
+                                // invoiceId: invoiceId,
+                                // paymentIntentId: paymentIntentId,
+                                // chargeId: chargeId,
+                                // createSubscription:createSubscription
                             });
         } else {
             return  res.send({

@@ -1131,11 +1131,27 @@ exports.edit_sub_admin = async (req, res) => {
 exports.assignSpecialPlan = async (req, res) => {
   try {
     let data = req.body;
-    let criteria = { _id: req.params.id  , role: constant.ROLES.COMPANY};
-    let option = { new: true };
-    let companyDetail = await USER.findOne(criteria);
+    const role = data.role;
 
-    if (!companyDetail) {
+    let Model;
+    if (role === constant.ROLES.COMPANY) {
+      Model = USER;
+    } else if (role === constant.ROLES.DRIVER) {
+      Model = DRIVER;
+    } else {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("blockedUser.error.inValidRoleType"),
+      });
+    }
+
+    const criteria = { _id: req.params.id, role }; // ensure role matches
+    const option = { new: true };
+
+    const entityDetail = await Model.findOne(criteria);
+
+
+    if (!entityDetail) {
 
       return res.send({
                         code: constant.error_code,
@@ -1145,20 +1161,27 @@ exports.assignSpecialPlan = async (req, res) => {
 
     if (Object.prototype.hasOwnProperty.call(data, "is_special_plan_active")) {
 
-      const companyPlanDetails = await willCompanyPayCommissionOnTrip(companyDetail);
+     
+      const planDetails  = await willCompanyPayCommissionOnTrip(entityDetail);
 
-      if (companyPlanDetails?.paidPlan && data.is_special_plan_active) { // If company already have any buyed plan then special can't be assign
+      if (planDetails ?.paidPlan && data.is_special_plan_active) {
 
+        // Already has paid plan → can't assign special
         return res.send({
-                        code: constant.error_code,
-                        message: res.__('addSubAdmin.error.cantAssignSpecialPlan'),
-                      });
+                          code: constant.error_code,
+                          message: res.__("addSubAdmin.error.cantAssignSpecialPlan"),
+                        });
       }
-      let update_data = await USER.findOneAndUpdate(criteria, {is_special_plan_active: data.is_special_plan_active}, option);
+      
+      // Update document in respective collection
+      const update_data = await Model.findOneAndUpdate(
+                                                        criteria,
+                                                        { is_special_plan_active: data.is_special_plan_active },
+                                                        option
+                                                      );
       return res.send({
                           code: constant.success_code,
-                          message: data?.is_special_plan_active ? res.__('addSubAdmin.success.companySpecialPlanActivated') : res.__('addSubAdmin.success.companySpecialPlanDeactivated'),
-                          update_data,
+                          message: data?.is_special_plan_active ? res.__('addSubAdmin.success.companySpecialPlanActivated') : res.__('addSubAdmin.success.companySpecialPlanDeactivated')
                         });
     } else {
       return res.send({
