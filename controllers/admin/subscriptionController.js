@@ -140,6 +140,7 @@ exports.getProducts = async (req, res) => {
             activePayedPlan = await getUserActivePaidPlans(req.user);
             activePlan = await getUserCurrentActivePayedPlan(req.user);
         }
+
        
         let plans = await PLANS_MODEL.find({status: true , forRoles: req?.user?.role}).lean();  // Use lean to get plain objects
 
@@ -649,7 +650,6 @@ exports.createSubscription = async (req, res) => {
 
                 let activePlan = await getUserCurrentActivePayedPlan(req.user);
 
-                
                 //  If there will be any current subscription then it will be cancelled. and new susbcription will be add
                 if (activePlan) {
                     const subscriptionId = activePlan.subscriptionId
@@ -679,8 +679,11 @@ exports.createSubscription = async (req, res) => {
                                                                             default_payment_method: paymentMethodId, // Attach the saved payment method
                                                                             payment_behavior: 'default_incomplete',
                                                                             expand: ['latest_invoice.payment_intent'],
+                                                                            // metadata:   {
+                                                                            //                 description: `Subscription purchased for ${checkPlanExist?.name} Plan by ${req.user?.email} with ${req.user.role} role`
+                                                                            //             },
                                                                         });
-            
+           
             // Convert UNIX timestamps to JavaScript Date objects
             const startPeriod = new Date(createSubscription.current_period_start * 1000); // Convert to milliseconds
             const endPeriod = new Date(createSubscription.current_period_end * 1000);
@@ -712,10 +715,21 @@ exports.createSubscription = async (req, res) => {
             // const invoiceId = createSubscription.latest_invoice.id;
 
             // // Get payment intent ID
-            // const paymentIntentId = createSubscription.latest_invoice?.payment_intent?.id || null;
+            const paymentIntentId = createSubscription.latest_invoice?.payment_intent?.id || null;
 
             // // Get charge ID (if payment intent contains charges)
             // const chargeId = createSubscription?.latest_invoice?.payment_intent?.charges?.data[0]?.id || null;
+
+            if (paymentIntentId) {
+                await stripe.paymentIntents.update(paymentIntentId, {
+                    description: `Subscription to the "${checkPlanExist?.name} (€${checkPlanExist?.price})" Plan purchased by ${req.user?.email} (Role: ${req.user.role}) through card`,
+                    // metadata: {
+                    // tripId,
+                    // companyId,
+                    // userRole: req.user?.role,
+                    // },
+                });
+            }
             
             return res.send({
                                 code: constant.success_code,

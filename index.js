@@ -84,7 +84,9 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           const logEntry = new LOGS(logs_data);
           logEntry.save();
 
-          if (event.type === 'invoice.payment_succeeded') {
+          if (event.type === 'invoice.created') {
+            console.log('invoice created here----')
+          } else if (event.type === 'invoice.payment_succeeded') {
             const invoice = event.data.object;
             let updateData;
 
