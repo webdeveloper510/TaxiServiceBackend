@@ -1612,6 +1612,9 @@ exports.get_access_trip = async (req, res) => {
           trip_id: 1,
         },
       },
+
+
+      { $sort: { createdAt: -1 } },
       // Pagination: skip and limit
       {
         $skip: (page - 1) * limit, // Skip documents for previous pages
@@ -1619,7 +1622,7 @@ exports.get_access_trip = async (req, res) => {
       {
         $limit: limit, // Limit the number of documents returned
       },
-    ]).sort({ createdAt: -1 });
+    ]);
 
     const getActivePaidPlans = await getCompanyActivePaidPlans(req.body.company_id);
     let hasSpecialPlan = await USER.findOne({_id: req.body.company_id});

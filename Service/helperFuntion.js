@@ -2130,7 +2130,8 @@ exports.transferToConnectedAccount = async (amount, connectedAccountId , tripId)
                                                     amount: Math.round(amount * 100), // Amount in cents (e.g., $10 = 1000) 
                                                     currency: "eur",
                                                     destination: connectedAccountId, // Connected account ID
-                                                    transfer_group: tripId, // Optional: Group for tracking
+                                                    transfer_group: tripId, // Optional: Group for tracking,
+                                                    description:  `Payout for trip ${tripId}`
                                                   });
 
     console.log("Transfer Successful:---------", transfer);
@@ -2719,7 +2720,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
       passengerCount: tripDetail?.passengerCount,
       fare: totalPrice,
       paymentOption: tripDetail?.pay_option,
-      paymentMethodPrice: payment_method_price,
+      paymentMethodPrice: tripDetail?.payment_method_price,
       childSeat: tripDetail?.child_seat_price,
       flightNo: tripDetail?.customerDetails?.flightNumber,
       driverRemark: tripDetail?.comment,
