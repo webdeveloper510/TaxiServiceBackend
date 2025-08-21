@@ -354,16 +354,16 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
             customer: customerId,
             line_items: [
                             {
-                            price_data: {
-                                currency: 'eur', // or 'usd', etc.
-                                unit_amount: Number(smsPrice) * 100, // in cents: €2.00 = 200 cents
-                                product_data: {
-                                name: `SMS Top-up (${smsPrice} Credits)`,
-                                description: `Top-up credits for SMS feature (€ ${smsPrice})`
+                                price_data: {
+                                                currency: 'eur', // or 'usd', etc.
+                                                unit_amount: Number(smsPrice) * 100, // in cents: €2.00 = 200 cents
+                                                product_data: {
+                                                name: `SMS Top-up (${smsPrice} Credits)`,
+                                                description: `Top-up credits for SMS feature (€ ${smsPrice})`
+                                            },
                                 },
-                            },
-                            quantity: 1,
-                            tax_rates: [process.env.STRIPE_VAT_TAX_ID],
+                                quantity: 1,
+                                tax_rates: [process.env.STRIPE_VAT_TAX_ID],
                             }
                         ],
             invoice_creation: {
@@ -385,7 +385,8 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
 
         return res.json({ 
             code: constant.success_code,
-            url: session.url
+            url: session.url,
+            session
         });
     } catch (error) {
 
