@@ -87,9 +87,9 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           if (event.type === 'invoice.created') { // only for subscription's description updation
             console.log('invoice created here-------------------------------------------')
               let invoice = event.data.object;
-              console.log('vijay  invoice.billing_reason----' ,invoice.billing_reason)
+              
             if (invoice.billing_reason === "subscription_create") {
-
+              console.log('vijay  invoice.billing_reason----' ,invoice.billing_reason)
               let subscriptionId = invoice.subscription; // Subscription ID
 
               let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID })
