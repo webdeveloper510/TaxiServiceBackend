@@ -296,6 +296,7 @@ exports.createIdealCheckoutSession = async (req, res) => {
                 }
             }
 
+            const description = `Subscription to the "${checkPlanExist?.name} (€${checkPlanExist?.price})" Plan purchased by ${req.user?.email} (Role: ${req.user.role})`;
             const session = await stripe.checkout.sessions.create({
                                                                     payment_method_types: ['ideal' , 'sepa_debit'],
                                                                     mode: 'subscription',  //isSubscription ? "subscription" : "payment",
@@ -303,6 +304,9 @@ exports.createIdealCheckoutSession = async (req, res) => {
                                                                     cancel_url: `${process.env.FRONTEND_URL}/subscription-payment-fail`, // Redirect if the user cancels
                                                                     // customer_email: req.body.email, // Optional
                                                                     customer: customerId,
+                                                                    subscription_data: {
+                                                                                            description: description
+                                                                                        },
                                                                     line_items: [
                                                                                     {
                                                                                         price: priceId, // Use Stripe's Price ID
@@ -722,7 +726,7 @@ exports.createSubscription = async (req, res) => {
 
             if (paymentIntentId) {
                 await stripe.paymentIntents.update(paymentIntentId, {
-                    description: `Subscription to the "${checkPlanExist?.name} (€${checkPlanExist?.price})" Plan purchased by ${req.user?.email} (Role: ${req.user.role}) through card`,
+                    description: `Subscription to the "${checkPlanExist?.name} (€${checkPlanExist?.price})" Plan purchased by ${req.user?.email} (Role: ${req.user.role})`,
                     // metadata: {
                     // tripId,
                     // companyId,
