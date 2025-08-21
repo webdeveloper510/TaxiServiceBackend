@@ -664,7 +664,8 @@ exports.edit_trip_link = async (req, res) => {
 
     return res.send({
                       code: constant.success_code,
-                      message: res.__('editTrip.success.tripUpdated')
+                      message: res.__('editTrip.success.tripUpdated'),
+                      result: update_trip
                     });
     
     
