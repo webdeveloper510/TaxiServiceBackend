@@ -87,6 +87,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           if (event.type === 'invoice.created') { // only for subscription's description updation
             console.log('invoice created here-------------------------------------------')
               let invoice = event.data.object;
+              console.log('vijay  invoice.billing_reason----' ,invoice.billing_reason)
             if (invoice.billing_reason === "subscription_create") {
 
               let subscriptionId = invoice.subscription; // Subscription ID
@@ -96,7 +97,11 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               let model = subscriptionExist?.role == constant.ROLES.COMPANY ? user_model : driver_model;
               const buyerInfo = await model.findById(subscriptionExist?.role == constant.ROLES.COMPANY ? subscriptionExist?.purchaseByCompanyId : subscriptionExist?.purchaseByDriverId)
               const description = `Subscription to the "${planDetail?.name} (€${planDetail?.price})" Plan purchased by ${buyerInfo?.email} (Role: ${buyerInfo.role}) through card`;
-            
+              
+              await stripe.invoices.update(invoice.id, {
+                                                          description: description
+                                                        }
+                                          );
               console.log('description------' , description);
             } else if (invoice.billing_reason === "subscription_cycle") {
 
