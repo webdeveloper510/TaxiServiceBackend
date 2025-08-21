@@ -84,7 +84,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
           const logEntry = new LOGS(logs_data);
           logEntry.save();
 
-          if (event.type === 'invoice.created') { // only for subscription's description updation
+          if (event.type === 'invoice.finalized') { // only for subscription's description updation
             console.log('invoice created here-------------------------------------------')
               let invoice = event.data.object;
               
@@ -114,10 +114,11 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                 console.log('buyerInfo------------' , buyerInfo)
                 const description = `Subscription to the "${planDetails?.name} (€${planDetails?.price})" Plan purchased by ${buyerInfo?.email} (Role: ${buyerInfo.role}) through card`;
                 console.log('description------------------------------------------------------------' , description)
-                await stripe.invoices.update(invoice.id, {
+                const checkInvoice= await stripe.invoices.update(invoice.id, {
                                                           description: description
                                                         }
                                             );
+                console.log('checkInvoice-------------' , checkInvoice)
               }
 
               // let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID });
