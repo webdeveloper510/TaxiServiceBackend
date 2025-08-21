@@ -192,7 +192,7 @@
       "tripRetrivedByCompany": "Uw ritverzoek is opgehaald door het bedrijf."
     },
     "notification": {
-      "tripRetrievedByCompanyMessage": "Rit ({{trip_id}}) is opgehaald door het bedrijf.",
+      "tripRetrievedByCompanyMessage": "De rit-ID ({{trip_id}}) is door het bedrijf ingetrokken",
       "tripRetrievedByCompanyTitle": "Rit opgehaald."
     },
     "success": {
