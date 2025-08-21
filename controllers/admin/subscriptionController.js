@@ -368,6 +368,9 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
                         ],
             invoice_creation: {
                 enabled: true, // Enable invoice creation
+                invoice_data: {
+                                description: `One-time SMS top-up (€${smsPrice})`
+                            },
             },
             
         });
@@ -386,7 +389,7 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
         return res.json({ 
             code: constant.success_code,
             url: session.url,
-            session
+            // session
         });
     } catch (error) {
 
