@@ -92,19 +92,31 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
               console.log('vijay  invoice.billing_reason----' ,invoice.billing_reason)
               let subscriptionId = invoice.subscription; // Subscription ID
 
-
-
-              let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID });
               console.log('subscriptionExist-----' , invoice.subscription)
-              const planDetail = await PLANS_MODEL.findOne({planId: subscriptionExist?.planId});
-              let model = subscriptionExist?.role == constant.ROLES.COMPANY ? user_model : driver_model;
-              const buyerInfo = await model.findById(subscriptionExist?.role == constant.ROLES.COMPANY ? subscriptionExist?.purchaseByCompanyId : subscriptionExist?.purchaseByDriverId)
-              const description = `Subscription to the "${planDetail?.name} (€${planDetail?.price})" Plan purchased by ${buyerInfo?.email} (Role: ${buyerInfo.role}) through card`;
+
+              let paymentIntentId = invoice.payment_intent;
+
+              const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+              const paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
+
+              console.log('paymentMethod.type---------------------------------------------------------' , paymentMethod.type);
+
+              // let subscriptionExist = await SUBSCRIPTION_MODEL.findOne({subscriptionId:subscriptionId , paid: constant.SUBSCRIPTION_PAYMENT_STATUS.UNPAID });
               
-              await stripe.invoices.update(invoice.id, {
-                                                          description: description
-                                                        }
-                                          );
+              // if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
+
+
+              // }
+              // const planDetail = await PLANS_MODEL.findOne({planId: subscriptionExist?.planId});
+              // let model = subscriptionExist?.role == constant.ROLES.COMPANY ? user_model : driver_model;
+              // const buyerInfo = await model.findById(subscriptionExist?.role == constant.ROLES.COMPANY ? subscriptionExist?.purchaseByCompanyId : subscriptionExist?.purchaseByDriverId)
+              // const description = `Subscription to the "${planDetail?.name} (€${planDetail?.price})" Plan purchased by ${buyerInfo?.email} (Role: ${buyerInfo.role}) through card`;
+              
+              // await stripe.invoices.update(invoice.id, {
+              //                                             description: description
+              //                                           }
+              //                             );
               console.log('description------' , description);
             } else if (invoice.billing_reason === "subscription_cycle") {
 
@@ -128,10 +140,10 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
               const paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method);
 
-              if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') {
+              if (paymentMethod.type === 'ideal' ||  paymentMethod.type === 'sepa_debit') { // suring the ideal or sepa payment .... susbcription row will add as new data
                 console.log('This subscription was created using iDEAL.' , paymentMethod.type);
 
-                // Store this info in your database if needed
+                // Store this info in your database if needed 
                 await idealPaymentSubscription(req , invoice , paymentMethod.type);
               } else {
 
