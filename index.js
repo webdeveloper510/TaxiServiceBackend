@@ -111,6 +111,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
                 const driverDetails = await driver_model.findOne({stripeCustomerId: customerId});
 
                 const buyerInfo = userDetails ? userDetails : driverDetails;
+                console.log('buyerInfo------------' , buyerInfo)
                 const description = `Subscription to the "${planDetails?.name} (€${planDetails?.price})" Plan purchased by ${buyerInfo?.email} (Role: ${buyerInfo.role}) through card`;
                 console.log('description------------------------------------------------------------' , description)
                 await stripe.invoices.update(invoice.id, {
