@@ -408,6 +408,21 @@ exports.update_trip = async (req , res) => {
                       });
     }
 
+    // when trip can't be  editable 
+    if ( [constant.TRIP_STATUS.REACHED , constant.TRIP_STATUS.ACTIVE , constant.TRIP_STATUS.COMPLETED , constant.TRIP_STATUS.CANCELED , constant.TRIP_STATUS.NO_SHOW].includes(trip_data.trip_status)) {
+
+      const message =   trip_data.trip_status === constant.TRIP_STATUS.REACHED ? res.__('editTrip.error.cantEditReachedReason') :
+                        trip_data.trip_status === constant.TRIP_STATUS.ACTIVE ? res.__('editTrip.error.cantEditActiveReason') :
+                        trip_data.trip_status === constant.TRIP_STATUS.COMPLETED ? res.__('editTrip.error.cantEditCompletedReason') :
+                        trip_data.trip_status === constant.TRIP_STATUS.CANCELED ? res.__('editTrip.error.cantEditCanceledReason') :
+                        trip_data.trip_status === constant.TRIP_STATUS.NO_SHOW ? res.__('editTrip.error.cantEditNoShowReason') :
+                        res.__('editTrip.error.unableToUpdateTrip');
+      return res.send({
+                        code: constant.error_code,
+                        message : message
+                      });
+    }
+
     if (data?.commission && data?.commission?.commission_value != 0) {
       let commission = data.commission.commission_value;
       if ( data.commission.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE && data.commission.commission_value > 0 ) {

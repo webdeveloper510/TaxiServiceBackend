@@ -981,6 +981,10 @@ io.on("connection", (socket) => {
      
       if (driverBySocketId) {
       
+        if (driverBySocketId.email == 'nirmla@yopmail.com') {
+
+          console.log('current lat long----------------------' , latitude , longitude , '----------------------' , driverBySocketId.email)
+        }
         // driverBySocketId.location = {
         //                               type: "Point",
         //                               coordinates: [longitude, latitude],
@@ -1534,6 +1538,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", async (reason) => {
     try {
+      return
       setTimeout(async () => {
         const driverBySocketId = await driver_model.findOne({ socketId: socket.id});
 
@@ -1564,6 +1569,7 @@ const OfflineDriver = async (driverInfo) => {
 
     if (driverData?.socketId === null) {
       driverData.status = false; // when driver will kill the app then it will not be available to take the trips. driver have to manually change the online / Offline
+      console.log('status changed--------------------------------------------------------------')
       await driverData.save();
     }
   } catch (err) {

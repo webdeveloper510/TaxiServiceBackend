@@ -442,11 +442,6 @@ exports.access_add_trip = async (req, res) => {
       //                                   ) * 0.00062137
       //                 ).toFixed(2);
 
-      let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
-      let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12) : 10;
-      // if (!data.price) {
-      //   data.price = (fare_per_km * Number(distance)).toFixed(2);
-      // }
 
       const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
       const destination = `${data.trip_to.lat},${data.trip_to.log}`;
@@ -644,7 +639,7 @@ exports.edit_trip_link = async (req, res) => {
                     });
     }
 
-    tripDetails.pick_up_date = data.pickup_date_time;
+    tripDetails.pickup_date_time = data.pickup_date_time;
     tripDetails.comment = data.comment;
     
    if (data.customerDetails) {
@@ -2384,6 +2379,25 @@ exports.alocate_driver = async (req, res) => {
                         });
       }
 
+       // when trip can't be  editable 
+    if ( check_trip.trip_status != constant.TRIP_STATUS.PENDING) {
+
+      const message =   check_trip.trip_status === constant.TRIP_STATUS.REACHED ? res.__('editTrip.error.cantAllocateBookedReason') :
+                        check_trip.trip_status === constant.TRIP_STATUS.ACTIVE ? res.__('editTrip.error.cantAllocateBookedReason') :
+                        check_trip.trip_status === constant.TRIP_STATUS.COMPLETED ? res.__('editTrip.error.cantAllocateBookedReason') :
+                        check_trip.trip_status === constant.TRIP_STATUS.CANCELED ? res.__('editTrip.error.cantAllocateCanceledReason') :
+                        check_trip.trip_status === constant.TRIP_STATUS.NO_SHOW ? res.__('editTrip.error.cantAllocateNoShowReason') :
+                        check_trip.trip_status === constant.TRIP_STATUS.BOOKED ? res.__('editTrip.error.cantAllocateBookedReason') :
+                        check_trip.trip_status === constant.TRIP_STATUS.APPROVED ? res.__('editTrip.error.cantAllocateApprovedReason') :
+                        res.__('editTrip.error.unableToUpdateTrip');
+      return res.send({
+                        code: constant.error_code,
+                        message : message
+                      });
+    }
+
+
+
       let newValues = {
                         $set: {
                           driver_name: driver_full_info._id,
@@ -2854,14 +2868,6 @@ exports.get_trip_detail = async (req, res) => {
       ) * 0.00062137
     ).toFixed(2);
 
-    let getFare = await FARES.findOne({
-      vehicle_type: getData[0].vehicle_type,
-    });
-    let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km) : 10;
-    if (getData[0].price == 0) {
-      getData[0].price = fare_per_km * Number(distance);
-    }
-
     if (!getData[0]) {
       res.send({
         code: constant.error_code,
@@ -2999,13 +3005,7 @@ exports.access_get_trip_detail = async (req, res) => {
       ) * 0.00062137
     ).toFixed(2);
 
-    let getFare = await FARES.findOne({
-      vehicle_type: getData[0].vehicle_type,
-    });
-    let fare_per_km = getFare ? Number(getFare.vehicle_fare_per_km) : 10;
-    if (getData[0].price == 0) {
-      getData[0].price = fare_per_km * Number(distance);
-    }
+   
 
     if (!getData[0]) {
       res.send({
@@ -3380,13 +3380,8 @@ exports.add_trip1 = async (req, res) => {
     ).toFixed(2);
 
     data.created_by = checkCompanyId._id;
-    let getFare = await FARES.findOne({ vehicle_type: data.vehicle_type });
-    let fare_per_km = getFare
-      ? Number(getFare.vehicle_fare_per_km ? getFare.vehicle_fare_per_km : 12)
-      : 10;
-    if (!data.price) {
-      data.price = (fare_per_km * Number(distance)).toFixed(2);
-    }
+    
+    
 
     let add_trip = await TRIP(data).save();
 
