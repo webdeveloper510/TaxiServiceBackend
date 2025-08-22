@@ -1564,6 +1564,7 @@ const OfflineDriver = async (driverInfo) => {
 
     if (driverData?.socketId === null) {
       driverData.status = false; // when driver will kill the app then it will not be available to take the trips. driver have to manually change the online / Offline
+      console.log('status changed--------------------------------------------------------------')
       await driverData.save();
     }
   } catch (err) {
