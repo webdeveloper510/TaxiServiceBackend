@@ -644,7 +644,7 @@ exports.edit_trip_link = async (req, res) => {
                     });
     }
 
-    tripDetails.pick_up_date = data.pickup_date_time;
+    tripDetails.pickup_date_time = data.pickup_date_time;
     tripDetails.comment = data.comment;
     
    if (data.customerDetails) {
