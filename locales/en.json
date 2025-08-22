@@ -185,7 +185,12 @@
             "noActivePlanForTripCreation": "Trip creation is not allowed without an active plan. Please subscribe to a plan first.",
             "unableToUpdateTrip": "An error occurred while updating the trip. Please try again later.",
             "companyAccessRevoked": "Access for the company has been revoked",
-            "invalidOrNonexistentCompany": "The specified company is invalid or does not exist"
+            "invalidOrNonexistentCompany": "The specified company is invalid or does not exist",
+            "cantEditReachedReason": "The trip cannot be modified as the driver is already en route.",
+            "cantEditActiveReason": "The trip cannot be edited as the driver is currently with the customer en route to the destination.",
+            "cantEditCompletedReason": "Trip modifications are not allowed as the trip has been completed.",
+            "cantEditcanceledReason": "The trip can't be modified as it has been cancelled",
+            "cantEditNoShowReason": "Trip modifications is not allowed because the trip was cancelled when the customer was unavailable."
         },
         "socket": {
             "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",

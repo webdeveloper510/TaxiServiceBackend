@@ -185,7 +185,12 @@
       "noActivePlanForTripCreation": "Er kan geen rit worden aangemaakt zonder een actief abonnement. Abonneer u eerst.",
       "unableToUpdateTrip": "Er is een fout opgetreden bij het bijwerken van de rit. Probeer het later opnieuw.",
       "companyAccessRevoked": "De toegang voor het bedrijf is ingetrokken.",
-      "invalidOrNonexistentCompany": "Het opgegeven bedrijf is ongeldig of bestaat niet."
+      "invalidOrNonexistentCompany": "Het opgegeven bedrijf is ongeldig of bestaat niet.",
+      "cantEditReachedReason": "De rit kan niet worden gewijzigd omdat de chauffeur al onderweg is.",
+      "cantEditActiveReason": "De rit kan niet worden gewijzigd omdat de chauffeur momenteel met de klant onderweg is naar de bestemming.",
+      "cantEditCompletedReason": "Het wijzigen van de rit is niet toegestaan omdat de rit is voltooid.",
+      "cantEditcanceledReason": "De rit kan niet worden gewijzigd omdat deze is geannuleerd.",
+      "cantEditNoShowReason": "Het wijzigen van de rit is niet toegestaan omdat de rit is geannuleerd toen de klant niet aanwezig was."
     },
     "socket": {
       "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",
