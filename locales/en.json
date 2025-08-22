@@ -193,7 +193,8 @@
             "cantEditNoShowReason": "Trip modifications is not allowed because the trip was cancelled when the customer was unavailable.",
             "cantAllocateBookedReason": "The trip can't be allocated as the trip is already booked.",
             "cantAllocateNoShowReason": "Trip can't be allocated because the trip was cancelled when the customer was unavailable.",
-            "cantAllocateCanceledReason": "The trip can't be allocated as it has been cancelled"
+            "cantAllocateCanceledReason": "The trip can't be allocated as it has been cancelled",
+            "cantAllocateApprovedReason": "The trip can't be allocated as a request has already been sent. Please wait until the driver responds to the previous request. If the driver does not accept, you will be able to send a new request"
         },
         "socket": {
             "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",

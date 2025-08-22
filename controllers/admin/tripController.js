@@ -2387,6 +2387,8 @@ exports.alocate_driver = async (req, res) => {
                         check_trip.trip_status === constant.TRIP_STATUS.COMPLETED ? res.__('editTrip.error.cantAllocateBookedReason') :
                         check_trip.trip_status === constant.TRIP_STATUS.CANCELED ? res.__('editTrip.error.cantAllocateCanceledReason') :
                         check_trip.trip_status === constant.TRIP_STATUS.NO_SHOW ? res.__('editTrip.error.cantAllocateNoShowReason') :
+                        check_trip.trip_status === constant.TRIP_STATUS.BOOKED ? res.__('editTrip.error.cantAllocateBookedReason') :
+                        check_trip.trip_status === constant.TRIP_STATUS.APPROVED ? res.__('editTrip.error.cantAllocateApprovedReason') :
                         res.__('editTrip.error.unableToUpdateTrip');
       return res.send({
                         code: constant.error_code,
