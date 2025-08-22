@@ -414,7 +414,7 @@ exports.update_trip = async (req , res) => {
       const message =   trip_data.trip_status === constant.TRIP_STATUS.REACHED ? res.__('editTrip.error.cantEditReachedReason') :
                         trip_data.trip_status === constant.TRIP_STATUS.ACTIVE ? res.__('editTrip.error.cantEditActiveReason') :
                         trip_data.trip_status === constant.TRIP_STATUS.COMPLETED ? res.__('editTrip.error.cantEditCompletedReason') :
-                        trip_data.trip_status === constant.TRIP_STATUS.CANCELED ? res.__('editTrip.error.cantEditcanceledReason') :
+                        trip_data.trip_status === constant.TRIP_STATUS.CANCELED ? res.__('editTrip.error.cantEditCanceledReason') :
                         trip_data.trip_status === constant.TRIP_STATUS.NO_SHOW ? res.__('editTrip.error.cantEditNoShowReason') :
                         res.__('editTrip.error.unableToUpdateTrip');
       return res.send({

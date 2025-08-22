@@ -189,7 +189,7 @@
       "cantEditReachedReason": "De rit kan niet worden gewijzigd omdat de chauffeur al onderweg is.",
       "cantEditActiveReason": "De rit kan niet worden gewijzigd omdat de chauffeur momenteel met de klant onderweg is naar de bestemming.",
       "cantEditCompletedReason": "Het wijzigen van de rit is niet toegestaan omdat de rit is voltooid.",
-      "cantEditcanceledReason": "De rit kan niet worden gewijzigd omdat deze is geannuleerd.",
+      "cantEditCanceledReason": "De rit kan niet worden gewijzigd omdat deze is geannuleerd.",
       "cantEditNoShowReason": "Het wijzigen van de rit is niet toegestaan omdat de rit is geannuleerd toen de klant niet aanwezig was."
     },
     "socket": {
