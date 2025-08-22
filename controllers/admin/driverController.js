@@ -2093,7 +2093,7 @@ exports.convertIntoDriver = async (req, res) => {
           : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg";
       let user = req.user;
       if (req.user.isDriver) {
-        res.json({
+        return res.json({
           code: constant.error_code,
           message: "Already have a driver",
         });
@@ -2155,8 +2155,7 @@ exports.convertIntoDriver = async (req, res) => {
       req.user.isDriver = true;
 
       req.user.driverId = save_driver._id;
-      let saveUserData = await req.user.save();
-
+      
       const newUser = await user_model.updateOne(
                                                   { _id: req.user._id },
                                                   {
