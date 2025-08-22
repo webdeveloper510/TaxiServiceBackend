@@ -1538,6 +1538,7 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", async (reason) => {
     try {
+      return
       setTimeout(async () => {
         const driverBySocketId = await driver_model.findOne({ socketId: socket.id});
 
