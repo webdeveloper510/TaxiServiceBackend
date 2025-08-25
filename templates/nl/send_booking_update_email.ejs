@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reisupdate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f6f6f6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        .header img {
+            max-height: 50px;
+        }
+
+        .content {
+            padding: 20px;
+            color: #333333;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #111827;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #e5e7eb;
+        }
+
+        th {
+            background-color: #f9fafb;
+            text-align: left;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 20px;
+            background-color: #0682ca;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <img src="<%= companyLogoUrl %>" alt="<%= companyName %> Logo">
+            <h2>
+                <%= companyName %>
+            </h2>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h2>Melding reisupdate – Bestelling #<%= trip_id %>
+            </h2>
+            <p>Beste <%= customerName %>, wij willen u informeren dat uw aanstaande reis is bijgewerkt.
+                    Bekijk alstublieft de herziene reisinformatie hieronder:</p>
+
+            <h3>Klantgegevens</h3>
+            <table>
+                <tr>
+                    <th>Volledige naam</th>
+                    <td>
+                        <%= customerName %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Telefoon</th>
+                    <td>
+                        <%= customerPhone %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>E-mail</th>
+                    <td style="color:black !important">
+                        <%= customerEmail %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Reisdetails</th>
+                    <td>
+                        <%= pickupTime %> (Tijdzone: <%= TimeZoneId %>)
+                    </td>
+                </tr>
+                <tr>
+                    <th>Vertrek</th>
+                    <td>
+                        <%= departure %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Aankomst</th>
+                    <td>
+                        <%= arrival %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Type auto</th>
+                    <td>
+                        <%= carType %> - <%= passengerCount %> passagier(s)
+                    </td>
+                </tr>
+                <tr>
+                    <th>Prijs</th>
+                    <td>€<%= fare %>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Betaalmethode</th>
+                    <td>
+                        <%= paymentOption %>
+                            <% if (paymentMethodPrice) { %>
+                                ( € <%= paymentMethodPrice %> inbegrepen in de prijs )
+                                    <% } %>
+                    </td>
+                </tr>
+                <% if (driverName) { %>
+                    <tr>
+                        <th>Naam chauffeur</th>
+                        <td>
+                            <%= driverName %>
+                        </td>
+                    </tr>
+                    <% } %>
+
+                        <% if (childSeat) { %>
+                            <tr>
+                                <th>Kinderzitje</th>
+                                <td>Ja ( €<%= childSeat %> inbegrepen in de prijs )</td>
+                            </tr>
+                            <% } %>
+
+                                <% if (flightNo) { %>
+                                    <tr>
+                                        <th>Vluchtnummer</th>
+                                        <td>
+                                            <%= flightNo %>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+            </table>
+
+            <a href="<%= trackUrl %>" class="button">Volg mijn rit</a>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <%= companyName %><br>
+                <%= companyAddress %><br>
+                    Telefoon: <%= companyPhone %> · E-mail: <%= companyEmail %>
+        </div>
+    </div>
+</body>
+
+</html>
