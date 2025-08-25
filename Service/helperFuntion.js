@@ -930,7 +930,7 @@ exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDeta
       }
 
       if (tripDetail?.customerDetails?.email) {
-        this.sendBookingConfirmationEmail(tripDetail);
+        // this.sendBookingConfirmationEmail(tripDetail);
       }
 
   } catch (error) {

@@ -471,7 +471,6 @@ exports.update_trip = async (req , res) => {
         
         if (companyDetail?.settings?.sms_options?.changing_pickup_time_request?.enabled) { // check if company turned on sms feature for update date time trip
           
-          console.log('inside')
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
         }
       }
