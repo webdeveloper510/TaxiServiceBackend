@@ -1041,7 +1041,7 @@ exports.customerCancelTrip = async (req , res) => {
     const customerName = tripInfo?.customerDetails?.name;
     let user = await USER.findById(tripInfo?.created_by_company_id);
     const companyAgencyData = await AGENCY.findOne({user_id: tripInfo.created_by_company_id});
-
+    partnerAccountRefreshTrip(tripInfo?.created_by_company_id , res.__('addTrip.socket.tripCreatedRefresh'),  req.io);
     if (user?.socketId) {
       
         req.io.to(user?.socketId).emit("tripCancelledBYCustomer", {
