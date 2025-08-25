@@ -376,9 +376,9 @@ exports.add_trip = async (req, res) => {
 
         sendBookingConfirmationEmail(add_trip)
         const companyDetail = await user_model.findById(data?.created_by_company_id);
-
-        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
-          console.log('sending sms---------')
+       
+        if (companyDetail?.settings?.sms_options?.trip_ceate_request?.enabled) { // check if company turned on sms feature for creat trip
+          
           sendTripUpdateToCustomerViaSMS(add_trip , constant.SMS_EVENTS.TRIP_CREATE);
         }
       }
@@ -506,7 +506,7 @@ exports.access_add_trip = async (req, res) => {
         sendBookingConfirmationEmail(add_trip)
         const companyDetail = await user_model.findById(data?.created_by_company_id);
 
-        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
+        if (companyDetail?.settings?.sms_options?.trip_ceate_request?.enabled) { // check if company turned on sms feature for creat trip
           sendTripUpdateToCustomerViaSMS(add_trip , constant.SMS_EVENTS.TRIP_CREATE);
         }
       }
@@ -596,7 +596,7 @@ exports.add_trip_link = async (req, res) => {
       //   console.log('add_return_trip-------' , add_return_trip)
       //   sendBookingConfirmationEmail(add_return_trip)
       // }
-      if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
+      if (companyDetail?.settings?.sms_options?.trip_ceate_request?.enabled) { // check if company turned on sms feature for creat trip
         sendTripUpdateToCustomerViaSMS(add_trip , constant.SMS_EVENTS.TRIP_CREATE);
 
         if (isRetrunBooking) {

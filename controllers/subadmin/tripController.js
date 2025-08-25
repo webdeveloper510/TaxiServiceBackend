@@ -467,8 +467,11 @@ exports.update_trip = async (req , res) => {
         
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request) { // check if company turned on sms feature for update date time trip
+
+        
+        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request?.enabled) { // check if company turned on sms feature for update date time trip
           
+          console.log('inside')
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
         }
       }
@@ -563,23 +566,12 @@ exports.edit_trip = async (req, res) => {
 
       let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
 
-      // When Date and time will be updated then customer will be notify
-      if (data?.pickup_date_time && new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
-        
-        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
-        const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request) { // check if company turned on sms feature for update date time trip
-          
-          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
-        }
-      }
-
       // When driver will go to for pick the customer (On the way) then customer will be notify
       if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request) { // check if company turned on sms feature for driver on the route
+        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
         }
@@ -1343,7 +1335,7 @@ exports.access_update_trip = async (req , res) => {
         
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for update date time trip
+        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request?.enabled) { // check if company turned on sms feature for update date time trip
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
         }
@@ -1448,25 +1440,13 @@ exports.access_edit_trip = async (req, res) => {
       });
     } else {
 
-      // When Date and time will be updated then customer will be notify
-      if (data?.pickup_date_time && new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
-        
-        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
-        const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request) { // check if company turned on sms feature for update date time trip
-          
-          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
-        }
-      }
-
-
-
+      
       // When driver will go to for pick the customer (On the way) then customer will be notify
       if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request) { // check if company turned on sms feature for driver on the route
+        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
         }
