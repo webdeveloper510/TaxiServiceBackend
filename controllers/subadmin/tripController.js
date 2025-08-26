@@ -1045,18 +1045,19 @@ exports.customerCancelTrip = async (req , res) => {
     if (user?.socketId) {
       
         req.io.to(user?.socketId).emit("tripCancelledBYCustomer", {
-                                                              tripInfo,
+                                                              trip:tripInfo,
                                                               message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                             }
                                   );
     }
 
     if (user?.webSocketId) {
+     
       // socket for web
       req.io.to(user?.webSocketId).emit(
                                           "tripCancelledBYCustomer",
                                           {
-                                            tripInfo,
+                                            trip:tripInfo,
                                             message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                           },
                                         );
@@ -1087,7 +1088,7 @@ exports.customerCancelTrip = async (req , res) => {
           req.io.to(driverCompanyAccess?.socketId).emit(
                                                     "tripCancelledBYCustomer",
                                                     {
-                                                      tripInfo,
+                                                      trip:tripInfo,
                                                       message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                     },
                                                   );
@@ -1098,7 +1099,7 @@ exports.customerCancelTrip = async (req , res) => {
           req.io.to(driverCompanyAccess?.webSocketId).emit(
                                                         "tripCancelledBYCustomer",
                                                         {
-                                                          tripInfo,
+                                                          trip:tripInfo,
                                                           message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                         },
                                                       );
@@ -1140,7 +1141,7 @@ exports.customerCancelTrip = async (req , res) => {
           // for partner app side
           if (partnerAccount?.socketId) {
             req.io.to(partnerAccount?.socketId).emit("tripCancelledBYCustomer",{
-                                                                              tripInfo,
+                                                                              trip:tripInfo,
                                                                               message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                                             },
                                                 );
@@ -1153,7 +1154,7 @@ exports.customerCancelTrip = async (req , res) => {
           if (partnerAccount?.webSocketId) {
 
           req.io.to(partnerAccount?.webSocketId).emit("tripCancelledBYCustomer",{
-                                                                              tripInfo,
+                                                                              trip:tripInfo,
                                                                               message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                                             },
                                                 )
