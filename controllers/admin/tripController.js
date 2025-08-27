@@ -376,9 +376,9 @@ exports.add_trip = async (req, res) => {
 
         sendBookingConfirmationEmail(add_trip)
         const companyDetail = await user_model.findById(data?.created_by_company_id);
-
-        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
-          console.log('sending sms---------')
+       
+        if (companyDetail?.settings?.sms_options?.trip_ceate_request?.enabled) { // check if company turned on sms feature for creat trip
+          
           sendTripUpdateToCustomerViaSMS(add_trip , constant.SMS_EVENTS.TRIP_CREATE);
         }
       }
@@ -506,7 +506,7 @@ exports.access_add_trip = async (req, res) => {
         sendBookingConfirmationEmail(add_trip)
         const companyDetail = await user_model.findById(data?.created_by_company_id);
 
-        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
+        if (companyDetail?.settings?.sms_options?.trip_ceate_request?.enabled) { // check if company turned on sms feature for creat trip
           sendTripUpdateToCustomerViaSMS(add_trip , constant.SMS_EVENTS.TRIP_CREATE);
         }
       }
@@ -596,7 +596,7 @@ exports.add_trip_link = async (req, res) => {
       //   console.log('add_return_trip-------' , add_return_trip)
       //   sendBookingConfirmationEmail(add_return_trip)
       // }
-      if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for creat trip
+      if (companyDetail?.settings?.sms_options?.trip_ceate_request?.enabled) { // check if company turned on sms feature for creat trip
         sendTripUpdateToCustomerViaSMS(add_trip , constant.SMS_EVENTS.TRIP_CREATE);
 
         if (isRetrunBooking) {
@@ -2379,22 +2379,22 @@ exports.alocate_driver = async (req, res) => {
                         });
       }
 
-       // when trip can't be  editable 
-    if ( check_trip.trip_status != constant.TRIP_STATUS.PENDING) {
+      // when trip can't be  editable 
+      if ( check_trip.trip_status != constant.TRIP_STATUS.PENDING) {
 
-      const message =   check_trip.trip_status === constant.TRIP_STATUS.REACHED ? res.__('editTrip.error.cantAllocateBookedReason') :
-                        check_trip.trip_status === constant.TRIP_STATUS.ACTIVE ? res.__('editTrip.error.cantAllocateBookedReason') :
-                        check_trip.trip_status === constant.TRIP_STATUS.COMPLETED ? res.__('editTrip.error.cantAllocateBookedReason') :
-                        check_trip.trip_status === constant.TRIP_STATUS.CANCELED ? res.__('editTrip.error.cantAllocateCanceledReason') :
-                        check_trip.trip_status === constant.TRIP_STATUS.NO_SHOW ? res.__('editTrip.error.cantAllocateNoShowReason') :
-                        check_trip.trip_status === constant.TRIP_STATUS.BOOKED ? res.__('editTrip.error.cantAllocateBookedReason') :
-                        check_trip.trip_status === constant.TRIP_STATUS.APPROVED ? res.__('editTrip.error.cantAllocateApprovedReason') :
-                        res.__('editTrip.error.unableToUpdateTrip');
-      return res.send({
-                        code: constant.error_code,
-                        message : message
-                      });
-    }
+        const message =   check_trip.trip_status === constant.TRIP_STATUS.REACHED ? res.__('editTrip.error.cantAllocateBookedReason') :
+                          check_trip.trip_status === constant.TRIP_STATUS.ACTIVE ? res.__('editTrip.error.cantAllocateBookedReason') :
+                          check_trip.trip_status === constant.TRIP_STATUS.COMPLETED ? res.__('editTrip.error.cantAllocateBookedReason') :
+                          check_trip.trip_status === constant.TRIP_STATUS.CANCELED ? res.__('editTrip.error.cantAllocateCanceledReason') :
+                          check_trip.trip_status === constant.TRIP_STATUS.NO_SHOW ? res.__('editTrip.error.cantAllocateNoShowReason') :
+                          check_trip.trip_status === constant.TRIP_STATUS.BOOKED ? res.__('editTrip.error.cantAllocateBookedReason') :
+                          check_trip.trip_status === constant.TRIP_STATUS.APPROVED ? res.__('editTrip.error.cantAllocateApprovedReason') :
+                          res.__('editTrip.error.unableToUpdateTrip');
+        return res.send({
+                          code: constant.error_code,
+                          message : message
+                        });
+      }
 
 
 

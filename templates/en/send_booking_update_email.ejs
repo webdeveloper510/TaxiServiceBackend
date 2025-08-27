@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <title>Boekingsbevestiging</title>
+    <title>Booking Confirmation</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,6 +20,7 @@
             overflow: hidden;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             border: 1px solid;
+
         }
 
         .header {
@@ -98,94 +99,104 @@
 
         <!-- Content -->
         <div class="content">
-            <h2>Boekingsbevestiging – Bestelling #<%= trip_id %>
+            <h2>Trip Update Notification: – Order #<%= trip_id %>
             </h2>
-            <p>Beste <%= customerName %>, bedankt voor uw reservering. Wij hebben uw boeking succesvol ontvangen.
-                    Hieronder vindt u de details van uw rit.</p>
+            <p>Dear <%= customerName %>, We want to inform you that your upcoming trip has been updated. Please review
+                    the revised trip details below:</p>
 
-            <h3>Klantgegevens</h3>
+            <h3>Customer Details</h3>
             <table>
                 <tr>
-                    <th>Volledige naam</th>
+                    <th>Full Name</th>
                     <td>
                         <%= customerName %>
                     </td>
                 </tr>
                 <tr>
-                    <th>Telefoon</th>
+                    <th>Phone</th>
                     <td>
                         <%= customerPhone %>
                     </td>
                 </tr>
                 <tr>
-                    <th>E-mail</th>
+                    <th>Email</th>
                     <td style="color:black !important">
                         <%= customerEmail %>
                     </td>
                 </tr>
                 <tr>
-                    <th>Reisdetails</th>
+                    <th>Trip Details</th>
                     <td>
-                        <%= pickupTime %> (Tijdzone: <%= TimeZoneId %>)
+                        <%= pickupTime %> (Time-zone:- <%= TimeZoneId %>)
                     </td>
                 </tr>
                 <tr>
-                    <th>Vertrek</th>
+                    <th>Departure</th>
                     <td>
                         <%= departure %>
                     </td>
                 </tr>
                 <tr>
-                    <th>Aankomst</th>
+                    <th>Arrival</th>
                     <td>
                         <%= arrival %>
                     </td>
                 </tr>
                 <tr>
-                    <th>Type auto</th>
+                    <th>Car Type</th>
                     <td>
-                        <%= carType %> - <%= passengerCount %> passagier(s)
+                        <%= carType %> - <%= passengerCount %> passenger
                     </td>
                 </tr>
                 <tr>
-                    <th>Prijs</th>
+                    <th>Price</th>
                     <td>€<%= fare %>
                     </td>
                 </tr>
                 <tr>
-                    <th>Betaalmethode</th>
+                    <th>Payment Method</th>
                     <td>
                         <%= paymentOption %>
+
                             <% if (paymentMethodPrice) { %>
-                                ( € <%= paymentMethodPrice %> inbegrepen in de prijs )
+                                ( € <%= paymentMethodPrice %> included in the price)
                                     <% } %>
                     </td>
                 </tr>
-                <% if (childSeat) { %>
+                <% if (driverName) { %>
                     <tr>
-                        <th>Kinderzitje</th>
-                        <td>Ja ( €<%= childSeat %> inbegrepen in de prijs )</td>
+                        <th>Driver name</th>
+                        <td>
+                            <%= driverName %>
+                        </td>
                     </tr>
                     <% } %>
 
-                        <% if (flightNo) { %>
+                        <% if (childSeat) { %>
                             <tr>
-                                <th>Vluchtnummer</th>
-                                <td>
-                                    <%= flightNo %>
-                                </td>
+                                <th>Child Seat</th>
+                                <td> yes ( €<%= childSeat %> included in the price ) </td>
                             </tr>
                             <% } %>
+
+                                <% if (flightNo) { %>
+                                    <tr>
+                                        <th>Flight No.</th>
+                                        <td>
+                                            <%= flightNo %>
+                                        </td>
+                                    </tr>
+                                    <% } %>
             </table>
 
-            <a href="<%= trackUrl %>" class="button">Volg mijn rit</a>
+            <a href="<%= trackUrl %>" class="button">Track My Ride</a>
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <%= companyName %><br>
+            <%= companyName %>
                 <%= companyAddress %><br>
-                    Telefoon: <%= companyPhone %> · E-mail: <%= companyEmail %>
+                    Phone: <%= companyPhone %> · Email: <%= companyEmail %>
         </div>
     </div>
 </body>

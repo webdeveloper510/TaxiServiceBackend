@@ -467,7 +467,9 @@ exports.update_trip = async (req , res) => {
         
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request) { // check if company turned on sms feature for update date time trip
+
+        
+        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request?.enabled) { // check if company turned on sms feature for update date time trip
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
         }
@@ -563,23 +565,12 @@ exports.edit_trip = async (req, res) => {
 
       let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
 
-      // When Date and time will be updated then customer will be notify
-      if (data?.pickup_date_time && new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
-        
-        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
-        const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request) { // check if company turned on sms feature for update date time trip
-          
-          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
-        }
-      }
-
       // When driver will go to for pick the customer (On the way) then customer will be notify
       if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request) { // check if company turned on sms feature for driver on the route
+        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
         }
@@ -1050,22 +1041,23 @@ exports.customerCancelTrip = async (req , res) => {
     const customerName = tripInfo?.customerDetails?.name;
     let user = await USER.findById(tripInfo?.created_by_company_id);
     const companyAgencyData = await AGENCY.findOne({user_id: tripInfo.created_by_company_id});
-
+    partnerAccountRefreshTrip(tripInfo?.created_by_company_id , res.__('addTrip.socket.tripCreatedRefresh'),  req.io);
     if (user?.socketId) {
       
         req.io.to(user?.socketId).emit("tripCancelledBYCustomer", {
-                                                              tripInfo,
+                                                              trip:tripInfo,
                                                               message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                             }
                                   );
     }
 
     if (user?.webSocketId) {
+     
       // socket for web
       req.io.to(user?.webSocketId).emit(
                                           "tripCancelledBYCustomer",
                                           {
-                                            tripInfo,
+                                            trip:tripInfo,
                                             message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                           },
                                         );
@@ -1096,7 +1088,7 @@ exports.customerCancelTrip = async (req , res) => {
           req.io.to(driverCompanyAccess?.socketId).emit(
                                                     "tripCancelledBYCustomer",
                                                     {
-                                                      tripInfo,
+                                                      trip:tripInfo,
                                                       message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                     },
                                                   );
@@ -1107,7 +1099,7 @@ exports.customerCancelTrip = async (req , res) => {
           req.io.to(driverCompanyAccess?.webSocketId).emit(
                                                         "tripCancelledBYCustomer",
                                                         {
-                                                          tripInfo,
+                                                          trip:tripInfo,
                                                           message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                         },
                                                       );
@@ -1149,7 +1141,7 @@ exports.customerCancelTrip = async (req , res) => {
           // for partner app side
           if (partnerAccount?.socketId) {
             req.io.to(partnerAccount?.socketId).emit("tripCancelledBYCustomer",{
-                                                                              tripInfo,
+                                                                              trip:tripInfo,
                                                                               message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                                             },
                                                 );
@@ -1162,7 +1154,7 @@ exports.customerCancelTrip = async (req , res) => {
           if (partnerAccount?.webSocketId) {
 
           req.io.to(partnerAccount?.webSocketId).emit("tripCancelledBYCustomer",{
-                                                                              tripInfo,
+                                                                              trip:tripInfo,
                                                                               message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
                                                                             },
                                                 )
@@ -1343,7 +1335,7 @@ exports.access_update_trip = async (req , res) => {
         
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.trip_ceate_request) { // check if company turned on sms feature for update date time trip
+        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request?.enabled) { // check if company turned on sms feature for update date time trip
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
         }
@@ -1448,25 +1440,13 @@ exports.access_edit_trip = async (req, res) => {
       });
     } else {
 
-      // When Date and time will be updated then customer will be notify
-      if (data?.pickup_date_time && new Date(data.pickup_date_time).getTime() !== new Date(trip_data.pickup_date_time).getTime()) {
-        
-        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
-        const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.changing_pickup_time_request) { // check if company turned on sms feature for update date time trip
-          
-          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME);
-        }
-      }
-
-
-
+      
       // When driver will go to for pick the customer (On the way) then customer will be notify
       if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
         sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request) { // check if company turned on sms feature for driver on the route
+        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
         }

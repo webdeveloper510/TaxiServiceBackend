@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Boekingsbevestiging</title>
+    <title>Reisupdate</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -98,10 +98,10 @@
 
         <!-- Content -->
         <div class="content">
-            <h2>Boekingsbevestiging – Bestelling #<%= trip_id %>
+            <h2>Melding reisupdate – Bestelling #<%= trip_id %>
             </h2>
-            <p>Beste <%= customerName %>, bedankt voor uw reservering. Wij hebben uw boeking succesvol ontvangen.
-                    Hieronder vindt u de details van uw rit.</p>
+            <p>Beste <%= customerName %>, wij willen u informeren dat uw aanstaande reis is bijgewerkt.
+                    Bekijk alstublieft de herziene reisinformatie hieronder:</p>
 
             <h3>Klantgegevens</h3>
             <table>
@@ -161,21 +161,30 @@
                                     <% } %>
                     </td>
                 </tr>
-                <% if (childSeat) { %>
+                <% if (driverName) { %>
                     <tr>
-                        <th>Kinderzitje</th>
-                        <td>Ja ( €<%= childSeat %> inbegrepen in de prijs )</td>
+                        <th>Naam chauffeur</th>
+                        <td>
+                            <%= driverName %>
+                        </td>
                     </tr>
                     <% } %>
 
-                        <% if (flightNo) { %>
+                        <% if (childSeat) { %>
                             <tr>
-                                <th>Vluchtnummer</th>
-                                <td>
-                                    <%= flightNo %>
-                                </td>
+                                <th>Kinderzitje</th>
+                                <td>Ja ( €<%= childSeat %> inbegrepen in de prijs )</td>
                             </tr>
                             <% } %>
+
+                                <% if (flightNo) { %>
+                                    <tr>
+                                        <th>Vluchtnummer</th>
+                                        <td>
+                                            <%= flightNo %>
+                                        </td>
+                                    </tr>
+                                    <% } %>
             </table>
 
             <a href="<%= trackUrl %>" class="button">Volg mijn rit</a>

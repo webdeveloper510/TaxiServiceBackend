@@ -930,7 +930,7 @@ exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDeta
       }
 
       if (tripDetail?.customerDetails?.email) {
-        this.sendBookingConfirmationEmail(tripDetail);
+        // this.sendBookingConfirmationEmail(tripDetail);
       }
 
   } catch (error) {
@@ -2583,129 +2583,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
                       </tr>`
     }
 
-   const bodyHtml =  `
-                       <style>
-                        body {
-                          font-family: Arial, sans-serif;
-                          color: #333;
-                          padding: 20px;
-                        }
-                        .container {
-                          max-width: 600px;
-                          margin: auto;
-                          border: 1px solid #ddd;
-                          padding: 20px;
-                          border-radius: 8px;
-                        }
-                        .header {
-                          padding: 20px;
-                          text-align: left;
-                        }
-                        .logo {
-                          height: 40px;
-                        }
-                        h2 {
-                          color: #007BFF;
-                        }
-                        table {
-                          width: 100%;
-                          margin-top: 20px;
-                          border-collapse: collapse;
-                        }
-                        td {
-                          padding: 8px 0;
-                        }
-                        .footer {
-                          margin-top: 30px;
-                          font-size: 14px;
-                          color: #555;
-                        }
-                      </style>
-                      <div class="container">
-
-                      <div class="header">
-                        <img class="logo" src="${companyDetails?.logo}" alt="${companyAgencyDetails?.company_name}" width="100%" height="300px">
-                      </div>
-                        <h2>Your Order Confirmation: # ${tripDetail?.trip_id}</h2>
-
-                        <p>Dear Sir/Madam <strong>${tripDetail?.customerDetails?.name}</strong>,</p>
-
-                        <p>Your taxi request has been received with the following information:</p>
-
-                        <table>
-                          <tr>
-                            <td><strong>Pick up time:</strong></td>
-                            <td>${pickUpTime} (Time-zone:- ${TimeZoneId})</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Departure location:</strong></td>
-                            <td>${tripDetail?.trip_from?.address}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Arrival location:</strong></td>
-                            <td>${tripDetail?.trip_to?.address}</td>
-                          </tr>
-                          
-                          <tr>
-                            <td><strong>Type of car:</strong></td>
-                            <td>${tripDetail?.car_type} - ${tripDetail?.passengerCount} passengers</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Your taxi fare:</strong></td>
-                            <td>€${totalPrice}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Payment method:</strong></td>
-                            <td>${tripDetail?.pay_option} ${payment_method_price}</td>
-                          </tr>
-
-                          ${childSeatPrice}
-                          ${flighDetail}
-
-                          <tr>
-                            <td><strong>Name client:</strong></td>
-                            <td>${tripDetail?.customerDetails?.name}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Phone number:</strong></td>
-                            <td>${customerPhone}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Email:</strong></td>
-                            <td>${tripDetail?.customerDetails?.email}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Remark for driver:</strong></td>
-                            <td>${tripDetail?.comment}</td>
-                          </tr>
-                        </table>
-
-                        <p class="footer">
-                          This request has been registered with number <strong>${customerPhone}</strong>. <br>
-                          If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
-                        </p>
-
-                        <p>
-                          You can track your trip booking via this link : <a href="${bookingTrackLink}">Track link </a>
-                        </p>
-
-                        <p class="footer">
-                          Kind regards,<br>
-                          <strong>${companyAgencyDetails?.company_name}</strong>
-                        </p>
-                      </div>
-
-
-                    `;
-    let template = ` ${bodyHtml}`
-  
-    var transporter = nodemailer.createTransport(emailConstant.credentials);
-    var mailOptions = {
-                        from: emailConstant.from_email,
-                        to: email,
-                        subject: subject,
-                        html: template
-                      };
+   
 
     let bookingData = {
       trip_id: tripDetail?.trip_id,
@@ -2726,17 +2604,18 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
       driverRemark: tripDetail?.comment,
       companyName: companyAgencyDetails?.company_name,
       companyEmail: companyDetails?.email,
-      companyPhone: companyDetails?.phone,
-      companyLogoUrl: companyAgencyDetails?.logo_url,
+      companyPhone: `${companyDetails?.countryCode}-${companyDetails?.phone}`,
+      companyLogoUrl: companyDetails?.logo,
+      companyAddress: companyAgencyDetails?.house_number+" "+ companyAgencyDetails?.land,
       trackUrl: bookingTrackLink
     }
-    // let sendEmails = await transporter.sendMail(mailOptions);
+
 
     const emailSent = await sendEmail(email, // Receiver email
                                         subject, // Subject
                                         "send_booking_confirmation_email", // Template name (without .ejs extension)
                                         bookingData,
-                                        'nl',
+                                        'en',
                                         []
                                       )
     return emailSent
@@ -3176,7 +3055,7 @@ exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => {
 
   } catch (error) {
 
-    console.error("Error sendBookingUpdateDateTimeEmail:",  error.message);
+    console.error("Error sendBookingUpdateDriverAllocationEmail:",  error.message);
     throw error;
   }
 }
@@ -3203,22 +3082,13 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
-    let driverDetail = ``;
+    let driverName = ``;
 
     if (tripDetail?.driver_name) {
 
       const driverInfo = await driver_model.findById(tripDetail?.driver_name);
-      let driverName = driverInfo?.first_name ? driverInfo?.first_name : ``;
+      driverName = driverInfo?.first_name ? driverInfo?.first_name : ``;
       driverName += driverInfo?.last_name.length > 2 ? ' '+driverInfo?.last_name.slice(0, 2) + "..." : '';
-
-      if (driverName) {
-        driverDetail = `
-                        <tr>
-                          <td><strong>Driver name:</strong></td>
-                          <td>${driverName}</td>
-                        </tr>  
-                      `
-      }
     }
     
  
@@ -3242,115 +3112,44 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
    
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
+    const bookingTrackLink = `${process.env.BASEURL}/booking-details/${tripDetail?._id}/${tripDetail?.created_by_company_id}`
+    
 
-    const bodyHtml =  `
-                       <style>
-                        body {
-                          font-family: Arial, sans-serif;
-                          color: #333;
-                          padding: 20px;
-                        }
-                        .container {
-                          max-width: 600px;
-                          margin: auto;
-                          border: 1px solid #ddd;
-                          padding: 20px;
-                          border-radius: 8px;
-                        }
-                        h2 {
-                          color: #007BFF;
-                        }
-                        table {
-                          width: 100%;
-                          margin-top: 20px;
-                          border-collapse: collapse;
-                        }
-                        td {
-                          padding: 8px 0;
-                        }
-                        .footer {
-                          margin-top: 30px;
-                          font-size: 14px;
-                          color: #555;
-                        }
-                      </style>
-                      <div class="container">
-                        <h2>Trip Update Notification: # ${tripDetail?.trip_id}</h2>
+    let bookingData = {
+      trip_id: tripDetail?.trip_id,
+      customerName: tripDetail?.customerDetails?.name,
+      customerPhone: customerPhone,
+      customerEmail: tripDetail?.customerDetails?.email,
+      pickupTime: pickUpTime,
+      TimeZoneId: TimeZoneId,
+      departure: tripDetail?.trip_from?.address,
+      arrival: tripDetail?.trip_to?.address,
+      carType: tripDetail?.car_type,
+      passengerCount: tripDetail?.passengerCount,
+      fare: totalPrice,
+      paymentOption: tripDetail?.pay_option,
+      paymentMethodPrice: tripDetail?.payment_method_price,
+      childSeat: tripDetail?.child_seat_price,
+      flightNo: tripDetail?.customerDetails?.flightNumber,
+      driverRemark: tripDetail?.comment,
+      companyName: companyAgencyDetails?.company_name,
+      companyEmail: companyDetails?.email,
+      companyPhone: `${companyDetails?.countryCode}-${companyDetails?.phone}`,
+      companyLogoUrl: companyDetails?.logo,
+      companyAddress: companyAgencyDetails?.house_number+" "+ companyAgencyDetails?.land,
+      trackUrl: bookingTrackLink,
+      driverName:driverName
+    }
 
-                        <p>Dear Sir/Madam <strong>${tripDetail?.customerDetails?.name}</strong>,</p>
+    const emailSent = await sendEmail(email, // Receiver email
+                                      subject, // Subject
+                                      "send_booking_update_email", // Template name (without .ejs extension)
+                                      bookingData,
+                                      'en',
+                                      []
+                                    )
 
-                        <p>We want to inform you that your upcoming trip has been updated. Please review the revised trip details below:</p>
-
-                        <table>
-                          <tr>
-                            <td><strong>Pick up time:</strong></td>
-                            <td>${pickUpTime} (Time-zone:- ${TimeZoneId})</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Departure location:</strong></td>
-                            <td>${tripDetail?.trip_from?.address}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Arrival location:</strong></td>
-                            <td>${tripDetail?.trip_to?.address}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Type of car:</strong></td>
-                            <td>${tripDetail?.car_type}  - ${tripDetail?.passengerCount} passengers</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Your taxi fare:</strong></td>
-                            <td>€${totalPrice}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Payment method:</strong></td>
-                            <td>${tripDetail?.pay_option}</td>
-                          </tr>
-                          
-                          <tr>
-                            <td><strong>Name client:</strong></td>
-                            <td>${tripDetail?.customerDetails?.name}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Phone number:</strong></td>
-                            <td>${customerPhone}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Email:</strong></td>
-                            <td>${tripDetail?.customerDetails?.email}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Remark for driver:</strong></td>
-                            <td>${tripDetail?.customerDetails?.name}</td>
-                          </tr>
-
-                          ${driverDetail}
-                        </table>
-
-                        <p class="footer">
-                          This request has been registered with number <strong>${customerPhone}</strong>. <br>
-                          If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
-                        </p>
-
-                        <p class="footer">
-                          Kind regards,<br>
-                          <strong>${companyAgencyDetails?.company_name}</strong>
-                        </p>
-                      </div>
-
-
-                    `;
-    let template = ` ${bodyHtml}`
-  
-    var transporter = nodemailer.createTransport(emailConstant.credentials);
-    var mailOptions = {
-                        from: emailConstant.from_email,
-                        to: email,
-                        subject: subject,
-                        html: template
-                      };
-    let sendEmail = await transporter.sendMail(mailOptions);
-    return sendEmail
+    return emailSent
 
   } catch (error) {
 
