@@ -2,6 +2,13 @@ const nodemailer = require("nodemailer");
 const emailConstant = require("../config/emailConstant");
 var path = require("path");
 const ejs = require("ejs");
+const sendGrid = require('@sendgrid/mail');
+const juice = require('juice');
+const { htmlToText } = require('html-to-text');
+const key = (process.env.SEND_GRID_EMAIL_API_KEY || '').trim(); // <- trim
+if (!key || !key.startsWith('SG.')) throw new Error('Bad/missing SEND_GRID_EMAIL_API_KEY');
+sendGrid.setApiKey(key);
+
 
 // Configure your email transport
 const transporter = nodemailer.createTransport(emailConstant.credentials);
@@ -26,9 +33,24 @@ async function sendEmail(to, subject, templateName, data, language = "nl" ,attac
         if (attachments && attachments.length > 0) {
             mailOptions.attachments = attachments;
         }
-
+        console.log('process.env.SEND_GRID_EMAIL_API_KEY---------' , process.env.SEND_GRID_EMAIL_API_KEY)
+        console.log('process.env.NO_REPLY_EMAIL---------' , process.env.NO_REPLY_EMAIL)
+        console.log('process.env.NO_REPLY_EMAIL_USERNAME---------' , process.env.NO_REPLY_EMAIL_USERNAME)
         // Send email
-        const info = await transporter.sendMail(mailOptions);
+        // 1) Inline CSS
+        const htmlInlined = juice(htmlContent);
+
+        // 2) Plain-text fallback
+        const textFallback = htmlToText(htmlInlined, { wordwrap: 120 });
+        const info =     sendGrid.send({
+                                                to: to,
+                                                from: { email: process.env.NO_REPLY_EMAIL, name: process.env.NO_REPLY_EMAIL_USERNAME },
+                                                subject: subject,
+                                                html: htmlInlined,
+                                                text: textFallback,
+                                            }).then(() => console.log('Sent ✅'))
+  .catch(e => console.error(e.response?.statusCode, e.response?.body || e))
+        // const info = await transporter.sendMail(mailOptions);
         console.log("Email sent: " + info.response);
         return info
     } catch (error) {
