@@ -1641,7 +1641,28 @@ exports.passwordResetOtpEmail = async (info , otp) => {
                                         'en', //  for lanuguage
                                         [] // for attachment
                                       );
+    return emailSent
+}
 
+exports.driverDocumentRejectionEmail = async (driverInfo) => {
+
+
+    let subject = `Important: Your Document Submission Has Been Rejected`;
+    const data = {
+      userName: `${driverInfo.first_name} ${driverInfo.last_name}`,
+      email: driverInfo.email,
+      baseUrl: process.env.BASEURL,
+      supportEmail: process.env.SUPPORT_EMAIL
+    }
+
+    const emailSent = await sendEmail(
+                                        driverInfo.email, // Receiver email
+                                        subject, // Subject
+                                        "driver-document-rejection", // Template name (without .ejs extension)
+                                        data,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
     return emailSent
 }
 

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentverificatie Mislukt</title>
+</head>
+
+<body style="margin:0; padding:0; font-family: Arial, Helvetica, sans-serif; background:#f4f7fa; color:#444;">
+
+    <table align="center" cellpadding="0" cellspacing="0" width="600"
+        style="margin:30px auto; border-radius:10px; overflow:hidden; box-shadow:0px 2px 8px rgba(0,0,0,0.15); background:#fff;">
+        <tbody>
+
+            <!-- Header -->
+            <tr>
+                <td align="center" bgcolor="#d9534f"
+                    style="padding:20px; color:#fff; font-size:22px; font-weight:bold;">
+                    iDispatch - Documentverificatie Mislukt
+                </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+                <td style="padding:30px; font-size:15px; line-height:1.6; color:#444;">
+                    <p style="margin:0 0 15px;">Hallo <strong>
+                            <%= userName %>
+                        </strong>,</p>
+
+                    <p style="margin:0 0 15px;">
+                        Helaas moeten wij u informeren dat de documenten die u heeft aangeleverd voor de verificatie van
+                        uw chauffeursprofiel niet aan onze vereisten voldoen. Hierdoor kon de verificatie niet worden
+                        voltooid.
+                    </p>
+
+                    <p style="margin:0 0 15px;">
+                        Om verder te gaan, logt u alstublieft in op uw account en upload de correcte en geldige
+                        documenten.
+                        Zorg ervoor dat de bestanden duidelijk, actueel en conform de vereiste criteria zijn.
+                    </p>
+
+                    <!-- Call to Action Button -->
+                    <p style="text-align:center; margin:25px 0;">
+                        <a href="<%= baseUrl %>/login"
+                            style="background:#d9534f; color:#fff; padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">
+                            Documenten Opnieuw Verzenden
+                        </a>
+                    </p>
+
+                    <p style="margin:0 0 15px;">
+                        Als u denkt dat dit een fout is of verdere begeleiding nodig heeft, neem dan contact op met ons
+                        supportteam voor hulp.
+                    </p>
+                </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+                <td align="center" bgcolor="#f1f1f1" style="padding:15px; font-size:12px; color:#888;">
+                    &copy; <%= new Date().getFullYear() %> iDispatch. Alle rechten voorbehouden.
+                        <br />
+                        Hulp nodig? Neem contact op via
+                        <a href="mailto:<%= supportEmail %>" style="color:#d9534f; text-decoration:none;">
+                            <%= supportEmail %>
+                        </a>.
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</body>
+
+</html>
