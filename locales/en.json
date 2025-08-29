@@ -51,6 +51,7 @@
         },
         "success": {
             "otpSentToContact": "A One-Time Password (OTP) has been sent to your registered contact.",
+            "otpSentToEmail": "The verification code has been sent to your registered email address.",
             "otpSent": "The verification code has been sent to your registered contact."
         }
     },

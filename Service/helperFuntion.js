@@ -1621,6 +1621,30 @@ exports.driverDocumentVerifiedEmail = async (driverInfo) => {
     return emailSent
 }
 
+exports.passwordResetOtpEmail = async (info , otp) => {
+
+
+    let subject = `Password Reset Code – iDispatch`;
+    const data = {
+      userName: `${info.first_name} ${info.last_name}`,
+      email: info.email,
+      otp: otp,
+      // baseUrl: process.env.BASEURL,
+      supportEmail: process.env.SUPPORT_EMAIL
+    }
+
+    const emailSent = await sendEmail(
+                                        info.email, // Receiver email
+                                        subject, // Subject
+                                        "password-reset-otp", // Template name (without .ejs extension)
+                                        data,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
+
+    return emailSent
+}
+
 exports.notifyPayoutPaid = async (userInfo , tripDetails , payoutDetails) => {
 
   

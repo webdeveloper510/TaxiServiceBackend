@@ -51,6 +51,7 @@
     },
     "success": {
       "otpSentToContact": "Een eenmalig wachtwoord (OTP) is verzonden naar uw geregistreerde contact.",
+      "otpSentToEmail": "De verificatiecode is verzonden naar uw geregistreerde e-mailadres.",
       "otpSent": "De verificatiecode is verzonden naar uw geregistreerde contact."
     }
   },
