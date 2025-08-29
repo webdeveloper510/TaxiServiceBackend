@@ -12,7 +12,13 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { sendEmailDriverCreation , getUserActivePaidPlans  , sendAccountDeactivationEmail , sendAccountReactivationEmail} = require("../../Service/helperFuntion");
+const { 
+  sendEmailDriverCreation , 
+  getUserActivePaidPlans  , 
+  sendAccountDeactivationEmail , 
+  sendAccountReactivationEmail,
+  driverDocumentSubmissionEmail
+} = require("../../Service/helperFuntion");
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -371,18 +377,18 @@ exports.adminAddDriver = async (req, res) => {
     let customer = await stripe.customers.list({ email: data.email });
     const userFormattedAddress = `${data?.address_1} ${data?.address_2} , ${data?.post_code}`;
     const stripeUserData = { 
-                                                  name: data?.companyName,
-                                                  email: data.email,
-                                                  address: {
-                                                            line1: userFormattedAddress,
-                                                            postal_code: data?.post_code,
-                                                            city: data?.city,
-                                                            country: data?.country
-                                                          }, 
-                                                          metadata: {
-                                                                      person_name: `${data?.first_name} ${data?.last_name}`
-                                                                    }
+                              name: data?.companyName,
+                              email: data.email,
+                              address: {
+                                        line1: userFormattedAddress,
+                                        postal_code: data?.post_code,
+                                        city: data?.city,
+                                        country: data?.country
+                                      }, 
+                                      metadata: {
+                                                  person_name: `${data?.first_name} ${data?.last_name}`
                                                 }
+                            }
     // const getAddressData = await getCityAndCountry(userFormattedAddress);
     // const city = getAddressData?.city ? getAddressData?.city : '';
     // const country = getAddressData?.city ? getAddressData?.country : '';
@@ -1198,143 +1204,145 @@ exports.update_driver = async (req, res) => {
 
       if (updatedDriver) {
         if (req.body.isDocUploaded || (existingDriver.driver_documents == '' && updatedDriver.driver_documents != '' && (req.user.role == constant.ROLES.SUPER_ADMIN || req.user.role == constant.ROLES.ADMIN))) {
-          var transporter = nodemailer.createTransport( emailConstant.credentials );
-          var mailOptions = {
-            from: emailConstant.from_email,
-            to: updatedDriver.email,
-            subject: "Welcome mail",
-            html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-              "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-              <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>PropTech Kenya Welcome Email</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
-                @import url(https://fonts.googleapis.com/css?family=Nunito);
+          // var transporter = nodemailer.createTransport( emailConstant.credentials );
 
-                /* Take care of image borders and formatting */
+          driverDocumentSubmissionEmail(existingDriver)
+          // var mailOptions = { 
+          //   from: emailConstant.from_email,
+          //   to: updatedDriver.email,
+          //   subject: "Welcome mail",
+          //   html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          //     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+          //     <html xmlns="http://www.w3.org/1999/xhtml"><head><meta content="text/html; charset=utf-8" http-equiv="Content-Type"><meta content="width=device-width, initial-scale=1" name="viewport"><title>PropTech Kenya Welcome Email</title><!-- Designed by https://github.com/kaytcat --><!-- Robot header image designed by Freepik.com --><style type="text/css">
+          //       @import url(https://fonts.googleapis.com/css?family=Nunito);
 
-                img {
-                  max-width: 600px;
-                  outline: none;
-                  text-decoration: none;
-                  -ms-interpolation-mode: bicubic;
-                }
-                html{
-                  margin: 0;
-                  padding:0;
-                }
+          //       /* Take care of image borders and formatting */
 
-                a {
-                  text-decoration: none;
-                  border: 0;
-                  outline: none;
-                  color: #bbbbbb;
-                }
+          //       img {
+          //         max-width: 600px;
+          //         outline: none;
+          //         text-decoration: none;
+          //         -ms-interpolation-mode: bicubic;
+          //       }
+          //       html{
+          //         margin: 0;
+          //         padding:0;
+          //       }
 
-                a img {
-                  border: none;
-                }
+          //       a {
+          //         text-decoration: none;
+          //         border: 0;
+          //         outline: none;
+          //         color: #bbbbbb;
+          //       }
 
-                /* General styling */
+          //       a img {
+          //         border: none;
+          //       }
 
-                td, h1, h2, h3  {
-                  font-family: Helvetica, Arial, sans-serif;
-                  font-weight: 400;
-                }
+          //       /* General styling */
 
-                td {
-                  text-align: center;
-                }
+          //       td, h1, h2, h3  {
+          //         font-family: Helvetica, Arial, sans-serif;
+          //         font-weight: 400;
+          //       }
 
-                body {
-                  -webkit-font-smoothing:antialiased;
-                  -webkit-text-size-adjust:none;
-                  width: 100%;
-                  height: 100%;
-                  color: #666;
-                  background: #fff;
-                  font-size: 16px;
-                  width: 100%;
-                  padding: 0px;
-                  margin: 0px;
-                }
+          //       td {
+          //         text-align: center;
+          //       }
 
-                 table {
-                  border-collapse: collapse !important;
-                }
+          //       body {
+          //         -webkit-font-smoothing:antialiased;
+          //         -webkit-text-size-adjust:none;
+          //         width: 100%;
+          //         height: 100%;
+          //         color: #666;
+          //         background: #fff;
+          //         font-size: 16px;
+          //         width: 100%;
+          //         padding: 0px;
+          //         margin: 0px;
+          //       }
 
-                .headline {
-                  color: #444;
-                  font-size: 36px;
-                      padding-top: 10px;
-                }
+          //        table {
+          //         border-collapse: collapse !important;
+          //       }
 
-               .force-full-width {
-                width: 100% !important;
-               }
+          //       .headline {
+          //         color: #444;
+          //         font-size: 36px;
+          //             padding-top: 10px;
+          //       }
 
-                </style><style media="screen" type="text/css">
-                    @media screen {
-                      td, h1, h2, h3 {
-                        font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
-                      }
-                    }
-                </style><style media="only screen and (max-width: 480px)" type="text/css">
-                  /* Mobile styles */
-                  @media only screen and (max-width: 480px) {
+          //      .force-full-width {
+          //       width: 100% !important;
+          //      }
 
-                    table[class="w320"] {
-                      width: 320px !important;
-                    }
-                  }
-                </style>
-                <style type="text/css"></style>
+          //       </style><style media="screen" type="text/css">
+          //           @media screen {
+          //             td, h1, h2, h3 {
+          //               font-family: 'Nunito', 'Helvetica Neue', 'Arial', 'sans-serif' !important;
+          //             }
+          //           }
+          //       </style><style media="only screen and (max-width: 480px)" type="text/css">
+          //         /* Mobile styles */
+          //         @media only screen and (max-width: 480px) {
 
-                </head>
-                <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
-              <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style=" margin-top: 30px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%); background:#ccc; ">
-              <tbody><tr>
-              <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
-              <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
-              <tbody><tr>
-              <td align="center" class="" valign="top">
-              <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
-              <tbody style="margin-top: 5px;">
-                <tr class="" style="border-bottom: 1px solid #cccccc38;">
-              <td class="">
-              </td>
-              </tr>
-              <tr class=""><td class="headline">${res.__('updateDriver.success.emailDocumentUnderReviewConetnt.welcomeToIDispatch')}</td></tr>
-              <tr>
-              <td>
-              <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
-              <td class="" style="color:#444; font-weight: 400;"><br>
-              <br><br>
-              ${res.__('updateDriver.success.emailDocumentUnderReviewConetnt.driverRegistrationUnderReview')}
-              <br>
-               <br>
-                Your login credentials are provided below:
-              <br>
-              <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${updatedDriver?.email}</span>
-               <br>
-              <br><br>
-              <br></td>
-              </tr>
-              </tbody></table></center>
-              </td>
-              </tr>
-              <tr>
-              <td class="">
-              <div class="">
-              <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.FRONTEND_URL}/login">${res.__('updateDriver.success.emailDocumentUnderReviewConetnt.visitAccountAndManage')}</a>
-              </div>
-               <br>
-              </td>
-              </tr>
-              </tbody>
+          //           table[class="w320"] {
+          //             width: 320px !important;
+          //           }
+          //         }
+          //       </style>
+          //       <style type="text/css"></style>
 
-              </table>
-              </body></html>`,
-          };
+          //       </head>
+          //       <body bgcolor="#fff" class="body" style="padding:0px; margin:0; display:block; background:#fff;">
+          //     <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style=" margin-top: 30px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%); background:#ccc; ">
+          //     <tbody><tr>
+          //     <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
+          //     <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
+          //     <tbody><tr>
+          //     <td align="center" class="" valign="top">
+          //     <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
+          //     <tbody style="margin-top: 5px;">
+          //       <tr class="" style="border-bottom: 1px solid #cccccc38;">
+          //     <td class="">
+          //     </td>
+          //     </tr>
+          //     <tr class=""><td class="headline">${res.__('updateDriver.success.emailDocumentUnderReviewConetnt.welcomeToIDispatch')}</td></tr>
+          //     <tr>
+          //     <td>
+          //     <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
+          //     <td class="" style="color:#444; font-weight: 400;"><br>
+          //     <br><br>
+          //     ${res.__('updateDriver.success.emailDocumentUnderReviewConetnt.driverRegistrationUnderReview')}
+          //     <br>
+          //      <br>
+          //       Your login credentials are provided below:
+          //     <br>
+          //     <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${updatedDriver?.email}</span>
+          //      <br>
+          //     <br><br>
+          //     <br></td>
+          //     </tr>
+          //     </tbody></table></center>
+          //     </td>
+          //     </tr>
+          //     <tr>
+          //     <td class="">
+          //     <div class="">
+          //     <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.FRONTEND_URL}/login">${res.__('updateDriver.success.emailDocumentUnderReviewConetnt.visitAccountAndManage')}</a>
+          //     </div>
+          //      <br>
+          //     </td>
+          //     </tr>
+          //     </tbody>
 
-          await transporter.sendMail(mailOptions);
+          //     </table>
+          //     </body></html>`,
+          // };
+
+          // await transporter.sendMail(mailOptions);
         }
 
         let successMessage = "";
