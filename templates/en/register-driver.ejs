@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Complete Your Driver Registration</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; background-color: #f4f7fa; padding: 30px; margin: 0;">
+    <div
+        style="max-width: 650px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <h2 style="color: #1a73e8; text-align: center; margin-bottom: 20px;">
+            🚀 Just One Step Away From Becoming a Verified Driver!
+        </h2>
+
+        <!-- Greeting -->
+        <p style="font-size: 16px; color: #333;">
+            Dear <strong>
+                <%= driverName %>
+            </strong>,
+        </p>
+
+        <!-- Body -->
+        <p style="font-size: 15px; color: #555; line-height: 1.6;">
+            Thank you for beginning your journey with <strong>iDispatch Mobility</strong>.
+            We’ve successfully received your profile details and you’re almost ready to get started.
+        </p>
+
+        <p style="font-size: 15px; color: #555; line-height: 1.6;">
+            To complete your registration and start accepting trips, please upload the following documents and provide
+            your address details:
+        </p>
+
+        <!-- Checklist -->
+        <div style="background: #f9fbfd; border: 1px solid #e0e6ed; border-radius: 8px; padding: 15px; margin: 20px 0;">
+            <ul style="list-style: none; padding: 0; margin: 0; color: #444; font-size: 15px;">
+                <!-- <li>✅ Government-issued ID</li> -->
+                <li>✅ Driving License</li>
+                <li>✅ KVK Number</li>
+                <li>✅ VAT Number</li>
+                <li>✅ Full Address (Country, City, Street)</li>
+            </ul>
+        </div>
+
+        <!-- CTA -->
+        <!-- <p style="text-align: center; margin: 30px 0;">
+            <a href="<%= process.env.APP_URL %>/driver-login"
+                style="background: #1a73e8; color: #fff; padding: 12px 25px; font-size: 16px; font-weight: bold; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Complete Registration
+            </a>
+        </p> -->
+
+        <!-- Support -->
+        <p style="font-size: 14px; color: #777; text-align: center; margin-top: 20px;">
+            Need help? Contact us anytime at
+            <a href="mailto:<%= supportEmail %>" style="color: #1a73e8; text-decoration: none;">
+                <%= supportEmail %>
+            </a>
+        </p>
+
+        <!-- Footer -->
+        <p style="font-size: 14px; color: #555; margin-top: 40px;">
+            We’re thrilled to welcome you to the <strong>iDispatch Mobility</strong> community.
+            Let’s get you on the road and earning! 🚖
+        </p>
+
+        <p style="font-size: 14px; color: #333;">
+            Best regards,<br />
+            <strong>The iDispatch Mobility Team</strong>
+        </p>
+    </div>
+</body>
+
+</html>

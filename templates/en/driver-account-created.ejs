@@ -1,0 +1,66 @@
+<table align="center" cellpadding="0" cellspacing="0" width="600"
+    style="margin:30px auto; border-radius:10px; box-shadow:0px 1px 6px rgba(0,0,0,0.2); background:#ffffff; font-family:Arial, Helvetica, sans-serif; color:#444;">
+    <tbody>
+        <tr>
+            <td align="center" bgcolor="#0682ca"
+                style="border-radius:10px 10px 0 0; padding:20px; color:#fff; font-size:22px; font-weight:bold;">
+                Welcome to iDispatch!
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding:30px;">
+                <p style="font-size:16px; margin:0 0 15px;">Hi <%= driverName %>,</p>
+
+                <p style="font-size:15px; line-height:1.6; margin:0 0 15px;">
+                    We’re excited to have you onboard with <strong>iDispatch</strong>.
+                    Your driver profile has been created successfully, and you’re now ready to start accepting rides and
+                    earning with ease.
+                </p>
+
+                <p style="font-size:15px; line-height:1.6; margin:0 0 20px;">
+                    Here are your login credentials:
+                </p>
+
+                <table cellpadding="6" cellspacing="0" width="100%"
+                    style="background:#f7f7f7; border-radius:6px; margin-bottom:20px;">
+                    <tr>
+                        <td style="font-weight:bold; width:120px;">Email:</td>
+                        <td>
+                            <%= driverEmail %>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold;">Password:</td>
+                        <td>
+                            <%= randomPasword %>
+                        </td>
+                    </tr>
+                </table>
+
+                <center>
+                    <a href="<%= baseUrl %>/login"
+                        style="background:#0682ca; border-radius:6px; color:#fff; display:inline-block; font-size:16px; font-weight:600; padding:14px 28px; text-decoration:none;">
+                        Visit Account & Start Driving
+                    </a>
+                </center>
+
+                <p style="font-size:14px; line-height:1.6; margin:25px 0 0;">
+                    Your password has been automatically generated. For security, we recommend updating it from your
+                    account settings once you log in.
+                </p>
+
+                <p style="font-size:14px; margin:15px 0 0;">
+                    Drive safe, and welcome again to the iDispatch community!
+                </p>
+            </td>
+        </tr>
+
+        <tr>
+            <td align="center" bgcolor="#f1f1f1"
+                style="border-radius:0 0 10px 10px; padding:15px; font-size:12px; color:#888;">
+                &copy; <%= new Date().getFullYear() %> iDispatch. All rights reserved.
+            </td>
+        </tr>
+    </tbody>
+</table>

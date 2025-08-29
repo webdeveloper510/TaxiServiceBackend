@@ -161,7 +161,7 @@ exports.add_driver = async (req, res) => {
 
       console.log('driver created------')
       // mail
-      let sendEmail = await sendEmailDriverCreation(save_driver , null);
+      sendEmailDriverCreation(save_driver , null);
       return res.send({
                         code: constant.success_code,
                         message: res.__('addDriver.success.driverCreated'),
@@ -171,10 +171,10 @@ exports.add_driver = async (req, res) => {
     }
   } catch (err) {
     console.log("🚀 ~ driverUpload ~ err:", err);
-    res.send({
-      code: constant.error_code,
-      message: err.message,
-    });
+    return res.send({
+                    code: constant.error_code,
+                    message: err.message,
+                  });
   }
   // })
 };

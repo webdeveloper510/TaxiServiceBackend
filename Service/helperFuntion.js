@@ -1294,7 +1294,7 @@ exports.sendPaymentFailEmail = async (subsctiptionId , reseon) => {
                             </span>
                             <br><br>
                             <span>
-                              If you have any questions or require assistance during this process, please do not hesitate to reach out to our support team at  <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>. We are here to help!
+                              If you have any questions or require assistance during this process, please do not hesitate to reach out to our support team at  <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>. We are here to help!
                             </span>
                             <br><br>
 
@@ -1474,115 +1474,105 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
   if (randomPasword ) {
 
     subject = `Welcome mail`;
-    bodyHtml =  `
-                <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="margin-top: 30px;margin-bottom: 10px;border-radius: 10px;box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);background:#ccc;">
-                <tbody><tr>
-                <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
-                <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
-                <tbody><tr>
-                <td align="center" class="" valign="top">
-                <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
-                <tbody style="margin-top: 5px;">
-                  <tr class="" style="border-bottom: 1px solid #cccccc38;">
-                <td class="">
-                </td>
-                </tr>
-                <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
-                <tr>
-                <td>
-                <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
-                <td class="" style="color:#444; font-weight: 400;"><br>
-                <br><br>
-                Welcome to iDispatch!
+    const driverData = {
+      driverName: `${driverInfo.first_name} ${driverInfo.last_name}`,
+      driverEmail: driverInfo.email,
+      randomPasword:randomPasword,
+      baseUrl: process.env.BASEURL,
+      supportEmail: process.env.SUPPORT_EMAIL
+    }
 
-                You have successfully been registered to use iDispatch.
-                <br>
-                  Your login credentials are provided below:
-                <br>
-                <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${driverInfo.email}</span>
-                <br>
-                <span style="font-weight:bold;">Password: &nbsp;</span><span style="font-weight:lighter;" class="">${randomPasword}</span>
+    const emailSent = await sendEmail(
+                                        driverInfo.email, // Receiver email
+                                        subject, // Subject
+                                        "driver-account-created", // Template name (without .ejs extension)
+                                        driverData,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
+    return emailSent
+    // bodyHtml =  `
+    //             <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="margin-top: 30px;margin-bottom: 10px;border-radius: 10px;box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);background:#ccc;">
+    //             <tbody><tr>
+    //             <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
+    //             <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
+    //             <tbody><tr>
+    //             <td align="center" class="" valign="top">
+    //             <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
+    //             <tbody style="margin-top: 5px;">
+    //               <tr class="" style="border-bottom: 1px solid #cccccc38;">
+    //             <td class="">
+    //             </td>
+    //             </tr>
+    //             <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
+    //             <tr>
+    //             <td>
+    //             <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
+    //             <td class="" style="color:#444; font-weight: 400;"><br>
+    //             <br><br>
+    //             Welcome to iDispatch!
+
+    //             You have successfully been registered to use iDispatch.
+    //             <br>
+    //               Your login credentials are provided below:
+    //             <br>
+    //             <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${driverInfo.email}</span>
+    //             <br>
+    //             <span style="font-weight:bold;">Password: &nbsp;</span><span style="font-weight:lighter;" class="">${randomPasword}</span>
                 
-                <br><br>
-                <br></td>
-                </tr>
-                </tbody></table></center>
-                </td>
-                </tr>
-                <tr>
-                <td class="">
-                <div class="">
-                <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.BASEURL}/login">Visit Account and Start Managing</a>
-                </div>
-                <br>
+    //             <br><br>
+    //             <br></td>
+    //             </tr>
+    //             </tbody></table></center>
+    //             </td>
+    //             </tr>
+    //             <tr>
+    //             <td class="">
+    //             <div class="">
+    //             <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.BASEURL}/login">Visit Account and Start Managing</a>
+    //             </div>
+    //             <br>
 
-                <p>
-                  Your password has been automatically generated. However, you may update it at any time from your account settings.
-                </p>
-                </td>
-                </tr>
-                </tbody>
+    //             <p>
+    //               Your password has been automatically generated. However, you may update it at any time from your account settings.
+    //             </p>
+    //             </td>
+    //             </tr>
+    //             </tbody>
 
-                  </table>
-              `;
+    //               </table>
+    //           `;
   } else {
     
     subject = `Complete Your Driver Registration`;
-    bodyHtml =  `<!DOCTYPE html>
-                  <html>
-                    <head>
-                      <meta charset="UTF-8" />
-                      <title>Complete Your Driver Registration</title>
-                    </head>
-                    <body style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px; margin: 0;">
-                      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1);">
-                        <h2 style="color: #2c3e50;">Complete Your Driver Registration – Just One Step Left!</h2>
-                        <p>Dear <strong> ${driverInfo.first_name} ${driverInfo.last_name} </strong>,</p>
 
-                        <p>Thank you for starting your registration with us!</p>
-
-                        <p>We’ve successfully received your basic details including your name, email, and profile information.</p>
-
-                        <p>
-                          To complete your driver registration and get started, please upload the required documents and provide your address details:
-                        </p>
-
-                        <ul>
-                          <li>✅ Government-issued ID</li>
-                          <li>✅ Driving License</li>
-                          <li>✅ KVK Number</li>
-                          <li>✅ VAT Number</li>
-                          <li>✅ Driving License</li>
-                          <li>✅ Country, City, and Full Address</li>
-                        </ul>
-
-                        <p style="margin-top: 20px;">
-                          You can complete this step by logging into your account using the link below:
-                        </p>
-
-                        <p>If you have any questions or need assistance, feel free to contact us at <a href="mailto:[support email]">${process.env.SUPPORT_EMIAL}</a>.</p>
-
-                        <p style="margin-top: 30px;">We’re excited to have you on board!</p>
-
-                        <p>Best regards,<br />
-                        <strong>Idispatch Mobility</strong> Team</p>
-                      </div>
-                    </body>
-                  </html>
-                  `;
+    const driverData = {
+                          driverName: `${driverInfo.first_name} ${driverInfo.last_name}`,
+                          supportEmail: process.env.SUPPORT_EMAIL
+                        }
+   
+    const emailSent = await sendEmail(
+                                        driverInfo.email, // Receiver email
+                                        subject, // Subject
+                                        "register-driver", // Template name (without .ejs extension)
+                                        driverData,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
+    return emailSent;
   }
   
-  let template = ` ${bodyHtml}`
+  // let template = ` ${bodyHtml}`
 
-  var transporter = nodemailer.createTransport(emailConstant.credentials);
-  var mailOptions = {
-                      from: emailConstant.from_email,
-                      to: driverInfo.email,
-                      subject: `Welcome mail`,
-                      html: `${await this.emailHeader()} ${template} ${await this.emailFooter()}`,
-                    };
-  let sendEmail = await transporter.sendMail(mailOptions);
-  return sendEmail
+  // var transporter = nodemailer.createTransport(emailConstant.credentials);
+  // var mailOptions = {
+  //                     from: emailConstant.from_email,
+  //                     to: driverInfo.email,
+  //                     subject: `Welcome mail`,
+  //                     html: `${await this.emailHeader()} ${template} ${await this.emailFooter()}`,
+  //                   };
+  // let sendEmail = await transporter.sendMail(mailOptions);
+  // return sendEmail
 }
 
 exports.notifyPayoutPaid = async (userInfo , tripDetails , payoutDetails) => {
@@ -1979,7 +1969,7 @@ exports.informUserSubscriptionCanceledDueToBlock = async (subsctiptionId) => {
                           </ul>
 
                           <br><br>
-                          If you believe this action was taken in error or require further clarification, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.
+                          If you believe this action was taken in error or require further clarification, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.
                           <br><br>
                           Best regards,
                           Idispatch Mobility Team
@@ -2034,7 +2024,7 @@ exports.notifyUserAccountBlocked = async (userInfo) => {
                           </ul>
 
                           <br><br>
-                          If you believe this action was taken in error or require further clarification, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.
+                          If you believe this action was taken in error or require further clarification, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.
                           <br><br>
                           Best regards,
                           Idispatch Mobility Team
@@ -2089,7 +2079,7 @@ exports.notifyUserAccountReactivated = async (userInfo) => {
                           </ul>
 
                           <br><br>
-                          If you believe this action was taken in error or require further clarification, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.
+                          If you believe this action was taken in error or require further clarification, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.
                           <br><br>
                           Best regards,
                           Idispatch Mobility Team
@@ -2313,7 +2303,7 @@ exports.notifyInsufficientBalance = async () => {
                             <h2>Dear <span  style="color: #333;">Admin </span>,</h2>
                             <p>We hope this email finds you well.</p>
                             <p>We attempted to process a payout, but it could not be completed due to <b>insufficient balance</b> in your account. Please ensure that you have sufficient funds available to proceed with the transaction.</p>
-                            <p>To avoid any service disruptions, please deposit the required amount and retry the transaction. If you need assistance, feel free to contact our support team <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.</p>
+                            <p>To avoid any service disruptions, please deposit the required amount and retry the transaction. If you need assistance, feel free to contact our support team <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.</p>
                             <p>Best regards, <br><strong>Idispatch Mobility</strong></p>
                         </div>
                     `;
@@ -2356,7 +2346,7 @@ exports.sendAccountDeactivationEmail = async (userInfo) => {
                         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                           <h2>Dear <span  style="color: #333;">${userDetail?.first_name} ${userDetail?.last_name} </span>,</h2>
                           <p>We would like to inform you that administrative action has been taken on your ${userDetail?.role} account ( <b>${userDetail?.email} </b>), and access has been disabled by an authorized administrator.</p>
-                          <p>If you have any questions regarding this change or believe this was done in error, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.</p>
+                          <p>If you have any questions regarding this change or believe this was done in error, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.</p>
                           <p>We appreciate your understanding.</p><p>Best regards, <br><strong>Idispatch Mobility</strong></p>
                         </div>
                     `;
@@ -2400,7 +2390,7 @@ exports.sendAccountReactivationEmail = async (userInfo) => {
                           <p>We wanted to let you know that your ${userDetail?.role} account has been successfully reactivated by our admin team.</p>
                           <p>You can now log in and continue using our services as usual.</p>
                           <br>
-                          <p>If you have any questions, feel free to reach out to our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.</p>
+                          <p>If you have any questions, feel free to reach out to our support team at <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.</p>
                           <p>Best regards, 
                           <br>
                           <strong>Idispatch Mobility</strong></p>
@@ -3284,7 +3274,7 @@ exports.informCustomerDriverOnTheWay = async (tripDetail) => {
                             <p>Please be ready at your pickup location.</p>
                             <p>Thank you for choosing <strong>${companyAgencyDetails?.company_name}</strong>!</p>
                             <br>
-                            <p style="color: #555;">Need help? Contact our support team at <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a>.</p>
+                            <p style="color: #555;">Need help? Contact our support team at <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.</p>
                           </td>
                         </tr>
                         
@@ -3375,7 +3365,7 @@ exports.notifyLowSmsBalance = async (userDetails) => {
 
                           <p>Best regards,<br/>
                           <strong>Idispatch Mobility</strong><br/>
-                          <a href="mailto: ${process.env.SUPPORT_EMIAL}"> ${process.env.SUPPORT_EMIAL}</a></p>
+                          <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a></p>
 
                           <div class="footer">
                             This is an automated message. Please do not reply directly to this email.
