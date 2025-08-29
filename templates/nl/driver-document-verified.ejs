@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Account Verified</title>
+    <title>Account Geverifieerd</title>
 </head>
 
 <body style="margin:0; padding:0; background:#f4f6f8; font-family: 'Segoe UI', Tahoma, sans-serif;">
@@ -17,7 +17,7 @@
                     <tr>
                         <td align="center" style="background:#007bff; padding:30px;">
                             <h1 style="margin:0; color:#ffffff; font-size:26px; font-weight:bold;">
-                                ✅ Account Verified
+                                ✅ Account Geverifieerd
                             </h1>
                         </td>
                     </tr>
@@ -25,29 +25,29 @@
                     <!-- Body Content -->
                     <tr>
                         <td style="padding:30px; color:#444; font-size:16px; line-height:1.6;">
-                            <p style="margin:0 0 20px;">Hello <strong>
+                            <p style="margin:0 0 20px;">Hallo <strong>
                                     <%= driverName %>
                                 </strong>,</p>
                             <p style="margin:0 0 20px;">
-                                Congratulations! 🎉 Your documents have been successfully reviewed and
-                                your <strong>driver profile has been verified</strong>.
+                                Gefeliciteerd! 🎉 Uw documenten zijn succesvol beoordeeld en
+                                uw <strong>chauffeursprofiel is geverifieerd</strong>.
                             </p>
                             <p style="margin:0 0 20px;">
-                                You can now log in to your iDispatch account, explore features, and start accepting ride
-                                requests immediately. 🚖
+                                U kunt nu inloggen op uw iDispatch-account, de functies verkennen en direct ritverzoeken
+                                accepteren. 🚖
                             </p>
 
                             <!-- Call to Action -->
                             <div style="text-align:center; margin:30px 0;">
-                                <a href="<%= loginUrl %>"
+                                <a href="<%= baseUrl %>/login"
                                     style="background:#007bff; color:#fff; text-decoration:none; padding:14px 28px; border-radius:8px; font-size:16px; font-weight:500; display:inline-block;">
-                                    Log In & Start Driving
+                                    Log in & Start met Rijden
                                 </a>
                             </div>
 
                             <p style="margin:0; color:#555; font-size:15px;">
-                                We’re excited to have you with us and look forward to your success on the road.
-                                Wishing you safe and profitable rides!
+                                We zijn blij u bij ons te hebben en kijken uit naar uw succes op de weg.
+                                Wij wensen u veilige en winstgevende ritten!
                             </p>
                         </td>
                     </tr>
@@ -62,7 +62,7 @@
                     <!-- Footer -->
                     <tr>
                         <td style="padding:20px 30px; text-align:center; color:#888; font-size:13px;">
-                            © <%= currentYear %> iDispatch Mobility. All rights reserved.
+                            © <%= new Date().getFullYear() %> iDispatch Mobility. Alle rechten voorbehouden.
                         </td>
                     </tr>
 

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Submission Under Review</title>
+    <title>Documenten Ingediend Ter Beoordeling</title>
 </head>
 
 <body style="margin:0; padding:0; background-color:#f4f7fa; font-family: Arial, Helvetica, sans-serif;">
@@ -22,17 +22,17 @@
 
                             <!-- Header -->
                             <h2 style="color:#1a73e8; margin:0 0 15px; font-size:26px; font-weight:700;">
-                                Documents Submitted Successfully
+                                Documenten Succesvol Ingediend
                             </h2>
 
                             <!-- Subheader -->
                             <p style="color:#333; font-size:16px; margin:0 0 25px; line-height:1.6;">
-                                Dear <strong>
+                                Beste <strong>
                                     <%= driverName %>
-                                </strong>,
-                                we’re pleased to inform you that your documents have been successfully uploaded.
-                                Our verification team is currently reviewing them to ensure everything meets our
-                                requirements.
+                                </strong>,<br>
+                                we zijn verheugd u te informeren dat uw documenten succesvol zijn geüpload.
+                                Ons verificatieteam beoordeelt deze momenteel om te verzekeren dat alles aan onze
+                                vereisten voldoet.
                             </p>
 
                             <!-- Info Box -->
@@ -44,9 +44,9 @@
                                                 style="font-weight:normal;">
                                                 <%= driverEmail %>
                                             </span></p>
-                                        <p style="margin:0 0 10px;"><strong>Submitted On:</strong>
+                                        <p style="margin:0 0 10px;"><strong>Ingediend op:</strong>
                                             <span style="font-weight:normal;">
-                                                <%= new Date().toLocaleDateString() %>
+                                                <%= new Date().toLocaleDateString('nl-NL') %>
                                             </span>
                                         </p>
                                     </td>
@@ -57,22 +57,22 @@
                             <!-- <p style="margin:30px 0;">
                                 <a href="<%= process.env.FRONTEND_URL %>/login"
                                     style="background:#1a73e8; color:#ffffff; text-decoration:none; padding:14px 30px; border-radius:6px; font-size:16px; font-weight:bold; display:inline-block;">
-                                    Check Your Application Status
+                                    Bekijk Uw Aanvraagstatus
                                 </a>
                             </p> -->
 
                             <!-- Next Steps -->
                             <p style="color:#555; font-size:15px; line-height:1.6; margin-top:20px;">
-                                Our team typically completes the review soon.
-                                Once your documents are approved, you will be notified, and your driver profile will be
-                                activated.
-                                After activation, you’ll be able to start accepting trips with iDispatch.
+                                Ons team voltooit de beoordeling doorgaans spoedig.
+                                Zodra uw documenten zijn goedgekeurd, wordt u op de hoogte gebracht en wordt uw
+                                chauffeursprofiel geactiveerd.
+                                Na activatie kunt u ritten gaan accepteren met iDispatch.
                             </p>
 
                             <!-- Footer -->
                             <p style="color:#333; font-size:14px; margin-top:30px;">
-                                Best regards,<br />
-                                <strong>The iDispatch Mobility Team</strong>
+                                Met vriendelijke groet,<br />
+                                <strong>Het iDispatch Mobility Team</strong>
                             </p>
                         </td>
                     </tr>
