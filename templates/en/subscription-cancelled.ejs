@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription Cancelled - Idispatch Mobility</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+    <div
+        style="max-width: 600px; margin: 0 auto; padding: 20px; background: #fff6f6; border-radius: 10px; border: 1px solid #ffcccc;">
+
+        <h2 style="color: #d9534f; text-align: center;">⚠️ Your Subscription Has Been Cancelled</h2>
+
+        <p>
+            Dear <%= userName %>,
+        </p>
+
+        <p>
+            We’re sorry to see you go! 💔
+            Your subscription to the <strong>
+                <%= planName %>
+            </strong> plan (Subscription ID: <%= subsctiptionId %>) has been cancelled.
+        </p>
+
+        <h3 style="margin-top: 20px; color: #444;">📌 Cancellation Details</h3>
+        <ul>
+            <li><strong>Subscription ID:</strong>
+                <%= subsctiptionId %>
+            </li>
+            <li><strong>Plan Name:</strong>
+                <%= planName %>
+            </li>
+            <li><strong>Cancellation Date:</strong>
+                <%= cancellationDate %>
+            </li>
+            <li><strong>Access Until:</strong>
+                <%= endPeriod %>
+            </li>
+        </ul>
+
+        <p style="margin-top: 20px;">
+            You will continue to have access to all features of your plan until <strong>
+                <%= endPeriod %>
+            </strong>. After this date, your account will be downgraded to the free plan.
+        </p>
+
+        <p>
+            We truly valued having you as part of the Idispatch Mobility family, and we’d love to welcome you back
+            anytime. 💫
+            If there’s anything we could improve to serve you better, please let us know — your feedback means the world
+            to us. 🙏
+        </p>
+
+        <p>
+            👉 Want to rejoin? You can easily reactivate your subscription at any time by logging into your account.
+        </p>
+
+        <p style="margin-top: 20px;">
+            Wishing you all the best, <br>
+            <strong>The Idispatch Mobility Team</strong>
+        </p>
+
+    </div>
+</body>
+
+</html>

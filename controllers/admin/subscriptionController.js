@@ -12,7 +12,7 @@ const { getUserActivePaidPlans ,
         getConnectedAccountDetails , 
         sendEmailMissingInfoStripeOnboaring ,
         createConnectedAccount , 
-        attachBankAccount , 
+        sendEmailCancelledSubcription , 
         createCustomAccount , 
         stripeOnboardingAccountLink} = require("../../Service/helperFuntion");
 
@@ -771,6 +771,7 @@ exports.createSubscription = async (req, res) => {
 exports.cancelSubscription = async (req, res) => {
 
     try {
+
         
         const subscriptionId = req.body?.subscriptionId || '';
        
@@ -787,7 +788,8 @@ exports.cancelSubscription = async (req, res) => {
                 cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.USER_CANCEL
             }
             await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
-res.__('payment.error.invalidPlan')
+
+            sendEmailCancelledSubcription(subscriptionId);
             return res.send({
                                 code: constant.success_code,
                                 message: res.__('payment.success.subscriptionCancelled')

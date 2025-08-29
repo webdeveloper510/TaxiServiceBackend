@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Abonnement Geactiveerd</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; background-color: #f6f8fa; margin: 0; padding: 20px;">
+
+    <table width="100%" cellspacing="0" cellpadding="0" border="0"
+        style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden;">
+        <tr>
+            <td style="padding: 30px;">
+
+                <!-- Greeting -->
+                <p style="font-size: 16px; color: #333;">
+                    Beste <strong>
+                        <%= userName %>
+                    </strong>,
+                </p>
+
+                <!-- Welcome Text -->
+                <p style="font-size: 15px; line-height: 1.6; color: #555;">
+                    Wij zijn verheugd u te verwelkomen bij <strong>Idispatch Mobility</strong>! 🎉 <br>
+                    Uw abonnement is succesvol geactiveerd en u kunt nu genieten van alle voordelen van uw
+                    <strong>
+                        <%= planName %>
+                    </strong>.
+                </p>
+
+                <!-- Subscription Details Card -->
+                <div
+                    style="background: #f9fafc; border: 1px solid #e0e6ed; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <p style="margin: 0 0 15px; font-size: 16px; font-weight: bold; color: #333;">
+                        📄 Abonnementsgegevens:
+                    </p>
+                    <table width="100%" cellpadding="5" cellspacing="0" style="font-size: 14px; color: #444;">
+                        <tr>
+                            <td width="40%" style="font-weight: bold;">Abonnement ID:</td>
+                            <td>
+                                <%= subsctiptionId %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Plan Naam:</td>
+                            <td>
+                                <%= planName %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Startdatum:</td>
+                            <td>
+                                <%= startPeriod %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Volgende facturatiedatum:</td>
+                            <td>
+                                <%= endPeriod %>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">In rekening gebracht bedrag:</td>
+                            <td>€<%= amount %> + (21% BTW)</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Closing -->
+                <p style="font-size: 15px; line-height: 1.6; color: #555;">
+                    Bedankt dat u heeft gekozen voor <strong>Idispatch Mobility</strong>. <br>
+                    Wij zijn enthousiast om u bij ons te hebben en kijken ernaar uit u een geweldige ervaring te bieden!
+                </p>
+
+                <!-- Signature -->
+                <p style="font-size: 15px; font-weight: bold; color: #333;">
+                    Met vriendelijke groet,<br>
+                    Het Idispatch Mobility Team
+                </p>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>

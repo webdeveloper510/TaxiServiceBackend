@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Abonnement Geannuleerd - Idispatch Mobility</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+    <div
+        style="max-width: 600px; margin: 0 auto; padding: 20px; background: #fff6f6; border-radius: 10px; border: 1px solid #ffcccc;">
+
+        <h2 style="color: #d9534f; text-align: center;">⚠️ Uw abonnement is geannuleerd</h2>
+
+        <p>
+            Beste <%= userName %>,
+        </p>
+
+        <p>
+            Jammer om u te zien vertrekken! 💔
+            Uw abonnement op het <strong>
+                <%= planName %>
+            </strong> pakket (Abonnement ID: <%= subsctiptionId %>) is geannuleerd.
+        </p>
+
+        <h3 style="margin-top: 20px; color: #444;">📌 Annuleringsdetails</h3>
+        <ul>
+            <li><strong>Abonnement ID:</strong>
+                <%= subsctiptionId %>
+            </li>
+            <li><strong>Pakketnaam:</strong>
+                <%= planName %>
+            </li>
+            <li><strong>Annuleringsdatum:</strong>
+                <%= cancellationDate %>
+            </li>
+            <li><strong>Toegang tot:</strong>
+                <%= endPeriod %>
+            </li>
+        </ul>
+
+        <p style="margin-top: 20px;">
+            U behoudt toegang tot alle functies van uw pakket tot <strong>
+                <%= endPeriod %>
+            </strong>. Na deze datum wordt uw account teruggezet naar het gratis abonnement.
+        </p>
+
+        <p>
+            We hebben het erg gewaardeerd dat u deel uitmaakte van de Idispatch Mobility-familie, en we hopen u in de
+            toekomst weer te mogen verwelkomen. 💫
+            Als er iets is dat we kunnen verbeteren om u beter van dienst te zijn, horen wij dat graag — uw feedback is
+            voor ons van groot belang. 🙏
+        </p>
+
+        <p>
+            👉 Wilt u opnieuw lid worden? U kunt uw abonnement op elk moment eenvoudig opnieuw activeren door in te
+            loggen
+            op uw account.
+        </p>
+
+        <p style="margin-top: 20px;">
+            Met vriendelijke groet, <br>
+            <strong>Het Idispatch Mobility Team</strong>
+        </p>
+
+    </div>
+</body>
+
+</html>

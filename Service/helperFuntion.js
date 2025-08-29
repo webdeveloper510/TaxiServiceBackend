@@ -1321,63 +1321,111 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
   let subscriptionDetails = await SUBSCRIPTION_MODEL.findOne({subscriptionId: subsctiptionId}).populate('purchaseByCompanyId').populate('purchaseByDriverId');
   const planDetails = await PLANS_MODEL.findOne({planId:subscriptionDetails?.planId });
   let toEmail = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? subscriptionDetails?.purchaseByCompanyId?.email : subscriptionDetails?.purchaseByDriverId?.email;
-  let UserName = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? `${subscriptionDetails?.purchaseByCompanyId?.first_name } ${subscriptionDetails?.purchaseByCompanyId?.last_name}` : `${subscriptionDetails?.purchaseByDriverId?.first_name } ${subscriptionDetails?.purchaseByDriverId?.last_name}`;
  
-  const currentDate = new Date();
+  let UserName = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? `${subscriptionDetails?.purchaseByCompanyId?.first_name } ${subscriptionDetails?.purchaseByCompanyId?.last_name}` : `${subscriptionDetails?.purchaseByDriverId?.first_name } ${subscriptionDetails?.purchaseByDriverId?.last_name}`;
 
-  // Get day, month, and year
-  const day = String(currentDate.getDate()).padStart(2, '0'); // Add leading zero if needed
-  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based, add 1 and pad
-  const year = String(currentDate.getFullYear()); // Get last two digits of the year
 
-  // Format date as dd mm yy
-  const formattedDate = `${day}-${month}-${year}`;
   const subject = `Welcome to ${UserName} – Subscription Activated`
-  const bodyHtml =  `
-                      <p>
-                          Dear ${UserName},
-                          <br><br>
-                          We are thrilled to welcome you to Idispatch Mobility! Your subscription has been successfully activated, and you can now enjoy all the benefits of your ${planDetails.name}.
-                          
-                          <br><br>
-                          
-                          <span style="font-weight:bold;">Subscription Details:</span>
-                          
-                          <br><br>
+ 
+  
+  let subscriptionData = {
+                          userName: UserName,
+                          planName: planDetails.name, 
+                          subsctiptionId: subsctiptionId,
+                          startPeriod: subscriptionDetails.startPeriod,
+                          endPeriod: subscriptionDetails.endPeriod,
+                          amount: subscriptionDetails.amount.toFixed(2),
+                        }
 
-                          <ul>
-                            <li> <span style="font-weight:bold;">Subscription ID:</span> ${subsctiptionId}</li>
-                            <li> <span style="font-weight:bold;">Plan Name:</span> ${planDetails.name}</li>
-                            <li> <span style="font-weight:bold;">Start Date:</span> ${subscriptionDetails.startPeriod}</li>
-                            <li> <span style="font-weight:bold;">Next Billing Date:</span> ${subscriptionDetails.endPeriod} </li>
-                            <li> <span style="font-weight:bold;">Amount Charged:</span> ${subscriptionDetails.amount.toFixed(2)} + (21% VAT)</li>
-                          </ul>
-
-                          <br><br>
-                          Thank you for choosing Idispatch Mobility. We're excited to have you with us and look forward to delivering an amazing experience!
-
-                          Best regards,
-                          Idispatch Mobility Team
-                      </p>
-                    `;
-  let template = ` ${bodyHtml}`
-
-  var transporter = nodemailer.createTransport(emailConstant.credentials);
-  var mailOptions = {
-                      from: emailConstant.from_email,
-                      to: toEmail,
-                      subject: subject,
-                      html: template,
-                      attachments: [
+  const attachments = [
                         {
                             filename: `${subscriptionDetails.invoiceName}.pdf`,  // Change filename as needed
-                            path: `${subscriptionDetails.invoicePdfUrl}`,  // Provide the correct path to the file
-                            contentType: 'application/pdf' // Set appropriate content type
+                            url: `${subscriptionDetails.invoicePdfUrl}`,  // Provide the correct path to the file
+                            mimetype: 'application/pdf' // Set appropriate content type
                         }
                       ]
-                    };
-  let sendEmail = await transporter.sendMail(mailOptions);
-  return sendEmail
+  const emailSent = await sendEmail(
+                                        toEmail, // Receiver email
+                                        subject, // Subject
+                                        "subscription-activated", // Template name (without .ejs extension)
+                                        subscriptionData,
+                                        'en', //  for lanuguage
+                                        attachments // for attachment
+                                      )
+  return emailSent
+  return 
+  // var transporter = nodemailer.createTransport(emailConstant.credentials);
+  // var mailOptions = {
+  //                     from: emailConstant.from_email,
+  //                     // to: toEmail,
+  //                     to: `vsingh@codenomad.net`,
+
+  //                     subject: subject,
+  //                     html: template,
+  //                     attachments: [
+  //                       {
+  //                           filename: `${subscriptionDetails.invoiceName}.pdf`,  // Change filename as needed
+  //                           path: `${subscriptionDetails.invoicePdfUrl}`,  // Provide the correct path to the file
+  //                           contentType: 'application/pdf' // Set appropriate content type
+  //                       }
+  //                     ]
+  //                   };
+  // let sendEmail = await transporter.sendMail(mailOptions);
+  // return sendEmail
+}
+
+exports.sendEmailCancelledSubcription = async (subsctiptionId) => {
+
+  let subscriptionDetails = await SUBSCRIPTION_MODEL.findOne({subscriptionId: subsctiptionId}).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+  const planDetails = await PLANS_MODEL.findOne({planId:subscriptionDetails?.planId });
+  let toEmail = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? subscriptionDetails?.purchaseByCompanyId?.email : subscriptionDetails?.purchaseByDriverId?.email;
+  
+  let UserName = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? `${subscriptionDetails?.purchaseByCompanyId?.first_name } ${subscriptionDetails?.purchaseByCompanyId?.last_name}` : `${subscriptionDetails?.purchaseByDriverId?.first_name } ${subscriptionDetails?.purchaseByDriverId?.last_name}`;
+
+
+  const subject = `Subscription Cancelled`
+  const cancellationDate = new Date();
+  const utcDate = new Date(cancellationDate.getTime() - (cancellationDate.getTimezoneOffset() * 60000));
+ 
+  
+  let subscriptionData = {
+                          userName: UserName,
+                          planName: planDetails.name, 
+                          subsctiptionId: subsctiptionId,
+                          cancellationDate: utcDate.toString(),
+                          endPeriod: subscriptionDetails.endPeriod,
+                          amount: subscriptionDetails.amount.toFixed(2),
+                        }
+
+  
+  const emailSent = await sendEmail(
+                                      toEmail, // Receiver email
+                                      subject, // Subject
+                                      "subscription-cancelled", // Template name (without .ejs extension)
+                                      subscriptionData,
+                                      'en', //  for lanuguage
+                                      [] // for attachment
+                                    )
+  return emailSent
+  
+  // var transporter = nodemailer.createTransport(emailConstant.credentials);
+  // var mailOptions = {
+  //                     from: emailConstant.from_email,
+  //                     // to: toEmail,
+  //                     to: `vsingh@codenomad.net`,
+
+  //                     subject: subject,
+  //                     html: template,
+  //                     attachments: [
+  //                       {
+  //                           filename: `${subscriptionDetails.invoiceName}.pdf`,  // Change filename as needed
+  //                           path: `${subscriptionDetails.invoicePdfUrl}`,  // Provide the correct path to the file
+  //                           contentType: 'application/pdf' // Set appropriate content type
+  //                       }
+  //                     ]
+  //                   };
+  // let sendEmail = await transporter.sendMail(mailOptions);
+  // return sendEmail
 }
 
 exports.sendEmailMissingInfoStripeOnboaring = async (accountId , missingFields) => {
@@ -2611,12 +2659,13 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     }
 
 
-    const emailSent = await sendEmail(email, // Receiver email
+    const emailSent = await sendEmail(
+                                        email, // Receiver email
                                         subject, // Subject
-                                        "send_booking_confirmation_email", // Template name (without .ejs extension)
+                                        "send-booking-confirmation-email", // Template name (without .ejs extension)
                                         bookingData,
-                                        'en',
-                                        []
+                                        'en', //  for lanuguage
+                                        [] // for attachment
                                       )
     return emailSent
 
@@ -3143,10 +3192,10 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
 
     const emailSent = await sendEmail(email, // Receiver email
                                       subject, // Subject
-                                      "send_booking_update_email", // Template name (without .ejs extension)
+                                      "send-booking-update-email", // Template name (without .ejs extension)
                                       bookingData,
-                                      'en',
-                                      []
+                                      'en', //  for lanuguage
+                                      [] // for attachment
                                     )
 
     return emailSent
