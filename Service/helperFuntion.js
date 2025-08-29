@@ -1598,6 +1598,29 @@ exports.driverDocumentSubmissionEmail = async (driverInfo) => {
     return emailSent
 }
 
+exports.driverDocumentVerifiedEmail = async (driverInfo) => {
+
+
+    let subject = `Verified – Welcome to iDispatch`;
+    const driverData = {
+      driverName: `${driverInfo.first_name} ${driverInfo.last_name}`,
+      // driverEmail: driverInfo.email,
+      baseUrl: process.env.BASEURL,
+      // supportEmail: process.env.SUPPORT_EMAIL
+    }
+
+    const emailSent = await sendEmail(
+                                        driverInfo.email, // Receiver email
+                                        subject, // Subject
+                                        "driver-document-verified", // Template name (without .ejs extension)
+                                        driverData,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
+
+    return emailSent
+}
+
 exports.notifyPayoutPaid = async (userInfo , tripDetails , payoutDetails) => {
 
   
