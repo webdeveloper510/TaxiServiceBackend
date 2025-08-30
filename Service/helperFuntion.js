@@ -1491,57 +1491,7 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
                                         [] // for attachment
                                       );
     return emailSent
-    // bodyHtml =  `
-    //             <table align="center" cellpadding="0" cellspacing="0" height="100%" width="600px" style="margin-top: 30px;margin-bottom: 10px;border-radius: 10px;box-shadow: 0px 1px 4px 0px rgb(0 0 0 / 25%);background:#ccc;">
-    //             <tbody><tr>
-    //             <td align="center" bgcolor="#fff" class="" valign="top" width="100%">
-    //             <center class=""><table cellpadding="0" cellspacing="0" class="w320" style="margin: 0 auto;" width="600">
-    //             <tbody><tr>
-    //             <td align="center" class="" valign="top">
-    //             <table bgcolor="#fff" cellpadding="0" cellspacing="0" class="" style="margin: 0 auto; width: 100%; margin-top: 0px;">
-    //             <tbody style="margin-top: 5px;">
-    //               <tr class="" style="border-bottom: 1px solid #cccccc38;">
-    //             <td class="">
-    //             </td>
-    //             </tr>
-    //             <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
-    //             <tr>
-    //             <td>
-    //             <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
-    //             <td class="" style="color:#444; font-weight: 400;"><br>
-    //             <br><br>
-    //             Welcome to iDispatch!
-
-    //             You have successfully been registered to use iDispatch.
-    //             <br>
-    //               Your login credentials are provided below:
-    //             <br>
-    //             <span style="font-weight:bold;">Email: &nbsp;</span><span style="font-weight:lighter;" class="">${driverInfo.email}</span>
-    //             <br>
-    //             <span style="font-weight:bold;">Password: &nbsp;</span><span style="font-weight:lighter;" class="">${randomPasword}</span>
-                
-    //             <br><br>
-    //             <br></td>
-    //             </tr>
-    //             </tbody></table></center>
-    //             </td>
-    //             </tr>
-    //             <tr>
-    //             <td class="">
-    //             <div class="">
-    //             <a style="background-color:#0682ca;border-radius:4px;color:#fff;display:inline-block;font-family:Helvetica, Arial, sans-serif;font-size:18px;font-weight:normal;line-height:50px;text-align:center;text-decoration:none;width:350px;-webkit-text-size-adjust:none;" href="${process.env.BASEURL}/login">Visit Account and Start Managing</a>
-    //             </div>
-    //             <br>
-
-    //             <p>
-    //               Your password has been automatically generated. However, you may update it at any time from your account settings.
-    //             </p>
-    //             </td>
-    //             </tr>
-    //             </tbody>
-
-    //               </table>
-    //           `;
+   
   } else {
     
     subject = `Complete Your Driver Registration`;
@@ -1561,18 +1511,6 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
                                       );
     return emailSent;
   }
-  
-  // let template = ` ${bodyHtml}`
-
-  // var transporter = nodemailer.createTransport(emailConstant.credentials);
-  // var mailOptions = {
-  //                     from: emailConstant.from_email,
-  //                     to: driverInfo.email,
-  //                     subject: `Welcome mail`,
-  //                     html: `${await this.emailHeader()} ${template} ${await this.emailFooter()}`,
-  //                   };
-  // let sendEmail = await transporter.sendMail(mailOptions);
-  // return sendEmail
 }
 
 exports.driverDocumentSubmissionEmail = async (driverInfo) => {
@@ -1666,6 +1604,29 @@ exports.driverDocumentRejectionEmail = async (driverInfo) => {
     return emailSent
 }
 
+exports.companyHotelAccountCreationEmail = async (userInfo , password) => {
+
+
+    let subject = `Welcome to iDispatch – Your Account Is Now Active`;
+    const data = {
+      userName: `${userInfo.first_name} ${userInfo.last_name}`,
+      email: userInfo.email,
+      role: userInfo.role,
+      password: password,
+      baseUrl: process.env.BASEURL,
+      supportEmail: process.env.SUPPORT_EMAIL
+    }
+
+    const emailSent = await sendEmail(
+                                        userInfo.email, // Receiver email
+                                        subject, // Subject
+                                        "company-hotel-account-creation", // Template name (without .ejs extension)
+                                        data,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
+    return emailSent
+}
 exports.notifyPayoutPaid = async (userInfo , tripDetails , payoutDetails) => {
 
   

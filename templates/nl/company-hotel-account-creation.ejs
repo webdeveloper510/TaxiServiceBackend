@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Welkom bij iDispatch</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+    body { margin:0; padding:0; background:#f4f7fa; color:#444; font-family:'Nunito', Arial, sans-serif; }
+    .container { max-width:600px; margin:30px auto; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,0.08); }
+    .header { background:#0682ca; color:#fff; text-align:center; padding:26px 22px; font-size:22px; font-weight:700; }
+    .body { padding:30px 26px; font-size:15px; line-height:1.7; }
+    .body p { margin:0 0 14px; }
+    .badge { display:inline-block; background:#e8f4fb; color:#0b6aa6; border:1px solid #cfe7f5; font-size:12px; font-weight:700; letter-spacing:.3px; padding:6px 10px; border-radius:999px; margin-bottom:8px; }
+    .panel { background:#f9fbfd; border:1px solid #e3eaf3; border-radius:10px; padding:16px 18px; margin:18px 0; }
+    .row { display:flex; justify-content:space-between; gap:12px; }
+    .row .col { flex:1; }
+    .label { display:block; font-size:12px; color:#667; margin-bottom:4px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+    .value { font-size:14px; color:#2b2b2b; word-break:break-all; }
+    .credentials { background:#fff; border:1px dashed #b7d7ee; border-radius:10px; padding:16px 18px; margin:16px 0 8px; }
+    .cta-wrap { text-align:center; margin:26px 0 4px; }
+    .cta { background:#0682ca; color:#fff; text-decoration:none; padding:14px 26px; border-radius:8px; font-weight:700; display:inline-block; }
+    .help { font-size:13px; color:#666; margin-top:16px; }
+    .footer { text-align:center; background:#f2f4f7; color:#888; font-size:12px; padding:16px; }
+    .muted { color:#6b7280; font-size:13px; }
+  </style>
+</head>
+<body>
+  <table class="container" role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td class="header">
+        Uw iDispatch-account is klaar
+      </td>
+    </tr>
+
+    <tr>
+      <td class="body">
+        <span class="badge"><%= role === "COMPANY" ? "Bedrijf" : "Klant" %> Account</span>
+
+        <p>Hallo <strong><%= userName %></strong>,</p>
+        <p>
+          We zijn blij u te laten weten dat uw organisatie
+          <strong>succesvol is toegevoegd aan iDispatch</strong>.  
+          Uw account is aangemaakt en nu actief.
+        </p>
+
+        <p class="muted">Hier zijn uw inloggegevens:</p>
+        <div class="credentials">
+          <div class="row">
+            <div class="col">
+              <span class="label">E-mail</span>
+              <span class="value"><%= email %></span>
+            </div>
+            <div class="col">
+              <span class="label">Tijdelijk wachtwoord</span>
+              <span class="value"><%= password %></span>
+            </div>
+          </div>
+        </div>
+
+        <p class="help">
+          Gebruik de bovenstaande gegevens om in te loggen.  
+          Om veiligheidsredenen raden we aan uw wachtwoord direct na het inloggen te wijzigen.
+        </p>
+
+        <div class="cta-wrap">
+          <a class="cta" href="<%= baseUrl %>login">Inloggen op Dashboard</a>
+        </div>
+
+        <p class="help">
+          Hulp nodig? Neem op elk moment contact met ons op via
+          <a href="mailto:<%= supportEmail %>" style="color:#0682ca; text-decoration:none;"><%= supportEmail %></a>.
+        </p>
+
+        <p style="margin-top:18px;">
+          Welkom aan boord! We kijken ernaar uit om uw team te ondersteunen met iDispatch.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="footer">
+        &copy; <%= new Date().getFullYear() %> iDispatch. Alle rechten voorbehouden.
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
