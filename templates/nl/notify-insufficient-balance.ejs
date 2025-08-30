@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Onvoldoende Saldo Melding</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f5f7fa;">
+    <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px; margin:40px auto; background:#ffffff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.05); overflow:hidden;">
+      <!-- Header -->
+      <tr>
+        <td style="background-color:#0682ca; padding:20px; text-align:center;">
+          <h1 style="color:#ffffff; margin:0; font-size:22px;">Waarschuwing: Onvoldoende Saldo</h1>
+        </td>
+      </tr>
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:30px; color:#333333; font-size:15px; line-height:1.6;">
+          <p>Beste <strong>Beheerder</strong>,</p>
+          <p>Wij hopen dat dit bericht u in goede orde bereikt.</p>
+          <p>
+            We hebben geprobeerd een <strong>uitbetaling</strong> te verwerken, maar dit is niet gelukt vanwege een  
+            <span style="color:#ff4d4d; font-weight:bold;">onvoldoende saldo</span> op uw account.  
+            Zorg ervoor dat u voldoende middelen beschikbaar heeft om de transactie voort te zetten.
+          </p>
+
+          <p style="margin-top:20px; margin-bottom:20px;">
+            Om <strong>onderbrekingen van de dienstverlening</strong> te voorkomen, vragen wij u het vereiste bedrag te storten en de transactie opnieuw te proberen.
+          </p>
+
+          <!-- CTA -->
+          <p style="text-align:center; margin:30px 0;">
+            <a href="<%= actionLink %>" style="display:inline-block; padding:12px 24px; background-color:#0682ca; color:#ffffff; text-decoration:none; font-weight:bold; border-radius:5px;">
+              Beheer Accountsaldo
+            </a>
+          </p>
+
+          <p>
+            Heeft u hulp nodig? Neem gerust contact op met ons supportteam via 
+            <a href="mailto:<%= supportEmail %>" style="color:#007bff; text-decoration:none;">
+              <%= supportEmail %>
+            </a>.
+          </p>
+
+          <p>Met vriendelijke groet, <br><strong>Idispatch Mobility</strong></p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background-color:#f0f0f0; padding:15px; text-align:center; font-size:13px; color:#777;">
+          © <%= new Date().getFullYear() %> Idispatch Mobility. Alle rechten voorbehouden.
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

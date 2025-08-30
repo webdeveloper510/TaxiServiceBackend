@@ -2265,27 +2265,20 @@ exports.notifyInsufficientBalance = async () => {
     emails = emails.join(",");
    
     const subject = `Insufficient Balance Alert – Action Required`;
-   
-    const bodyHtml =  `
-                        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                            <h2>Dear <span  style="color: #333;">Admin </span>,</h2>
-                            <p>We hope this email finds you well.</p>
-                            <p>We attempted to process a payout, but it could not be completed due to <b>insufficient balance</b> in your account. Please ensure that you have sufficient funds available to proceed with the transaction.</p>
-                            <p>To avoid any service disruptions, please deposit the required amount and retry the transaction. If you need assistance, feel free to contact our support team <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.</p>
-                            <p>Best regards, <br><strong>Idispatch Mobility</strong></p>
-                        </div>
-                    `;
-    let template = ` ${bodyHtml}`
+
+    const data = { supportEmail: process.env.SUPPORT_EMAIL }
+
+    const emailSent = await sendEmail(
+                                      toEmail, // Receiver email
+                                      subject, // Subject
+                                      "notify-insufficient-balance", // Template name (without .ejs extension)
+                                      data,
+                                      'en', //  for lanuguage
+                                      [] // for attachment
+                                    );
   
-    var transporter = nodemailer.createTransport(emailConstant.credentials);
-    var mailOptions = {
-                        from: emailConstant.from_email,
-                        to: emails,
-                        subject: subject,
-                        html: template
-                      };
-    let sendEmail = await transporter.sendMail(mailOptions);
-    return sendEmail
+    
+    return emailSent
     
   } catch (error) {
 
