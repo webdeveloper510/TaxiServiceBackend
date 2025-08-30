@@ -10,7 +10,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { getUserActivePaidPlans ,
         getUserCurrentActivePayedPlan , 
         getConnectedAccountDetails , 
-        sendEmailMissingInfoStripeOnboaring ,
+        sendEmailMissingInfoStripeOnboarding ,
         createConnectedAccount , 
         sendEmailCancelledSubcription , 
         createCustomAccount , 
@@ -904,7 +904,7 @@ exports.getConnectedAccountDetails = async (req, res) => {
 
                 if (connectedAccountDetails.requirements.currently_due.length > 0) {
                     // Sent email to user to complete the pending stripe  onboarding info
-                    sendEmailMissingInfoStripeOnboaring(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
+                    sendEmailMissingInfoStripeOnboarding(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
                 }
     
                 return  res.send({
@@ -920,7 +920,7 @@ exports.getConnectedAccountDetails = async (req, res) => {
 
                 if (connectedAccountDetails.requirements.currently_due.length > 0) {
                     // Sent email to user to complete the pending stripe  onboarding info
-                    sendEmailMissingInfoStripeOnboaring(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
+                    sendEmailMissingInfoStripeOnboarding(userDetails?.connectedAccountId , connectedAccountDetails.requirements.currently_due)
                 }
                 return  res.send({
                                     code: constant.error_code,

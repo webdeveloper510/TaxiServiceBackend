@@ -1331,43 +1331,32 @@ exports.sendEmailCancelledSubcription = async (subsctiptionId) => {
   // return sendEmail
 }
 
-exports.sendEmailMissingInfoStripeOnboaring = async (accountId , missingFields) => {
+exports.sendEmailMissingInfoStripeOnboarding = async (accountId , missingFields) => {
 
   let userCondition = {connectedAccountId : accountId}
   const userDetail = await user_model.findOne(userCondition);
-  const formattedFields = missingFields.map(field => `<li>${field}</li>`).join("");
   const onboardingLink = await this.stripeOnboardingAccountLink(accountId)
   const subject = `Action Required: Complete Your Stripe Account Setup`;
   let toEmail = userDetail?.email;
-  const bodyHtml =  `
-                      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                          <h2 style="color: #333;">Hi ${userDetail?.first_name} ${userDetail?.last_name},</h2>
-                          <p>We noticed that your Stripe account setup is incomplete. To start receiving payments, you need to provide some missing information.</p>
-                          
-                          <h3 style="color: #ff4d4d;">Required Information:</h3>
-                          <ul>${formattedFields}</ul>
-                          
-                          <p>Please update your details as soon as possible to avoid any disruptions.</p>
-                          
-                          <p><a href="${onboardingLink}" style="display: inline-block; padding: 10px 15px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px;">
-                              Complete Your Setup
-                          </a></p>
+  
+  const data = {
+                  userName: `${userDetail.first_name} ${userDetail.last_name}`,
+                  missingFields: missingFields,
+                  onboardingLink:onboardingLink,
+                  baseUrl: process.env.BASEURL,
+                  supportEmail: process.env.SUPPORT_EMAIL
+                }
 
-                          <p>If you have any questions, feel free to reach out.</p>
-                          <p>Best regards, <br><strong>Idispatch Mobility</strong></p>
-                      </div>
-                  `;
-  let template = ` ${bodyHtml}`
+  const emailSent = await sendEmail(
+                                      toEmail, // Receiver email
+                                      subject, // Subject
+                                      "missing-info-stripe-onboard", // Template name (without .ejs extension)
+                                      data,
+                                      'en', //  for lanuguage
+                                      [] // for attachment
+                                    );
 
-  var transporter = nodemailer.createTransport(emailConstant.credentials);
-  var mailOptions = {
-                      from: emailConstant.from_email,
-                      to: toEmail,
-                      subject: subject,
-                      html: template
-                    };
-  let sendEmail = await transporter.sendMail(mailOptions);
-  return sendEmail
+  return emailSent;
 }
 
 exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Voltooi uw Stripe-setup</title>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f9f9; padding: 20px;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 8px; box-shadow: 0px 2px 6px rgba(0,0,0,0.1); overflow: hidden;">
+            
+            <!-- Header -->
+            <tr>
+              <td style="background-color: #0682ca; padding: 20px; text-align: center; color: #fff;">
+                <h2 style="margin: 0; font-size: 22px;">Actie vereist: voltooi uw Stripe-setup</h2>
+              </td>
+            </tr>
+            
+            <!-- Body -->
+            <tr>
+              <td style="padding: 30px; color: #333; font-size: 15px; line-height: 1.6;">
+                <p>Beste <strong><%= userName %></strong>,</p>
+                <p>We hebben gemerkt dat uw <strong>Stripe-account</strong> nog niet volledig is ingesteld. Om betalingen zonder onderbreking te kunnen ontvangen, vragen wij u de ontbrekende gegevens in te vullen.</p>
+                
+                <h3 style="color: #ff4d4d; font-size: 16px; margin-top: 20px;">Ontbrekende informatie:</h3>
+                <ul style="padding-left: 20px; margin: 10px 0;">
+                    <% missingFields.forEach(function(field) { %>
+                        <li><%= field %></li>
+                    <% }) %>
+                </ul>
+                
+                <p>Werk uw gegevens alstublieft zo snel mogelijk bij om ervoor te zorgen dat uw account volledig wordt geactiveerd.</p>
+                
+                <!-- CTA Button -->
+                <p style="text-align: center; margin: 30px 0;">
+                  <a href="<%= onboardingLink %>" style="display: inline-block; padding: 12px 24px; color: #ffffff; background-color: #0682ca; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                    Voltooi uw setup
+                  </a>
+                </p>
+                
+                <p>Heeft u hulp nodig? Neem gerust contact op met ons supportteam via <a href="mailto:<%= supportEmail %>"><%= supportEmail %></a>.</p>
+                <p>Met vriendelijke groet, <br><strong>Idispatch Mobility</strong></p>
+              </td>
+            </tr>
+            
+            <!-- Footer -->
+            <tr>
+              <td style="background-color: #f1f1f1; text-align: center; padding: 15px; font-size: 13px; color: #555;">
+                &copy; <%= new Date().getFullYear() %> Idispatch Mobility. Alle rechten voorbehouden.
+              </td>
+            </tr>
+            
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
