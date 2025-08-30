@@ -2302,26 +2302,25 @@ exports.sendAccountDeactivationEmail = async (userInfo) => {
     
    
     const subject = `Important Notice Regarding Your Account`;
-   
-    const bodyHtml =  `
-                        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                          <h2>Dear <span  style="color: #333;">${userDetail?.first_name} ${userDetail?.last_name} </span>,</h2>
-                          <p>We would like to inform you that administrative action has been taken on your ${userDetail?.role} account ( <b>${userDetail?.email} </b>), and access has been disabled by an authorized administrator.</p>
-                          <p>If you have any questions regarding this change or believe this was done in error, please contact our support team at <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.</p>
-                          <p>We appreciate your understanding.</p><p>Best regards, <br><strong>Idispatch Mobility</strong></p>
-                        </div>
-                    `;
-    let template = ` ${bodyHtml}`
+
+    const data = {
+                  userName: `${userDetail.first_name} ${userDetail.last_name}`,
+                  role: userDetail.role,
+                  email: userDetail.email,
+                  baseUrl: process.env.BASEURL,
+                  supportEmail: process.env.SUPPORT_EMAIL
+                }
+
+  const emailSent = await sendEmail(
+                                      userDetail?.email, // Receiver email
+                                      subject, // Subject
+                                      "accountDeactivation", // Template name (without .ejs extension)
+                                      data,
+                                      'en', //  for lanuguage
+                                      [] // for attachment
+                                    );
   
-    var transporter = nodemailer.createTransport(emailConstant.credentials);
-    var mailOptions = {
-                        from: emailConstant.from_email,
-                        to: userDetail?.email,
-                        subject: subject,
-                        html: template
-                      };
-    let sendEmail = await transporter.sendMail(mailOptions);
-    return sendEmail
+    return emailSent
     
   } catch (error) {
 

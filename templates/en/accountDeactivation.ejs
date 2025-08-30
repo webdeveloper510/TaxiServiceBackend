@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Account Disabled Notification</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f5f7fa;">
+    <table align="center" cellpadding="0" cellspacing="0" width="100%" 
+           style="max-width:600px; margin:40px auto; background:#ffffff; border-radius:8px; 
+                  box-shadow:0 2px 8px rgba(0,0,0,0.05); overflow:hidden;">
+      
+      <!-- Header -->
+      <tr>
+        <td style="background-color:#0682ca; padding:20px; text-align:center;">
+          <h1 style="color:#ffffff; margin:0; font-size:22px;">Account Disabled</h1>
+        </td>
+      </tr>
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:30px; color:#333333; font-size:15px; line-height:1.6;">
+          <h2 style="margin-top:0; color:#222;">
+            Dear <%= userName %>,
+          </h2>
+
+          <p>
+            We would like to inform you that administrative action has been taken on your 
+            <strong><%= role %></strong> account 
+            (<b><%= email %></b>), and access has been 
+            <span style="color:#ff4d4d; font-weight:bold;">disabled</span> 
+            by an authorized administrator.
+          </p>
+
+          <p>
+            If you have any questions regarding this change or believe this was done in error, 
+            please contact our support team at 
+            <a href="mailto:<%= supportEmail %>" style="color:#007bff; text-decoration:none;">
+              <%= supportEmail %>
+            </a>.
+          </p>
+
+          <p style="margin-top:20px;">We appreciate your understanding.</p>
+
+          <p>Best regards, <br><strong>Idispatch Mobility</strong></p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background-color:#f0f0f0; padding:15px; text-align:center; font-size:13px; color:#777;">
+          © <%= new Date().getFullYear() %> Idispatch Mobility. All rights reserved.
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
