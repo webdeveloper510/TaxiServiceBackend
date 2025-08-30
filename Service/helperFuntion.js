@@ -1607,7 +1607,7 @@ exports.driverDocumentRejectionEmail = async (driverInfo) => {
 exports.companyHotelAccountCreationEmail = async (userInfo , password) => {
 
 
-    let subject = `Welcome to iDispatch – Your Account Is Now Active`;
+    let subject = `Welcome to iDispatch – Your Account Is Now Active`; 
     const data = {
       userName: `${userInfo.first_name} ${userInfo.last_name}`,
       email: userInfo.email,
@@ -1627,6 +1627,30 @@ exports.companyHotelAccountCreationEmail = async (userInfo , password) => {
                                       );
     return emailSent
 }
+
+exports.adminAccountCreationEmail = async (userInfo , password) => {
+
+
+    let subject = `Welcome to iDispatch – Your Account Is Now Active`; 
+    const data = {
+      userName: `${userInfo.first_name} ${userInfo.last_name}`,
+      email: userInfo.email,
+      password: password,
+      baseUrl: process.env.BASEURL,
+      supportEmail: process.env.SUPPORT_EMAIL
+    }
+
+    const emailSent = await sendEmail(
+                                        userInfo.email, // Receiver email
+                                        subject, // Subject
+                                        "admin-creation", // Template name (without .ejs extension)
+                                        data,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
+    return emailSent
+}
+
 exports.notifyPayoutPaid = async (userInfo , tripDetails , payoutDetails) => {
 
   
