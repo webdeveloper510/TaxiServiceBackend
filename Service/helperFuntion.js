@@ -2333,7 +2333,6 @@ exports.sendAccountDeactivationEmail = async (userInfo) => {
 exports.sendAccountReactivationEmail = async (userInfo) => {
 
   try{
-
     let userDetail;
 
     if (userInfo?.role != constant.ROLES.DRIVER) {
@@ -2343,30 +2342,25 @@ exports.sendAccountReactivationEmail = async (userInfo) => {
     }
    
     const subject = `Your Account Has Been Reactivated`;
-   
-    const bodyHtml =  `
-                        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                          <h2>Dear <span  style="color: #333;">${userDetail?.first_name} ${userDetail?.last_name} </span>,</h2>
-                          <p>We wanted to let you know that your ${userDetail?.role} account has been successfully reactivated by our admin team.</p>
-                          <p>You can now log in and continue using our services as usual.</p>
-                          <br>
-                          <p>If you have any questions, feel free to reach out to our support team at <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a>.</p>
-                          <p>Best regards, 
-                          <br>
-                          <strong>Idispatch Mobility</strong></p>
-                        </div>
-                    `;
-    let template = ` ${bodyHtml}`
+
+    const data = {
+                  userName: `${userDetail.first_name} ${userDetail.last_name}`,
+                  role: userDetail.role,
+                  email: userDetail.email,
+                  baseUrl: process.env.BASEURL,
+                  supportEmail: process.env.SUPPORT_EMAIL
+                }
+
+    const emailSent = await sendEmail(
+                                        userDetail?.email, // Receiver email
+                                        subject, // Subject
+                                        "accountReactivation", // Template name (without .ejs extension)
+                                        data,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
   
-    var transporter = nodemailer.createTransport(emailConstant.credentials);
-    var mailOptions = {
-                        from: emailConstant.from_email,
-                        to: userDetail?.email,
-                        subject: subject,
-                        html: template
-                      };
-    let sendEmail = await transporter.sendMail(mailOptions);
-    return sendEmail
+    return emailSent
     
   } catch (error) {
 
