@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Low SMS Balance Alert</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f4f6f9;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+      }
+      .container {
+        max-width: 650px;
+        margin: auto;
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
+      }
+      .header {
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+        color: #d9534f;
+        margin-bottom: 25px;
+      }
+      p {
+        line-height: 1.6;
+        font-size: 15px;
+        margin: 12px 0;
+      }
+      strong {
+        color: #000;
+      }
+      .alert-box {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 6px;
+        font-size: 15px;
+        color: #856404;
+      }
+      .btn {
+        display: inline-block;
+        background-color: #007bff;
+        color: #fff !important;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+      .btn:hover {
+        background-color: #0056b3;
+      }
+      .footer {
+        margin-top: 40px;
+        font-size: 13px;
+        color: #777;
+        text-align: center;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <p class="header">⚠️ Low SMS Balance Alert – Action Required</p>
+
+      <!-- Greeting -->
+      <p>Dear <strong><%= companyName %></strong>,</p>
+
+      <!-- Main Message -->
+      <p>
+        We wanted to inform you that your current SMS balance has dropped below 
+        <strong>€<%= minimumBalance %></strong>. 
+        Once your balance reaches <strong>€0</strong>, your SMS service will be 
+        <strong>automatically paused</strong>, and your customers will 
+        <strong>no longer receive SMS notifications</strong>.
+      </p>
+
+      <!-- Highlight -->
+      <div class="alert-box">
+        This includes critical messages such as OTPs, booking confirmations, and service updates.  
+        To avoid any disruption, please top up your balance as soon as possible.
+      </div>
+
+     
+
+      <!-- Support Info -->
+      <p>
+        If you have any questions or need help, feel free to contact our support team at  
+        <a href="mailto:<%= supportEmail %>"><%= supportEmail %></a>.
+      </p>
+
+      <!-- Signature -->
+      <p>
+        Best regards, <br />
+        <strong>Idispatch Mobility</strong>
+      </p>
+
+      <!-- Footer -->
+      <div class="footer">
+        This is an automated message. Please do not reply directly to this email.
+      </div>
+    </div>
+  </body>
+</html>

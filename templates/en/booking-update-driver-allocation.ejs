@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trip Update Notification</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f8f9fa;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 650px;
+        margin: auto;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 25px 30px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .header {
+        text-align: center;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #007bff;
+      }
+
+      .header h2 {
+        color: #007bff;
+        margin: 0;
+        font-size: 22px;
+      }
+
+      .content {
+        margin-top: 20px;
+        line-height: 1.6;
+        font-size: 15px;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 15px;
+        border-collapse: collapse;
+      }
+
+      td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: top;
+      }
+
+      td:first-child {
+        font-weight: bold;
+        width: 35%;
+        color: #444;
+      }
+
+      .footer {
+        margin-top: 25px;
+        font-size: 14px;
+        color: #666;
+        line-height: 1.5;
+      }
+
+      .footer strong {
+        color: #333;
+      }
+
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h2>Trip Update Notification</h2>
+        <p style="margin: 5px 0; font-size: 14px; color: #555;">
+          Trip ID: <strong><%= trip_id %></strong>
+        </p>
+      </div>
+
+      <!-- Body Content -->
+      <div class="content">
+        <p>Dear <strong><%= customerName %></strong>,</p>
+
+        <p>
+          We would like to inform you that your upcoming trip has been updated.
+          Please find the revised trip details below:
+        </p>
+
+        <!-- Trip Details -->
+        <table>
+          <tr>
+            <td>Pick up time:</td>
+            <td><%= pickupTime %> (Time zone: <%= TimeZoneId %>)</td>
+          </tr>
+          <tr>
+            <td>Departure location:</td>
+            <td><%= departure %></td>
+          </tr>
+          <tr>
+            <td>Arrival location:</td>
+            <td><%= arrival %></td>
+          </tr>
+          <tr>
+            <td>Car type:</td>
+            <td><%= carType %> - <%= passengerCount %> passengers</td>
+          </tr>
+          <tr>
+            <td>Fare:</td>
+            <td>€<%= fare %></td>
+          </tr>
+          <tr>
+            <td>Payment method:</td>
+            <td><%= paymentOption %></td>
+          </tr>
+          <tr>
+            <td>Client name:</td>
+            <td><%= customerName %></td>
+          </tr>
+          <tr>
+            <td>Phone number:</td>
+            <td><%= customerPhone %></td>
+          </tr>
+          <tr>
+            <td>Email:</td>
+            <td><%= customerEmail %></td>
+          </tr>
+          <tr>
+            <td>Remark for driver:</td>
+            <td><%= driverRemark || "N/A" %></td>
+          </tr>
+          <tr>
+            <td>Driver name:</td>
+            <td><%= driverName || "---" %></td>
+          </tr>
+        </table>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p>
+            This request has been registered under reference number:
+            <strong><%= customerPhone %></strong>.
+          </p>
+          <p>
+            If you have any questions about your trip, please contact us at
+            <a href="mailto:<%= companyEmail %>"><%= companyEmail %></a>
+            or call <strong><%= companyPhone %></strong>.
+          </p>
+
+          <p>
+            Kind regards, <br />
+            <strong><%= companyName %></strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

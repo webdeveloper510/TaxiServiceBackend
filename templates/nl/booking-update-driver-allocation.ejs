@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reis Update Notificatie</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f8f9fa;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 650px;
+        margin: auto;
+        background: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 25px 30px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .header {
+        text-align: center;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #007bff;
+      }
+
+      .header h2 {
+        color: #007bff;
+        margin: 0;
+        font-size: 22px;
+      }
+
+      .content {
+        margin-top: 20px;
+        line-height: 1.6;
+        font-size: 15px;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 15px;
+        border-collapse: collapse;
+      }
+
+      td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: top;
+      }
+
+      td:first-child {
+        font-weight: bold;
+        width: 35%;
+        color: #444;
+      }
+
+      .footer {
+        margin-top: 25px;
+        font-size: 14px;
+        color: #666;
+        line-height: 1.5;
+      }
+
+      .footer strong {
+        color: #333;
+      }
+
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h2>Reis Update Notificatie</h2>
+        <p style="margin: 5px 0; font-size: 14px; color: #555;">
+          Reis ID: <strong><%= trip_id %></strong>
+        </p>
+      </div>
+
+      <!-- Body Content -->
+      <div class="content">
+        <p>Beste <strong><%= customerName %></strong>,</p>
+
+        <p>
+          Wij willen u informeren dat uw aankomende reis is bijgewerkt.
+          Hieronder vindt u de aangepaste reisgegevens:
+        </p>
+
+        <!-- Trip Details -->
+        <table>
+          <tr>
+            <td>Ophaaltijd:</td>
+            <td><%= pickupTime %> (Tijdzone: <%= TimeZoneId %>)</td>
+          </tr>
+          <tr>
+            <td>Vertrek locatie:</td>
+            <td><%= departure %></td>
+          </tr>
+          <tr>
+            <td>Aankomst locatie:</td>
+            <td><%= arrival %></td>
+          </tr>
+          <tr>
+            <td>Type auto:</td>
+            <td><%= carType %> - <%= passengerCount %> passagiers</td>
+          </tr>
+          <tr>
+            <td>Tarief:</td>
+            <td>€<%= fare %></td>
+          </tr>
+          <tr>
+            <td>Betaalmethode:</td>
+            <td><%= paymentOption %></td>
+          </tr>
+          <tr>
+            <td>Klantnaam:</td>
+            <td><%= customerName %></td>
+          </tr>
+          <tr>
+            <td>Telefoonnummer:</td>
+            <td><%= customerPhone %></td>
+          </tr>
+          <tr>
+            <td>E-mail:</td>
+            <td><%= customerEmail %></td>
+          </tr>
+          <tr>
+            <td>Opmerking voor chauffeur:</td>
+            <td><%= driverRemark || "N.v.t." %></td>
+          </tr>
+          <tr>
+            <td>Naam chauffeur:</td>
+            <td><%= driverName || "---" %></td>
+          </tr>
+        </table>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p>
+            Dit verzoek is geregistreerd onder referentienummer:
+            <strong><%= customerPhone %></strong>.
+          </p>
+          <p>
+            Indien u vragen heeft over uw reis, kunt u contact met ons opnemen via
+            <a href="mailto:<%= companyEmail %>"><%= companyEmail %></a>
+            of bellen naar <strong><%= companyPhone %></strong>.
+          </p>
+
+          <p>
+            Met vriendelijke groet, <br />
+            <strong><%= companyName %></strong>
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

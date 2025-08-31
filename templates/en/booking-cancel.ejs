@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ride Canceled - <%= trip_id %></title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f8f9fa;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #333333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #ffffff;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
+    }
+    .header {
+      background-color: #0682ca;
+      padding: 20px;
+      text-align: center;
+    }
+    .header img {
+      max-height: 60px;
+      max-width: 200px;
+      object-fit: contain;
+    }
+    .content {
+      padding: 30px;
+    }
+    h2 {
+      margin-top: 0;
+      color: #0682ca;
+      font-size: 22px;
+    }
+    p {
+      line-height: 1.6;
+      font-size: 15px;
+    }
+    table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+    }
+    td {
+      padding: 8px 5px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+    }
+    td:first-child {
+      font-weight: bold;
+      width: 40%;
+      color: #444;
+    }
+    .footer {
+      background-color: #f8f9fa;
+      padding: 20px;
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+      border-top: 1px solid #e0e0e0;
+    }
+    .footer a {
+      color: #007BFF;
+      text-decoration: none;
+    }
+    .footer strong {
+      display: block;
+      margin-top: 5px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <img src="<%= companyLogoUrl %>" alt="<%= companyName %>">
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <h2>Your ride has been canceled: #<%= trip_id %></h2>
+
+      <p>Dear <strong><%= customerName %></strong>,</p>
+
+      <p>
+        Unfortunately, your ride request has been canceled.  
+        If you have booked multiple rides, please check the ride numbers in your confirmation emails.  
+        If you have any concerns, feel free to contact us at  
+        <a href="mailto:<%= companyEmail %>"><%= companyEmail %></a>  
+        or call us at <%=  companyPhone %>.
+      </p>
+
+      <!-- Ride details -->
+      <table>
+        <tr>
+          <td>Pick up time:</td>
+          <td><%= pickupTime %> (Time-zone: <%= TimeZoneId %>)</td>
+        </tr>
+        <tr>
+          <td>Departure location:</td>
+          <td><%= departure %></td>
+        </tr>
+        <tr>
+          <td>Arrival location:</td>
+          <td><%= arrival %></td>
+        </tr>
+        <tr>
+          <td>Type of car:</td>
+          <td><%= carType %> - <%= passengerCount %> passengers</td>
+        </tr>
+        <tr>
+          <td>Your taxi fare:</td>
+          <td>€<%= fare %></td>
+        </tr>
+        <tr>
+          <td>Payment method:</td>
+          <td><%= paymentOption %></td>
+        </tr>
+        <tr>
+          <td>Name client:</td>
+          <td><%= customerName %></td>
+        </tr>
+        <tr>
+          <td>Phone number:</td>
+          <td><%= customerPhone %></td>
+        </tr>
+        <tr>
+          <td>Email:</td>
+          <td><%= customerEmail %></td>
+        </tr>
+        <tr>
+          <td>Remark for driver:</td>
+          <td><%= driverRemark || "N/A" %></td>
+        </tr>
+      </table>
+
+      <p>
+        This request has been registered under phone number: <strong><%= customerPhone %></strong>.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+            <%= companyName %>
+                <%= companyAddress %><br>
+                    Phone: <%= companyPhone %> · Email: <%= companyEmail %>
+        </div>
+  </div>
+</body>
+</html>

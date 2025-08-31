@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Waarschuwing: Laag SMS-Saldo</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f4f6f9;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+      }
+      .container {
+        max-width: 650px;
+        margin: auto;
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.05);
+      }
+      .header {
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+        color: #d9534f;
+        margin-bottom: 25px;
+      }
+      p {
+        line-height: 1.6;
+        font-size: 15px;
+        margin: 12px 0;
+      }
+      strong {
+        color: #000;
+      }
+      .alert-box {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 6px;
+        font-size: 15px;
+        color: #856404;
+      }
+      .btn {
+        display: inline-block;
+        background-color: #007bff;
+        color: #fff !important;
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+      .btn:hover {
+        background-color: #0056b3;
+      }
+      .footer {
+        margin-top: 40px;
+        font-size: 13px;
+        color: #777;
+        text-align: center;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <p class="header">⚠️ Waarschuwing: Laag SMS-Saldo – Actie Vereist</p>
+
+      <!-- Greeting -->
+      <p>Beste <strong><%= companyName %></strong>,</p>
+
+      <!-- Main Message -->
+      <p>
+        Wij willen u informeren dat uw huidige SMS-saldo is gedaald onder 
+        <strong>€<%= minimumBalance %></strong>. 
+        Zodra uw saldo <strong>€0</strong> bereikt, wordt uw SMS-dienst 
+        <strong>automatisch gepauzeerd</strong> en zullen uw klanten 
+        <strong>geen SMS-meldingen meer ontvangen</strong>.
+      </p>
+
+      <!-- Highlight -->
+      <div class="alert-box">
+        Dit omvat belangrijke berichten zoals OTP’s, boekingsbevestigingen en service-updates.  
+        Om onderbreking te voorkomen, verzoeken wij u uw saldo zo spoedig mogelijk op te waarderen.
+      </div>
+
+      <!-- Support Info -->
+      <p>
+        Heeft u vragen of hulp nodig? Neem gerust contact op met ons supportteam via  
+        <a href="mailto:<%= supportEmail %>"><%= supportEmail %></a>.
+      </p>
+
+      <!-- Signature -->
+      <p>
+        Met vriendelijke groet, <br />
+        <strong>Idispatch Mobility</strong>
+      </p>
+
+      <!-- Footer -->
+      <div class="footer">
+        Dit is een automatisch bericht. Gelieve niet rechtstreeks op deze e-mail te antwoorden.
+      </div>
+    </div>
+  </body>
+</html>

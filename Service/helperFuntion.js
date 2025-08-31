@@ -1256,25 +1256,6 @@ exports.sendEmailSubscribeSubcription = async (subsctiptionId) => {
                                         attachments // for attachment
                                       )
   return emailSent
-  return 
-  // var transporter = nodemailer.createTransport(emailConstant.credentials);
-  // var mailOptions = {
-  //                     from: emailConstant.from_email,
-  //                     // to: toEmail,
-  //                     to: `vsingh@codenomad.net`,
-
-  //                     subject: subject,
-  //                     html: template,
-  //                     attachments: [
-  //                       {
-  //                           filename: `${subscriptionDetails.invoiceName}.pdf`,  // Change filename as needed
-  //                           path: `${subscriptionDetails.invoicePdfUrl}`,  // Provide the correct path to the file
-  //                           contentType: 'application/pdf' // Set appropriate content type
-  //                       }
-  //                     ]
-  //                   };
-  // let sendEmail = await transporter.sendMail(mailOptions);
-  // return sendEmail
 }
 
 exports.sendEmailCancelledSubcription = async (subsctiptionId) => {
@@ -1310,25 +1291,6 @@ exports.sendEmailCancelledSubcription = async (subsctiptionId) => {
                                       [] // for attachment
                                     )
   return emailSent
-  
-  // var transporter = nodemailer.createTransport(emailConstant.credentials);
-  // var mailOptions = {
-  //                     from: emailConstant.from_email,
-  //                     // to: toEmail,
-  //                     to: `vsingh@codenomad.net`,
-
-  //                     subject: subject,
-  //                     html: template,
-  //                     attachments: [
-  //                       {
-  //                           filename: `${subscriptionDetails.invoiceName}.pdf`,  // Change filename as needed
-  //                           path: `${subscriptionDetails.invoicePdfUrl}`,  // Provide the correct path to the file
-  //                           contentType: 'application/pdf' // Set appropriate content type
-  //                       }
-  //                     ]
-  //                   };
-  // let sendEmail = await transporter.sendMail(mailOptions);
-  // return sendEmail
 }
 
 exports.sendEmailMissingInfoStripeOnboarding = async (accountId , missingFields) => {
@@ -2262,14 +2224,14 @@ exports.notifyInsufficientBalance = async () => {
   try{
 
     let emails = await user_model.find({ role: CONSTANT.ROLES.SUPER_ADMIN }).distinct("email"); // Returns an array of unique email addresses directly.
-    emails = emails.join(",");
+    // emails = emails.join(",");
    
     const subject = `Insufficient Balance Alert – Action Required`;
 
     const data = { supportEmail: process.env.SUPPORT_EMAIL }
 
     const emailSent = await sendEmail(
-                                      toEmail, // Receiver email
+                                      emails, // Receiver email
                                       subject, // Subject
                                       "notify-insufficient-balance", // Template name (without .ejs extension)
                                       data,
@@ -2314,7 +2276,7 @@ exports.sendAccountDeactivationEmail = async (userInfo) => {
   const emailSent = await sendEmail(
                                       userDetail?.email, // Receiver email
                                       subject, // Subject
-                                      "accountDeactivation", // Template name (without .ejs extension)
+                                      "account-deactivation", // Template name (without .ejs extension)
                                       data,
                                       'en', //  for lanuguage
                                       [] // for attachment
@@ -2354,7 +2316,7 @@ exports.sendAccountReactivationEmail = async (userInfo) => {
     const emailSent = await sendEmail(
                                         userDetail?.email, // Receiver email
                                         subject, // Subject
-                                        "accountReactivation", // Template name (without .ejs extension)
+                                        "account-reactivation", // Template name (without .ejs extension)
                                         data,
                                         'en', //  for lanuguage
                                         [] // for attachment
@@ -2553,29 +2515,6 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
 
-    let childSeatPrice = ``;
-    let payment_method_price = ``;
-    let flighDetail = ``;
-    if (tripDetail?.child_seat_price) {
-
-      childSeatPrice = `<tr>
-                            <td><strong>Child seat:</strong></td>
-                            <td>yes ( €${tripDetail?.child_seat_price} included in the price )</td>
-                          </tr>`
-    }
-
-    if (tripDetail?.payment_method_price) {
-      payment_method_price = ` ( € ${tripDetail?.payment_method_price} included in the price)`
-    }
-
-    if (tripDetail?.customerDetails?.flightNumber) {
-      flighDetail = `<tr>
-                        <td><strong>Flight Number:</strong></td>
-                        <td> ${tripDetail?.customerDetails?.flightNumber}</td>
-                      </tr>`
-    }
-
-   
 
     let bookingData = {
       trip_id: tripDetail?.trip_id,
@@ -2692,125 +2631,43 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
    
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
-    const bodyHtml =  `
-                       <style>
-                        body {
-                          font-family: Arial, sans-serif;
-                          color: #333;
-                          padding: 20px;
-                        }
-                        .container {
-                          max-width: 600px;
-                          margin: auto;
-                          border: 1px solid #ddd;
-                          padding: 20px;
-                          border-radius: 8px;
-                        }
-                          .header {
-                          padding: 20px;
-                          text-align: left;
-                        }
-                        .logo {
-                          height: 40px;
-                        }
-                        h2 {
-                          color: #007BFF;
-                        }
-                        table {
-                          width: 100%;
-                          margin-top: 20px;
-                          border-collapse: collapse;
-                        }
-                        td {
-                          padding: 8px 0;
-                        }
-                        .footer {
-                          margin-top: 30px;
-                          font-size: 14px;
-                          color: #555;
-                        }
-                      </style>
-                      <div class="container">
-                      <div class="header">
-                        <img class="logo" src="${companyDetails?.logo}" alt="${companyAgencyDetails?.company_name}" width="100%" height="300px">
-                      </div>
-                        <h2>Your ride has been canceled: # ${tripDetail?.trip_id}</h2>
+   
+    let bookingData = {
+      trip_id: tripDetail?.trip_id,
+      customerName: tripDetail?.customerDetails?.name,
+      customerPhone: customerPhone,
+      customerEmail: tripDetail?.customerDetails?.email,
+      pickupTime: pickUpTime,
+      TimeZoneId: TimeZoneId,
+      departure: tripDetail?.trip_from?.address,
+      arrival: tripDetail?.trip_to?.address,
+      carType: tripDetail?.car_type,
+      passengerCount: tripDetail?.passengerCount,
+      fare: totalPrice,
+      paymentOption: tripDetail?.pay_option,
+      paymentMethodPrice: tripDetail?.payment_method_price,
+      childSeat: tripDetail?.child_seat_price,
+      flightNo: tripDetail?.customerDetails?.flightNumber,
+      driverRemark: tripDetail?.comment,
+      companyName: companyAgencyDetails?.company_name,
+      companyEmail: companyDetails?.email,
+      companyPhone: `${companyDetails?.countryCode}-${companyDetails?.phone}`,
+      companyLogoUrl: companyDetails?.logo,
+      companyAddress: companyAgencyDetails?.house_number+" "+ companyAgencyDetails?.land,
+      trackUrl: bookingTrackLink
+    }
 
-                        <p>Dear Sir/Madam <strong>${tripDetail?.customerDetails?.name}</strong>,</p>
-
-                        <p>
-                          Your ride request has just been canceled. If you have a double order, check the ride numbers in your confirmation emails. If it is not clear, please contact us via 
-                          <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or you can call to: ${companyDetails?.phone} .
-                        </p>
-
-                        <table>
-                          <tr>
-                            <td><strong>Pick up time:</strong></td>
-                            <td>${pickUpTime} (Time-zone:- ${TimeZoneId})</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Departure location:</strong></td>
-                            <td>${tripDetail?.trip_from?.address}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Arrival location:</strong></td>
-                            <td>${tripDetail?.trip_to?.address}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Type of car:</strong></td>
-                            <td>${tripDetail?.car_type} - ${tripDetail?.passengerCount} passengers</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Your taxi fare:</strong></td>
-                            <td>€${totalPrice}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Payment method:</strong></td>
-                            <td>${tripDetail?.pay_option}</td>
-                          </tr>
-                          
-                          <tr>
-                            <td><strong>Name client:</strong></td>
-                            <td>${tripDetail?.customerDetails?.name}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Phone number:</strong></td>
-                            <td>${customerPhone}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Email:</strong></td>
-                            <td>${tripDetail?.customerDetails?.email}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Remark for driver:</strong></td>
-                            <td>${tripDetail?.comment}</td>
-                          </tr>
-                        </table>
-
-                        <p class="footer">
-                          This request has been registered with number <strong>${customerPhone}</strong>. <br>
-                          If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
-                        </p>
-
-                        <p class="footer">
-                          Kind regards,<br>
-                          <strong>${companyAgencyDetails?.company_name}</strong>
-                        </p>
-                      </div>
-
-
-                    `;
-    let template = ` ${bodyHtml}`
+    const emailSent = await sendEmail(
+                                        email, // Receiver email
+                                        subject, // Subject
+                                        "booking-cancel", // Template name (without .ejs extension)
+                                        bookingData,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
   
-    var transporter = nodemailer.createTransport(emailConstant.credentials);
-    var mailOptions = {
-                        from: emailConstant.from_email,
-                        to: email,
-                        subject: subject,
-                        html: template
-                      };
-    let sendEmail = await transporter.sendMail(mailOptions);
-    return sendEmail
+    
+    return emailSent
 
   } catch (error) {
 
@@ -2897,22 +2754,13 @@ exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => {
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
-    let driverDetail = ``;
+    let driverName = ``;
 
     if (tripDetail?.driver_name) {
 
       const driverInfo = await driver_model.findById(tripDetail?.driver_name);
-      let driverName = driverInfo?.first_name ? driverInfo?.first_name : ``;
+      driverName = driverInfo?.first_name ? driverInfo?.first_name : ``;
       driverName += driverInfo?.last_name.length > 2 ? ' '+driverInfo?.last_name.slice(0, 2) + "..." : '';
-
-      if (driverName) {
-        driverDetail = `
-                        <tr>
-                          <td><strong>Driver name:</strong></td>
-                          <td>${driverName}</td>
-                        </tr>  
-                      `
-      }
     }
     
  
@@ -2937,114 +2785,42 @@ exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => {
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
 
-    const bodyHtml =  `
-                       <style>
-                        body {
-                          font-family: Arial, sans-serif;
-                          color: #333;
-                          padding: 20px;
-                        }
-                        .container {
-                          max-width: 600px;
-                          margin: auto;
-                          border: 1px solid #ddd;
-                          padding: 20px;
-                          border-radius: 8px;
-                        }
-                        h2 {
-                          color: #007BFF;
-                        }
-                        table {
-                          width: 100%;
-                          margin-top: 20px;
-                          border-collapse: collapse;
-                        }
-                        td {
-                          padding: 8px 0;
-                        }
-                        .footer {
-                          margin-top: 30px;
-                          font-size: 14px;
-                          color: #555;
-                        }
-                      </style>
-                      <div class="container">
-                        <h2>Trip Update Notification: # ${tripDetail?.trip_id}</h2>
+    let bookingData = {
+      trip_id: tripDetail?.trip_id,
+      customerName: tripDetail?.customerDetails?.name,
+      customerPhone: customerPhone,
+      customerEmail: tripDetail?.customerDetails?.email,
+      pickupTime: pickUpTime,
+      TimeZoneId: TimeZoneId,
+      departure: tripDetail?.trip_from?.address,
+      arrival: tripDetail?.trip_to?.address,
+      carType: tripDetail?.car_type,
+      passengerCount: tripDetail?.passengerCount,
+      fare: totalPrice,
+      paymentOption: tripDetail?.pay_option,
+      paymentMethodPrice: tripDetail?.payment_method_price,
+      childSeat: tripDetail?.child_seat_price,
+      flightNo: tripDetail?.customerDetails?.flightNumber,
+      driverRemark: tripDetail?.comment,
+      driverName:driverName,
+      companyName: companyAgencyDetails?.company_name,
+      companyEmail: companyDetails?.email,
+      companyPhone: `${companyDetails?.countryCode}-${companyDetails?.phone}`,
+      companyLogoUrl: companyDetails?.logo,
+      companyAddress: companyAgencyDetails?.house_number+" "+ companyAgencyDetails?.land,
+      
+    }
 
-                        <p>Dear Sir/Madam <strong>${tripDetail?.customerDetails?.name}</strong>,</p>
-
-                        <p>We want to inform you that your upcoming trip has been updated. Please review the revised trip details below:</p>
-
-                        <table>
-                          <tr>
-                            <td><strong>Pick up time:</strong></td>
-                            <td>${pickUpTime} (Time-zone:- ${TimeZoneId})</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Departure location:</strong></td>
-                            <td>${tripDetail?.trip_from?.address}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Arrival location:</strong></td>
-                            <td>${tripDetail?.trip_to?.address}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Type of car:</strong></td>
-                            <td>${tripDetail?.car_type}  - ${tripDetail?.passengerCount} passengers</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Your taxi fare:</strong></td>
-                            <td>€${totalPrice}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Payment method:</strong></td>
-                            <td>${tripDetail?.pay_option}</td>
-                          </tr>
-                          
-                          <tr>
-                            <td><strong>Name client:</strong></td>
-                            <td>${tripDetail?.customerDetails?.name}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Phone number:</strong></td>
-                            <td>${customerPhone}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Email:</strong></td>
-                            <td>${tripDetail?.customerDetails?.email}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>Remark for driver:</strong></td>
-                            <td>${tripDetail?.customerDetails?.name}</td>
-                          </tr>
-
-                          ${driverDetail}
-                        </table>
-
-                        <p class="footer">
-                          This request has been registered with number <strong>${customerPhone}</strong>. <br>
-                          If you have any questions about your ride, you can contact us at <a href="mailto:${companyDetails?.email}">${companyDetails?.email}</a> or call: ${companyDetails?.phone}.
-                        </p>
-
-                        <p class="footer">
-                          Kind regards,<br>
-                          <strong>${companyAgencyDetails?.company_name}</strong>
-                        </p>
-                      </div>
-
-
-                    `;
-    let template = ` ${bodyHtml}`
+    const emailSent = await sendEmail(
+                                        email, // Receiver email
+                                        subject, // Subject
+                                        "booking-update-driver-allocation", // Template name (without .ejs extension)
+                                        bookingData,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
   
-    var transporter = nodemailer.createTransport(emailConstant.credentials);
-    var mailOptions = {
-                        from: emailConstant.from_email,
-                        to: email,
-                        subject: subject,
-                        html: template
-                      };
-    let sendEmail = await transporter.sendMail(mailOptions);
-    return sendEmail
+    return emailSent
 
   } catch (error) {
 
@@ -3265,81 +3041,23 @@ exports.notifyLowSmsBalance = async (userDetails) => {
     
     const subject = `Low SMS Balance Alert – Action Required`;
 
+    const data = {
+                  companyName: companyAgencyDetails?.company_name,
+                  minimumBalance: process.env.MINIMUM_SMS_BALANCE_ALERT / 100,
+                  baseUrl: process.env.BASEURL,
+                  supportEmail: process.env.SUPPORT_EMAIL
+                }
 
-    const bodyHtml =  `
-                       <style>
-                        body {
-                          font-family: Arial, sans-serif;
-                          color: #333;
-                          padding: 20px;
-                        }
-                        .container {
-                          max-width: 600px;
-                          margin: auto;
-                          border: 1px solid #ddd;
-                          padding: 20px;
-                          border-radius: 8px;
-                        }
-                        h2 {
-                          color: #007BFF;
-                        }
-                        table {
-                          width: 100%;
-                          margin-top: 20px;
-                          border-collapse: collapse;
-                        }
-                        td {
-                          padding: 8px 0;
-                        }
-                        .footer {
-                          margin-top: 30px;
-                          font-size: 14px;
-                          color: #555;
-                        }
-                      </style>
-                      <body>
-                        <div class="container">
-                          <p class="header">⚠️ Low SMS Balance Alert – Action Required</p>
-                          
-                          <p>Dear ${companyAgencyDetails?.company_name},</p>
-
-                          <p>
-                            We wanted to inform you that your current SMS balance has dropped below 
-                            <strong>€${process.env.MINIMUM_SMS_BALANCE_ALERT / 100}</strong>. Once your balance reaches <strong>€0</strong>, your SMS service 
-                            will be <strong>automatically paused</strong>, and your customers will 
-                            <strong>no longer receive SMS notifications</strong>.
-                          </p>
-
-                          <p>
-                            This includes critical messages such as OTPs, booking confirmations, and service updates.
-                            To avoid any disruption, please top up your balance as soon as possible.
-                          </p>
-
-                          <p>If you have any questions or need help, feel free to contact our support team.</p>
-
-                          <p>Best regards,<br/>
-                          <strong>Idispatch Mobility</strong><br/>
-                          <a href="mailto: ${process.env.SUPPORT_EMAIL}"> ${process.env.SUPPORT_EMAIL}</a></p>
-
-                          <div class="footer">
-                            This is an automated message. Please do not reply directly to this email.
-                          </div>
-                        </div>
-                      </body>
-
-
-                    `;
-    let template = ` ${bodyHtml}`
+    const emailSent = await sendEmail(
+                                      email, // Receiver email
+                                      subject, // Subject
+                                      "notify-low-sms-balance", // Template name (without .ejs extension)
+                                      data,
+                                      'en', //  for lanuguage
+                                      [] // for attachment
+                                    );
   
-    var transporter = nodemailer.createTransport(emailConstant.credentials);
-    var mailOptions = {
-                        from: emailConstant.from_email,
-                        to: email,
-                        subject: subject,
-                        html: template
-                      };
-    let sendEmail = await transporter.sendMail(mailOptions);
-    return sendEmail
+    return emailSent
   } catch (error) {
 
     console.error("Error notifyLowSmsBalance:",  error.message);
