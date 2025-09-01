@@ -3811,9 +3811,11 @@ exports.changeLocale = async (req , res) => {
                                                             { new: true}
                                                           );
 
+      
+
       if (driverDetail?.isCompany && driverDetail?.driver_company_id) {
 
-        let driverDetail = await USER.findByIdAndUpdate(
+        let userDetail = await USER.findByIdAndUpdate(
                                                             driverDetail?.driver_company_id,
                                                             setLocale,
                                                             { new: true}
