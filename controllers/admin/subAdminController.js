@@ -1,3 +1,4 @@
+require("dotenv").config();
 const USER = require("../../models/user/user_model");
 const AGENCY = require("../../models/user/agency_model");
 const DRIVER = require("../../models/user/driver_model");
@@ -11,7 +12,7 @@ const emailConstant = require("../../config/emailConstant");
 const randToken = require("rand-token").generator();
 const nodemailer = require("nodemailer");
 const mongoose = require("mongoose");
-require("dotenv").config();
+
 const multer = require("multer");
 const path = require("path");
 const { sendNotification ,  getCityAndCountry , willCompanyPayCommissionOnTrip} = require("../../Service/helperFuntion");
@@ -3776,6 +3777,61 @@ exports.get_driver_list = async (req, res) => {
     });
   }
 };
+
+exports.changeLocale = async (req , res) => {
+
+  try{
+    let data = req.body;
+    const role = req.user.role;
+    const locale = data?.locale;
+    
+    let setLocale = constant.PLATFORM.MOBILE ===  data?.platform ? { app_locale: locale } : { web_locale: locale };
+
+    if (role !== constant.ROLES.DRIVER) {
+
+      let userDetail = await USER.findByIdAndUpdate(
+                                                      req.user._id,
+                                                      setLocale,
+                                                      { new: true}
+                                                    );
+                        
+      if (userDetail?.isDriver && userDetail?.driverId) {
+
+        let driverDetail = await DRIVER.findByIdAndUpdate(
+                                                            userDetail?.driverId,
+                                                            setLocale,
+                                                            { new: true}
+                                                          );
+      }
+    } else {
+
+      let driverDetail = await DRIVER.findByIdAndUpdate(
+                                                            req.user._id,
+                                                            setLocale,
+                                                            { new: true}
+                                                          );
+
+      if (driverDetail?.isCompany && driverDetail?.driver_company_id) {
+
+        let driverDetail = await USER.findByIdAndUpdate(
+                                                            driverDetail?.driver_company_id,
+                                                            setLocale,
+                                                            { new: true}
+                                                          );
+      }
+    }
+
+    return res.send({
+      code: constant.success_code,
+    });
+
+  } catch (err) {
+    return res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
 
 exports.getPartnerDriverList = async (req, res) => {
   try {

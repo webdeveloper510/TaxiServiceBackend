@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 const CONSTANT = require("../../config/constant");
 const ROLES_ENUM_WITHOUT_DRIVER = Object.values(CONSTANT.ROLES).filter(role => role !== CONSTANT.ROLES.DRIVER);
 const TRIP_COMMISSION_TYPE_ENUM = Object.values(CONSTANT.TRIP_COMMISSION_TYPE);
+const INTERNATIONALIZATION_LANGUAGE_TYPE_ENUM = Object.values(CONSTANT.INTERNATIONALIZATION_LANGUAGE);
 const user = new Schema(
   {
     first_name: {
@@ -12,6 +13,16 @@ const user = new Schema(
     last_name: {
       type: String,
       default: "",
+    },
+    app_locale:{
+      type: String,
+      enum: INTERNATIONALIZATION_LANGUAGE_TYPE_ENUM,
+      default: CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH,
+    },
+    web_locale:{
+      type: String,
+      enum: INTERNATIONALIZATION_LANGUAGE_TYPE_ENUM,
+      default: CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH,
     },
     user_name: {
       type: String,

@@ -105,7 +105,9 @@ exports.login = async (req, res) => {
     let data = req.body;
     const deviceToken = data.deviceToken;
     const webDeviceToken = data.webDeviceToken;
-    const mobile = data?.platform == "mobile";
+    const mobile = data?.platform == constants.PLATFORM.MOBILE;
+    const locale = constants.INTERNATIONALIZATION_LANGUAGE.ENGLISH === req.query.lang ? constants.INTERNATIONALIZATION_LANGUAGE.ENGLISH : constants.INTERNATIONALIZATION_LANGUAGE.DUTCH;
+    
 
     let check_data;
     let userData = await USER.findOne(
@@ -127,7 +129,7 @@ exports.login = async (req, res) => {
                                       // }
                                     )
 
-    console.log('userData-----' , userData  , data)                        
+                           
     if (userData?.is_deleted) {
       return res.send({
                           code: constant.error_code,
@@ -271,13 +273,17 @@ exports.login = async (req, res) => {
 
       const updateDriver = { is_login: true };
 
+      let setLocale = mobile ? { app_locale: locale } : { web_locale: locale }
+
       if (mobile) {
         updateDriver.jwtTokenMobile = jwtToken;
         updateDriver.lastUsedTokenMobile = new Date();
+        updateDriver.app_locale = locale;
       } else {
         updateDriver.jwtToken = jwtToken;
         updateDriver.webDeviceToken = webDeviceToken;
         updateDriver.lastUsedToken = new Date();
+        updateDriver.web_locale = locale;
       }
 
       if (deviceToken) {
@@ -293,7 +299,12 @@ exports.login = async (req, res) => {
 
         let updateUserDeviceToken = await USER.findOneAndUpdate(
                                                                   { _id: updateLogin.driver_company_id },
-                                                                  { $set: {deviceToken: deviceToken , webDeviceToken: webDeviceToken} },
+                                                                  { $set: {
+                                                                            deviceToken: deviceToken , 
+                                                                            webDeviceToken: webDeviceToken , 
+                                                                            ...setLocale
+                                                                          }
+                                                                  },
                                                                   { new: true }
                                                                 );
       }
@@ -341,6 +352,13 @@ exports.login = async (req, res) => {
           check_data.login_sms_otp_uid = uniqueId;
           check_data.login_sms_otp = OTP;
           check_data.webDeviceToken = webDeviceToken;
+
+          if (mobile) {
+            check_data.app_locale = locale
+          } else {
+            web_locale.app_locale = locale
+          }
+         
           await check_data.save();
 
 
@@ -384,14 +402,17 @@ exports.login = async (req, res) => {
                               { expiresIn: "365d" }
                             );
 
-      let updateData = {}
+      let setLocale = mobile ? { app_locale: locale } : { web_locale: locale }
+      let updateData = {...setLocale}
       if (mobile) {
         updateData.jwtTokenMobile = jwtToken;
         updateData.lastUsedTokenMobile = new Date();
+        updateData.app_locale = locale;
       } else {
         updateData.jwtToken = jwtToken;
         updateData.webDeviceToken = webDeviceToken;
         updateData.lastUsedToken = new Date();
+        updateData.web_locale = locale;
       }
       if (deviceToken) {
         updateData.deviceToken = deviceToken;
@@ -403,13 +424,15 @@ exports.login = async (req, res) => {
 
       // Update device token imn driver profile if compmany has driver account also
       if (check_data.isDriver) {
-
-        let updateDriverdata = {deviceToken: deviceToken}
+        let setLocale = mobile ? { app_locale: locale } : { web_locale: locale }
+        let updateDriverdata = {deviceToken: deviceToken , ...setLocale}
         if (mobile) {
           updateDriverdata.jwtTokenMobile = null
+          updateDriverdata.app_locale = locale;
         } else {
           updateDriverdata.jwtToken = null
-          updateDriverdata.webDeviceToken = webDeviceToken
+          updateDriverdata.webDeviceToken = webDeviceToken;
+          updateDriverdata.web_locale = locale;
         }
         await DRIVER.findOneAndUpdate(
                                         {_id: check_data.driverId},

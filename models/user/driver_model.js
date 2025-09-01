@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const CONSTANT = require("../../config/constant");
+const INTERNATIONALIZATION_LANGUAGE_TYPE_ENUM = Object.values(CONSTANT.INTERNATIONALIZATION_LANGUAGE);
 const driver = new Schema(
   {
     first_name: {
@@ -10,6 +11,16 @@ const driver = new Schema(
     last_name: {
       type: String,
       default: "",
+    },
+    app_locale:{
+      type: String,
+      enum: INTERNATIONALIZATION_LANGUAGE_TYPE_ENUM,
+      default: CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH,
+    },
+    web_locale:{
+      type: String,
+      enum: INTERNATIONALIZATION_LANGUAGE_TYPE_ENUM,
+      default: CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH,
     },
     bankNumber: {
       type: String,

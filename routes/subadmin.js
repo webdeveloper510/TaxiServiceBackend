@@ -31,6 +31,8 @@ router.put('/access_update_trip/:id/:company_id',[verifyToken],tripController.ac
 router.delete('/delete_trip/:id',[verifyToken],tripController.delete_trip)
 router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 
+router.put('/change-locale', [verifyToken], subAdminController.changeLocale)
+
 // Upload price feautre
 router.post('/upload_price',[verifyToken , companyAuth],priceUploadController.priceUpload )
 router.post('/get_uploaded_price',[verifyToken , companyAuth],priceUploadController.getUploadedPrice)
@@ -41,4 +43,5 @@ router.post('/get_all_uploaded_price_for_hotel/:id', priceUploadController.getAl
 router.get('/get_access_all_uploaded_price/:id',[verifyToken],priceUploadController.getAccessAllUploadedPrice)
 router.post('/update_uploaded_price/:id',[verifyToken , companyAuth],priceUploadController.upateUploadedPrice)
 router.put('/update_allprice_visibility',[verifyToken , companyAuth],priceUploadController.updateAllPriceVisibility)
+
 module.exports = router;

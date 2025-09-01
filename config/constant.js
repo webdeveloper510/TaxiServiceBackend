@@ -212,5 +212,13 @@ module.exports={
         NUMBER_OF_PERSONS:"Number of persons",
         AMOUNT:"Amount",
         VEHICLE_TYPE:"Vehicle type"
+    },
+    INTERNATIONALIZATION_LANGUAGE: {
+        DUTCH: "nl",
+        ENGLISH: "en"
+    },
+    PLATFORM:{
+        MOBILE:'mobile',
+        WEBSITE:"website"
     }
 }
