@@ -1,4 +1,5 @@
 require("dotenv").config();
+const i18n = require("i18n");
 const jwt = require("jsonwebtoken");
 const driver_model = require("../models/user/driver_model");
 const user_model = require("../models/user/user_model");
@@ -474,10 +475,10 @@ exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) =
       let socketList = [];
       let deviceTokenList = [];
 
-      if (user?.socketId) { socketList.push(user?.socketId); }
-      if (user?.webSocketId) { socketList.push(user?.webSocketId); }
-      if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
-      if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+      if (user?.socketId) { socketList.push({socketId: user?.socketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+      if (user?.webSocketId) { socketList.push({webSocketId: user?.webSocketId , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+      if (user?.deviceToken) { deviceTokenList.push({ deviceToken: user?.deviceToken , platform: constant.PLATFORM.MOBILE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
+      if (user?.webDeviceToken) { deviceTokenList.push({ webDeviceToken: user?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale })}
 
       // get the drivers (who have access) of  partners and account access list 
       const driverList = await driver_model.find({
@@ -506,27 +507,44 @@ exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) =
       if (driverList) {
 
         for (let driver of driverList) {
-          if (driver?.socketId) { socketList.push(driver?.socketId); }
-          if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
-          if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
-          if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
+          if (driver?.socketId) { socketList.push({ socketId : driver?.socketId , platform: constant.PLATFORM.MOBILE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale } ); }
+          if (driver?.webSocketId) { socketList.push({webSocketId :driver?.webSocketId , platform: constant.PLATFORM.WEBSITE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale }); }
+          if (driver?.deviceToken) { deviceTokenList.push({ deviceToken :driver?.deviceToken , platform: constant.PLATFORM.MOBILE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
+          if (driver?.webDeviceToken) { deviceTokenList.push( { webDeviceToken : driver?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
         }
       }
 
+
       // emit the socket for notifing---- driver didn't accept the trip
       if (socketList) {
-        for (let socketId of socketList) {
+        for (let socketData of socketList) {
 
-          if (socketId) {
+          if (socketData?.platform === constant.PLATFORM.MOBILE && socketData?.socketId ) {
 
-          
+            let socketId = socketData?.socketId;
+            let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "getTrip.success.tripNotAcceptedByDriver", locale: targetLocale }, { company_name: agency.company_name });
             socket.to(socketId).emit("tripNotAcceptedBYDriver", {
                                                                   trip: tripDetail,
-                                                                  message: agency.company_name + "'s Trip not accepted by the Driver",
+                                                                  message: message,
                                                                 }
                                     );
 
             socket.to(socketId).emit("refreshTrip", {  message: "Trip not accepted by driver. Please refresh the data"  }  );
+          }
+
+          if (socketData?.platform === constant.PLATFORM.WEBSITE && socketData?.webSocketId ) {
+
+            let webSocketId = socketData?.webSocketId;
+            let targetLocale = socketData?.web_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "getTrip.success.tripNotAcceptedByDriver", locale: targetLocale }, { company_name: agency.company_name });
+            socket.to(webSocketId).emit("tripNotAcceptedBYDriver", {
+                                                                  trip: tripDetail,
+                                                                  message: message,
+                                                                }
+                                    );
+
+            socket.to(webSocketId).emit("refreshTrip", {  message: "Trip not accepted by driver. Please refresh the data"  }  );
           }
         }
       }
@@ -534,14 +552,38 @@ exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) =
       // send the push notification
       if (deviceTokenList) {
         
-        for (let tokenValue of deviceTokenList) {
+        for (let tokenData of deviceTokenList) {
 
-          if (tokenValue) {
-            console.log('tokenValue----' , tokenValue)
+          if (tokenData?.platform === constant.PLATFORM.MOBILE && tokenData?.deviceToken ) {
+          
+            let tokenValue = tokenData?.deviceToken;
+            let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "editTrip.notification.tripNotAcceptedByDriverMessage", locale: targetLocale }, { trip_id: tripDetail.trip_id , driver_name: `${driverInfo?.first_name} ${driverInfo?.last_name}` });
+
+            let title = i18n.__({ phrase: "editTrip.notification.tripNotAcceptedByDriverTitle", locale: targetLocale }, { trip_id: tripDetail.trip_id });
+            
+
             this.sendNotification(
                                           tokenValue,
-                                          `Trip ( ${tripDetail.trip_id} ) didn't accepted by the driver ( ${driverInfo?.first_name} ${driverInfo?.last_name} ) `,
-                                          `Trip Not Accepted #:  ${tripDetail.trip_id}`,
+                                          message,
+                                          title,
+                                          driverInfo
+                                        );
+          }
+
+          if (tokenData?.platform === constant.PLATFORM.WEBSITE && tokenData?.webDeviceToken ) {
+          
+            let tokenValue = tokenData?.webDeviceToken;
+            let targetLocale = tokenData?.web_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "editTrip.notification.tripNotAcceptedByDriverMessage", locale: targetLocale }, { trip_id: tripDetail.trip_id , driver_name: `${driverInfo?.first_name} ${driverInfo?.last_name}` });
+
+            let title = i18n.__({ phrase: "editTrip.notification.tripNotAcceptedByDriverTitle", locale: targetLocale }, { trip_id: tripDetail.trip_id });
+            
+
+            this.sendNotification(
+                                          tokenValue,
+                                          message,
+                                          title,
                                           driverInfo
                                         );
           }

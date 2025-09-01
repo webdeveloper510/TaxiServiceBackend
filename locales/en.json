@@ -203,7 +203,9 @@
         },
         "notification": {
             "tripRetrievedByCompanyMessage": "Trip ({{trip_id}}) has been retrieved by the company.",
-            "tripRetrievedByCompanyTitle": "Trip retrieved ."
+            "tripRetrievedByCompanyTitle": "Trip retrieved .",
+            "tripNotAcceptedByDriverMessage": "Trip ( {{trip_id}} ) didn't accepted by the driver ( {{driver_name}} )",
+            "tripNotAcceptedByDriverTitle": "Trip Not Accepted #:  {{trip_id}}"
         },
         "success": {
             "tripUpdated": "The trip has been updated successfully"
@@ -236,7 +238,8 @@
             "tripOfferMessage": "A new trip (ID: T-{{trip_id}}) is available. Accept within {{IP_POP_UP_SHOW_TIME}} seconds to assign it to your account.",
             "tripCancelled": "The trip has been cancelled successfully.",
             "dashboardCountSuccess": "Dashboard counts retrieved successfully.",
-            "tripBookingCreated": "Your booking has been created."
+            "tripBookingCreated": "Your booking has been created.",
+            "tripNotAcceptedByDriver": "{{company_name}}'s Trip not accepted by the Driver"
         }
     },
     "noShowUser": {

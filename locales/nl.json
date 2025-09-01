@@ -203,7 +203,9 @@
     },
     "notification": {
       "tripRetrievedByCompanyMessage": "De rit-ID ({{trip_id}}) is door het bedrijf ingetrokken",
-      "tripRetrievedByCompanyTitle": "Rit opgehaald."
+      "tripRetrievedByCompanyTitle": "Rit opgehaald.",
+      "tripNotAcceptedByDriverMessage": "Rit ({{trip_id}}) is niet geaccepteerd door de chauffeur ({{driver_name}})",
+      "tripNotAcceptedByDriverTitle": "Rit niet geaccepteerd #: {{trip_id}}"
     },
     "success": {
       "tripUpdated": "De rit is succesvol bijgewerkt."
@@ -236,7 +238,8 @@
       "tripOfferMessage": "Er is een nieuwe rit (ID: T-{{trip_id}}) beschikbaar. Accepteer binnen {{IP_POP_UP_SHOW_TIME}} seconden om de rit aan uw account toe te wijzen.",
       "tripCancelled": "De rit is succesvol geannuleerd.",
       "dashboardCountSuccess": "Dashboardtotalen succesvol opgehaald.",
-      "tripBookingCreated": "Uw boeking is aangemaakt."
+      "tripBookingCreated": "Uw boeking is aangemaakt.",
+      "tripNotAcceptedByDriver": "De rit van {{company_name}} is niet geaccepteerd door de chauffeur"
     }
   },
   "noShowUser": {

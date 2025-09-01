@@ -1,4 +1,5 @@
 require("dotenv").config();
+const i18n = require("i18n");
 const AGENCY = require("../../models/user/agency_model");
 const DRIVER = require("../../models/user/driver_model");
 const USER = require("../../models/user/user_model");
@@ -2441,20 +2442,41 @@ exports.alocate_driver = async (req, res) => {
         
 
         if (token_value) {
-          await sendNotification(
+
+         
+          let targetLocale = driver_full_info?.app_locale || process.env.DEFAULT_LANGUAGE;
+
+          let message = i18n.__({ phrase: "getTrip.success.tripOfferMessage", locale: targetLocale }, {
+                                  trip_id: update_trip.trip_id,
+                                  TRIP_POP_UP_SHOW_TIME: process.env.TRIP_POP_UP_SHOW_TIME
+                                });
+
+                                
+          let title =  i18n.__({ phrase: "getTrip.success.tripOfferTitle", locale: targetLocale });
+
+          await sendNotification( 
                                   token_value,
-                                  res.__("getTrip.success.tripOfferMessage" , {trip_id: update_trip.trip_id , TRIP_POP_UP_SHOW_TIME: process.env.TRIP_POP_UP_SHOW_TIME}),
-                                  res.__("getTrip.success.tripOfferTitle"),
+                                  message,
+                                  title,
                                   {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
                                 );
 
         }
 
         if (web_token_value) {
+
+          let targetLocale = driver_full_info?.web_locale || process.env.DEFAULT_LANGUAGE;
+
+          let message = i18n.__({ phrase: "getTrip.success.tripOfferMessage", locale: targetLocale }, {
+                                    trip_id: update_trip.trip_id,
+                                    TRIP_POP_UP_SHOW_TIME: process.env.TRIP_POP_UP_SHOW_TIME
+                                  });
+          let title =  i18n.__({ phrase: "getTrip.success.tripOfferTitle", locale: targetLocale });
+
           await sendNotification(
                                   web_token_value,
-                                  res.__("getTrip.success.tripOfferMessage" , {trip_id: update_trip.trip_id , TRIP_POP_UP_SHOW_TIME: process.env.TRIP_POP_UP_SHOW_TIME}),
-                                  res.__("getTrip.success.tripOfferTitle"),
+                                  message,
+                                  title,
                                   {notificationType: constant.NOTIFICATION_TYPE.ALLOCATE_TRIP}
                                 );
         }
@@ -2500,6 +2522,7 @@ exports.alocate_driver = async (req, res) => {
       await TRIP.updateOne( { _id: req.params.id } , { $set: { send_request_date_time: current_date_time } } );
 
       // Trip will be back in old state (Pending) if driver will not accept the trip
+      
       setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, process.env.TRIP_POP_UP_SHOW_TIME * 1000);
       
       return res.send({
