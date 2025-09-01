@@ -199,13 +199,16 @@
         },
         "socket": {
             "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",
-            "tripRetrivedByCompany": "Your trip request has been retrieved by the company."
+            "tripRetrivedByCompany": "Your trip request has been retrieved by the company.",
+            "tripAcceptedByDriver": "Trip accepted successfully"
         },
         "notification": {
             "tripRetrievedByCompanyMessage": "Trip ({{trip_id}}) has been retrieved by the company.",
             "tripRetrievedByCompanyTitle": "Trip retrieved .",
             "tripNotAcceptedByDriverMessage": "Trip ( {{trip_id}} ) didn't accepted by the driver ( {{driver_name}} )",
-            "tripNotAcceptedByDriverTitle": "Trip Not Accepted #:  {{trip_id}}"
+            "tripNotAcceptedByDriverTitle": "Trip Not Accepted #:  {{trip_id}}",
+            "tripAcceptedByDriverMessage": "Trip (ID: {{trip_id}}) has been successfully accepted by the driver ({{driver_name}}). ",
+            "tripAcceptedByDriverTitle": "Trip Accepted #:  {{trip_id}}"
         },
         "success": {
             "tripUpdated": "The trip has been updated successfully"

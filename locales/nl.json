@@ -199,13 +199,16 @@
     },
     "socket": {
       "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",
-      "tripRetrivedByCompany": "Uw ritverzoek is opgehaald door het bedrijf."
+      "tripRetrivedByCompany": "Uw ritverzoek is opgehaald door het bedrijf.",
+      "tripAcceptedByDriver": "Rit succesvol geaccepteerd"
     },
     "notification": {
       "tripRetrievedByCompanyMessage": "De rit-ID ({{trip_id}}) is door het bedrijf ingetrokken",
       "tripRetrievedByCompanyTitle": "Rit opgehaald.",
       "tripNotAcceptedByDriverMessage": "Rit ({{trip_id}}) is niet geaccepteerd door de chauffeur ({{driver_name}})",
-      "tripNotAcceptedByDriverTitle": "Rit niet geaccepteerd #: {{trip_id}}"
+      "tripNotAcceptedByDriverTitle": "Rit niet geaccepteerd #: {{trip_id}}",
+      "tripAcceptedByDriverMessage": "Rit (ID: {{trip_id}}) is succesvol geaccepteerd door de chauffeur ({{driver_name}}).",
+      "tripAcceptedByDriverTitle": "Rit geaccepteerd #: {{trip_id}}"
     },
     "success": {
       "tripUpdated": "De rit is succesvol bijgewerkt."
