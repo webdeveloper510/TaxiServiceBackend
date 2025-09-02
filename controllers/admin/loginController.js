@@ -272,6 +272,7 @@ exports.login = async (req, res) => {
                               );
 
       const updateDriver = { is_login: true };
+      
 
       let setLocale = mobile ? { app_locale: locale } : { web_locale: locale }
 
@@ -356,7 +357,7 @@ exports.login = async (req, res) => {
           if (mobile) {
             check_data.app_locale = locale
           } else {
-            web_locale.app_locale = locale
+            check_data.web_locale = locale
           }
          
           await check_data.save();
