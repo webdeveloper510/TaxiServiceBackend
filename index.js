@@ -702,9 +702,16 @@ io.on("connection", (socket) => {
         const driver = await driver_model.findOne({ _id: id });
         if (driver) {
 
-          driver.isWebSocketConnected = true;
-          driver.webSocketId = socketId;
-          await driver.save();
+          const driver = await driver_model.findByIdAndUpdate(
+                                                              id,
+                                                              {
+                                                                $set: {
+                                                                  isWebSocketConnected: true,
+                                                                  webSocketId: socketId
+                                                                }
+                                                              },
+                                                              { new: true } // returns the updated driver document
+                                                            );
 
           await io.to(socketId).emit("userConnection",  {
                                                     code: 200,
@@ -722,9 +729,16 @@ io.on("connection", (socket) => {
 
         if (user) {
 
-          user.isWebSocketConnected = true;
-          user.webSocketId = socketId;
-          await user.save();
+          const user = await user_model.findByIdAndUpdate(
+                                                              id,
+                                                              {
+                                                                $set: {
+                                                                  isWebSocketConnected: true,
+                                                                  webSocketId: socketId
+                                                                }
+                                                              },
+                                                              { new: true } // returns the updated driver document
+                                                            );
 
           await io.to(socketId).emit("userConnection",  {
                                                     code: 200,

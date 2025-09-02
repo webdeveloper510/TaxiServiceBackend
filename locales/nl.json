@@ -214,7 +214,11 @@
       "tripCancelledByDriverMessage": "De rit is geannuleerd door chauffeur ( {{driver_name}} ) en het rit-ID is {{trip_id}}",
       "tripCancelledByDriverTitle": "Rit geannuleerd door chauffeur #: {{trip_id}}",
       "tripRetrivedMessage": "De rit ({{ trip_id }}) is door het bedrijf {{ company_name }} teruggenomen van de chauffeur.",
-      "tripRetrivedTitle": "Rit teruggenomen #: {{trip_id}}"
+      "tripRetrivedTitle": "Rit teruggenomen #: {{trip_id}}",
+      "tripSelfAssignedMessage": "Chauffeur {{driver_name}} heeft zelf een nieuwe rit toegewezen (#: {{trip_id}}).",
+      "tripSelfAssignedTitle": "Rit Zelf-Toegewezen #:  {{trip_id}}",
+      "tripAddedByCustomerMessage": "Rit (ID: {{trip_id}}) is toegevoegd door de klant voor het bedrijf ({{company_name}}).",
+      "tripAddedByCustomerTitle": "Rit Toegevoegd #:  {{trip_id}}"
     },
     "success": {
       "tripUpdated": "De rit is succesvol bijgewerkt."

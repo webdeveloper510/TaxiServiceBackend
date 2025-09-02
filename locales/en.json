@@ -214,7 +214,11 @@
             "tripCancelledByDriverMessage": "The trip has been canceled by driver ( {{driver_name}} ) and trip ID is {{trip_id}}",
             "tripCancelledByDriverTitle": "Trip Canceled by Driver #:  {{trip_id}}",
             "tripRetrivedMessage": "The trip ( {{ trip_id }} ) has been retrieved from the driver by company, {{company_name}}",
-            "tripRetrivedTitle": "Trip retrieved #:  {{trip_id}}"
+            "tripRetrivedTitle": "Trip retrieved #:  {{trip_id}}",
+            "tripSelfAssignedMessage": "Driver {{driver_name} has self-assigned a new trip  (#: {{trip_id}})",
+            "tripSelfAssignedTitle": "Trip Self-Assigned #:  {{trip_id}}",
+            "tripAddedByCustomerMessage": "Trip (ID: {{trip_id}}) has been added by customer for company ({{company_name}})",
+            "tripAddedByCustomerTitle": "Trip Added #:  {{trip_id}}"
         },
         "success": {
             "tripUpdated": "The trip has been updated successfully"

@@ -1021,10 +1021,13 @@ exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDeta
 
       // When trip owner will not assign the trip to his own driver account
       if (isPartnerAccess || isPartiallyAccess) { // when partner account will assign the trip to his own driver account ot partiall account driver will adign the trip
-        if (user?.socketId) { socketList.push(user?.socketId); }
-        if (user?.webSocketId) { socketList.push(user?.webSocketId); }
-        if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
-        if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+        if (user?.socketId) { socketList.push({socketId: user?.socketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+
+        if (user?.webSocketId) { socketList.push({webSocketId: user?.webSocketId , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+
+        if (user?.deviceToken) { deviceTokenList.push({ deviceToken: user?.deviceToken , platform: constant.PLATFORM.MOBILE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
+        
+        if (user?.webDeviceToken) { deviceTokenList.push({ webDeviceToken: user?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale })}
       }
       
       // get the drivers (who have access) of  partners account access and partialluy account access list 
@@ -1054,19 +1057,24 @@ exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDeta
       if (driverList) {
 
         for (let driver of driverList) {
-          if (driver?.socketId) { socketList.push(driver?.socketId); }
-          if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
-          if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
-          if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
+          if (driver?.socketId) { socketList.push({ socketId : driver?.socketId , platform: constant.PLATFORM.MOBILE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale } ); }
+
+          if (driver?.webSocketId) { socketList.push({webSocketId :driver?.webSocketId , platform: constant.PLATFORM.WEBSITE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale }); }
+
+          if (driver?.deviceToken) { deviceTokenList.push({ deviceToken :driver?.deviceToken , platform: constant.PLATFORM.MOBILE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
+
+          if (driver?.webDeviceToken) { deviceTokenList.push( { webDeviceToken : driver?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
         }
       }
 
       // emit the socket for notifing---- driver didn't accept the trip
       if (socketList) {
-        for (let socketId of socketList) {
+        for (let socketData of socketList) {
 
-          if (socketId) {
-
+          if (socketData?.platform === constant.PLATFORM.MOBILE && socketData?.socketId ) {
+            
+            let socketId = socketData?.socketId;
+            let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
             // socket.to(socketId).emit("tripAcceptedBYDriver", {
             //                                                       trip: tripDetail,
             //                                                       message: `Trip accepted successfully`,
@@ -1075,20 +1083,51 @@ exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDeta
 
             socket.to(socketId).emit("refreshTrip", {  message: `The trip driver has accepted the trip. Please refresh the data to view the latest updates`  }  );
           }
+
+          if (socketData?.platform === constant.PLATFORM.WEBSITE && socketData?.webSocketId ) {
+            
+            let webSocketId = socketData?.webSocketId;
+            let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
+            // socket.to(socketId).emit("tripAcceptedBYDriver", {
+            //                                                       trip: tripDetail,
+            //                                                       message: `Trip accepted successfully`,
+            //                                                     }
+            //                         );
+
+            socket.to(webSocketId).emit("refreshTrip", {  message: `The trip driver has accepted the trip. Please refresh the data to view the latest updates`  }  );
+          }
         }
       }
 
       // send the push notification
       if (deviceTokenList) {
         
-        for (let tokenValue of deviceTokenList) {
+        for (let tokenData of deviceTokenList) {
 
-          if (tokenValue) {
-            
+          if (tokenData?.platform === constant.PLATFORM.MOBILE && tokenData?.deviceToken ) {
+            let tokenValue = tokenData?.deviceToken;
+            let targetLocale = tokenData?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedMessage", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetail.trip_id });
+
+            let title = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedTitle", locale: targetLocale }, { trip_id: tripDetails.trip_id });
             this.sendNotification(
                                     tokenValue,
-                                    `Driver ${driver_name} has self-assigned a new trip  (#: ${tripDetail.trip_id}).`,
-                                    `Trip Self-Assigned #:  ${tripDetail.trip_id}`,
+                                    message,
+                                    title,
+                                    driverDetails
+                                  );
+          }
+
+          if (tokenData?.platform === constant.PLATFORM.WEBSITE && tokenData?.webDeviceToken ) {
+            let tokenValue = tokenData?.webDeviceToken;
+            let targetLocale = tokenData?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedMessage", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetail.trip_id });
+
+            let title = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedTitle", locale: targetLocale }, { trip_id: tripDetails.trip_id });
+            this.sendNotification(
+                                    tokenValue,
+                                    message,
+                                    title,
                                     driverDetails
                                   );
           }
@@ -1113,11 +1152,16 @@ exports.emitNewTripAddedByCustomer = async(tripDetail , socket) => {
       
       let socketList = [];
       let deviceTokenList = [];
+      
 
-      if (user?.socketId) { socketList.push(user?.socketId); }
-      if (user?.webSocketId) { socketList.push(user?.webSocketId); }
-      if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
-      if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+      if (user?.socketId) { socketList.push({socketId: user?.socketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+
+      if (user?.webSocketId) { socketList.push({webSocketId: user?.webSocketId , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+
+      if (user?.deviceToken) { deviceTokenList.push({ deviceToken: user?.deviceToken , platform: constant.PLATFORM.MOBILE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
+
+      if (user?.webDeviceToken) { deviceTokenList.push({ webDeviceToken: user?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale })}
+      
 
       // get the drivers (who have access) of  partners and account access list 
       const driverList = await driver_model.find({
@@ -1145,18 +1189,38 @@ exports.emitNewTripAddedByCustomer = async(tripDetail , socket) => {
       if (driverList) {
 
         for (let driver of driverList) {
-          if (driver?.socketId) { socketList.push(driver?.socketId); }
-          if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
-          if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
-          if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
+          if (driver?.socketId) { socketList.push({ socketId : driver?.socketId , platform: constant.PLATFORM.MOBILE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale } ); }
+
+          if (driver?.webSocketId) { socketList.push({webSocketId :driver?.webSocketId , platform: constant.PLATFORM.WEBSITE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale }); }
+
+          if (driver?.deviceToken) { deviceTokenList.push({ deviceToken :driver?.deviceToken , platform: constant.PLATFORM.MOBILE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
+
+          if (driver?.webDeviceToken) { deviceTokenList.push( { webDeviceToken : driver?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
         }
       }
 
       // emit the socket for notifing---- driver didn't accept the trip
       if (socketList) {
-        for (let socketId of socketList) {
+        for (let socketData of socketList) {
 
-          if (socketId) {
+          if (socketData?.platform === constant.PLATFORM.MOBILE && socketData?.socketId ) {
+
+            let socketId = socketData?.socketId;
+            let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
+
+            // socket.to(socketId).emit("tripAcceptedBYDriver", {
+            //                                                       trip: tripDetail,
+            //                                                       message: `Trip accepted successfully`,
+            //                                                     }
+            //                         );
+
+            socket.to(socketId).emit("refreshTrip", {  message: `New trip added by customer. Please refresh the data to view the latest updates`  }  );
+          }
+
+          if (socketData?.platform === constant.PLATFORM.WEBSITE && socketData?.webSocketId ) {
+
+            let socketId = socketData?.webSocketId;
+            let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
 
             // socket.to(socketId).emit("tripAcceptedBYDriver", {
             //                                                       trip: tripDetail,
@@ -1172,14 +1236,34 @@ exports.emitNewTripAddedByCustomer = async(tripDetail , socket) => {
       // send the push notification
       if (deviceTokenList) {
         
-        for (let tokenValue of deviceTokenList) {
+        for (let tokenData of deviceTokenList) {
 
-          if (tokenValue) {
-            
+          if (tokenData?.platform === constant.PLATFORM.MOBILE && tokenData?.deviceToken ) {
+          
+            let tokenValue = tokenData?.deviceToken;
+            let targetLocale = tokenData?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "editTrip.notification.tripAddedByCustomerMessage", locale: targetLocale }, { trip_id: tripDetail.trip_id , company_name: agency?.company_name});
+
+            let title = i18n.__({ phrase: "editTrip.notification.tripAddedByCustomerTitle", locale: targetLocale }, { trip_id: tripDetail.trip_id });
             this.sendNotification(
                                     tokenValue,
-                                    `Trip (ID: ${tripDetail.trip_id}) has been added by customer for company (${agency?.company_name}). `,
-                                    `Trip Added #:  ${tripDetail.trip_id}`,
+                                    message,
+                                    title,
+                                    tripDetail
+                                  );
+          }
+
+          if (tokenData?.platform === constant.PLATFORM.WEBSITE && tokenData?.webDeviceToken ) {
+          
+            let tokenValue = tokenData?.webDeviceToken;
+            let targetLocale = tokenData?.web_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "editTrip.notification.tripAddedByCustomerMessage", locale: targetLocale }, { trip_id: tripDetail.trip_id , company_name: agency?.company_name});
+
+            let title = i18n.__({ phrase: "editTrip.notification.tripAddedByCustomerTitle", locale: targetLocale }, { trip_id: tripDetail.trip_id });
+            this.sendNotification(
+                                    tokenValue,
+                                    message,
+                                    title,
                                     tripDetail
                                   );
           }
