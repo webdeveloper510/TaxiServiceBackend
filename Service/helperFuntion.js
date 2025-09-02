@@ -283,17 +283,33 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
   const companyMetaData = await AGENCY_MODEL.findOne({user_id: companyId});
   
   if (companyData?.socketId) {
+
+    let targetLocale = companyData?.app_locale || process.env.DEFAULT_LANGUAGE;
+    let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
     await io.to(companyData?.socketId).emit("noShow", { message , trip_data } )
   }
 
   // Informed to the company when driver didn't  find the  customer  on pickup location
   if (companyData?.deviceToken) {
+
+    let targetLocale = companyData?.app_locale || process.env.DEFAULT_LANGUAGE;
+    let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
     this.sendNotification(companyData?.deviceToken , message , 'NO SHOW CUSTOMER' , {})
   }
 
   if (companyData?.webSocketId) {
     
+    let targetLocale = companyData?.web_locale || process.env.DEFAULT_LANGUAGE;
+    let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
     await io.to(companyData?.webSocketId).emit("noShow", { message , trip_data })
+  }
+
+  // Informed to the company when driver didn't  find the  customer  on pickup location
+  if (companyData?.webDeviceToken) {
+
+    let targetLocale = companyData?.web_locale || process.env.DEFAULT_LANGUAGE;
+    let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
+    this.sendNotification(companyData?.webDeviceToken , message , 'NO SHOW CUSTOMER' , {})
   }
 
   // functionality for the drivers who have account access as partner
@@ -313,6 +329,8 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
       // for partner app side
       if (partnerAccount?.socketId) {
 
+        let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
         // for refresh trip
         await io.to(partnerAccount?.socketId).emit("noShow", { message , trip_data } )
       }
@@ -320,13 +338,27 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
       // for partner web side
       if (partnerAccount?.webSocketId) {
 
+        let targetLocale = partnerAccount?.web_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
         // for refresh trip
         await io.to(partnerAccount?.webSocketId).emit("noShow", { message , trip_data } )
       }
 
       // Informed to the company when driver didn't  find the  customer  on pickup location
       if (partnerAccount?.deviceToken) {
-        this.sendNotification(partnerAccount?.deviceToken , message , 'NO SHOW CUSTOMER ( Partner Account Access:-  ${companyMetaData?.company_name})' , {})
+
+        let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
+        let title = i18n.__({ phrase: "editTrip.notification.noShowCustomerPartnerAccountTitle", locale: targetLocale }, { company_name: companyMetaData?.company_name });
+        this.sendNotification(partnerAccount?.deviceToken , message , title , {})
+      }
+
+      if (partnerAccount?.webDeviceToken) {
+
+        let targetLocale = partnerAccount?.web_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
+        let title = i18n.__({ phrase: "editTrip.notification.noShowCustomerPartnerAccountTitle", locale: targetLocale }, { company_name: companyMetaData?.company_name });
+        this.sendNotification(partnerAccount?.webDeviceToken , message , title , {})
       }
     }
   }
@@ -347,7 +379,9 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
 
       // for partner app side
       if (driverCompanyAccess?.socketId) {
-        console.log('driverCompanyAccess----------' , driverCompanyAccess.first_name , trip_data.driver_name)
+        
+        let targetLocale = driverCompanyAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
         // for refresh trip
         await io.to(driverCompanyAccess?.socketId).emit("noShow", { message , trip_data } )
       }
@@ -355,13 +389,28 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
       // for partner web side
       if (driverCompanyAccess?.webSocketId) {
 
+        let targetLocale = driverCompanyAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
         // for refresh trip
         await io.to(driverCompanyAccess?.webSocketId).emit("noShow", { message , trip_data } )
       }
 
       // Informed to the company when driver didn't  find the  customer  on pickup location
       if (driverCompanyAccess?.deviceToken) {
-        this.sendNotification(driverCompanyAccess?.deviceToken , message , `NO SHOW CUSTOMER (Account Access:-  ${companyMetaData?.company_name})`  , {})
+
+        let targetLocale = driverCompanyAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
+        let title = i18n.__({ phrase: "editTrip.notification.noShowCustomerAccountAccessTitle", locale: targetLocale }, { company_name: companyMetaData?.company_name });
+        this.sendNotification(driverCompanyAccess?.deviceToken , message , title  , {})
+      }
+
+      // Informed to the company when driver didn't  find the  customer  on pickup location
+      if (driverCompanyAccess?.webDeviceToken) {
+
+        let targetLocale = driverCompanyAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "noShowUser.success.driverUnableToLocateCustomer", locale: targetLocale }, { trip_id: trip_data.trip_id });
+        let title = i18n.__({ phrase: "editTrip.notification.noShowCustomerAccountAccessTitle", locale: targetLocale }, { company_name: companyMetaData?.company_name });
+        this.sendNotification(driverCompanyAccess?.webDeviceToken , message , title  , {})
       }
     }
   }
@@ -2610,7 +2659,11 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
         let companyAccountAccessMessage =`The driver (${driver_name})assigned to trips from the following account access: ${companyAgencyData?.company_name} Company has been blocked. The affected trips have been returned to their respective company accounts for reassignment.`
         let companyPartnerMessage =`The driver (${driver_name})assigned to trips from the following ${companyAgencyData?.company_name} Company (Your partner company) has been blocked. The affected trips have been returned to their respective company accounts for reassignment.`
         
+
         if (companyDetail?.socketId) {
+
+          let targetLocale = companyDetail?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let companyMessage = i18n.__({ phrase: "editTrip.notification.transferTripCompanyMessage", locale: targetLocale }, { driver_name: driver_name });
           // socket for app
           await io.to(companyDetail?.socketId).emit("driverBlockTripReturned", { message: companyMessage  });
 
@@ -2619,6 +2672,9 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
         }
 
         if (companyDetail?.webSocketId) {
+
+          let targetLocale = companyDetail?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let companyMessage = i18n.__({ phrase: "editTrip.notification.transferTripCompanyMessage", locale: targetLocale }, { driver_name: driver_name });
           // socket for app
           await io.to(companyDetail?.webSocketId).emit("driverBlockTripReturned", { message: companyMessage  });
 
@@ -2627,7 +2683,19 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
         }
 
         if (companyDetail?.deviceToken) {
-          await this.sendNotification( user?.deviceToken,companyMessage, `Driver Blocked – Affected Trips Returned to Your Account`, userInfo );
+
+          let targetLocale = companyDetail?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let companyMessage = i18n.__({ phrase: "editTrip.notification.transferTripCompanyMessage", locale: targetLocale }, { driver_name: driver_name });
+          let title = i18n.__({ phrase: "editTrip.notification.transferTripCompanyTitle", locale: targetLocale });
+          await this.sendNotification( user?.deviceToken,companyMessage, title, userInfo );
+        }
+
+        if (companyDetail?.webDeviceToken) {
+
+          let targetLocale = companyDetail?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let companyMessage = i18n.__({ phrase: "editTrip.notification.transferTripCompanyMessage", locale: targetLocale }, { driver_name: driver_name });
+          let title = i18n.__({ phrase: "editTrip.notification.transferTripCompanyTitle", locale: targetLocale });
+          await this.sendNotification( user?.webDeviceToken , companyMessage , title, userInfo );
         }
 
 
@@ -2644,20 +2712,46 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
             
             if (driverCompanyAccess?.socketId) {
 
+              let targetLocale = driverCompanyAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
+              let companyAccountAccessMessage = i18n.__({ phrase: "editTrip.notification.transferTripAccountAccessMessage", locale: targetLocale }, { driver_name: driver_name  , company_name: companyAgencyData?.company_name});
               await io.to(driverCompanyAccess?.socketId).emit("driverBlockTripReturned", { message: companyAccountAccessMessage, });
             }
 
             if (driverCompanyAccess?.webSocketId) {
 
+              let targetLocale = driverCompanyAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+              let companyAccountAccessMessage = i18n.__({ phrase: "editTrip.notification.transferTripAccountAccessMessage", locale: targetLocale }, { driver_name: driver_name  , company_name: companyAgencyData?.company_name});
               await io.to(driverCompanyAccess?.webSocketId).emit("driverBlockTripReturned", { message: companyAccountAccessMessage, });
             }
 
             if (driverCompanyAccess?.deviceToken) {
 
+              let targetLocale = driverCompanyAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
+
+              let companyAccountAccessMessage = i18n.__({ phrase: "editTrip.notification.transferTripAccountAccessMessage", locale: targetLocale }, { driver_name: driver_name  , company_name: companyAgencyData?.company_name});
+
+              let title = i18n.__({ phrase: "editTrip.notification.transferTripAccountAccessTitle", locale: targetLocale }, { company_name: companyAgencyData?.company_name});
+
               await this.sendNotification(
                                       driverCompanyAccess?.deviceToken,
                                       companyAccountAccessMessage,
-                                      `Driver Blocked – Affected Trips Returned to Your Account ( Company Access:- ${companyAgencyData?.company_name} )`, 
+                                      title, 
+                                      userInfo 
+                                    );
+            }
+
+            if (driverCompanyAccess?.webDeviceToken) {
+
+              let targetLocale = driverCompanyAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+
+              let companyAccountAccessMessage = i18n.__({ phrase: "editTrip.notification.transferTripAccountAccessMessage", locale: targetLocale }, { driver_name: driver_name  , company_name: companyAgencyData?.company_name});
+
+              let title = i18n.__({ phrase: "editTrip.notification.transferTripAccountAccessTitle", locale: targetLocale }, { company_name: companyAgencyData?.company_name});
+
+              await this.sendNotification(
+                                      driverCompanyAccess?.webDeviceToken,
+                                      companyAccountAccessMessage,
+                                      title, 
                                       userInfo 
                                     );
             }
@@ -2678,6 +2772,10 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
 
             // for partner app side
             if (partnerAccount?.socketId) {
+
+              let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
+              let companyPartnerMessage = i18n.__({ phrase: "editTrip.notification.transferTripcompanyPartnerMessage", locale: targetLocale }, { driver_name: driver_name  , company_name: companyAgencyData?.company_name});
+
               await io.to(partnerAccount?.socketId).emit("driverBlockTripReturned", { message: companyPartnerMessage, } );
                 
               // for refresh trip
@@ -2686,6 +2784,9 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
 
             // for partner Web side
             if (partnerAccount?.webSocketId) {
+
+              let targetLocale = partnerAccount?.web_locale || process.env.DEFAULT_LANGUAGE;
+              let companyPartnerMessage = i18n.__({ phrase: "editTrip.notification.transferTripcompanyPartnerMessage", locale: targetLocale }, { driver_name: driver_name  , company_name: companyAgencyData?.company_name});
 
               await io.to(partnerAccount?.webSocketId).emit("driverBlockTripReturned", { message: companyPartnerMessage, } );
 
@@ -2696,24 +2797,31 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
             if (partnerAccount?.deviceToken) {
               // notification for driver
 
+              let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
+              let companyPartnerMessage = i18n.__({ phrase: "editTrip.notification.transferTripcompanyPartnerMessage", locale: targetLocale }, { driver_name: driver_name  , company_name: companyAgencyData?.company_name});
+
+              let title = i18n.__({ phrase: "editTrip.notification.transferTripcompanyPartnerTitle", locale: targetLocale }, {company_name: companyAgencyData?.company_name});
+
               await this.sendNotification(
-                                      partnerAccount?.deviceToken, companyPartnerMessage,
-                                      `Driver Blocked – Affected Trips Returned to Your Account ( Company partner Access:- ${companyAgencyData?.company_name} )`, 
-                                      userInfo 
-                                    );
-            } else if (partnerAccount.isCompany){
+                                            partnerAccount?.deviceToken, companyPartnerMessage,
+                                            title, 
+                                            userInfo 
+                                          );
+            }
 
-              const companyData = await user_model.findById(partnerAccount.driver_company_id);
-              if (companyData?.deviceToken) {
-                // notification for company
+            if (partnerAccount?.webDeviceToken) {
+              // notification for driver
 
-                await this.sendNotification(
-                                        companyData?.deviceToken,
-                                        companyPartnerMessage,
-                                        `Driver Blocked – Affected Trips Returned to Your Account ( Company Partner Access:- ${companyAgencyData?.company_name} )`,
-                                        userInfo
-                                      );
-              }
+              let targetLocale = partnerAccount?.web_locale || process.env.DEFAULT_LANGUAGE;
+              let companyPartnerMessage = i18n.__({ phrase: "editTrip.notification.transferTripcompanyPartnerMessage", locale: targetLocale }, { driver_name: driver_name  , company_name: companyAgencyData?.company_name});
+
+              let title = i18n.__({ phrase: "editTrip.notification.transferTripcompanyPartnerTitle", locale: targetLocale }, {company_name: companyAgencyData?.company_name});
+
+              await this.sendNotification(
+                                            partnerAccount?.webDeviceToken, companyPartnerMessage,
+                                            title, 
+                                            userInfo 
+                                          );
             }
           }
         }

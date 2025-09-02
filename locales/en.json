@@ -218,7 +218,23 @@
             "tripSelfAssignedMessage": "Driver {{driver_name} has self-assigned a new trip  (#: {{trip_id}})",
             "tripSelfAssignedTitle": "Trip Self-Assigned #:  {{trip_id}}",
             "tripAddedByCustomerMessage": "Trip (ID: {{trip_id}}) has been added by customer for company ({{company_name}})",
-            "tripAddedByCustomerTitle": "Trip Added #:  {{trip_id}}"
+            "tripAddedByCustomerTitle": "Trip Added #:  {{trip_id}}",
+            "noShowCustomerPartnerAccountTitle": "NO SHOW CUSTOMER ( Partner Account Access:-  {{company_name}})",
+            "noShowCustomerAccountAccessTitle": "NO SHOW CUSTOMER ( Account Access:-  {{company_name}})",
+            "transferTripCompanyMessage": "The driver ({{driver_name}}) assigned to your trips has been blocked. The affected trips have been returned to your account for reassignment",
+            "transferTripCompanyTitle": "Driver Blocked – Affected Trips Returned to Your Account",
+            "transferTripAccountAccessMessage": "The driver ({{driver_name}}) assigned to trips from the following account access: {{company_name}} Company has been blocked. The affected trips have been returned to their respective company accounts for reassignment",
+            "transferTripAccountAccessTitle": "Driver Blocked – Affected Trips Returned to Your Account ( Company Access:- {{company_name}} )",
+            "transferTripcompanyPartnerMessage": "The driver ({{driver_name}}) assigned to trips from the following {{company_name}} Company (Your partner company) has been blocked. The affected trips have been returned to their respective company accounts for reassignment",
+            "transferTripcompanyPartnerTitle": "Driver Blocked – Affected Trips Returned to Your Account ( Company partner Access:- {{company_name}} )",
+            "driverPreNotificationMessage": "Your trip with ID {{trip_id}} is scheduled to begin in {{time}}. Kindly prepare accordingly",
+            "driverPreNotificationTitle": "Driver Upcoming Trip ID ({{trip_id}}): {{time}} to Start",
+            "companyPreNotificationMessage": "Your trip with ID {{trip_id}} is about to start in {{time}}",
+            "companyPreNotificationTitle": "Company Upcoming Trip ID ({{trip_id}}): {{time}} to Start",
+            "driverPartnerAccountPreNotificationMessage": "Your (partner account - {{company_name}}) trip with ID {{trip_id}} is about to start in {{time}}",
+            "driverPartnerAccountPreNotificationTitle": "Company (partner account - {{company_name}}) Upcoming Trip ID ({{trip_id}}): {{time}} to Start",
+            "driverCompanyAccountPreNotificationMessage": "Your (company access - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in {{time}}",
+            "driverCompanyAccountPreNotificationTitle": "Company (company access - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): {{time}} to Start"
         },
         "success": {
             "tripUpdated": "The trip has been updated successfully"

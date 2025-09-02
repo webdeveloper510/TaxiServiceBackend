@@ -218,7 +218,23 @@
       "tripSelfAssignedMessage": "Chauffeur {{driver_name}} heeft zelf een nieuwe rit toegewezen (#: {{trip_id}}).",
       "tripSelfAssignedTitle": "Rit Zelf-Toegewezen #:  {{trip_id}}",
       "tripAddedByCustomerMessage": "Rit (ID: {{trip_id}}) is toegevoegd door de klant voor het bedrijf ({{company_name}}).",
-      "tripAddedByCustomerTitle": "Rit Toegevoegd #:  {{trip_id}}"
+      "tripAddedByCustomerTitle": "Rit Toegevoegd #:  {{trip_id}}",
+      "noShowCustomerPartnerAccountTitle": "NO SHOW CUSTOMER ( Toegang tot partneraccount:-  {{company_name}})",
+      "noShowCustomerAccountAccessTitle": "NO SHOW CUSTOMER ( Toegang tot account:-  {{company_name}})",
+      "transferTripCompanyMessage": "De chauffeur ({{driver_name}}) die aan uw ritten was toegewezen, is geblokkeerd. De betreffende ritten zijn teruggezet naar uw account voor herverdeling.",
+      "transferTripCompanyTitle": "Chauffeur geblokkeerd – Ritten teruggezet naar uw account",
+      "transferTripAccountAccessMessage": "De chauffeur ({{driver_name}}) die was toegewezen aan ritten van de volgende accounttoegang: {{company_name}} Bedrijf is geblokkeerd. De betreffende ritten zijn teruggezet naar de respectieve bedrijfsaccounts voor herverdeling.",
+      "transferTripAccountAccessTitle": "Chauffeur geblokkeerd – Ritten teruggezet naar uw account (Bedrijfstoegang: {{company_name}})",
+      "transferTripcompanyPartnerMessage": "De chauffeur ({{driver_name}}) die was toegewezen aan ritten van het volgende {{company_name}} Bedrijf (uw partnerbedrijf) is geblokkeerd. De betreffende ritten zijn teruggezet naar de respectieve bedrijfsaccounts voor herverdeling.",
+      "transferTripcompanyPartnerTitle": "Chauffeur geblokkeerd – Ritten teruggezet naar uw account (Partnerbedrijfstoegang: {{company_name}})",
+      "driverPreNotificationMessage": "Uw rit met ID {{trip_id}} staat gepland om te beginnen over {{time}}. Gelieve zich hierop voor te bereiden.",
+      "driverPreNotificationTitle": "Bestuurder aankomende rit ID ({{trip_id}}): start in {{time}}",
+      "companyPreNotificationMessage": "Uw rit met ID {{trip_id}} gaat starten over {{time}}.",
+      "companyPreNotificationTitle": "Bedrijf aankomende rit ID ({{trip_id}}): start in {{time}}",
+      "driverPartnerAccountPreNotificationMessage": "Uw (partneraccount - {{company_name}}) rit met ID {{trip_id}} gaat starten over {{time}}.",
+      "driverPartnerAccountPreNotificationTitle": "Bedrijf (partneraccount - {{company_name}}) aankomende rit ID ({{trip_id}}): start in {{time}}",
+      "driverCompanyAccountPreNotificationMessage": "Uw (bedrijftoegang - ${companyAgecnyData.company_name}) rit met ID ${trip.trip_id} gaat starten over {{time}}.",
+      "driverCompanyAccountPreNotificationTitle": "Bedrijf (bedrijftoegang - ${companyAgecnyData.company_name}) aankomende rit ID (${trip.trip_id}): start in {{time}}"
     },
     "success": {
       "tripUpdated": "De rit is succesvol bijgewerkt."

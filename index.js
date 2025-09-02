@@ -859,129 +859,6 @@ io.on("connection", (socket) => {
       const driverById = await driver_model.findOne({ _id: driverId, });
       
       emitTripRetrivedByCompany(trip_details , driverById  , socket.id , io);
-
-      return
-
-
-      const userData = await user_model.findOne({ _id: trip_details?.created_by_company_id, });
-      const company_data = await agency_model.findOne({ user_id: trip_details?.created_by_company_id, });
-
-      // const driverById = await driver_model.findOne({ _id: driverId, });
-
-      if (driverById?.socketId) {
-
-        // When someone will retieve the trip from his driver then socket will not hit for that user
-        if (socket.id != driverById.socketId) {
-
-          io.to(driverById.socketId).emit("retrivedTrip", {
-                                                            message: `Your trip has been retrived by company, ${company_data?.company_name}`,
-                                                            trip: trip,
-                                                          }
-                                          );
-        }
-        
-
-        io.to(driverById?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
-      }
-
-      if (driverById?.webSocketId) {
-
-        io.to(driverById?.webSocketId).emit(
-                                                    "retrivedTrip",
-                                                    {
-                                                      message: `Your trip has been retrived by company, ${company_data?.company_name}`,
-                                                    },
-                                                  );
-      }
-
-      if (driverById?.deviceToken) {
-        const response = sendNotification(
-                                            driverById?.deviceToken,
-                                            `Your trip ( ${ trip_details.trip_id } ) has been retrived by company, ${company_data?.company_name}`,
-                                            `Trip Retrieved by Company ( ${company_data?.company_name} )`,
-                                            trip
-                                          );
-      }
-
-      // for the company
-      if (userData?.socketId) {
-
-        // for refresh trip
-        io.to(userData?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
-      }
-
-      // functionality for the drivers who have account access as partner
-
-      const driverHasCompanyPartnerAccess = await driver_model.find({ parnter_account_access  : {
-                                                                                                  $elemMatch: { company_id: new mongoose.Types.ObjectId(trip_details?.created_by_company_id) },
-                                                                                                },
-                                                                    });
-
-      if (driverHasCompanyPartnerAccess){
-
-        for (let partnerAccount of driverHasCompanyPartnerAccess) {
-          
-          // for partner app side
-          if (partnerAccount?.socketId) {
-
-            // for refresh trip
-            io.to(partnerAccount?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
-          }
-
-          if (partnerAccount?.webSocketId) {
-
-            // for refresh trip
-            io.to(partnerAccount?.webSocketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
-          }
-
-          if (partnerAccount?.deviceToken) {
-            sendNotification(
-                                    partnerAccount?.deviceToken,
-                                    `The trip ( ${ trip_details.trip_id } ) has been retrived by company, ${company_data?.company_name}`,
-                                    `Trip retrieved (Partner Account Access:- ${company_data?.company_name})`,
-                                    trip
-                                  );
-          }
-        }
-      }
-
-      // For the driver who has company access
-        
-      const driverHasCompanyAccess = await driver_model.find({
-                                                                company_account_access  : {
-                                                                                              $elemMatch: { company_id: new mongoose.Types.ObjectId(trip_details?.created_by_company_id) },
-                                                                                            },
-                                                              });
-
-      if (driverHasCompanyAccess){
-
-        for (let driverCompanyAccess of driverHasCompanyAccess) {
-          if (driverCompanyAccess?.socketId) {
-
-            // for refresh trip
-            io.to(driverCompanyAccess?.socketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
-          }
-
-          if (driverCompanyAccess?.webSocketId) {
-
-            // for refresh trip
-            io.to(driverCompanyAccess?.webSocketId).emit("refreshTrip", { message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates", } )
-          }
-
-          if (driverCompanyAccess?.deviceToken) {
-            sendNotification(
-              driverCompanyAccess?.deviceToken,
-                                    `The trip ( ${ trip_details.trip_id } ) has been retrived by company, ${company_data?.company_name}`,
-                                    `Trip retrieved (Company Account Access:- ${company_data?.company_name})`,
-                                    trip
-                                  );
-          }
-        }
-      }
-
-      if (trip_details?.customerDetails?.email) {
-        // sendBookingCancelledEmail(trip_details);
-      }
       
     } catch (err) {
       console.log("🚀 ~ socket.on companyCancelledTrip ~ err:", err);
@@ -1265,16 +1142,46 @@ async function checkTripsAndSendNotifications() {
       const driverCompanyAccountNotificationMessage = `Your (company access - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
       const driverCompanyAccountNotificationTitleMessage = `Company (company access - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
       
-      // send to trip's driver
+      // send to trip's driver app
       if (trip?.driver_name?.deviceToken) {
           
-          sendNotification( trip?.driver_name?.deviceToken, driverNotificationMessage, driverNotificationTitleMessage, trip )
+        let targetLocale = trip?.driver_name?.app_locale || process.env.DEFAULT_LANGUAGE;
+        let driverNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+
+        let driverNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+        sendNotification( trip?.driver_name?.deviceToken, driverNotificationMessage, driverNotificationTitle, trip )
       }
 
-      // send to trip's company
+      // send to trip's driver web
+      if (trip?.driver_name?.webDeviceToken) {
+          
+        let targetLocale = trip?.driver_name?.web_locale || process.env.DEFAULT_LANGUAGE;
+        let driverNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+
+        let driverNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+        sendNotification( trip?.driver_name?.webDeviceToken, driverNotificationMessage, driverNotificationTitle, trip )
+      }
+
+      // send to trip's company app
       if (trip.created_by_company_id?.deviceToken) {
         
-        sendNotification( trip.created_by_company_id?.deviceToken, companyNotificationMessage, companyNotificationTitleMessage, trip )
+        let targetLocale = trip?.created_by_company_id?.app_locale || process.env.DEFAULT_LANGUAGE;
+        let companyNotificationMessage = i18n.__({ phrase: "editTrip.notification.companyPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+
+        let companyNotificationTitle = i18n.__({ phrase: "editTrip.notification.companyPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+
+        sendNotification( trip.created_by_company_id?.deviceToken, companyNotificationMessage, companyNotificationTitle, trip )
+      }
+
+      // send to trip's company web
+      if (trip.created_by_company_id?.webDeviceToken) {
+        
+        let targetLocale = trip?.created_by_company_id?.web_locale || process.env.DEFAULT_LANGUAGE;
+        let companyNotificationMessage = i18n.__({ phrase: "editTrip.notification.companyPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+
+        let companyNotificationTitle = i18n.__({ phrase: "editTrip.notification.companyPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+
+        sendNotification( trip.created_by_company_id?.webDeviceToken, companyNotificationMessage, companyNotificationTitle, trip )
       }
 
       // functionality for the drivers who have account access as partner
@@ -1288,7 +1195,23 @@ async function checkTripsAndSendNotifications() {
 
         for (let partnerAccount of driverHasCompanyPartnerAccess) {
           if (partnerAccount?.deviceToken) {
-            await sendNotification( partnerAccount?.deviceToken, driverPartnerAccountNotificationMessage, driverPartnerAccountNotificationTitleMessage, trip )
+
+            let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let driverPartnerAccountNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPartnerAccountPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
+
+            let driverPartnerAccountNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPartnerAccountPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
+        
+            await sendNotification( partnerAccount?.deviceToken, driverPartnerAccountNotificationMessage, driverPartnerAccountNotificationTitle, trip )
+          }
+
+          if (partnerAccount?.webDeviceToken) {
+
+            let targetLocale = partnerAccount?.web_locale || process.env.DEFAULT_LANGUAGE;
+            let driverPartnerAccountNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPartnerAccountPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
+
+            let driverPartnerAccountNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPartnerAccountPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
+        
+            await sendNotification( partnerAccount?.webDeviceToken, driverPartnerAccountNotificationMessage, driverPartnerAccountNotificationTitle, trip )
           }
         }
       }
@@ -1304,40 +1227,37 @@ async function checkTripsAndSendNotifications() {
 
         for (let accountAccess of driverHasCompanyAccess) {
           if (accountAccess?.deviceToken) {
-            await sendNotification( accountAccess?.deviceToken, driverCompanyAccountNotificationMessage, driverCompanyAccountNotificationTitleMessage, trip )
+
+            
+            let targetLocale = accountAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let driverCompanyAccountNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverCompanyAccountPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
+
+            let driverCompanyAccountNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverCompanyAccountPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
+            await sendNotification( accountAccess?.deviceToken, driverCompanyAccountNotificationMessage, driverCompanyAccountNotificationTitle, trip )
+          }
+
+          if (accountAccess?.webDeviceToken) {
+
+            
+            let targetLocale = accountAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+            let driverCompanyAccountNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverCompanyAccountPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
+
+            let driverCompanyAccountNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverCompanyAccountPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
+            await sendNotification( accountAccess?.webDeviceToken, driverCompanyAccountNotificationMessage, driverCompanyAccountNotificationTitle, trip )
           }
         }
       }
 
-      
     }
 
-    
-    // trips.forEach((trip) => {
-    //   const message = `Your trip with ID ${trip.trip_id} is scheduled to begin in 15 minutes. Kindly prepare accordingly.`;
-    //   ids.push(trip._id);
-
-    //   if (trip?.driver_name?.deviceToken) {
-    //     notifications.push(
-    //       sendNotification(
-    //         trip?.driver_name?.deviceToken,
-    //         message,
-    //         message,
-    //         trip
-    //       )
-    //     );
-    //   }
-    // });
-    // const res = await Promise.all(notifications);
-
     await trip_model.updateMany(
-      { _id: { $in: ids } },
-      {
-        $set: {
-          fifteenMinuteNotification: true,
-        },
-      }
-    );
+                                { _id: { $in: ids } },
+                                {
+                                  $set: {
+                                    fifteenMinuteNotification: true,
+                                  },
+                                }
+                              );
   } catch (error) {
     console.log("🚀 ~ checkTripsAndSendNotifications ~ error:", error);
   }
