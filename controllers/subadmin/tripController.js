@@ -818,16 +818,17 @@ exports.driverCancelTripDecision = async (req, res) => {
     // Refesh the trip for the company and its partner and account access drivers
     partnerAccountRefreshTrip(tripDetails.created_by_company_id ,res.__('driverCancelTripReason.socket.tripChangedRefresh'),  req.io);
 
-    let message = '';
+    
+    let driver_data = await DRIVER.findOne({ _id: tripDetails.driver_name });
+    let targetLocale = driver_data?.app_locale || process.env.DEFAULT_LANGUAGE;
+    let phrase = tripDecisionStatus === constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED ? "driverCancelTripReason.socket.tripCancellationApproved" : "driverCancelTripReason.socket.tripCancellationRejected";
 
-    if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED) {
-      message = res.__('driverCancelTripReason.socket.tripCancellationApproved' , {trip_id: tripDetails?.trip_id , updatedBy: updatedBy})
-    } else {
-      message = res.__('driverCancelTripReason.socket.tripCancellationRejected' , {trip_id: tripDetails?.trip_id , updatedBy: updatedBy})
-    }
+    let message = i18n.__({ phrase, locale: targetLocale },{ trip_id: tripDetails?.trip_id, updatedBy });
+    
+    
       // Send notification to the driver and inform by the socket but company and driver are same person then no notification or pop-up will be show
     if ( (tripDetails?.driver_name.toString() != req.user?.driverId?._id.toString()) ||  req.companyPartnerAccess) {
-      let driver_data = await DRIVER.findOne({ _id: tripDetails.driver_name });
+      
 
       let device_token = driver_data?.deviceToken;
       if ((device_token == "" || device_token == null) && driver_data?.isCompany) {
@@ -837,7 +838,7 @@ exports.driverCancelTripDecision = async (req, res) => {
       }
 
       const isDriverHasAccess = await isDriverHasCompanyAccess(driver_data , tripDetails.created_by_company_id)
-      console.log('isDriverHasAccess--------------' , isDriverHasAccess)
+      
 
 
       if (driver_data?.socketId) {
@@ -852,7 +853,6 @@ exports.driverCancelTripDecision = async (req, res) => {
         // If driver doesn't have company acces then we can refresh the trip from driver side because he will be refreshed by partnerAccountRefreshTrip function
         if (!isDriverHasAccess) {
 
-          console.log('refreshTrip--------------socketId' , driver_data?.socketId)
           await req.io.to(driver_data?.socketId).emit("refreshTrip", { message: message } )
         }
       }
@@ -873,10 +873,17 @@ exports.driverCancelTripDecision = async (req, res) => {
       }
       
       if (device_token) {
+
+        let targetLocale = driver_data?.app_locale || process.env.DEFAULT_LANGUAGE;
+
+        let notificationMessage = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusMessage", locale: targetLocale } , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+
+        let notificationTitle = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusTitle", locale: targetLocale } , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+      
         sendNotification(
                           device_token,
-                          res.__('driverCancelTripReason.socket.tripCancellationStatusMessage' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
-                          res.__('driverCancelTripReason.socket.tripCancellationStatusTitle' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
+                          notificationMessage,
+                          notificationTitle,
                           tripDetails
                         );
       }
@@ -903,6 +910,11 @@ exports.driverCancelTripDecision = async (req, res) => {
         
         if (driverCompanyAccess?.socketId) {
 
+        let targetLocale = driverCompanyAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
+      
+        let message = i18n.__({ phrase, locale: targetLocale },{ trip_id: tripDetails?.trip_id, updatedBy });
+      
+
           req.io.to(driverCompanyAccess?.socketId).emit("tripCancellationRequestDecision", {
                                                       message: message,
                                                       tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
@@ -911,6 +923,10 @@ exports.driverCancelTripDecision = async (req, res) => {
         }
 
         if (driverCompanyAccess?.webSocketId) {
+
+          let targetLocale = driverCompanyAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+          
+          let message = i18n.__({ phrase, locale: targetLocale },{ trip_id: tripDetails?.trip_id, updatedBy });
 
           req.io.to(driverCompanyAccess?.webSocketId).emit("tripCancellationRequestDecision", {
                                                         message: message,
@@ -921,10 +937,32 @@ exports.driverCancelTripDecision = async (req, res) => {
 
         if (driverCompanyAccess?.deviceToken) {
 
+          let targetLocale = driverCompanyAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusMessage", locale: targetLocale }, {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+
+          let title = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusTitle", locale: targetLocale }, {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+          
+          
           sendNotification(
                             driverCompanyAccess?.deviceToken,
-                            res.__('driverCancelTripReason.socket.tripCancellationStatusMessage' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
-                            res.__('driverCancelTripReason.socket.tripCancellationStatusTitle' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
+                            message,
+                            title,
+                            tripDetails
+                          );
+        }
+
+        if (driverCompanyAccess?.webDeviceToken) {
+
+          let targetLocale = driverCompanyAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusMessage", locale: targetLocale }, {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+
+          let title = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusTitle", locale: targetLocale }, {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+          
+          
+          sendNotification(
+                            driverCompanyAccess?.webDeviceToken,
+                            message,
+                            title,
                             tripDetails
                           );
         }
@@ -945,6 +983,10 @@ exports.driverCancelTripDecision = async (req, res) => {
 
         // for partner app side
         if (partnerAccount?.socketId) {
+
+          let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
+          
+          let message = i18n.__({ phrase, locale: targetLocale },{ trip_id: tripDetails?.trip_id, updatedBy });
           req.io.to(partnerAccount?.socketId).emit("tripCancellationRequestDecision", {
                                                 message: message,
                                                 tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
@@ -955,6 +997,9 @@ exports.driverCancelTripDecision = async (req, res) => {
         // for partner Web side
         if (partnerAccount?.webSocketId) {
 
+          let targetLocale = partnerAccount?.web_locale || process.env.DEFAULT_LANGUAGE;
+          
+          let message = i18n.__({ phrase, locale: targetLocale },{ trip_id: tripDetails?.trip_id, updatedBy });
           req.io.to(partnerAccount?.webSocketId).emit("tripCancellationRequestDecision", {
                                                     message: message,
                                                     tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
@@ -966,25 +1011,33 @@ exports.driverCancelTripDecision = async (req, res) => {
         if (partnerAccount?.deviceToken) {
           // notification for driver
 
+          let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusMessage", locale: targetLocale }, {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+
+          let title = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusTitle", locale: targetLocale }, {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+          
           sendNotification(
                             partnerAccount?.deviceToken,
-                            res.__('driverCancelTripReason.socket.tripCancellationStatusMessage' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
-                            res.__('driverCancelTripReason.socket.tripCancellationStatusTitle' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
+                            message,
+                            title,
                             tripDetails
                           );
-        } else if (partnerAccount.isCompany){
+        }
 
-          const companyData = await USER.findById(partnerAccount.driver_company_id);
-          if (companyData?.deviceToken) {
-            // notification for company
+        if (partnerAccount?.webDeviceToken) {
+          // notification for driver
 
-            sendNotification(
-                              companyData?.deviceToken,
-                              res.__('driverCancelTripReason.socket.tripCancellationStatusMessage' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
-                              res.__('driverCancelTripReason.socket.tripCancellationStatusTitle' , {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus}),
-                              tripDetails
-                            );
-          }
+          let targetLocale = partnerAccount?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusMessage", locale: targetLocale }, {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+
+          let title = i18n.__({ phrase: "driverCancelTripReason.socket.tripCancellationStatusTitle", locale: targetLocale }, {trip_id: tripDetails?.trip_id , tripDecisionStatus: tripDecisionStatus});
+          
+          sendNotification(
+                            partnerAccount?.webDeviceToken,
+                            message,
+                            title,
+                            tripDetails
+                          );
         }
       }
     }
