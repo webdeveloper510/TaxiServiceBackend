@@ -721,11 +721,17 @@ exports.getAllTripsForDrivers = async (req, res) => {
     if (req.user.role == constant.ROLES.COMPANY) {
 
       criteria.created_by_company_id =  id;
-
     } else if (req.user.role == constant.ROLES.DRIVER ) {
 
       criteria.driver_name = id;
+
+      if (req.params.status === constant.TRIP_STATUS.BOOKED) {
+        criteria.trip_status = { $in: [constant.TRIP_STATUS.BOOKED, constant.TRIP_STATUS.REACHED] }; // driver will get both status because frontend need cancellation review true also when booked
+      }
+      
     }
+
+    console.log('criteria------' ,criteria)
 
     const totalCount = await TRIP.countDocuments(criteria);
 

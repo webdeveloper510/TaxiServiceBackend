@@ -736,19 +736,25 @@ exports.emitTripRetrivedByCompany = async(tripDetails , driverDetails , currentS
     // If trip company owner is not cancelling the trip from his driver
     if (currentSocketId != driverDetails?.socketId) { // driver will notify in this sction
       
-      if (driverDetails?.socketId) { socketList.push(driverDetails?.socketId); }
-      if (driverDetails?.webSocketId) { socketList.push(driverDetails?.webSocketId); }
-      if (driverDetails?.deviceToken) { deviceTokenList.push(driverDetails?.deviceToken)}
-      if (driverDetails?.webDeviceToken) { deviceTokenList.push(driverDetails?.webDeviceToken)}
+      if (driverDetails?.socketId) { socketList.push({ socketId: driverDetails?.socketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+
+      if (driverDetails?.webSocketId) { socketList.push({webSocketId: driverDetails?.webSocketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+
+      if (driverDetails?.deviceToken) { deviceTokenList.push({deviceToken: driverDetails?.deviceToken , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
+
+      if (driverDetails?.webDeviceToken) { deviceTokenList.push({webDeviceToken: driverDetails?.webDeviceToken , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
 
       // Only driver will notify with pop-up functionality
       if (socketList) {
-        for (let socketId of socketList) {
+        for (let socketData of socketList) {
 
-          if (socketId) {
+          if (socketData?.platform === constant.PLATFORM.MOBILE && socketData?.socketId ) {
 
+            let socketId = socketData?.socketId;
+            let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "editTrip.socket.tripRetrivedByCompanyMessage", locale: targetLocale }, { company_name: company_data?.company_name });
             socket.to(socketId).emit("retrivedTrip" , {
-                                                        message: `Your trip has been retrived by company, ${company_data?.company_name}`,
+                                                        message: message,
                                                         trip: { result:  tripDetails, }
                                                       }
                                     );
@@ -761,10 +767,13 @@ exports.emitTripRetrivedByCompany = async(tripDetails , driverDetails , currentS
     // main owner of the Trip will be notified
     if (currentSocketId != user?.socketId && currentSocketId != user?.webSocketId) { // if trip owner  didn't retrive the trip then he will be notify
 
-      if (user?.socketId) { socketList.push(user?.socketId); }
-      if (user?.webSocketId) { socketList.push(user?.webSocketId); }
-      if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
-      if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+      if (user?.socketId) { socketList.push({socketId: user?.socketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+
+      if (user?.webSocketId) { socketList.push({webSocketId: user?.webSocketId , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+
+      if (user?.deviceToken) { deviceTokenList.push({ deviceToken: user?.deviceToken , platform: constant.PLATFORM.MOBILE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
+      
+      if (user?.webDeviceToken) { deviceTokenList.push({ webDeviceToken: user?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale })}
     }
 
     // get the drivers (who have access) of  partners and account access list 
@@ -794,18 +803,30 @@ exports.emitTripRetrivedByCompany = async(tripDetails , driverDetails , currentS
     if (driverList) {
 
       for (let driver of driverList) {
-        if (driver?.socketId) { socketList.push(driver?.socketId); }
-        if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
-        if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
-        if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
+        if (driver?.socketId) { socketList.push({ socketId : driver?.socketId , platform: constant.PLATFORM.MOBILE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale } ); }
+        if (driver?.webSocketId) { socketList.push({webSocketId :driver?.webSocketId , platform: constant.PLATFORM.WEBSITE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale }); }
+        if (driver?.deviceToken) { deviceTokenList.push({ deviceToken :driver?.deviceToken , platform: constant.PLATFORM.MOBILE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
+        if (driver?.webDeviceToken) { deviceTokenList.push( { webDeviceToken : driver?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
       }
     }
 
     // emit the socket for notifing---- driver canceled the trip
     if (socketList) {
-      for (let socketId of socketList) {
-        if (socketId) {
+      for (let socketData of socketList) {
+        if (socketData?.platform === constant.PLATFORM.MOBILE && socketData?.socketId ) {
+
+          let socketId = socketData?.socketId;
+          let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
+
           socket.to(socketId).emit("refreshTrip", {  message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates"  }  );
+        }
+
+        if (socketData?.platform === constant.PLATFORM.WEBSITE && socketData?.webSocketId ) {
+
+          let webSocketId = socketData?.webSocketId;
+          let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
+          
+          socket.to(webSocketId).emit("refreshTrip", {  message: "The trip has been revoked from the driver by the company. Please refresh the data to view the latest updates"  }  );
         }
       }
     }
@@ -813,13 +834,38 @@ exports.emitTripRetrivedByCompany = async(tripDetails , driverDetails , currentS
     // send the push notification
     if (deviceTokenList) {
       
-      for (let tokenValue of deviceTokenList) {
+      for (let tokenData of deviceTokenList) {
         
-        if (tokenValue) {
+        if (tokenData?.platform === constant.PLATFORM.MOBILE && tokenData?.deviceToken ) {
+          
+          let tokenValue = tokenData?.deviceToken;
+          let targetLocale = tokenData?.app_locale || process.env.DEFAULT_LANGUAGE;
+
+          let message = i18n.__({ phrase: "editTrip.notification.tripRetrivedMessage", locale: targetLocale }, { trip_id: tripDetails.trip_id , company_name: company_data?.company_name });
+
+          let title = i18n.__({ phrase: "editTrip.notification.tripRetrivedTitle", locale: targetLocale }, { trip_id: tripDetails.trip_id });
+          
           this.sendNotification(
                                   tokenValue,
-                                  `The trip ( ${ tripDetails.trip_id } ) has been retrieved from the driver by company, ${company_data?.company_name}`,
-                                  `Trip retrieved #:  ${tripDetails.trip_id}`,
+                                  message,
+                                  title,
+                                  driverDetails 
+                                );
+        }
+
+        if (tokenData?.platform === constant.PLATFORM.WEBSITE && tokenData?.webDeviceToken ) {
+          
+          let webDeviceToken = tokenData?.webDeviceToken;
+          let targetLocale = tokenData?.web_locale || process.env.DEFAULT_LANGUAGE;
+
+          let message = i18n.__({ phrase: "editTrip.notification.tripRetrivedMessage", locale: targetLocale }, { trip_id: tripDetails.trip_id , company_name: company_data?.company_name });
+
+          let title = i18n.__({ phrase: "editTrip.notification.tripRetrivedTitle", locale: targetLocale }, { trip_id: tripDetails.trip_id });
+          
+          this.sendNotification(
+                                  webDeviceToken,
+                                  message,
+                                  title,
                                   driverDetails 
                                 );
         }

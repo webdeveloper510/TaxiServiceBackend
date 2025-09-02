@@ -200,8 +200,9 @@
     "socket": {
       "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",
       "tripRetrivedByCompany": "Uw ritverzoek is opgehaald door het bedrijf.",
+      "tripRetrivedByCompanyMessage": "Uw ritaanvraag is opgehaald door het bedrijf ({{ company_name }}).",
       "tripAcceptedByDriver": "Rit succesvol geaccepteerd",
-      "tripCancelledByDriver":"De chauffeur {{driver_name}} heeft de rit geannuleerd."
+      "tripCancelledByDriver": "De chauffeur {{driver_name}} heeft de rit geannuleerd."
     },
     "notification": {
       "tripRetrievedByCompanyMessage": "De rit-ID ({{trip_id}}) is door het bedrijf ingetrokken",
@@ -210,10 +211,10 @@
       "tripNotAcceptedByDriverTitle": "Rit niet geaccepteerd #: {{trip_id}}",
       "tripAcceptedByDriverMessage": "Rit (ID: {{trip_id}}) is succesvol geaccepteerd door de chauffeur ({{driver_name}}).",
       "tripAcceptedByDriverTitle": "Rit geaccepteerd #: {{trip_id}}",
-      
       "tripCancelledByDriverMessage": "De rit is geannuleerd door chauffeur ( {{driver_name}} ) en het rit-ID is {{trip_id}}",
-      "tripCancelledByDriverTitle": "Rit geannuleerd door chauffeur #: {{trip_id}}"
-
+      "tripCancelledByDriverTitle": "Rit geannuleerd door chauffeur #: {{trip_id}}",
+      "tripRetrivedMessage": "De rit ({{ trip_id }}) is door het bedrijf {{ company_name }} teruggenomen van de chauffeur.",
+      "tripRetrivedTitle": "Rit teruggenomen #: {{trip_id}}"
     },
     "success": {
       "tripUpdated": "De rit is succesvol bijgewerkt."
