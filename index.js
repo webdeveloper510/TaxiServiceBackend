@@ -1133,14 +1133,6 @@ async function checkTripsAndSendNotifications() {
 
     for(let trip of trips) {
       let companyAgecnyData = await agency_model.findOne({user_id: trip?.created_by_company_id});
-      const driverNotificationMessage = `Your trip with ID ${trip.trip_id} is scheduled to begin in 20 minutes. Kindly prepare accordingly.`;
-      const driverNotificationTitleMessage = `Driver Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
-      const companyNotificationMessage = `Your trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
-      const companyNotificationTitleMessage = `Company Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
-      const driverPartnerAccountNotificationMessage = `Your (partner account - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
-      const driverPartnerAccountNotificationTitleMessage = `Company (partner account - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
-      const driverCompanyAccountNotificationMessage = `Your (company access - ${companyAgecnyData.company_name}) trip with ID ${trip.trip_id} is about to start in 20 minutes.`;
-      const driverCompanyAccountNotificationTitleMessage = `Company (company access - ${companyAgecnyData.company_name}) Upcoming Trip ID (${trip.trip_id}): 20 Minutes to Start`;
       
       // send to trip's driver app
       if (trip?.driver_name?.deviceToken) {

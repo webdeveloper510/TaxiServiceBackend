@@ -1,4 +1,5 @@
 require("dotenv").config();
+const i18n = require("i18n");
 const USER = require("../../models/user/user_model");
 const AGENCY = require("../../models/user/agency_model");
 const DRIVER = require("../../models/user/driver_model");
@@ -3534,10 +3535,14 @@ exports.update_account_access = async (req, res) => {
 
         if (driver_token != "") {
 
+          let targetLocale = driver?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyMessage", locale: targetLocale }, { company_name: company_detials.company_name });
+          let title = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyTitle", locale: targetLocale });
+
           const response = await sendNotification(
                                                     driver_token,
-                                                    res.__('updateAccountAccess.success.accountRevokedByCompanyMessage', {company_name: company_detials.company_name}),
-                                                    res.__('updateAccountAccess.success.accountRevokedByCompanyTitle'),
+                                                    message,
+                                                    title,
                                                     company_detials
                                                   );
         }
@@ -3557,10 +3562,15 @@ exports.update_account_access = async (req, res) => {
         mesage_data = res.__('updateAccountAccess.success.accountShareSuccess');
 
         if (driver_token != "") {
+
+          let targetLocale = driver?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "updateAccountAccess.success.accountSharedByCompanyMessage", locale: targetLocale }, { company_name: company_detials.company_name });
+          let title = i18n.__({ phrase: "updateAccountAccess.success.accountSharedByCompanyTitle", locale: targetLocale });
+
           const response = await sendNotification(
                                                     driver_token,
-                                                   res.__('updateAccountAccess.success.accountSharedByCompanyMessage', {company_name: company_detials.company_name}),
-                                                    res.__('updateAccountAccess.success.accountSharedByCompanyTitle'),
+                                                    message,
+                                                    title,
                                                     company_detials
                                                   );
         }
@@ -3654,10 +3664,15 @@ exports.updatePartnerAccountAccess = async (req, res) => {
         // Send mobile notification if device
         if (driverDeviceToken != "" && driverDeviceToken != null) {
 
+            let targetLocale = driver?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyMessage", locale: targetLocale }, { company_name: company_detials.company_name });
+
+            let title = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyTitle", locale: targetLocale });
+
             const response = await sendNotification(
                                                       driverDeviceToken,
-                                                      res.__('updateAccountAccess.success.accountRevokedByCompanyMessage' ,{company_name: company_detials.company_name}),
-                                                      res.__('updateAccountAccess.success.accountRevokedByCompanyTitle'),
+                                                      message,
+                                                      title,
                                                       company_detials
                                                     );
         }
@@ -3679,10 +3694,16 @@ exports.updatePartnerAccountAccess = async (req, res) => {
         mesage_data = res.__('updateAccountAccess.success.accountShareSuccess');
 
         if (driverDeviceToken != "" && driverDeviceToken != null) {
+
+          let targetLocale = driver?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "updateAccountAccess.success.accountSharedByCompanyMessage", locale: targetLocale }, { company_name: company_detials.company_name });
+
+          let title = i18n.__({ phrase: "updateAccountAccess.success.accountSharedByCompanyTitle", locale: targetLocale });
+
           const response = await sendNotification(
                                                     driverDeviceToken,
-                                                   res.__('updateAccountAccess.success.accountSharedByCompanyMessage' ,{company_name: company_detials.company_name}),
-                                                     res.__('updateAccountAccess.success.accountSharedByCompanyTitle'),
+                                                    message,
+                                                    title,
                                                     company_detials
                                                   );
         }
