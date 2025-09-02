@@ -598,7 +598,7 @@ exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) =
 exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentSocketId , socket) => {
  
   try {
-
+    console.log('cancel by driver------------------')
     let user = await user_model.findById(tripDetails?.created_by_company_id);
     const companyAgencyData = await AGENCY_MODEL.findOne({user_id: tripDetails.created_by_company_id})
     let driver_name = driverDetails.first_name + " " + driverDetails.last_name;
@@ -609,10 +609,10 @@ exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentS
     // If trip company owner is not cancelling the trip from his driver
     if (currentSocketId != user?.socketId) {
 
-      if (user?.socketId) { socketList.push(user?.socketId); }
-      if (user?.webSocketId) { socketList.push(user?.webSocketId); }
-      if (user?.deviceToken) { deviceTokenList.push(user?.deviceToken)}
-      if (user?.webDeviceToken) { deviceTokenList.push(user?.webDeviceToken)}
+      if (user?.socketId) { socketList.push({socketId: user?.socketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+      if (user?.webSocketId) { socketList.push({webSocketId: user?.webSocketId , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+      if (user?.deviceToken) { deviceTokenList.push({ deviceToken: user?.deviceToken , platform: constant.PLATFORM.MOBILE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
+      if (user?.webDeviceToken) { deviceTokenList.push({ webDeviceToken: user?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale })}
     }
 
     // get the drivers (who have access) of  partners and account access list 
@@ -642,24 +642,42 @@ exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentS
     if (driverList) {
 
       for (let driver of driverList) {
-        if (driver?.socketId) { socketList.push(driver?.socketId); }
-        if (driver?.webSocketId) { socketList.push(driver?.webSocketId); }
-        if (driver?.deviceToken) { deviceTokenList.push(driver?.deviceToken)}
-        if (driver?.webDeviceToken) { deviceTokenList.push(driver?.webDeviceToken)}
-      }
+          if (driver?.socketId) { socketList.push({ socketId : driver?.socketId , platform: constant.PLATFORM.MOBILE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale } ); }
+          if (driver?.webSocketId) { socketList.push({webSocketId :driver?.webSocketId , platform: constant.PLATFORM.WEBSITE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale }); }
+          if (driver?.deviceToken) { deviceTokenList.push({ deviceToken :driver?.deviceToken , platform: constant.PLATFORM.MOBILE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
+          if (driver?.webDeviceToken) { deviceTokenList.push( { webDeviceToken : driver?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
+        }
     }
 
     // emit the socket for notifing---- driver canceled the trip
     if (socketList) {
-      for (let socketId of socketList) {
-        if (socketId) {
+      for (let socketData of socketList) {
+        if (socketData?.platform === constant.PLATFORM.MOBILE && socketData?.socketId ) {
+
+          let socketId = socketData?.socketId;
+          let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "editTrip.socket.tripCancelledByDriver", locale: targetLocale }, { driver_name: driver_name });
           socket.to(socketId).emit("tripCancelledBYDriver", {
                                                               trip: tripDetails,
                                                               driver: driverDetails,
-                                                              message: `Driver ${driver_name} has canceled the trip`,
+                                                              message: message,
                                                             },
                                   );
           socket.to(socketId).emit("refreshTrip", {  message: "The trip driver did not accept the trip. Please refresh the data to see the latest updates"  }  );
+        }
+
+        if (socketData?.platform === constant.PLATFORM.WEBSITE && socketData?.webSocketId ) {
+
+          let webSocketId = socketData?.webSocketId;
+          let targetLocale = socketData?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "editTrip.socket.tripCancelledByDriver", locale: targetLocale }, { driver_name: driver_name });
+          socket.to(webSocketId).emit("tripCancelledBYDriver", {
+                                                              trip: tripDetails,
+                                                              driver: driverDetails,
+                                                              message: message,
+                                                            },
+                                  );
+          socket.to(webSocketId).emit("refreshTrip", {  message: "The trip driver did not accept the trip. Please refresh the data to see the latest updates"  }  );
         }
       }
     }
@@ -667,13 +685,34 @@ exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentS
     // send the push notification
     if (deviceTokenList) {
       
-      for (let tokenValue of deviceTokenList) {
+      for (let tokenData of deviceTokenList) {
 
-        if (tokenValue) {
+        if (tokenData?.platform === constant.PLATFORM.MOBILE && tokenData?.deviceToken ) {
+          
+          let tokenValue = tokenData?.deviceToken;
+          let targetLocale = tokenData?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "editTrip.notification.tripCancelledByDriverMessage", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetails.trip_id });
+
+          let title = i18n.__({ phrase: "editTrip.notification.tripCancelledByDriverTitle", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetails.trip_id });
           this.sendNotification(
                                   tokenValue,
-                                  `The trip has been canceled by driver ( ${driver_name} ) and trip ID is ${tripDetails.trip_id}`,
-                                  `Trip Canceled by Driver #:  ${tripDetails.trip_id}`,
+                                  message,
+                                  title,
+                                  driverDetails 
+                                );
+        }
+
+        if (tokenData?.platform === constant.PLATFORM.WEBSITE && tokenData?.webDeviceToken ) {
+          
+          let tokenValue = tokenData?.webDeviceToken;
+          let targetLocale = tokenData?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "editTrip.notification.tripCancelledByDriverMessage", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetails.trip_id });
+
+          let title = i18n.__({ phrase: "editTrip.notification.tripCancelledByDriverTitle", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetails.trip_id });
+          this.sendNotification(
+                                  tokenValue,
+                                  message,
+                                  title,
                                   driverDetails 
                                 );
         }
