@@ -1095,32 +1095,64 @@ exports.customerCancelTrip = async (req , res) => {
     let user = await USER.findById(tripInfo?.created_by_company_id);
     const companyAgencyData = await AGENCY.findOne({user_id: tripInfo.created_by_company_id});
     partnerAccountRefreshTrip(tripInfo?.created_by_company_id , res.__('addTrip.socket.tripCreatedRefresh'),  req.io);
+
+    
+          
     if (user?.socketId) {
       
-        req.io.to(user?.socketId).emit("tripCancelledBYCustomer", {
-                                                              trip:tripInfo,
-                                                              message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
-                                                            }
+      let targetLocale = user?.app_locale || process.env.DEFAULT_LANGUAGE;
+      let message = i18n.__({ phrase: "customerCancelTrip.socket.tripCancelledByCustomer", locale: targetLocale }, {customerName: customerName});
+
+      req.io.to(user?.socketId).emit("tripCancelledBYCustomer", {
+                                                                  trip:tripInfo,
+                                                                  message: message,
+                                                                }
                                   );
     }
 
     if (user?.webSocketId) {
      
+      let targetLocale = user?.web_locale || process.env.DEFAULT_LANGUAGE;
+      let message = i18n.__({ phrase: "customerCancelTrip.socket.tripCancelledByCustomer", locale: targetLocale }, {customerName: customerName});
+
       // socket for web
       req.io.to(user?.webSocketId).emit(
                                           "tripCancelledBYCustomer",
                                           {
                                             trip:tripInfo,
-                                            message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
+                                            message: message,
                                           },
                                         );
     }
 
     if (user?.deviceToken) {
+
+      let targetLocale = user?.app_locale || process.env.DEFAULT_LANGUAGE;
+      let message = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerMessage", locale: targetLocale }, {customerName: customerName , trip_id: tripInfo.trip_id});
+
+      let title = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerTitle", locale: targetLocale }, { trip_id: tripInfo.trip_id});
+
+
       sendNotification(
                         user?.deviceToken,
-                        res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
-                        res.__('customerCancelTrip.notification.tripCancelledByCustomerTitle' , { trip_id: tripInfo.trip_id}),
+                        message,
+                        title,
+                        tripInfo
+                      );
+    }
+
+    if (user?.webDeviceToken) {
+
+      let targetLocale = user?.web_locale || process.env.DEFAULT_LANGUAGE;
+      let message = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerMessage", locale: targetLocale }, {customerName: customerName , trip_id: tripInfo.trip_id});
+
+      let title = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerTitle", locale: targetLocale }, { trip_id: tripInfo.trip_id});
+
+
+      sendNotification(
+                        user?.webDeviceToken,
+                        message,
+                        title,
                         tripInfo
                       );
     }
@@ -1138,44 +1170,61 @@ exports.customerCancelTrip = async (req , res) => {
         
         if (driverCompanyAccess?.socketId) {
 
+          let targetLocale = driverCompanyAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "customerCancelTrip.socket.tripCancelledByCustomer", locale: targetLocale }, {customerName: customerName});
+
           req.io.to(driverCompanyAccess?.socketId).emit(
                                                     "tripCancelledBYCustomer",
                                                     {
                                                       trip:tripInfo,
-                                                      message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
+                                                      message: message,
                                                     },
                                                   );
         }
 
         if (driverCompanyAccess?.webSocketId) {
 
+          let targetLocale = driverCompanyAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "customerCancelTrip.socket.tripCancelledByCustomer", locale: targetLocale }, {customerName: customerName});
+
           req.io.to(driverCompanyAccess?.webSocketId).emit(
-                                                        "tripCancelledBYCustomer",
-                                                        {
-                                                          trip:tripInfo,
-                                                          message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
-                                                        },
-                                                      );
+                                                            "tripCancelledBYCustomer",
+                                                            {
+                                                              trip:tripInfo,
+                                                              message: message,
+                                                            },
+                                                          );
         }
 
         if (driverCompanyAccess?.deviceToken) {
 
+          let targetLocale = driverCompanyAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerMessage", locale: targetLocale }, {customerName: customerName , trip_id: tripInfo.trip_id});
+
+          let title = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerForCompanyAccessTitle", locale: targetLocale }, {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id});
+
+
           sendNotification(
                                   driverCompanyAccess?.deviceToken,
-                                  res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
-                                  res.__('customerCancelTrip.notification.tripCancelledByCustomerForCompanyAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
+                                  message,
+                                  title,
                                   tripInfo
                                 );
         }
 
         if (driverCompanyAccess?.webDeviceToken) {
 
+          let targetLocale = driverCompanyAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerMessage", locale: targetLocale }, {customerName: customerName , trip_id: tripInfo.trip_id});
+
+          let title = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerForCompanyAccessTitle", locale: targetLocale }, {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id});
+
           sendNotification(
-                                  driverCompanyAccess?.webDeviceToken,
-                                  res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
-                                  res.__('customerCancelTrip.notification.tripCancelledByCustomerForCompanyAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
-                                  tripInfo
-                                );
+                            driverCompanyAccess?.webDeviceToken,
+                            message,
+                            title,
+                            tripInfo
+                          );
         }
       }
     }
@@ -1193,11 +1242,15 @@ exports.customerCancelTrip = async (req , res) => {
 
           // for partner app side
           if (partnerAccount?.socketId) {
+
+            let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "customerCancelTrip.socket.tripCancelledByCustomer", locale: targetLocale }, {customerName: customerName});
+
             req.io.to(partnerAccount?.socketId).emit("tripCancelledBYCustomer",{
-                                                                              trip:tripInfo,
-                                                                              message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
-                                                                            },
-                                                );
+                                                                                  trip:tripInfo,
+                                                                                  message: message,
+                                                                                },
+                                                    );
               
             // for refresh trip
             req.io.to(partnerAccount?.socketId).emit( "refreshTrip", { message:  res.__('customerCancelTrip.socket.tripChangedRefresh')} );
@@ -1206,9 +1259,12 @@ exports.customerCancelTrip = async (req , res) => {
           // for partner Web side
           if (partnerAccount?.webSocketId) {
 
-          req.io.to(partnerAccount?.webSocketId).emit("tripCancelledBYCustomer",{
+            let targetLocale = partnerAccount?.web_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "customerCancelTrip.socket.tripCancelledByCustomer", locale: targetLocale }, {customerName: customerName});
+
+            req.io.to(partnerAccount?.webSocketId).emit("tripCancelledBYCustomer",{
                                                                               trip:tripInfo,
-                                                                              message: res.__('customerCancelTrip.socket.tripCancelledByCustomer' , {customerName: customerName}),
+                                                                              message: message,
                                                                             },
                                                 )
 
@@ -1217,11 +1273,15 @@ exports.customerCancelTrip = async (req , res) => {
 
           if (partnerAccount?.webDeviceToken) {
             // notification for driver
+            let targetLocale = driverCompanyAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerMessage", locale: targetLocale }, {customerName: customerName , trip_id: tripInfo.trip_id});
+
+            let title = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerForPartnerAccessTitle", locale: targetLocale }, {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id});
 
             sendNotification(
                               partnerAccount?.webDeviceToken,
-                              res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
-                              res.__('customerCancelTrip.notification.tripCancelledByCustomerForPartnerAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
+                              message,
+                              title,
                               tripInfo
                             );
           }
@@ -1230,25 +1290,17 @@ exports.customerCancelTrip = async (req , res) => {
           if (partnerAccount?.deviceToken) {
             // notification for driver
 
+            let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerMessage", locale: targetLocale }, {customerName: customerName , trip_id: tripInfo.trip_id});
+
+            let title = i18n.__({ phrase: "customerCancelTrip.notification.tripCancelledByCustomerForPartnerAccessTitle", locale: targetLocale }, {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id});
+
             sendNotification(
                               partnerAccount?.deviceToken,
-                              res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
-                              res.__('customerCancelTrip.notification.tripCancelledByCustomerForPartnerAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
+                              message,
+                              title,
                               tripInfo
                             );
-          } else if (partnerAccount.isCompany){
-
-            const companyData = await USER.findById(partnerAccount.driver_company_id);
-            if (companyData?.deviceToken) {
-              // notification for company
-
-              sendNotification(
-                                companyData?.deviceToken,
-                                res.__('customerCancelTrip.notification.tripCancelledByCustomerMessage' , {customerName: customerName , trip_id: tripInfo.trip_id}),
-                                res.__('customerCancelTrip.success.tripCancelledByCustomerForPartnerAccessTitle' , {company_name: companyAgencyData.company_name , trip_id: tripInfo.trip_id}),
-                                tripInfo
-                              );
-            }
           }
         }
       }
@@ -1518,12 +1570,22 @@ exports.access_edit_trip = async (req, res) => {
         //  device_token = "evnYTVy9QMm9Al231AlxEp:APA91bHG7ewABk-KVBrbXOG3LabwTe4NKdeuPIEa6VuWqnmUwirp8-aKgCfzI2ibPK5kxxVLS-qqE-hfQf-iVhqrhis5fKjurRdkzqLS4S6KEwZRkZ_ZnirAfEbLp-gGi8mSPHW7jvOY";
 
         try {
-          const response = await sendNotification(
+
+          if (device_token) {
+
+            let targetLocale = driver_data?.app_locale || process.env.DEFAULT_LANGUAGE;
+            let message = i18n.__({ phrase: "editTrip.notification.tripRetrievedByCompanyMessage", locale: targetLocale }, {trip_id: trip_data.trip_id});
+
+            let title = i18n.__({ phrase: "editTrip.notification.tripRetrievedByCompanyTitle", locale: targetLocale });
+
+            const response = await sendNotification(
                                                     device_token,
-                                                    res.__('editTrip.notification.tripRetrievedByCompanyMessage' , {trip_id: trip_data.trip_id}),
-                                                    res.__('editTrip.notification.tripRetrievedByCompanyTitle'),
+                                                    message,
+                                                    title,
                                                     trip_data
                                                   );
+          }
+          
         } catch (e) {
           // res.send({
           //     code: constant.success_code,
