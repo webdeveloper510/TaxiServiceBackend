@@ -108,12 +108,23 @@ const trip = new Schema({
         default: null
     },
     trip_from:{
-        type:{},
-        default:{}
+        type:{
+            lat: { type: Number, required: true },
+            lng: { type: Number, required: true },
+            address: { type: String, default: "" },
+            street: { type: String, default: "" },
+            is_airport: { type: Boolean, default: false }
+
+        },
     },
     trip_to:{
-        type:{},
-        default:{}
+        type:{
+            lat: { type: Number, required: true },
+            lng: { type: Number, required: true },
+            address: { type: String, default: "" },
+            street: { type: String, default: "" },
+            is_airport: { type: Boolean, default: false }
+        }
     },
     trip_id:{
         type:String,
