@@ -110,7 +110,7 @@ const trip = new Schema({
     trip_from:{
         type:{
             lat: { type: Number, required: true },
-            lng: { type: Number, required: true },
+            log: { type: Number, required: true },
             address: { type: String, default: "" },
             street: { type: String, default: "" },
             is_airport: { type: Boolean, default: false }
@@ -120,7 +120,7 @@ const trip = new Schema({
     trip_to:{
         type:{
             lat: { type: Number, required: true },
-            lng: { type: Number, required: true },
+            log: { type: Number, required: true },
             address: { type: String, default: "" },
             street: { type: String, default: "" },
             is_airport: { type: Boolean, default: false }
