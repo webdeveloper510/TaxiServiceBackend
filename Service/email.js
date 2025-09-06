@@ -16,6 +16,11 @@ const transporter = nodemailer.createTransport(emailConstant.credentials);
 
 async function sendEmail(to, subject, templateName, data, language = "nl" ,attachments) {
     try {
+        // if to emial willl not come then retrun false
+        if ( !to ||  (typeof to === "string" && to.trim() === "") ||  (Array.isArray(to) && to.length === 0) ) {
+            return false;
+        }
+
         // Path to the EJS file
         const templatePath = path.join(__dirname, "..", "templates", language,  `${templateName}.ejs`);
 

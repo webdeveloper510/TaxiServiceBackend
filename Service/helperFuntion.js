@@ -2844,7 +2844,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     const companyDetails = await user_model.findOne({ _id: tripDetail?.created_by_company_id });
     const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: tripDetail?.created_by_company_id });
     let email = tripDetail?.customerDetails?.email;
-   
+    console.log('tripDetail?.customerDetails---' ,tripDetail?.customerDetails)
     let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`: '';
 
     const subject = `Your order confirmation # ${tripDetail?.trip_id}`;
@@ -2899,7 +2899,8 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
       trackUrl: bookingTrackLink
     }
 
-
+    console.log('email--------' , email)
+    // console.log('bookingData--------' , bookingData)
     const emailSent = await sendEmail(
                                         email, // Receiver email
                                         subject, // Subject
