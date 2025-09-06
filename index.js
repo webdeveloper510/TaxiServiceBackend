@@ -1354,15 +1354,38 @@ const initiateWeeklyCompanyPayouts = async (res) => {
             // console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
             if (availableBalance >=  Math.round(amount * 100) ) {
               // amount = 5;
-              const transferDedtails = await transferToConnectedAccount(amount, connectedAccountId , tripId);
+
+              // a) TRANSFER
+              const transfer = await transferToConnectedAccount(amount, connectedAccountId , tripId);
               
-              const chek = await trip_model.findOneAndUpdate(
+              const updateTrip = await trip_model.findOneAndUpdate(
                                                               { _id: trip?._id }, // Find by tripId
-                                                              { $set: { company_trip_transfer_id: transferDedtails?.id } }, // Update fields
+                                                              { $set:   {
+                                                                          'transfer.id': transfer.id ?? null,                                  // tr_...
+                                                                          'transfer.amount': typeof transfer.amount === 'number' ? transfer.amount : null, // cents
+                                                                          'transfer.currency': transfer.currency ?? null,
+                                                                          'transfer.destination': transfer.destination ?? null,                 // acct_...
+                                                                          'transfer.transfer_group': transfer.transfer_group ?? null,           // e.g., tripId
+                                                                          'transfer.balance_transaction': transfer.balance_transaction ?? null, // txn_...
+                                                                          'transfer.created': createdDate,                                      // Date
+                                                                          'transfer.destination_payment': transfer.destination_payment ?? null, // optional
+                                                                          'transfer.reversals': reversals,                                      // array of ids (or empty)
+                                                                        } 
+                                                                    }, // Update fields
                                                               { new: true } // Return the updated document
                                                             );
 
-              // console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
+              console.log('transfer----' , {
+                                                                          'transfer.id': transfer.id ?? null,                                  // tr_...
+                                                                          'transfer.amount': typeof transfer.amount === 'number' ? transfer.amount : null, // cents
+                                                                          'transfer.currency': transfer.currency ?? null,
+                                                                          'transfer.destination': transfer.destination ?? null,                 // acct_...
+                                                                          'transfer.transfer_group': transfer.transfer_group ?? null,           // e.g., tripId
+                                                                          'transfer.balance_transaction': transfer.balance_transaction ?? null, // txn_...
+                                                                          'transfer.created': createdDate,                                      // Date
+                                                                          'transfer.destination_payment': transfer.destination_payment ?? null, // optional
+                                                                          'transfer.reversals': reversals,                                      // array of ids (or empty)
+                                                                        })
               const isInvoiceForCompany = true;
               const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
               const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , trip , isInvoiceForCompany)

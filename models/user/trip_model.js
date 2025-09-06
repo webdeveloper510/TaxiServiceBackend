@@ -277,35 +277,138 @@ const trip = new Schema({
         type: Boolean,
         default: false,
     },
-    company_trip_transfer_id: {
+    currency: {
         type: String,
-        default: null,
+        default: `eur`
     },
-    company_trip_payout_id: {
-        type: String,
-        default: null,
+    charge: {
+        id: {
+            type: String,
+            default: null,
+        },
+        balance_transaction: {
+            type: String,
+            default: null,
+        },
+        amount: {
+            type: Number, // better as Number instead of String
+            default: null,
+        },
+        currency: {
+            type: String,
+            default: null,
+        },
     },
+    transfer: {
+        id: { // transfer id will save when payment will move from stripe account to connected account
+            type: String,
+            default: null, // Stripe transfer.id → tr_...
+        },
+        amount: {
+            type: Number,
+            default: null, // in cents
+        },
+        currency: {
+            type: String,
+            default: null,
+        },
+        destination: {
+            type: String,
+            default: null, // acct_... (connected account)
+        },
+        transfer_group: {
+            type: String,
+            default: null, // usually tripId
+        },
+        balance_transaction: { // //That typically refers to the balance transaction object (balance_transaction) that gets created whenever you make a transfer to a connected account.
+            type: String,
+            default: null, // txn_...
+        },
+        created: {
+            type: Date,
+            default: null, // timestamp
+        },
+        destination_payment: {
+            type: String,
+            default: null, // optional: payment ID created in destination acct
+        },
+        reversals: {
+            type: Array,
+            default: [], // optional: track reversals if any
+        },
+    },
+
+    payout: {
+        id: {
+            type: String,        // Stripe payout ID → po_…
+            default: null,
+        },
+        amount: {
+            type: Number,        // in cents
+            default: null,
+        },
+        currency: {
+            type: String,
+            default: null,
+        },
+        status: {
+            type: String,
+            enum: PAYOUT_TANSFER_ENUM,
+            default: CONSTANT.PAYOUT_TANSFER_STATUS.NOT_INITIATED,
+        },
+        arrival_date: {
+            type: Date,          // Stripe gives unix ts → convert to JS Date
+            default: null,
+        },
+        balance_transaction: {
+            type: String,        // txn_…
+            default: null,
+        },
+        method: {
+            type: String,        // standard | instant
+            default: 'standard',
+        },
+        destination: {
+            type: String,        // ba_… (bank) or card_…
+            default: null,
+        },
+        statement_descriptor: {
+            type: String,
+            default: null,
+        },
+        created: {
+            type: Date,          // unix ts → JS Date
+            default: null,
+        },
+        failure_code: {
+            type: String,
+            default: null,
+        },
+        failure_message: {
+            type: String,
+            default: null,
+        },
+        initiated_date: {
+            type: Date,
+            default: null
+        }
+    },
+    
     company_trip_payout_status: { //  when payemt will be transafered from connected account to company bank acccount (Afetr transfer from paypal to connected account)
         type: String,
         enum: PAYOUT_TANSFER_ENUM,
         default: CONSTANT.PAYOUT_TANSFER_STATUS.NOT_INITIATED,
     },
     company_trip_payout_initiated_date: {
-        type: String,
+        type: Date,
         default: null,
     },
     company_trip_payout_completed_date: {
-        type: String,
+        type: Date,
         default: null,
     },
-    company_trip_payout_failure_code: {
-        type: String,
-        default: null,
-    },
-    company_trip_payout_failure_message: {
-        type: String,
-        default: null,
-    },
+    
+    
     fifteenMinuteNotification:{
         type: Boolean,
         default: false,

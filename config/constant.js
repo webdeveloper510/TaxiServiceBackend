@@ -129,6 +129,7 @@ module.exports={
         PAID: `PAID`,
         FAILED: `FAILED`,
         NOT_INITIATED: `NOT_INITIATED`,
+        CANCELED: `CANCELED`,
     },
     SUBSCRIPTION_PLAN_NAMES: {
         PRO: "Pro",
