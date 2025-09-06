@@ -1392,7 +1392,7 @@ const initiateWeeklyCompanyPayouts = async (res) => {
               await trip_model.findOneAndUpdate(
                                                   { _id: trip?._id }, // Find by tripId
                                                   { 
-                                                    $set: { 
+                                                    $set: {  
                                                             company_hosted_invoice_url : invoiceDetail?.hosted_invoice_url,
                                                             company_invoice_pdf : invoiceDetail?.invoice_pdf,
                                                             company_trip_payout_id: payoutDetails?.id,
