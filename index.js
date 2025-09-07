@@ -48,7 +48,13 @@ const i18n = require('./i18n');
 const { startAllCrons } = require("./cronjobs");
 // view engine setup
 
+
+
 // Apply raw body parser specifically for Stripe webhook
+
+const payoutWebhook = require('./routes/webhooks/payoutWebhook'); // exports a handler fn
+app.post('/payout_webhook', bodyParser.raw({ type: 'application/json' }), payoutWebhook);
+
 app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
 
   console.log('webhook triggered----------------')
@@ -284,120 +290,120 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
   }
 );
 
-app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
+// app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
 
-  console.log('webhook triggered payout_webhook----------------')
-  const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
-    try {
+//   console.log('webhook triggered payout_webhook----------------')
+//   const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
+//     try {
          
-        const endpointSecret = process.env.STRIPE_PAYOUT_SECRET;
+//         const endpointSecret = process.env.STRIPE_PAYOUT_SECRET;
           
-          const sig = req.headers['stripe-signature'];
-          let event;
+//           const sig = req.headers['stripe-signature'];
+//           let event;
          
-          try {
-            event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-            console.log("payout webhook received successfully----" , event.type);
+//           try {
+//             event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+//             console.log("payout webhook received successfully----" , event.type);
             
-          } catch (err) {
-            console.log(`payout_webhook Error: ${err.message}`);
+//           } catch (err) {
+//             console.log(`payout_webhook Error: ${err.message}`);
 
 
-            let logs_data = { 
-                              api_name: 'payout_webhook', payload: JSON.stringify(req.body),
-                              error_message: err.message, error_response: JSON.stringify(err)
-                            };
+//             let logs_data = { 
+//                               api_name: 'payout_webhook', payload: JSON.stringify(req.body),
+//                               error_message: err.message, error_response: JSON.stringify(err)
+//                             };
 
-            const logEntry = new LOGS(logs_data);
-            logEntry.save();
-            return res.status(200).send({ received: true , error_message: err.message , istTime:istTime});
-          }
+//             const logEntry = new LOGS(logs_data);
+//             logEntry.save();
+//             return res.status(200).send({ received: true , error_message: err.message , istTime:istTime});
+//           }
 
-          // -------------------- Main Logic start
+//           // -------------------- Main Logic start
         
-          console.log('payout_webhook event-------up' , event)
+//           console.log('payout_webhook event-------up' , event)
 
-          const tripDetails = await trip_model.findOne({ 'payout.id': event?.data?.object?.id });
+//           const tripDetails = await trip_model.findOne({ 'payout.id': event?.data?.object?.id });
 
-          console.log('check id---------' , { 'payout.id': event?.data?.object?.id })
-          if (tripDetails) {
+//           console.log('check id---------' , { 'payout.id': event?.data?.object?.id })
+//           if (tripDetails) {
 
-            console.log('payout tripDetails------', tripDetails)
+//             console.log('payout tripDetails------', tripDetails)
 
-            const userDetails = await user_model.findOne({ _id: tripDetails?.created_by_company_id });
-            if (event.type === 'payout.paid' ) {
-              const payout = event.data.object;
-              const isPaid = payout.status === 'paid';
-              // Handle successful payout here
-              // For example, update your database or notify the user
+//             const userDetails = await user_model.findOne({ _id: tripDetails?.created_by_company_id });
+//             if (event.type === 'payout.paid' ) {
+//               const payout = event.data.object;
+//               const isPaid = payout.status === 'paid';
+//               // Handle successful payout here
+//               // For example, update your database or notify the user
               
-              const updateTrip = await trip_model.findOneAndUpdate(
-                                                              { 'payout.id': payout?.id }, // Find by tripId
-                                                              { $set: { 
-                                                                        company_trip_payout_completed_date: payout. status == 'paid'?? new Date().toISOString(), 
-                                                                        'payout.status': constant.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)],
-                                                                        'payout.completed_date': isPaid ? new Date() : null,     // set only when paid
-                                                                        'payout.failure_code': payout.failure_code || null,
-                                                                        'payout.failure_message': payout.failure_message || null,
-                                                                        is_company_paid: true,
-                                                                        company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)]
-                                                                      } 
-                                                              }, // Update fields
-                                                              { new: true } // Return the updated document
-                                                            );
+//               const updateTrip = await trip_model.findOneAndUpdate(
+//                                                               { 'payout.id': payout?.id }, // Find by tripId
+//                                                               { $set: { 
+//                                                                         company_trip_payout_completed_date: payout. status == 'paid'?? new Date().toISOString(), 
+//                                                                         'payout.status': constant.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)],
+//                                                                         'payout.completed_date': isPaid ? new Date() : null,     // set only when paid
+//                                                                         'payout.failure_code': payout.failure_code || null,
+//                                                                         'payout.failure_message': payout.failure_message || null,
+//                                                                         is_company_paid: true,
+//                                                                         company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)]
+//                                                                       } 
+//                                                               }, // Update fields
+//                                                               { new: true } // Return the updated document
+//                                                             );
 
-              console.log('payout done------')
-              console.log('payout done------' ,updateTrip)
-              notifyPayoutPaid(userDetails , tripDetails , payout);
+//               console.log('payout done------')
+//               console.log('payout done------' ,updateTrip)
+//               notifyPayoutPaid(userDetails , tripDetails , payout);
                                                           
-            } else if (event.type === 'payout.failed') {
+//             } else if (event.type === 'payout.failed') {
   
-              const chek = await trip_model.findOneAndUpdate(
-                                                            { company_trip_payout_id: payout?.id }, // Find by tripId
-                                                            { $set: { 
-                                                                      company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.FAILED,
-                                                                      company_trip_payout_failure_code: payout.failure_code ,
-                                                                      company_trip_payout_failure_message: payout.failure_message,
-                                                                    } 
-                                                            }, // Update fields
-                                                            { new: true } // Return the updated document
-                                                          );
+//               const chek = await trip_model.findOneAndUpdate(
+//                                                             { company_trip_payout_id: payout?.id }, // Find by tripId
+//                                                             { $set: { 
+//                                                                       company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.FAILED,
+//                                                                       company_trip_payout_failure_code: payout.failure_code ,
+//                                                                       company_trip_payout_failure_message: payout.failure_message,
+//                                                                     } 
+//                                                             }, // Update fields
+//                                                             { new: true } // Return the updated document
+//                                                           );
 
-              notifyPayoutFailure(userDetails , tripDetails , payout);
-              console.log('payout failed------')
-            }
-          } else {
-            console.log('trip not found based on this payout-------up' , event)
-            let logs_data = { api_name: 'payout_webhook', payload: JSON.stringify(req.body),
-                              error_message: `trip not found based on this payout`, error_response: JSON.stringify(event)
-                            };
+//               notifyPayoutFailure(userDetails , tripDetails , payout);
+//               console.log('payout failed------')
+//             }
+//           } else {
+//             console.log('trip not found based on this payout-------up' , event)
+//             let logs_data = { api_name: 'payout_webhook', payload: JSON.stringify(req.body),
+//                               error_message: `trip not found based on this payout`, error_response: JSON.stringify(event)
+//                             };
 
-            const logEntry = new LOGS(logs_data);
-            logEntry.save();
-            return res.status(200).send({ received: true , error_message: `payout_webhook event not found` , istTime:istTime});
-          }
+//             const logEntry = new LOGS(logs_data);
+//             logEntry.save();
+//             return res.status(200).send({ received: true , error_message: `payout_webhook event not found` , istTime:istTime});
+//           }
 
           
-          let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `payout_webhook`, error_response: JSON.stringify(event) };
-          const logEntry = new LOGS(logs_data);
-          return res.status(200).send({ received: true  , message: `payout_webhook received successfully`, istTime:istTime});
-          logEntry.save();
-        } catch (error) {
-          console.error("Error in webhook handler payout_webhook():", error.message);
-          let logs_data = {
-                            api_name: 'payout_webhook error',
-                            payload: JSON.stringify(req.body),
-                            error_message: error.message,
-                            error_response: JSON.stringify(error)
-                          };
-          const logEntry = new LOGS(logs_data);
-          logEntry.save();
-          return res.status(200).send({ received: true , error_message: error.message , istTime:istTime});
-      }
-    }
-  )
+//           let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `payout_webhook`, error_response: JSON.stringify(event) };
+//           const logEntry = new LOGS(logs_data);
+//           return res.status(200).send({ received: true  , message: `payout_webhook received successfully`, istTime:istTime});
+//           logEntry.save();
+//         } catch (error) {
+//           console.error("Error in webhook handler payout_webhook():", error.message);
+//           let logs_data = {
+//                             api_name: 'payout_webhook error',
+//                             payload: JSON.stringify(req.body),
+//                             error_message: error.message,
+//                             error_response: JSON.stringify(error)
+//                           };
+//           const logEntry = new LOGS(logs_data);
+//           logEntry.save();
+//           return res.status(200).send({ received: true , error_message: error.message , istTime:istTime});
+//       }
+//     }
+//   )
       
-
+// 
 startAllCrons();
 app.use(logger("dev"));
 app.use(i18n.init);

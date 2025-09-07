@@ -5,6 +5,7 @@ const CONSTANT = require("../config/constant.js");
 const { toCents, getAvailableCentsFor, sleep , toConstantCase} = require('../utils/money');
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
+// await notifyInsufficientBalance()
 exports.getPendingPayoutTripsBeforeWeek = async () => {
   try {
 
