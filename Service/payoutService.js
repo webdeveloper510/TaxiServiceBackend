@@ -143,7 +143,6 @@ exports.runPayoutsBatch  = async () => {
 
       const trips = await this.getPendingPayoutTripsBeforeWeek();
 
-
       if (!trips.length) {
           console.log('No eligible trips for payout.----' , new Date());
           return;

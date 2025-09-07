@@ -318,6 +318,8 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           console.log('payout_webhook event-------up' , event)
 
           const tripDetails = await trip_model.findOne({ 'payout.id': event?.data?.object?.id });
+
+          console.log('check id---------' , { 'payout.id': event?.data?.object?.id })
           if (tripDetails) {
 
             console.log('payout tripDetails------', tripDetails)
