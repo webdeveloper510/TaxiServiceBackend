@@ -15,8 +15,7 @@ const SETTING_MODEL = require('./models/user/setting_model');
 const CAR_TYPE_MODEL = require('./models/admin/car_type_model');
 var apiRouter = require("./routes/index.js");
 const { Server } = require("socket.io");
-const { driverDetailsByToken, 
-        userDetailsByToken, 
+const { driverDetailsByToken,
         sendNotification, 
         sendPaymentFailEmail , 
         sendEmailSubscribeSubcription , 
@@ -24,21 +23,20 @@ const { driverDetailsByToken,
         transferToConnectedAccount,
         sendPayoutToBank,
         notifyInsufficientBalance,
-        checkPayouts,
         notifyPayoutPaid,
         notifyPayoutFailure,
-        sendBookingConfirmationEmail,
-        sendBookingCancelledEmail,
         emitTripCancelledByDriver,
         emitTripRetrivedByCompany,
         emitTripAcceptedByDriver,
         generateInvoiceReceipt
       } = require("./Service/helperFuntion");
+const {runPayoutsBatch} = require("./Service/payoutService");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
 const SUBSCRIPTION_MODEL = require("./models/user/subscription_model");
 const PLANS_MODEL = require("./models/admin/plan_model");
+const { toConstantCase} = require('./utils/money');
 const mongoose = require("mongoose");
 var app = express();
 app.use(cors());
@@ -47,7 +45,7 @@ const constant = require("./config/constant.js");
 const httpServer = http.createServer(app);
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const i18n = require('./i18n');
-
+const { startAllCrons } = require("./cronjobs");
 // view engine setup
 
 // Apply raw body parser specifically for Stripe webhook
@@ -297,8 +295,6 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
           const sig = req.headers['stripe-signature'];
           let event;
          
-
-
           try {
             event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
             console.log("payout webhook received successfully----" , event.type);
@@ -321,7 +317,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
         
           console.log('payout_webhook event-------up' , event)
 
-          const tripDetails = await trip_model.findOne({ company_trip_payout_id: event?.data?.object?.id });
+          const tripDetails = await trip_model.findOne({ 'payout.id': event?.data?.object?.id });
           if (tripDetails) {
 
             console.log('payout tripDetails------', tripDetails)
@@ -329,17 +325,18 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
             const userDetails = await user_model.findOne({ _id: tripDetails?.created_by_company_id });
             if (event.type === 'payout.paid' ) {
               const payout = event.data.object;
-              
+              const isPaid = payout.status === 'paid';
               // Handle successful payout here
               // For example, update your database or notify the user
               
-              const chek = await trip_model.findOneAndUpdate(
-                                                              { company_trip_payout_id: payout?.id }, // Find by tripId
+              const updateTrip = await trip_model.findOneAndUpdate(
+                                                              { 'payout.id': payout?.id }, // Find by tripId
                                                               { $set: { 
                                                                         company_trip_payout_completed_date: payout. status == 'paid'?? new Date().toISOString(), 
-                                                                        company_trip_payout_status: payout. status == 'paid'?? constant.PAYOUT_TANSFER_STATUS.PAID,
-                                                                        company_trip_payout_failure_code: payout.failure_code ,
-                                                                        company_trip_payout_failure_message: payout.failure_message,
+                                                                        'payout.status': constant.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)],
+                                                                        'payout.completed_date': isPaid ? new Date() : null,     // set only when paid
+                                                                        'payout.failure_code': payout.failure_code || null,
+                                                                        'payout.failure_message': payout.failure_message || null,
                                                                         is_company_paid: true,
                                                                       } 
                                                               }, // Update fields
@@ -347,6 +344,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
                                                             );
 
               console.log('payout done------')
+              console.log('payout done------' ,updateTrip)
               notifyPayoutPaid(userDetails , tripDetails , payout);
                                                           
             } else if (event.type === 'payout.failed') {
@@ -397,7 +395,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
   )
       
 
-
+startAllCrons();
 app.use(logger("dev"));
 app.use(i18n.init);
 app.use(express.json());
@@ -462,99 +460,11 @@ app.post( "/send-notification", async (req, res) => {
 app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
-    res.json({ message: res.__('signup.nicknameAlreadyInUse') });
-    // initiateWeeklyCompanyPayouts(res);
-    return 
-    const balance = await stripe.balance.retrieve();
-    let availableBalance = balance?.available[0]?.amount || 0;
-    const tripList = await getPendingPayoutTripsBeforeWeek();
-    const current_date = new Date();
-        // sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 2);
     
-        //  get the trips who have account attached with stripe then we can also transfer into his account
-        const av = await trip_model.find({ 
-          is_paid: true,
-          pickup_date_time: { $lt: new Date() },
-        } )
-    return res.send({
-      code: 200,
-      message: "weekly-company-payment",
-      // tripList:tripList,
-      // balance,
-      av,
-      // chek
-    });
-
-    if (availableBalance > 100) {
-       
-        // const connectedAccountId = `acct_1QxRoi4CiWWLkHIH`;
-        // const tripId = `T-1051`
-        // const payoutList = await checkPayouts(connectedAccountId);
-        
-        if (tripList.length > 0) {
-
-          for (let  trip of tripList) {
-
-            let amount = trip.companyPaymentAmount;
-            let connectedAccountId = trip?.companyDetails?.connectedAccountId;
-            let tripId = trip?.trip_id;
-
-            let stripBalance = await stripe.balance.retrieve();
-            let availableBalance = stripBalance?.available[0]?.amount || 0;
-            
-            console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
-            if (availableBalance >=  Math.round(amount * 100) ) {
-              amount = 5;
-              const transferDedtails = await transferToConnectedAccount(amount, connectedAccountId , tripId);
-              
-              const chek = await trip_model.findOneAndUpdate(
-                                                { _id: trip?._id }, // Find by tripId
-                                                { $set: { company_trip_transfer_id: transferDedtails?.id } }, // Update fields
-                                                { new: true } // Return the updated document
-                                              );
-
-              console.log('chek----' , { company_trip_transfer_id: transferDedtails?.id }   , '----------', chek)
-              const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
-              await trip_model.findOneAndUpdate(
-                { _id: trip?._id }, // Find by tripId
-                { 
-                  $set: { 
-                          company_trip_payout_id: payoutDetails?.id,
-                          company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.PENDING,
-                          company_trip_payout_initiated_date: new Date().toISOString(),
-                        } 
-                }, 
-                { new: true } // Return the updated document
-              );
-
-              console.log('trip completed------' ,tripId)
-            } else {
-
-              console.log(`You dont have enough payment in your account to transfer the payment to the compmies.`)
-              await notifyInsufficientBalance()
-              break;
-            }
-          }
-        }
-        
-        
-    } else {
-      await notifyInsufficientBalance()
-      console.log(`You dont have enough payment in your account.`)
-    }
-
-    return res.send({
-        code: 200,
-        message: "weekly-company-payment",
-        // tripList:tripList,
-        balance,
-        tripList
-      });
+    await  runPayoutsBatch()
     return res.send({
                       code: 200,
-                      message: "weekly-company-payment",
-                      tripList:tripList,
-                      balance
+                      message: "weekly-company-payment"
                     });
   } catch (error) {
     console.error("Error weekly-company-payment:", error);
@@ -1310,12 +1220,12 @@ const get20thMinuteRangeUTC = async () => {
 
 // Schedule the task using cron for every minute
 cron.schedule("* * * * *", () => {
-  console.log("hitting per minute-------")
+  // console.log("hitting per minute-------")
   // console.log('running evry minute' , new Date())
 
   // Send push notification to driver and company when trip will start in 20 minutes
-  checkTripsAndSendNotifications();
-  initiateWeeklyCompanyPayouts();
+  // checkTripsAndSendNotifications();
+  // initiateWeeklyCompanyPayouts();
   // logoutDriverAfterThreeHour()
 });
 

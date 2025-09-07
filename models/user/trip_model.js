@@ -402,6 +402,10 @@ const trip = new Schema({
         initiated_date: {
             type: Date,
             default: null
+        },
+        completed_date: {
+            type: Date,
+            default: null,
         }
     },
     
@@ -410,13 +414,6 @@ const trip = new Schema({
         enum: PAYOUT_TANSFER_ENUM,
         default: CONSTANT.PAYOUT_TANSFER_STATUS.NOT_INITIATED,
     },
-    
-    company_trip_payout_completed_date: {
-        type: Date,
-        default: null,
-    },
-    
-    
     fifteenMinuteNotification:{
         type: Boolean,
         default: false,

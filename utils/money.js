@@ -12,3 +12,8 @@ exports.getAvailableCentsFor = (balanceObj, currency = 'eur') => {
 exports.sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
+
+exports.toConstantCase = (value = "") => {
+  if (typeof value !== "string") return "";
+  return value.toUpperCase();
+}

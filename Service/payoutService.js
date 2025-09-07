@@ -1,25 +1,25 @@
 require("dotenv").config();
 const TRIP_MODEL = require("../models/user/trip_model.js");
-const user_model = require("../models/user/user_model");
-const constant = require("../config/constant.js");
-const { toCents, getAvailableCentsFor, sleep } = require('../utils/money');
+const USER_MODEL = require("../models/user/user_model");
+const CONSTANT = require("../config/constant.js");
+const { toCents, getAvailableCentsFor, sleep , toConstantCase} = require('../utils/money');
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.getPendingPayoutTripsBeforeWeek = async () => {
   try {
 
     const sevenDaysAgo = new Date();
-    console.log(`sevenDaysAgo--------` , sevenDaysAgo)
+    // console.log(`sevenDaysAgo--------` , sevenDaysAgo)
     // sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 2);
 
     //  get the trips who have account attached with stripe then we can also transfer into his account
     const trips = await TRIP_MODEL.aggregate([
                                               {
                                                 $match: { 
-                                                          trip_status: constant.TRIP_STATUS.COMPLETED,
+                                                          trip_status: CONSTANT.TRIP_STATUS.COMPLETED,
                                                           // is_paid: true,
                                                           is_company_paid: false,
-                                                          company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.NOT_INITIATED,
+                                                          company_trip_payout_status: CONSTANT.PAYOUT_TANSFER_STATUS.NOT_INITIATED,
                                                           // pickup_date_time: { $lt: sevenDaysAgo },
                                                         } 
                                               },
@@ -61,8 +61,8 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
 
     return trips
   } catch (error) {
-    console.error("Error getPendingPayoutTripsBeforeWeek:", error);
-    throw error;
+    console.log("Error getPendingPayoutTripsBeforeWeek:", error);
+    // throw error;
   }
 }
 
@@ -137,85 +137,102 @@ exports.computeTripCompanyAmount = (trip) => {
 }
 
 exports.runPayoutsBatch  = async () => {
-try {
-    const platformBal = await stripe.balance.retrieve();
-    const platformEur = getAvailableCentsFor(platformBal, 'eur');
+  try {
+      const platformBal = await stripe.balance.retrieve();
+      const platformEur = getAvailableCentsFor(platformBal, 'eur');
 
-    const trips = await getPendingPayoutTripsBeforeWeek();
-
-
-    if (!trips.length) {
-        console.log('No eligible trips for payout.----' , new Date());
-        return;
-    }
+      const trips = await this.getPendingPayoutTripsBeforeWeek();
 
 
-    if (platformEur < 100) { // < €1
-        console.log('Insufficient platform EUR balance for transfers.');
-        return;
-    }
+      if (!trips.length) {
+          console.log('No eligible trips for payout.----' , new Date());
+          return;
+      }
 
 
-    for (const trip of trips) {
-        
-        const amountEur = await this.computeTripCompanyAmount(trip);
-        if (amountEur < 1) continue;
+      if (platformEur < 100) { // < €1
+          console.log('Insufficient platform EUR balance for transfers.');
+          return;
+      }
 
 
-        const tripId = trip.trip_id;
-        const connectedAccountId = trip.companyDetails.connectedAccountId;
-        const stripeCustomerId = trip.companyDetails.stripeCustomerId;
+      for (const trip of trips) {
+          
+          const amountEur = await this.computeTripCompanyAmount(trip);
+          if (amountEur < 1) continue;
 
 
-        const latest = await stripe.balance.retrieve();
-        if (getAvailableCentsFor(latest, 'eur') < toCents(amountEur)) {
-            
-            console.log('Platform balance fell below required amount; stopping batch.');
-            break;
-        }
+          const tripId = trip.trip_id;
+          const connectedAccountId = trip.companyDetails.connectedAccountId;
+          const stripeCustomerId = trip.companyDetails.stripeCustomerId;
 
 
-        // a) TRANSFER
-        const transfer = await this.transferToConnectedAccount(amountEur, connectedAccountId, tripId );
-        await TRIP_MODEL.updateOne(
-                                    { _id: trip._id }, 
-                                    {
-                                        $set:   {
-                                                    stripe_transfer_id: transfer.id,
-                                                    stripe_transfer_balance_txn: transfer.balance_transaction || null,
-                                                },
-                                    }
-                                );
-        console.log('Transfer created', { tripId, transferId: transfer.id });
+          const latest = await stripe.balance.retrieve();
+          if (getAvailableCentsFor(latest, 'eur') < toCents(amountEur)) {
+              
+              console.log('Platform balance fell below required amount; stopping batch.');
+              break;
+          }
 
 
-        // b) WAIT for funds on connected
-        const ok = await this.waitUntilFundsOnConnected({ connectedAccountId, amountEur });
-        if (!ok) {
-            console.log('Funds not yet available on connected; payout will be retried later', { tripId, connectedAccountId });
-            continue;
-        }
+          // a) TRANSFER
+          const transfer = await this.transferToConnectedAccount(amountEur, connectedAccountId, tripId );
+          await TRIP_MODEL.updateOne(
+                                      { _id: trip._id }, 
+                                      {
+                                          $set:   {
+                                                    'transfer.id': transfer.id ?? null,                                  // tr_...
+                                                    'transfer.amount': typeof transfer.amount === 'number' ? transfer.amount : null, // cents
+                                                    'transfer.currency': transfer.currency ?? null,
+                                                    'transfer.destination': transfer.destination ?? null,                 // acct_...
+                                                    'transfer.transfer_group': transfer.transfer_group ?? null,           // e.g., tripId
+                                                    'transfer.balance_transaction': transfer.balance_transaction ?? null, // txn_...
+                                                    'transfer.created': new Date(),                                      // Date
+                                                    'transfer.destination_payment': transfer.destination_payment ?? null, // optional
+                                                    'transfer.reversals': transfer?.reversals,                                      // array of ids (or empty)
+                                                  } 
+                                      }
+                                  );
+          console.log('Transfer created', { tripId, transferId: transfer.id });
 
 
-        // c) PAYOUT
-        const payout = await this.createConnectedPayout(amountEur, connectedAccountId, tripId );
+          // b) WAIT for funds on connected
+          const ok = await this.waitUntilFundsOnConnected({ connectedAccountId, amountEur });
+          if (!ok) {
+              console.log('Funds not yet available on connected; payout will be retried later', { tripId, connectedAccountId });
+              continue;
+          }
 
 
-        // d) SAVE reconciliation anchors
-        await TRIP_MODEL.updateOne({ _id: trip._id },   {
-                                                            $set:   {
-                                                                        company_trip_payout_id: payout.id,
-                                                                        company_trip_payout_status: PAYOUT_STATUS.PENDING,
-                                                                        company_trip_payout_initiated_date: new Date().toISOString(),
-                                                                        company_trip_payout_balance_txn: payout.balance_transaction || null,
-                                                                    },
-                                                        }
-                                    );
+          // c) PAYOUT
+          const payout = await this.createConnectedPayout(amountEur, connectedAccountId, tripId );
 
 
-        console.log('Payout initiated', { tripId, payoutId: payout.id });
-    }
-} catch (e) {
-await logError('runPayoutsBatch failed', { err: e.message, stack: e.stack });
+          // d) SAVE reconciliation anchors
+          await TRIP_MODEL.updateOne({ _id: trip._id },   {
+                                                              $set:   {
+                                                                          'payout.id': payout.id,
+                                                                          'payout.amount': payout.amount,
+                                                                          'payout.currency': payout.currency,
+                                                                          'payout.status': CONSTANT.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)],
+                                                                          'payout.arrival_date': payout.arrival_date ? new Date(payout.arrival_date * 1000) : null,
+                                                                          'payout.balance_transaction': payout.balance_transaction || null,
+                                                                          'payout.method': payout.method || 'standard',
+                                                                          'payout.destination': payout.destination || null,
+                                                                          'payout.statement_descriptor': payout.statement_descriptor || null,
+                                                                          'payout.created': payout.created ? new Date(payout.created * 1000) : new Date(),
+                                                                          'payout.initiated_date': new Date(),
+                                                                          company_trip_payout_status: CONSTANT.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)]
+                                                                      },
+                                                          }
+                                      );
+
+
+          console.log('Payout initiated',  payout);
+      }
+  } catch (e) {
+    console.log('runPayoutsBatch failed', { err: e.message, stack: e.stack });
+  }
 }
-}
+
+
