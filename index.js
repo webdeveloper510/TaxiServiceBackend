@@ -340,6 +340,7 @@ app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (
                                                                         'payout.failure_code': payout.failure_code || null,
                                                                         'payout.failure_message': payout.failure_message || null,
                                                                         is_company_paid: true,
+                                                                        company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)]
                                                                       } 
                                                               }, // Update fields
                                                               { new: true } // Return the updated document
