@@ -41,10 +41,8 @@ console.log('webhook triggered payout_webhook----------------')
 
           const tripDetails = await TRIP_MODEL.findOne({ 'payout.id': event?.data?.object?.id });
 
-          console.log('check id---------' , { 'payout.id': event?.data?.object?.id })
           if (tripDetails) {
 
-            console.log('payout tripDetails------', tripDetails)
 
             const userDetails = await USER_MODEL.findOne({ _id: tripDetails?.created_by_company_id });
             if (event.type === 'payout.paid' ) {
@@ -69,7 +67,7 @@ console.log('webhook triggered payout_webhook----------------')
                                                             );
 
               console.log('payout done------')
-              console.log('payout done------' ,updateTrip)
+              
               notifyPayoutPaid(userDetails , tripDetails , payout);
                                                           
             } else if (event.type === 'payout.failed') {
