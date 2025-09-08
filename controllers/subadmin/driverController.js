@@ -731,8 +731,6 @@ exports.getAllTripsForDrivers = async (req, res) => {
       
     }
 
-    console.log('criteria------' ,criteria)
-
     const totalCount = await TRIP.countDocuments(criteria);
 
     let get_trip = await TRIP.aggregate([

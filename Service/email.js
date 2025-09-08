@@ -24,7 +24,7 @@ async function sendEmail(to, subject, templateName, data, language = "nl" ,attac
         // Path to the EJS file
         const templatePath = path.join(__dirname, "..", "templates", language,  `${templateName}.ejs`);
 
-        console.log('data----' ,templateName , data , language)
+      
         // Render the EJS template with dynamic data
         const htmlContent = await ejs.renderFile(templatePath, data);
 
@@ -73,7 +73,7 @@ async function sendEmail(to, subject, templateName, data, language = "nl" ,attac
                                     }).then(() => console.log('Email Sent ✅'))
                                     .catch(e => console.error(e.response?.statusCode, e.response?.body || e))
         // const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent: " + info.response);
+       
         return info
     } catch (error) {
         console.error("Error sending email:", error);

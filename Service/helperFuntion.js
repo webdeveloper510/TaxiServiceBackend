@@ -250,7 +250,7 @@ exports.sendPayout = async (amount, connectedAccountId) => {
 
 exports.sendSms = async (data) => {
   try {
-    console.log('data-------' , data)
+    
     let payload = {
                     body: data.message,
                     to: data.to,
