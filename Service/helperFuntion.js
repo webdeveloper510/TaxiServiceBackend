@@ -421,7 +421,7 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
   const companyData = await user_model.findOne({ _id: companyId });
 
-  console.log('companyData?.socketId------' , companyData?.socketId , 'companyData?.webSocketId------' , companyData?.webSocketId)
+  
   if (companyData?.socketId) {
     await io.to(companyData?.socketId).emit("refreshTrip", { message: message } )
   }

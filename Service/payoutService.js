@@ -130,11 +130,7 @@ exports.createConnectedPayout = async (amountEur, connectedAccountId, tripId) =>
 }
 
 exports.computeTripCompanyAmount = (trip) => {
-    return (
-        (Number(trip.companyPaymentAmount) || 0) +
-        (Number(trip.child_seat_price) || 0) +
-        (Number(trip.payment_method_price) || 0)
-    );
+    return ( Number(trip.companyPaymentAmount) || 0);
 }
 
 exports.runPayoutsBatch  = async () => {
