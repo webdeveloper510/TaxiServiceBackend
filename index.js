@@ -5,11 +5,9 @@ const bodyParser = require('body-parser');
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-var cron = require("node-cron");
 const db = require("./config/db");
 const http = require("http");
 const cors = require("cors");
-const agency_model = require("./models/user/agency_model.js");
 const LOGS = require("./models/user/logs_model"); // Import the Driver model
 const SETTING_MODEL = require('./models/user/setting_model');
 const CAR_TYPE_MODEL = require('./models/admin/car_type_model');
@@ -18,25 +16,16 @@ const { Server } = require("socket.io");
 const { driverDetailsByToken,
         sendNotification, 
         sendPaymentFailEmail , 
-        sendEmailSubscribeSubcription , 
-        getPendingPayoutTripsBeforeWeek,
-        transferToConnectedAccount,
-        sendPayoutToBank,
-        notifyInsufficientBalance,
-        notifyPayoutPaid,
-        notifyPayoutFailure,
+        sendEmailSubscribeSubcription,
         emitTripCancelledByDriver,
         emitTripRetrivedByCompany,
         emitTripAcceptedByDriver,
-        generateInvoiceReceipt
       } = require("./Service/helperFuntion");
-const {runPayoutsBatch} = require("./Service/payoutService");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
 const SUBSCRIPTION_MODEL = require("./models/user/subscription_model");
 const PLANS_MODEL = require("./models/admin/plan_model");
-const { toConstantCase} = require('./utils/money');
 const mongoose = require("mongoose");
 var app = express();
 app.use(cors());
@@ -52,7 +41,7 @@ const { startAllCrons } = require("./cronjobs");
 
 // Apply raw body parser specifically for Stripe webhook
 
-const payoutWebhook = require('./routes/webhooks/payoutWebhook'); // exports a handler fn
+const payoutWebhook = require('./routes/webhooks/payoutWebhook'); // exports webhook handler function
 app.post('/payout_webhook', bodyParser.raw({ type: 'application/json' }), payoutWebhook);
 
 app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
@@ -164,7 +153,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
               updateData =  {
                               subscriptionId:invoice.subscription,
-                              planId: subscriptionExist?.planId,
+                              planId: subscriptionExist.planId,
                               productPriceId: subscriptionExist.priceId,
                               customerId: subscriptionExist.customerId,
                               role: subscriptionExist.role,
@@ -290,119 +279,6 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
   }
 );
 
-// app.post( "/payout_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
-
-//   console.log('webhook triggered payout_webhook----------------')
-//   const istTime = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });  
-//     try {
-         
-//         const endpointSecret = process.env.STRIPE_PAYOUT_SECRET;
-          
-//           const sig = req.headers['stripe-signature'];
-//           let event;
-         
-//           try {
-//             event = await stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-//             console.log("payout webhook received successfully----" , event.type);
-            
-//           } catch (err) {
-//             console.log(`payout_webhook Error: ${err.message}`);
-
-
-//             let logs_data = { 
-//                               api_name: 'payout_webhook', payload: JSON.stringify(req.body),
-//                               error_message: err.message, error_response: JSON.stringify(err)
-//                             };
-
-//             const logEntry = new LOGS(logs_data);
-//             logEntry.save();
-//             return res.status(200).send({ received: true , error_message: err.message , istTime:istTime});
-//           }
-
-//           // -------------------- Main Logic start
-        
-//           console.log('payout_webhook event-------up' , event)
-
-//           const tripDetails = await trip_model.findOne({ 'payout.id': event?.data?.object?.id });
-
-//           console.log('check id---------' , { 'payout.id': event?.data?.object?.id })
-//           if (tripDetails) {
-
-//             console.log('payout tripDetails------', tripDetails)
-
-//             const userDetails = await user_model.findOne({ _id: tripDetails?.created_by_company_id });
-//             if (event.type === 'payout.paid' ) {
-//               const payout = event.data.object;
-//               const isPaid = payout.status === 'paid';
-//               // Handle successful payout here
-//               // For example, update your database or notify the user
-              
-//               const updateTrip = await trip_model.findOneAndUpdate(
-//                                                               { 'payout.id': payout?.id }, // Find by tripId
-//                                                               { $set: { 
-//                                                                         company_trip_payout_completed_date: payout. status == 'paid'?? new Date().toISOString(), 
-//                                                                         'payout.status': constant.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)],
-//                                                                         'payout.completed_date': isPaid ? new Date() : null,     // set only when paid
-//                                                                         'payout.failure_code': payout.failure_code || null,
-//                                                                         'payout.failure_message': payout.failure_message || null,
-//                                                                         is_company_paid: true,
-//                                                                         company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS[toConstantCase(payout.status)]
-//                                                                       } 
-//                                                               }, // Update fields
-//                                                               { new: true } // Return the updated document
-//                                                             );
-
-//               console.log('payout done------')
-//               console.log('payout done------' ,updateTrip)
-//               notifyPayoutPaid(userDetails , tripDetails , payout);
-                                                          
-//             } else if (event.type === 'payout.failed') {
-  
-//               const chek = await trip_model.findOneAndUpdate(
-//                                                             { company_trip_payout_id: payout?.id }, // Find by tripId
-//                                                             { $set: { 
-//                                                                       company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.FAILED,
-//                                                                       company_trip_payout_failure_code: payout.failure_code ,
-//                                                                       company_trip_payout_failure_message: payout.failure_message,
-//                                                                     } 
-//                                                             }, // Update fields
-//                                                             { new: true } // Return the updated document
-//                                                           );
-
-//               notifyPayoutFailure(userDetails , tripDetails , payout);
-//               console.log('payout failed------')
-//             }
-//           } else {
-//             console.log('trip not found based on this payout-------up' , event)
-//             let logs_data = { api_name: 'payout_webhook', payload: JSON.stringify(req.body),
-//                               error_message: `trip not found based on this payout`, error_response: JSON.stringify(event)
-//                             };
-
-//             const logEntry = new LOGS(logs_data);
-//             logEntry.save();
-//             return res.status(200).send({ received: true , error_message: `payout_webhook event not found` , istTime:istTime});
-//           }
-
-          
-//           let logs_data = { api_name: 'payout_webhook', payload: event.type, error_message: `payout_webhook`, error_response: JSON.stringify(event) };
-//           const logEntry = new LOGS(logs_data);
-//           return res.status(200).send({ received: true  , message: `payout_webhook received successfully`, istTime:istTime});
-//           logEntry.save();
-//         } catch (error) {
-//           console.error("Error in webhook handler payout_webhook():", error.message);
-//           let logs_data = {
-//                             api_name: 'payout_webhook error',
-//                             payload: JSON.stringify(req.body),
-//                             error_message: error.message,
-//                             error_response: JSON.stringify(error)
-//                           };
-//           const logEntry = new LOGS(logs_data);
-//           logEntry.save();
-//           return res.status(200).send({ received: true , error_message: error.message , istTime:istTime});
-//       }
-//     }
-//   )
-      
 // 
 startAllCrons();
 app.use(logger("dev"));
@@ -418,7 +294,7 @@ const io = new Server(httpServer, {
                                   }
                       );
 app.use((req, res, next) => {
-  console.log*('turning----')
+  
   const lang = req.query.lang || req.headers['accept-language'];
   if (lang) {
     req.setLocale(lang);
@@ -470,7 +346,6 @@ app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
     
-    await  runPayoutsBatch()
     return res.send({
                       code: 200,
                       message: "weekly-company-payment"
@@ -1023,157 +898,6 @@ const OfflineDriver = async (driverInfo) => {
   }
 };
 
-async function checkTripsAndSendNotifications() {
-  try {
-    const currentDate = new Date();
-    // const fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
-    // const thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
-
-    let fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
-    let thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
-
-    const { startDateTime, endDateTime  , currentDateTime} = await get20thMinuteRangeUTC();
-    // fifteenMinutesBefore = new Date(endDateTime);
-    // thirteenMinutesBefore = new Date(startDateTime);
-
-    const trips = await trip_model.find({
-                                          pickup_date_time: {$gte: (startDateTime), $lte: endDateTime },
-                                          // pickup_date_time: { $gte: thirteenMinutesBefore },
-                                          fifteenMinuteNotification: false,
-                                          driver_name: { $ne: null }
-                                        })
-                                        .populate([
-                                                    { path: "driver_name" }, 
-                                                    { path: "created_by_company_id" }
-                                                  ]);
-
-    const notifications = [];
-    const ids = [];
-
-    for(let trip of trips) {
-      let companyAgecnyData = await agency_model.findOne({user_id: trip?.created_by_company_id});
-      
-      // send to trip's driver app
-      if (trip?.driver_name?.deviceToken) {
-          
-        let targetLocale = trip?.driver_name?.app_locale || process.env.DEFAULT_LANGUAGE;
-        let driverNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
-
-        let driverNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
-        sendNotification( trip?.driver_name?.deviceToken, driverNotificationMessage, driverNotificationTitle, trip )
-      }
-
-      // send to trip's driver web
-      if (trip?.driver_name?.webDeviceToken) {
-          
-        let targetLocale = trip?.driver_name?.web_locale || process.env.DEFAULT_LANGUAGE;
-        let driverNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
-
-        let driverNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
-        sendNotification( trip?.driver_name?.webDeviceToken, driverNotificationMessage, driverNotificationTitle, trip )
-      }
-
-      // send to trip's company app
-      if (trip.created_by_company_id?.deviceToken) {
-        
-        let targetLocale = trip?.created_by_company_id?.app_locale || process.env.DEFAULT_LANGUAGE;
-        let companyNotificationMessage = i18n.__({ phrase: "editTrip.notification.companyPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
-
-        let companyNotificationTitle = i18n.__({ phrase: "editTrip.notification.companyPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
-
-        sendNotification( trip.created_by_company_id?.deviceToken, companyNotificationMessage, companyNotificationTitle, trip )
-      }
-
-      // send to trip's company web
-      if (trip.created_by_company_id?.webDeviceToken) {
-        
-        let targetLocale = trip?.created_by_company_id?.web_locale || process.env.DEFAULT_LANGUAGE;
-        let companyNotificationMessage = i18n.__({ phrase: "editTrip.notification.companyPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
-
-        let companyNotificationTitle = i18n.__({ phrase: "editTrip.notification.companyPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
-
-        sendNotification( trip.created_by_company_id?.webDeviceToken, companyNotificationMessage, companyNotificationTitle, trip )
-      }
-
-      // functionality for the drivers who have account access as partner
-      const driverHasCompanyPartnerAccess = await driver_model.find({
-                                                                      parnter_account_access  : {
-                                                                                                  $elemMatch: { company_id: new mongoose.Types.ObjectId(trip?.created_by_company_id) },
-                                                                                                },
-                                                                    });
-      
-      if (driverHasCompanyPartnerAccess){
-
-        for (let partnerAccount of driverHasCompanyPartnerAccess) {
-          if (partnerAccount?.deviceToken) {
-
-            let targetLocale = partnerAccount?.app_locale || process.env.DEFAULT_LANGUAGE;
-            let driverPartnerAccountNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPartnerAccountPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
-
-            let driverPartnerAccountNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPartnerAccountPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
-        
-            await sendNotification( partnerAccount?.deviceToken, driverPartnerAccountNotificationMessage, driverPartnerAccountNotificationTitle, trip )
-          }
-
-          if (partnerAccount?.webDeviceToken) {
-
-            let targetLocale = partnerAccount?.web_locale || process.env.DEFAULT_LANGUAGE;
-            let driverPartnerAccountNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPartnerAccountPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
-
-            let driverPartnerAccountNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPartnerAccountPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
-        
-            await sendNotification( partnerAccount?.webDeviceToken, driverPartnerAccountNotificationMessage, driverPartnerAccountNotificationTitle, trip )
-          }
-        }
-      }
-
-      // functionality for the drivers who have account access as partner
-      const driverHasCompanyAccess = await driver_model.find({
-                                                              company_account_access  : {
-                                                                                          $elemMatch: { company_id: new mongoose.Types.ObjectId(trip?.created_by_company_id) },
-                                                                                        },
-                                                            });
-
-      if (driverHasCompanyAccess){
-
-        for (let accountAccess of driverHasCompanyAccess) {
-          if (accountAccess?.deviceToken) {
-
-            
-            let targetLocale = accountAccess?.app_locale || process.env.DEFAULT_LANGUAGE;
-            let driverCompanyAccountNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverCompanyAccountPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
-
-            let driverCompanyAccountNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverCompanyAccountPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
-            await sendNotification( accountAccess?.deviceToken, driverCompanyAccountNotificationMessage, driverCompanyAccountNotificationTitle, trip )
-          }
-
-          if (accountAccess?.webDeviceToken) {
-
-            
-            let targetLocale = accountAccess?.web_locale || process.env.DEFAULT_LANGUAGE;
-            let driverCompanyAccountNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverCompanyAccountPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
-
-            let driverCompanyAccountNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverCompanyAccountPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes` , company_name: companyAgecnyData.company_name});
-            await sendNotification( accountAccess?.webDeviceToken, driverCompanyAccountNotificationMessage, driverCompanyAccountNotificationTitle, trip )
-          }
-        }
-      }
-
-    }
-
-    await trip_model.updateMany(
-                                { _id: { $in: ids } },
-                                {
-                                  $set: {
-                                    fifteenMinuteNotification: true,
-                                  },
-                                }
-                              );
-  } catch (error) {
-    console.log("🚀 ~ checkTripsAndSendNotifications ~ error:", error);
-  }
-}
-
 async function logoutDriverAfterThreeHour() {
   try {
     const now = new Date();
@@ -1187,173 +911,14 @@ async function logoutDriverAfterThreeHour() {
   }
 }
 
-const get20thMinuteRangeUTC = async () => {
 
-  const adminPrepreNotificationTime = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.PRE_NOTIFICATION_TIME});
-
-  const preNotificationTime = parseInt(parseFloat(adminPrepreNotificationTime.value))
-  let currentTime = new Date();
-
-  let currentDateTime = new Date();
-  
-  currentDateTime.setUTCHours(currentDateTime.getUTCHours());
-  currentDateTime.setUTCMinutes(currentDateTime.getUTCMinutes());
-
-  currentDateTime = currentDateTime.toISOString();
-  // Add 15 minutes to the current time
-  let futureTime = new Date(currentTime.getTime() + preNotificationTime * 60 * 1000);
-  // console.log(currentDateTime)
-  // console.log(futureTime)
-  
-  // Set the start time at the 15th minute in UTC with 0 seconds and 0 milliseconds
-  let startDateTime = new Date(futureTime);
-  startDateTime.setUTCHours(futureTime.getUTCHours());
-  startDateTime.setUTCMinutes(futureTime.getUTCMinutes());
-  startDateTime.setUTCSeconds(0); // Start at the 0th second
-  startDateTime.setUTCMilliseconds(0); // Start at the 0th millisecond
-
-  startDateTime = startDateTime.toISOString();
-
-  // Set the end time at the 15th minute in UTC with 59 seconds and 999 milliseconds
-  let endDateTime = new Date(futureTime);
-  endDateTime.setUTCHours(futureTime.getUTCHours());
-  endDateTime.setUTCMinutes(futureTime.getUTCMinutes());
-  endDateTime.setUTCSeconds(59); // End at the 59th second
-  endDateTime.setUTCMilliseconds(999); // End at the 999th millisecond
-                      
-  endDateTime = endDateTime.toISOString();
-  
-  return { startDateTime, endDateTime , currentDateTime};
-};
 
 
 // Schedule the task using cron for every minute
-cron.schedule("* * * * *", () => {
-  // console.log("hitting per minute-------")
-  // console.log('running evry minute' , new Date())
-
-  // Send push notification to driver and company when trip will start in 20 minutes
-  // checkTripsAndSendNotifications();
-  // initiateWeeklyCompanyPayouts();
-  // logoutDriverAfterThreeHour()
-});
-
-const initiateWeeklyCompanyPayouts = async (res) => {
-  try {
-
-   
-    // console.log('initiateWeeklyCompanyPayouts-----')
-    const balance = await stripe.balance.retrieve();
-    let availableBalance = balance?.available[0]?.amount || 0;
-    const tripList = await getPendingPayoutTripsBeforeWeek();
-    
-// console.log('tripList---------' , tripList)
-    if (availableBalance > 100) {
-       
-        // const connectedAccountId = `acct_1QxRoi4CiWWLkHIH`;
-        // const tripId = `T-1051`
-        // const payoutList = await checkPayouts(connectedAccountId);
-        
-        if (tripList.length > 0) {
-          // console.log('paybale trip------')
-          for (let  trip of tripList) {
-            
-            let amount = trip.companyPaymentAmount + trip?.child_seat_price + trip?.payment_method_price;
-
-            if (amount < 1) { // atleast one euro will  be to send to the bank
-              continue
-            }
-            let connectedAccountId = trip?.companyDetails?.connectedAccountId;
-            let stripeCustomerId = trip?.companyDetails?.stripeCustomerId;
-            let tripId = trip?.trip_id;
-
-            let stripBalance = await stripe.balance.retrieve();
-            let availableBalance = stripBalance?.available[0]?.amount || 0;
-            
-            // console.log('no balalnce' , availableBalance ,  Math.round(amount * 100))
-            if (availableBalance >=  Math.round(amount * 100) ) {
-              // amount = 5;
-
-              // a) TRANSFER
-              const transfer = await transferToConnectedAccount(amount, connectedAccountId , tripId);
-              
-              const updateTrip = await trip_model.findOneAndUpdate(
-                                                              { _id: trip?._id }, // Find by tripId
-                                                              { $set:   {
-                                                                          'transfer.id': transfer.id ?? null,                                  // tr_...
-                                                                          'transfer.amount': typeof transfer.amount === 'number' ? transfer.amount : null, // cents
-                                                                          'transfer.currency': transfer.currency ?? null,
-                                                                          'transfer.destination': transfer.destination ?? null,                 // acct_...
-                                                                          'transfer.transfer_group': transfer.transfer_group ?? null,           // e.g., tripId
-                                                                          'transfer.balance_transaction': transfer.balance_transaction ?? null, // txn_...
-                                                                          'transfer.created': createdDate,                                      // Date
-                                                                          'transfer.destination_payment': transfer.destination_payment ?? null, // optional
-                                                                          'transfer.reversals': reversals,                                      // array of ids (or empty)
-                                                                        } 
-                                                                    }, // Update fields
-                                                              { new: true } // Return the updated document
-                                                            );
-
-              console.log('transfer----' , {
-                                                                          'transfer.id': transfer.id ?? null,                                  // tr_...
-                                                                          'transfer.amount': typeof transfer.amount === 'number' ? transfer.amount : null, // cents
-                                                                          'transfer.currency': transfer.currency ?? null,
-                                                                          'transfer.destination': transfer.destination ?? null,                 // acct_...
-                                                                          'transfer.transfer_group': transfer.transfer_group ?? null,           // e.g., tripId
-                                                                          'transfer.balance_transaction': transfer.balance_transaction ?? null, // txn_...
-                                                                          'transfer.created': createdDate,                                      // Date
-                                                                          'transfer.destination_payment': transfer.destination_payment ?? null, // optional
-                                                                          'transfer.reversals': reversals,                                      // array of ids (or empty)
-                                                                        })
-              const isInvoiceForCompany = true;
-              const payoutDetails = await sendPayoutToBank(amount, connectedAccountId);
-              const invoiceDetail = await generateInvoiceReceipt(stripeCustomerId , trip , isInvoiceForCompany)
-              await trip_model.findOneAndUpdate(
-                                                  { _id: trip?._id }, // Find by tripId
-                                                  { 
-                                                    $set: {  
-                                                            company_hosted_invoice_url : invoiceDetail?.hosted_invoice_url,
-                                                            company_invoice_pdf : invoiceDetail?.invoice_pdf,
-                                                            company_trip_payout_id: payoutDetails?.id,
-                                                            company_trip_payout_status: constant.PAYOUT_TANSFER_STATUS.PENDING,
-                                                            company_trip_payout_initiated_date: new Date().toISOString(),
-                                                          } 
-                                                  }, 
-                                                  { new: true } // Return the updated document
-                                                );
-
-              console.log('constant.PAYOUT_TANSFER_STATUS.PENDING------', constant.PAYOUT_TANSFER_STATUS.PENDING ,tripId)
-            } else {
-
-              console.log(`You dont have enough payment in your account to transfer the payment to the compmies.`)
-              await notifyInsufficientBalance()
-              break;
-            }
-          }
-        }
-        
-        
-    } else {
-      await notifyInsufficientBalance()
-      console.log(`You dont have enough payment in your account.`)
-    }
-
-    // console.log({
-    //     code: 200,
-    //     message: "weekly-company-payment",
-    //     // tripList:tripList,
-    //     balance,
-    //     tripList
-    //   });
-    
-  } catch (error) {
-    console.error("Error initiateweeklyCompanyPayouts:", error);
-    console.log({
-                        code: constant.error_code,
-                        message: error.message,
-                    });
-  }
-}
+// cron.schedule("* * * * *", () => {
+  
+//   // logoutDriverAfterThreeHour()
+// });
 
 const handleInvoicePaymentFailure = async (invoice) => {
 

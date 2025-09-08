@@ -65,8 +65,6 @@ console.log('webhook triggered payout_webhook----------------')
                                                               }, // Update fields
                                                               { new: true } // Return the updated document
                                                             );
-
-              console.log('payout done------')
               
               notifyPayoutPaid(userDetails , tripDetails , payout);
                                                           

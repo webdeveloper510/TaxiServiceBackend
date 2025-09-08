@@ -3,9 +3,9 @@ const TRIP_MODEL = require("../models/user/trip_model.js");
 const USER_MODEL = require("../models/user/user_model");
 const CONSTANT = require("../config/constant.js");
 const { toCents, getAvailableCentsFor, sleep , toConstantCase} = require('../utils/money');
+const { notifyInsufficientBalance } = require("./helperFuntion");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-// await notifyInsufficientBalance()
 exports.getPendingPayoutTripsBeforeWeek = async () => {
   try {
 
@@ -148,6 +148,7 @@ exports.runPayoutsBatch  = async () => {
 
       if (platformEur < 100) { // < €1
           console.log('Insufficient platform EUR balance for transfers.');
+          await notifyInsufficientBalance()
           return;
       }
 
@@ -167,6 +168,7 @@ exports.runPayoutsBatch  = async () => {
           if (getAvailableCentsFor(latest, 'eur') < toCents(amountEur)) {
               
               console.log('Platform balance fell below required amount; stopping batch.');
+              await notifyInsufficientBalance()
               break;
           }
 

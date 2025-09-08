@@ -2389,25 +2389,7 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
   }
 }
 
-exports.transferToConnectedAccount = async (amount, connectedAccountId , tripId) => {
 
-  try {
-
-    const transfer = await stripe.transfers.create({
-                                                    amount: Math.round(amount * 100), // Amount in cents (e.g., $10 = 1000) 
-                                                    currency: "eur",
-                                                    destination: connectedAccountId, // Connected account ID
-                                                    transfer_group: tripId, // Optional: Group for tracking,
-                                                    description:  `Payout for trip ${tripId}`
-                                                  });
-
-    console.log("Transfer Successful:---------", transfer);
-    return transfer;
-  } catch (error) {
-    console.error("Error Transfer balance:", error.message);
-    throw error;
-  }
-}
 
 
 exports.sendPayoutToBank = async (amount, connectedAccountId) => {
@@ -3486,7 +3468,8 @@ exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail , isInvoic
   if (isInvoiceForCompany) {
     amount = tripDetail?.companyPaymentAmount.toFixed(0); 
   } else {
-    amount = (( tripDetail?.price - tripDetail?.driverPaymentAmount) + tripDetail?.child_seat_price + tripDetail?.payment_method_price).toFixed(0); 
+     
+    amount = ((tripDetail?.price || 0) - (tripDetail?.driverPaymentAmount || 0) + (tripDetail?.child_seat_price || 0) + (tripDetail?.payment_method_price || 0)).toFixed(0);
   }
 
   await stripe.invoiceItems.create({
