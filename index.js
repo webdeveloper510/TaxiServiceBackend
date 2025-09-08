@@ -164,7 +164,7 @@ app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), a
 
               updateData =  {
                               subscriptionId:invoice.subscription,
-                              planId: subscriptionExist.planId,
+                              planId: subscriptionExist?.planId,
                               productPriceId: subscriptionExist.priceId,
                               customerId: subscriptionExist.customerId,
                               role: subscriptionExist.role,
