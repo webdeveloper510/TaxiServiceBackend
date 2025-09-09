@@ -7,6 +7,7 @@ const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const CONSTANT = require('../../config/constant');
 const LOGS = require("../../models/user/logs_model");
 const PLANS_MODEL = require("../../models/admin/plan_model");
+const mongoose = require("mongoose");
 const { sendPaymentFailEmail , sendEmailSubscribeSubcription } = require("../../Service/helperFuntion");
 const { toConstantCase} = require('../../utils/money');
 
