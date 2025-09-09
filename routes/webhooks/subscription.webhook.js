@@ -50,7 +50,7 @@ module.exports = async function subscription(req, res) {
                 await susbcriptionCreate(invoice , req , event)
             } else if (invoice.billing_reason === CONSTANT.INVOICE_BILLING_REASON.SUBSCRIPTION_CYCLE) {
             
-                await subscriptionCycle(invoice);
+                await subscriptionCycle(invoice , event);
             } else if (invoice.billing_reason === CONSTANT.INVOICE_BILLING_REASON.CHECKOUT || invoice.billing_reason === CONSTANT.INVOICE_BILLING_REASON.MANUAL) {
 
                 await oneTimePayment(invoice)
@@ -115,7 +115,7 @@ const oneTimePayment = async (invoice) => {
                                         };
             const option = { new: true } 
             //  Update invoice URL into our system
-            const updatedTrip = await trip_model.findOneAndUpdate(
+            const updatedTrip = await TRIP_MODEL.findOneAndUpdate(
                                                                     condition, // Find condition
                                                                     invoiceUpdateData, 
                                                                     option // Returns the updated document
@@ -263,7 +263,7 @@ const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
     }
 }
 
-const subscriptionCycle = async (invoice) => {
+const subscriptionCycle = async (invoice , event) => {
 
     try {
 
@@ -392,8 +392,8 @@ const handleInvoicePaymentFailure = async (invoice) => {
         let logs_data = {
                         api_name: 'subscription_webhook',
                         payload: JSON.stringify(req.body),
-                        error_message: err.message,
-                        error_response: JSON.stringify(err)
+                        error_message: error.message,
+                        error_response: JSON.stringify(error)
                         };
         const logEntry = new LOGS(logs_data);
         await logEntry.save();

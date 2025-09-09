@@ -669,10 +669,6 @@ io.on("connection", (socket) => {
      
       if (driverBySocketId) {
       
-        if (driverBySocketId.email == 'nirmla@yopmail.com') {
-
-          console.log('current lat long----------------------' , latitude , longitude , '----------------------' , driverBySocketId.email)
-        }
         // driverBySocketId.location = {
         //                               type: "Point",
         //                               coordinates: [longitude, latitude],
