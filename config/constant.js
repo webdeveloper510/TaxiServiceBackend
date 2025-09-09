@@ -110,6 +110,16 @@ module.exports={
         PROCESSING_ERROR: `processing_error`,
         UNKNOWN_ERROR: ` unknown_error`
     },
+    INVOICE_BILLING_REASON:{
+        SUBSCRIPTION_CREATE: `subscription_create`,
+        SUBSCRIPTION_CYCLE: `subscription_cycle`,
+        CHECKOUT: `checkout`,
+        MANUAL: `manual`
+    },
+    INVOICE_PAYMENT_METHOD_TYPE:{
+        IDEAL: `ideal`,
+        SEPA_DEBIT: `sepa_debit`,
+    },
     CONNECTED_ACCOUNT: {
         ACCOUNT_ATTACHED_STATUS: {
             ACCOUNT_ATTACHED: true,
