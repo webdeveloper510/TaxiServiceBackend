@@ -45,7 +45,7 @@ const payoutWebhook = require('./routes/webhooks/payoutWebhook'); // exports web
 app.post('/payout_webhook', bodyParser.raw({ type: 'application/json' }), payoutWebhook);
 
 const subscriptionWebhook = require('./routes/webhooks/subscription.webhook'); // exports webhook handler function
-app.post('/payout_webhook', bodyParser.raw({ type: 'application/json' }), subscriptionWebhook);
+app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), subscriptionWebhook);
 
 // app.post( "/subscription_webhook", bodyParser.raw({type: 'application/json'}), async (req, res) => {
 
