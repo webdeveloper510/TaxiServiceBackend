@@ -120,9 +120,7 @@ const oneTimePayment = async (invoice) => {
                                                                     invoiceUpdateData, 
                                                                     option // Returns the updated document
                                                                 );
-            console.log('checking find update-----------')
-            
-
+           
         } else {
             console.log("⚠️ No matching Checkout Session found.");
         }
