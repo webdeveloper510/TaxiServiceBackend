@@ -196,7 +196,7 @@ const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
 
         let  detail = {};
         
-        if (planDetails.name == `Pro` || planDetails.name ==  `Premium`) {
+        if (planDetails.forRoles == CONSTANT.ROLES.COMPANY) {
             
             detail.purchaseByCompanyId = userId; 
             detail.purchaseBy = userId; 
