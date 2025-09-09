@@ -278,7 +278,7 @@ const subscriptionCycle = async (invoice , event) => {
         let option = { new: true };
         
         // Set inactive to old entry related to this subscription ID because new Entry will start
-        SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: CONSTANT.SUBSCRIPTION_STATUS.INACTIVE} ,option);
+        await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: CONSTANT.SUBSCRIPTION_STATUS.INACTIVE} ,option);
 
         let updateData  =   {
                                 subscriptionId:invoice.subscription,
