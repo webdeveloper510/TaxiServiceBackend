@@ -153,8 +153,8 @@ const susbcriptionCreate = async (invoice , req , event) => {
                                     chargeId: invoice.charge,
                                     paymentIntentId: invoice.payment_intent,
                                     invoiceId: invoice.id,
-                                    paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-                                    active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                                    paid: CONSTANT.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                                    active: CONSTANT.SUBSCRIPTION_STATUS.ACTIVE,
                                     invoicePdfUrl: invoice.invoice_pdf,
                                     invoiceUrl: invoice.hosted_invoice_url,
                                     billing_reason:CONSTANT.INVOICE_BILLING_REASON.SUBSCRIPTION_CREATE
@@ -201,11 +201,11 @@ const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
             
             detail.purchaseByCompanyId = userId; 
             detail.purchaseBy = userId; 
-            detail.role = constant.ROLES.COMPANY;
+            detail.role = CONSTANT.ROLES.COMPANY;
         } else {
             detail.purchaseByDriverId = driveId; 
             detail.purchaseBy = driveId; 
-            detail.role = constant.ROLES.DRIVER;
+            detail.role = CONSTANT.ROLES.DRIVER;
         }
 
         const subscriptionLine = await invoice.lines.data.find(line => line.type === 'subscription');
@@ -222,8 +222,8 @@ const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
               chargeId: invoice.charge,
               paymentIntentId: invoice.payment_intent,
               invoiceId: invoice.id,
-              paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-              active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+              paid: CONSTANT.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+              active: CONSTANT.SUBSCRIPTION_STATUS.ACTIVE,
               invoicePdfUrl: invoice.invoice_pdf,
               invoiceUrl: invoice.hosted_invoice_url,
               billing_reason: invoice.billing_reason === CONSTANT.INVOICE_BILLING_REASON.SUBSCRIPTION_CREATE ? CONSTANT.INVOICE_BILLING_REASON.SUBSCRIPTION_CREATE : CONSTANT.INVOICE_BILLING_REASON.SUBSCRIPTION_CYCLE,
@@ -279,7 +279,7 @@ const subscriptionCycle = async (invoice) => {
         let option = { new: true };
         
         // Set inactive to old entry related to this subscription ID because new Entry will start
-        SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: constant.SUBSCRIPTION_STATUS.INACTIVE} ,option);
+        SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId:subscriptionId} , {active: CONSTANT.SUBSCRIPTION_STATUS.INACTIVE} ,option);
 
         let updateData  =   {
                                 subscriptionId:invoice.subscription,
@@ -295,8 +295,8 @@ const subscriptionCycle = async (invoice) => {
                                 chargeId: invoice.charge,
                                 paymentIntentId: invoice.payment_intent,
                                 invoiceId: invoice.id,
-                                paid: constant.SUBSCRIPTION_PAYMENT_STATUS.PAID,
-                                active: constant.SUBSCRIPTION_STATUS.ACTIVE,
+                                paid: CONSTANT.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+                                active: CONSTANT.SUBSCRIPTION_STATUS.ACTIVE,
                                 invoicePdfUrl: invoice.invoice_pdf,
                                 invoiceUrl: invoice.hosted_invoice_url,
                             };
