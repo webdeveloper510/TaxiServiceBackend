@@ -70,7 +70,7 @@ module.exports = async function subscription(req, res) {
             const logEntry = new LOGS(logs_data);
             logEntry.save();
 
-            handleInvoicePaymentFailure(invoice)
+            handleInvoicePaymentFailure(invoice , req)
         }
 
         // Log the webhook event
@@ -317,7 +317,7 @@ const subscriptionCycle = async (invoice , event) => {
     }
 }
 
-const handleInvoicePaymentFailure = async (invoice) => {
+const handleInvoicePaymentFailure = async (invoice , req) => {
 
     try {
 
