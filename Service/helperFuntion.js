@@ -1428,6 +1428,10 @@ exports.sendPaymentFailEmail = async (subsctiptionId , reseon) => {
 
   
   let subscriptionDetails = await SUBSCRIPTION_MODEL.findOne({subscriptionId: subsctiptionId}).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+  if (!subscriptionDetails) {
+    console.error(`❌ No subscription found for ID: ${subsctiptionId}`);
+    return { error: "Subscription not found" };
+  }
   let toEmail = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? subscriptionDetails?.purchaseByCompanyId?.email : subscriptionDetails?.purchaseByDriverId?.email;
   let UserName = subscriptionDetails.role == CONSTANT.ROLES.COMPANY ? `${subscriptionDetails?.purchaseByCompanyId?.first_name } ${subscriptionDetails?.purchaseByCompanyId?.last_name}` : `${subscriptionDetails?.purchaseByDriverId?.first_name } ${subscriptionDetails?.purchaseByDriverId?.last_name}`;
 
@@ -2389,31 +2393,6 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
   }
 }
 
-
-
-
-exports.sendPayoutToBank = async (amount, connectedAccountId) => {
-
-  try {
-
-    const payout = await stripe.payouts.create(
-                                                {
-                                                  amount: Math.round(amount * 100), // Amount in cents
-                                                  currency: "eur",
-                                                },
-                                                {
-                                                  stripeAccount: connectedAccountId, // Specify connected account
-                                                }
-                                              );
-
-    console.log("Payout Successful:", payout);
-    return payout;
-  } catch (error) {
-
-    console.error("Error sendPayoutToBank balance:",  error.message);
-    throw error;
-  }
-}
 
 exports.dateFilter = async ( postData ) => {
   try {
