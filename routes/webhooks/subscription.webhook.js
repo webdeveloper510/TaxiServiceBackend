@@ -1,7 +1,7 @@
 require("dotenv").config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const TRIP_MODEL = require('../../models/user/trip_model');
-const USER_MODEL = require('../../models/user/user_model');
+const TRIP_MODEL = require('../../models/user/trip_model.js');
+const USER_MODEL = require('../../models/user/user_model.js');
 const DRIVER_MODEL = require("../../models/user/driver_model");
 const SUBSCRIPTION_MODEL = require("../../models/user/subscription_model");
 const CONSTANT = require('../../config/constant');
@@ -9,7 +9,7 @@ const LOGS = require("../../models/user/logs_model");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const mongoose = require("mongoose");
 const { sendPaymentFailEmail , sendEmailSubscribeSubcription } = require("../../Service/helperFuntion");
-const { toConstantCase} = require('../../utils/money');
+
 
 module.exports = async function subscription(req, res) {
      console.log('subscription webhook triggered----------------');
@@ -121,7 +121,7 @@ const oneTimePayment = async (invoice) => {
                                                                     option // Returns the updated document
                                                                 );
             console.log('checking find update-----------')
-            console.log('checking find update' , updatedTrip)
+            
 
         } else {
             console.log("⚠️ No matching Checkout Session found.");
