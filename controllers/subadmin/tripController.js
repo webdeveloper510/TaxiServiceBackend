@@ -21,6 +21,9 @@ const {
 } = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
+const i18n = require('../../i18n');
+
+
 
 exports.add_trip = async (req, res) => {
   try {
@@ -730,7 +733,7 @@ exports.driverCancelTrip = async (req, res) => {
       cancellation_reason: req.body.cancellation_reason,
     }
     
-    let update_trip = await TRIP.findOneAndUpdate(criteria, updateData, option); 
+    let update_trip = await TRIP.findOneAndUpdate(criteria, updateData); 
     // let updateDriverData = {}
     // if (update_trip.trip_status == constant.TRIP_STATUS.REACHED) {
     //   await DRIVER.findOneAndUpdate({_id: tripInfo?.driver_name}, {status: true , is_available: false , is_in_ride: true}, option); 
@@ -753,7 +756,7 @@ exports.driverCancelTrip = async (req, res) => {
 
 exports.driverCancelTripDecision = async (req, res) => {
   try {
-
+    
     let tripDecisionStatus = req.body.tripDecision;
     let isNoShow = req.body?.noShow;
     let criteria = {  _id: req.params.id };
@@ -784,6 +787,8 @@ exports.driverCancelTripDecision = async (req, res) => {
                               reviewed_by_role: null
                             }
     let updatedBy = ''
+
+    // get the user who updated the trip decision
     if (req.user?.role == constant.ROLES.COMPANY || req.user?.role == constant.ROLES.ADMIN || req.user?.role == constant.ROLES.SUPER_ADMIN) {
 
       tripDecisionData.reviewed_by_role = req.companyPartnerAccess ? constant.ROLES.DRIVER : req.user?.role;
@@ -801,7 +806,7 @@ exports.driverCancelTripDecision = async (req, res) => {
     }
 
     // Update trip request
-    await TRIP_CANCELLATION_REQUEST.findOneAndUpdate({_id: tripDetails?.trip_cancellation_request_id}, { $set:tripDecisionData}, {new: true}); 
+    await TRIP_CANCELLATION_REQUEST.findOneAndUpdate({_id: tripDetails?.trip_cancellation_request_id}, { $set:tripDecisionData}); 
     
     const tripUpdateData = {under_cancellation_review: false , trip_cancellation_request_id: null};
 
@@ -810,10 +815,12 @@ exports.driverCancelTripDecision = async (req, res) => {
       tripUpdateData.driver_name = null;
       tripUpdateData.trip_status = isNoShow ? constant.TRIP_STATUS.NO_SHOW : constant.TRIP_STATUS.PENDING;
 
-      await DRIVER.findOneAndUpdate({_id: tripDetails?.driver_name}, { $set:{is_available: true}}, {new: true});
+      await DRIVER.findOneAndUpdate({_id: tripDetails?.driver_name}, { $set:{is_available: true}});
     }
 
-    await TRIP.findOneAndUpdate(criteria , tripUpdateData, {new: true});
+    await TRIP.findOneAndUpdate(criteria , tripUpdateData);
+
+    
 
     // Refesh the trip for the company and its partner and account access drivers
     partnerAccountRefreshTrip(tripDetails.created_by_company_id ,res.__('driverCancelTripReason.socket.tripChangedRefresh'),  req.io);
@@ -829,7 +836,7 @@ exports.driverCancelTripDecision = async (req, res) => {
       // Send notification to the driver and inform by the socket but company and driver are same person then no notification or pop-up will be show
     if ( (tripDetails?.driver_name.toString() != req.user?.driverId?._id.toString()) ||  req.companyPartnerAccess) {
       
-
+      
       let device_token = driver_data?.deviceToken;
       if ((device_token == "" || device_token == null) && driver_data?.isCompany) {
 
@@ -840,8 +847,9 @@ exports.driverCancelTripDecision = async (req, res) => {
       const isDriverHasAccess = await isDriverHasCompanyAccess(driver_data , tripDetails.created_by_company_id)
       
 
-
+      
       if (driver_data?.socketId) {
+       
         req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
           message: message,
           tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,

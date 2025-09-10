@@ -787,11 +787,11 @@ exports.emitTripRetrivedByCompany = async(tripDetails , driverDetails , currentS
       
       if (driverDetails?.socketId) { socketList.push({ socketId: driverDetails?.socketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
 
-      if (driverDetails?.webSocketId) { socketList.push({webSocketId: driverDetails?.webSocketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+      if (driverDetails?.webSocketId) { socketList.push({webSocketId: driverDetails?.webSocketId , platform: constant.PLATFORM.WEBSITE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
 
       if (driverDetails?.deviceToken) { deviceTokenList.push({deviceToken: driverDetails?.deviceToken , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
 
-      if (driverDetails?.webDeviceToken) { deviceTokenList.push({webDeviceToken: driverDetails?.webDeviceToken , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
+      if (driverDetails?.webDeviceToken) { deviceTokenList.push({webDeviceToken: driverDetails?.webDeviceToken , platform: constant.WEBSITE.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
 
       // Only driver will notify with pop-up functionality
       if (socketList) {

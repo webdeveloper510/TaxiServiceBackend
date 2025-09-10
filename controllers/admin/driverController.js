@@ -1395,7 +1395,7 @@ exports.get_active_drivers = async (req, res) => {
 
       getDetail = await DRIVER.findOne({ _id: req.userId });
     }
-    ;
+    
     
     let getDrivers = await DRIVER.aggregate([
       {

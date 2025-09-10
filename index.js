@@ -29,6 +29,7 @@ const httpServer = http.createServer(app);
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const i18n = require('./i18n');
 const { startAllCrons } = require("./cronjobs");
+const { initSocket } = require("./sockets");
 // view engine setup
 
 
@@ -50,19 +51,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-const io = new Server(httpServer, {
-                                    cors: {
-                                      origin: "*",
-                                    },
-                                  }
-                      );
+// const io = new Server(httpServer, {
+//                                     cors: {
+//                                       origin: "*",
+//                                     },
+//                                   }
+//                       );
+
+// IMPORTANT: initialize sockets
+const io = initSocket(httpServer);
+
 app.use((req, res, next) => {
   
   const lang = req.query.lang || req.headers['accept-language'];
   if (lang) {
     req.setLocale(lang);
   }
-  req.io = io; // Set the io object in the request object
+  req.io = io; // attach io to req for routes if you need it
   next();
 });
 
@@ -134,516 +139,516 @@ app.use(function (req, res, next) {
 
 
 
-io.on("connection", (socket) => {
+// io.on("connection", (socket) => {
   
-  socket.on("addWebNewDriver", async ({ token }) => {
-    try {
-      await driver_model.updateMany(
-        { webSocketId: socket.id },
-        {
-          $set: {
-            isWebSocketConnected: false,
-            webSocketId: null,
-          },
-        }
-      );
-      const driverByToken = await driverDetailsByToken(token);
+//   socket.on("addWebNewDriver", async ({ token }) => {
+//     try {
+//       await driver_model.updateMany(
+//         { webSocketId: socket.id },
+//         {
+//           $set: {
+//             isWebSocketConnected: false,
+//             webSocketId: null,
+//           },
+//         }
+//       );
+//       const driverByToken = await driverDetailsByToken(token);
 
-      if (driverByToken) {
-        driverByToken.locationUpdatedAt = new Date();
-        driverByToken.isWebSocketConnected = true;
-        driverByToken.webSocketId = socket.id;
-        await driverByToken.save();
+//       if (driverByToken) {
+//         driverByToken.locationUpdatedAt = new Date();
+//         driverByToken.isWebSocketConnected = true;
+//         driverByToken.webSocketId = socket.id;
+//         await driverByToken.save();
 
-        io.to(socket.id).emit("userConnection", {
-                                                  code: 200,
-                                                  message:
-                                                    "connected successfully with addWebNewDriver from website user id: " +
-                                                    driverByToken._id,
-                                                  socket_id: socket.id,
-                                                }
-                              );
-      }
-    } catch (err) {
-      console.log("🚀 ~ socket.on ~ addWebNewDriver err:", err);
-    }
-  });
+//         io.to(socket.id).emit("userConnection", {
+//                                                   code: 200,
+//                                                   message:
+//                                                     "connected successfully with addWebNewDriver from website user id: " +
+//                                                     driverByToken._id,
+//                                                   socket_id: socket.id,
+//                                                 }
+//                               );
+//       }
+//     } catch (err) {
+//       console.log("🚀 ~ socket.on ~ addWebNewDriver err:", err);
+//     }
+//   });
 
-  socket.on("addNewDriver", async ({ token, longitude, latitude ,socketId }) => {
-    try {
-      await driver_model.updateMany(
-                                    { socketId: socket.id },
-                                    {
-                                      $set: {
-                                        isSocketConnected: false,
-                                        socketId: null,
-                                      },
-                                    }
-                                  );
-      const driverByToken = await driverDetailsByToken(token);
+//   socket.on("addNewDriver", async ({ token, longitude, latitude ,socketId }) => {
+//     try {
+//       await driver_model.updateMany(
+//                                     { socketId: socket.id },
+//                                     {
+//                                       $set: {
+//                                         isSocketConnected: false,
+//                                         socketId: null,
+//                                       },
+//                                     }
+//                                   );
+//       const driverByToken = await driverDetailsByToken(token);
 
-      if (driverByToken) {
-        driverByToken.location = {
-          type: "Point",
-          coordinates: [longitude, latitude],
-        };
+//       if (driverByToken) {
+//         driverByToken.location = {
+//           type: "Point",
+//           coordinates: [longitude, latitude],
+//         };
         
-        driverByToken.locationUpdatedAt = new Date();
-        driverByToken.isSocketConnected = true;
-        driverByToken.socketId = socketId;
-        await driverByToken.save();
+//         driverByToken.locationUpdatedAt = new Date();
+//         driverByToken.isSocketConnected = true;
+//         driverByToken.socketId = socketId;
+//         await driverByToken.save();
 
-        // If compaany has driver account then socket will be updated in driver document
-        const updatedDriver = await user_model.findOneAndUpdate(
-                                                                    { email: driverByToken?.email },
-                                                                    {
-                                                                      $set: {
-                                                                        isSocketConnected: true,
-                                                                        socketId: socketId,
-                                                                      },
-                                                                    },
-                                                                    { new: true } // Return the updated document
-                                                                  );
+//         // If compaany has driver account then socket will be updated in driver document
+//         const updatedDriver = await user_model.findOneAndUpdate(
+//                                                                     { email: driverByToken?.email },
+//                                                                     {
+//                                                                       $set: {
+//                                                                         isSocketConnected: true,
+//                                                                         socketId: socketId,
+//                                                                       },
+//                                                                     },
+//                                                                     { new: true } // Return the updated document
+//                                                                   );
 
-        await io.to(socketId).emit("driverNotification", {
-                                                            code: 200,
-                                                            message:
-                                                              "connected successfully with addNewDriver driver id: " +
-                                                              driverByToken._id,
-                                                          }
-                                  );
-      }
-    } catch (err) {
-      console.log("🚀 ~ socket.on ~ addNewDriver err:", err);
-    }
-  });
+//         await io.to(socketId).emit("driverNotification", {
+//                                                             code: 200,
+//                                                             message:
+//                                                               "connected successfully with addNewDriver driver id: " +
+//                                                               driverByToken._id,
+//                                                           }
+//                                   );
+//       }
+//     } catch (err) {
+//       console.log("🚀 ~ socket.on ~ addNewDriver err:", err);
+//     }
+//   });
 
-  socket.on("addWebUser", async ({ token }) => {
-    if (!token || token == "") {
-      io.to(socket.id).emit("userConnection", {
-        code: 200,
-        message: "token is required",
-      });
+//   socket.on("addWebUser", async ({ token }) => {
+//     if (!token || token == "") {
+//       io.to(socket.id).emit("userConnection", {
+//         code: 200,
+//         message: "token is required",
+//       });
 
-      return;
-    }
-    try {
-      await user_model.updateMany(
-                                    { webSocketId: socket.id },
-                                    {
-                                      $set: {
-                                        isWebSocketConnected: false,
-                                        webSocketId: null,
-                                      },
-                                    }
-                                  );
+//       return;
+//     }
+//     try {
+//       await user_model.updateMany(
+//                                     { webSocketId: socket.id },
+//                                     {
+//                                       $set: {
+//                                         isWebSocketConnected: false,
+//                                         webSocketId: null,
+//                                       },
+//                                     }
+//                                   );
 
-      let socketId = socket.id;
-      const tokenData  = jwt.verify(token, process.env.JWTSECRET);
-      const id = tokenData?.companyPartnerAccess ? tokenData?.CompanyPartnerDriverId : tokenData?.userId;
+//       let socketId = socket.id;
+//       const tokenData  = jwt.verify(token, process.env.JWTSECRET);
+//       const id = tokenData?.companyPartnerAccess ? tokenData?.CompanyPartnerDriverId : tokenData?.userId;
                             
-      if (tokenData?.companyPartnerAccess) { // If driver accessing the company account as Partner
+//       if (tokenData?.companyPartnerAccess) { // If driver accessing the company account as Partner
         
-        const driver = await driver_model.findOne({ _id: id });
-        if (driver) {
+//         const driver = await driver_model.findOne({ _id: id });
+//         if (driver) {
 
-          const driver = await driver_model.findByIdAndUpdate(
-                                                              id,
-                                                              {
-                                                                $set: {
-                                                                  isWebSocketConnected: true,
-                                                                  webSocketId: socketId
-                                                                }
-                                                              },
-                                                              { new: true } // returns the updated driver document
-                                                            );
+//           const driver = await driver_model.findByIdAndUpdate(
+//                                                               id,
+//                                                               {
+//                                                                 $set: {
+//                                                                   isWebSocketConnected: true,
+//                                                                   webSocketId: socketId
+//                                                                 }
+//                                                               },
+//                                                               { new: true } // returns the updated driver document
+//                                                             );
 
-          await io.to(socketId).emit("userConnection",  {
-                                                    code: 200,
-                                                    message: "connected successfully with user id: " + id,
-                                                    user:driver,
-                                                    socketId:socketId
-                                                  }
-                              );
-        }
+//           await io.to(socketId).emit("userConnection",  {
+//                                                     code: 200,
+//                                                     message: "connected successfully with user id: " + id,
+//                                                     user:driver,
+//                                                     socketId:socketId
+//                                                   }
+//                               );
+//         }
         
         
-      } else { // when company accessing his account
+//       } else { // when company accessing his account
 
-        const user = await user_model.findOne({ _id: id });
+//         const user = await user_model.findOne({ _id: id });
 
-        if (user) {
+//         if (user) {
 
-          const user = await user_model.findByIdAndUpdate(
-                                                              id,
-                                                              {
-                                                                $set: {
-                                                                  isWebSocketConnected: true,
-                                                                  webSocketId: socketId
-                                                                }
-                                                              },
-                                                              { new: true } // returns the updated driver document
-                                                            );
+//           const user = await user_model.findByIdAndUpdate(
+//                                                               id,
+//                                                               {
+//                                                                 $set: {
+//                                                                   isWebSocketConnected: true,
+//                                                                   webSocketId: socketId
+//                                                                 }
+//                                                               },
+//                                                               { new: true } // returns the updated driver document
+//                                                             );
 
-          await io.to(socketId).emit("userConnection",  {
-                                                    code: 200,
-                                                    message: "connected successfully with user id: " + id,
-                                                    user:user,
-                                                    socketId:socketId
-                                                  }
-                              );
-        }
+//           await io.to(socketId).emit("userConnection",  {
+//                                                     code: 200,
+//                                                     message: "connected successfully with user id: " + id,
+//                                                     user:user,
+//                                                     socketId:socketId
+//                                                   }
+//                               );
+//         }
         
-      }
+//       }
 
-    } catch (err) {
-      console.log("🚀 ~ socket.on ~ addWebUser err:", err);
-    }
-  });
+//     } catch (err) {
+//       console.log("🚀 ~ socket.on ~ addWebUser err:", err);
+//     }
+//   });
 
-  socket.on("addUser", async ({ token , socketId }) => {
+//   socket.on("addUser", async ({ token , socketId }) => {
 
    
-    if (!token || token == "") {
-      io.to(socket.id).emit("userConnection", {
-        code: 200,
-        message: "token is required",
-      });
+//     if (!token || token == "") {
+//       io.to(socket.id).emit("userConnection", {
+//         code: 200,
+//         message: "token is required",
+//       });
  
-    }
-    try {
-      await user_model.updateMany(
-                                    { socketId: socketId },
-                                    {
-                                      $set: {
-                                        isSocketConnected: false,
-                                        socketId: null,
-                                      },
-                                    }
-                                  );
+//     }
+//     try {
+//       await user_model.updateMany(
+//                                     { socketId: socketId },
+//                                     {
+//                                       $set: {
+//                                         isSocketConnected: false,
+//                                         socketId: null,
+//                                       },
+//                                     }
+//                                   );
       
-      const tokenData  = jwt.verify(token, process.env.JWTSECRET);
-      const id = tokenData?.companyPartnerAccess ? tokenData?.CompanyPartnerDriverId : tokenData?.userId;
+//       const tokenData  = jwt.verify(token, process.env.JWTSECRET);
+//       const id = tokenData?.companyPartnerAccess ? tokenData?.CompanyPartnerDriverId : tokenData?.userId;
 
-      if (tokenData?.companyPartnerAccess) { // If driver accessing the company account as Partner
+//       if (tokenData?.companyPartnerAccess) { // If driver accessing the company account as Partner
         
-        const driver = await driver_model.findOne({ _id: id });
-        if (driver) {
+//         const driver = await driver_model.findOne({ _id: id });
+//         if (driver) {
 
-          // driver.isSocketConnected = true;
-          // driver.socketId = socketId;
-          // await driver.save();
-          let driverUpdateData = {
-            isSocketConnected:true,
-            socketId:socketId
-          };
+//           // driver.isSocketConnected = true;
+//           // driver.socketId = socketId;
+//           // await driver.save();
+//           let driverUpdateData = {
+//             isSocketConnected:true,
+//             socketId:socketId
+//           };
 
-          await driver_model.findOneAndUpdate({ _id: id }, {$set: driverUpdateData} , { new: true })
+//           await driver_model.findOneAndUpdate({ _id: id }, {$set: driverUpdateData} , { new: true })
           
 
-          io.to(socketId).emit("userConnection",  {
-                                                    code: 200,
-                                                    message: "connected successfully with user id: " + id,
-                                                  }
-                              );
-        }
+//           io.to(socketId).emit("userConnection",  {
+//                                                     code: 200,
+//                                                     message: "connected successfully with user id: " + id,
+//                                                   }
+//                               );
+//         }
         
         
-      } else { // when company accessing his account
+//       } else { // when company accessing his account
 
-        const user = await user_model.findOne({ _id: id });
+//         const user = await user_model.findOne({ _id: id });
 
-        if (user) {
+//         if (user) {
 
-          // user.isSocketConnected = true;
-          // user.socketId = socketId;
-          // await user.save();
+//           // user.isSocketConnected = true;
+//           // user.socketId = socketId;
+//           // await user.save();
 
-          let userUpdateData = {
-            isSocketConnected:true,
-            socketId:socketId
-          };
+//           let userUpdateData = {
+//             isSocketConnected:true,
+//             socketId:socketId
+//           };
 
-          await user_model.findOneAndUpdate({ _id: id } , {$set:userUpdateData}, {new : true})
+//           await user_model.findOneAndUpdate({ _id: id } , {$set:userUpdateData}, {new : true})
 
-          // If compaany has driver account then socket will be updated in driver document
-          const updatedDriver = await driver_model.findOneAndUpdate(
-                                                                    { email: user?.email },
-                                                                    {
-                                                                      $set: {
-                                                                        isSocketConnected: true,
-                                                                        socketId: socketId,
-                                                                      },
-                                                                    },
-                                                                    { new: true } // Return the updated document
-                                                                  );
-          io.to(socketId).emit("userConnection",  {
-                                                    code: 200,
-                                                    message: "connected successfully with user id: " + id,
-                                                  }
-                              );
-        }
+//           // If compaany has driver account then socket will be updated in driver document
+//           const updatedDriver = await driver_model.findOneAndUpdate(
+//                                                                     { email: user?.email },
+//                                                                     {
+//                                                                       $set: {
+//                                                                         isSocketConnected: true,
+//                                                                         socketId: socketId,
+//                                                                       },
+//                                                                     },
+//                                                                     { new: true } // Return the updated document
+//                                                                   );
+//           io.to(socketId).emit("userConnection",  {
+//                                                     code: 200,
+//                                                     message: "connected successfully with user id: " + id,
+//                                                   }
+//                               );
+//         }
         
-      }
+//       }
       
 
-    } catch (err) {
-      console.log("🚀 ~ socket.on ~ err: addUser------", err);
-    }
-  });
+//     } catch (err) {
+//       console.log("🚀 ~ socket.on ~ err: addUser------", err);
+//     }
+//   });
 
-  socket.on("companyCancelledTrip", async ({ driverId, trip }) => {
-    try {
-      const trip_details = await trip_model.findById(trip.result?._id);
+//   socket.on("companyCancelledTrip", async ({ driverId, trip }) => {
+//     try {
+//       const trip_details = await trip_model.findById(trip.result?._id);
 
       
-      if (trip_details) {
-        trip_details.driver_name = null;
-        await trip_details.save(); // Save the updated trip details
-      }
-      const driverById = await driver_model.findOne({ _id: driverId, });
+//       if (trip_details) {
+//         trip_details.driver_name = null;
+//         await trip_details.save(); // Save the updated trip details
+//       }
+//       const driverById = await driver_model.findOne({ _id: driverId, });
       
-      emitTripRetrivedByCompany(trip_details , driverById  , socket.id , io);
+//       emitTripRetrivedByCompany(trip_details , driverById  , socket.id , io);
       
-    } catch (err) {
-      console.log("🚀 ~ socket.on companyCancelledTrip ~ err:", err);
-    }
-  });
+//     } catch (err) {
+//       console.log("🚀 ~ socket.on companyCancelledTrip ~ err:", err);
+//     }
+//   });
 
-  socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
-    try {
+//   socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
+//     try {
 
-      const driverBySocketId = await driver_model.findOne({ socketId: socket.id, });
+//       const driverBySocketId = await driver_model.findOne({ socketId: socket.id, });
      
-      if (driverBySocketId) {
+//       if (driverBySocketId) {
       
-        // driverBySocketId.location = {
-        //                               type: "Point",
-        //                               coordinates: [longitude, latitude],
-        //                             };
-        // driverBySocketId.locationUpdatedAt = new Date();
+//         // driverBySocketId.location = {
+//         //                               type: "Point",
+//         //                               coordinates: [longitude, latitude],
+//         //                             };
+//         // driverBySocketId.locationUpdatedAt = new Date();
 
-        // await driverBySocketId.save();
+//         // await driverBySocketId.save();
 
-        const updatedDriver = await driver_model.findOneAndUpdate(
-                                                                    { socketId: socket.id },
-                                                                    {
-                                                                      $set: {
-                                                                        location: {
-                                                                          type: "Point",
-                                                                          coordinates: [longitude, latitude],
-                                                                        },
-                                                                        locationUpdatedAt: new Date(),
-                                                                      },
-                                                                    },
-                                                                    { new: true } // Return the updated document
-                                                                  );
+//         const updatedDriver = await driver_model.findOneAndUpdate(
+//                                                                     { socketId: socket.id },
+//                                                                     {
+//                                                                       $set: {
+//                                                                         location: {
+//                                                                           type: "Point",
+//                                                                           coordinates: [longitude, latitude],
+//                                                                         },
+//                                                                         locationUpdatedAt: new Date(),
+//                                                                       },
+//                                                                     },
+//                                                                     { new: true } // Return the updated document
+//                                                                   );
 
         
-        io.to(socket.id).emit("UpdateLocationDriver", {
-          code: 200,
-          message: "location Updated successfully",
-        });
-      }
-    } catch (error) {
-      console.log("🚀 ~ socket.on ~ error: updateDriverLocation-----", error);
-    }
-  });
+//         io.to(socket.id).emit("UpdateLocationDriver", {
+//           code: 200,
+//           message: "location Updated successfully",
+//         });
+//       }
+//     } catch (error) {
+//       console.log("🚀 ~ socket.on ~ error: updateDriverLocation-----", error);
+//     }
+//   });
 
-  socket.on("cancelDriverTrip", async ({ tripId }) => {
+//   socket.on("cancelDriverTrip", async ({ tripId }) => {
 
     
-    if (!tripId) {
-      return io.to(socket.id).emit("driverNotification", {
-        code: 200,
-        message: "Trip id not valid",
-      });
-    }
+//     if (!tripId) {
+//       return io.to(socket.id).emit("driverNotification", {
+//         code: 200,
+//         message: "Trip id not valid",
+//       });
+//     }
 
-    setTimeout(async () => {
-      try {
-        const driverBySocketId = await driver_model.findOne({socketId: socket.id,});
+//     setTimeout(async () => {
+//       try {
+//         const driverBySocketId = await driver_model.findOne({socketId: socket.id,});
 
-        if (driverBySocketId) {
-          const trip = await trip_model.findById(tripId);
+//         if (driverBySocketId) {
+//           const trip = await trip_model.findById(tripId);
 
-          if (!trip) {
-            return io.to(socket.id).emit("driverNotification", {
-                                                                code: 200,
-                                                                message: "Trip id not valid",
-                                                              }
-                                        );
-          }
+//           if (!trip) {
+//             return io.to(socket.id).emit("driverNotification", {
+//                                                                 code: 200,
+//                                                                 message: "Trip id not valid",
+//                                                               }
+//                                         );
+//           }
 
-          if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
+//           if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
 
-            // when company will send a request toa driver and pop will show on driver side and driver reject
-            if (trip?.trip_status == constant.TRIP_STATUS.APPROVED) { // when trip will not be already booked
+//             // when company will send a request toa driver and pop will show on driver side and driver reject
+//             if (trip?.trip_status == constant.TRIP_STATUS.APPROVED) { // when trip will not be already booked
               
-              driverBySocketId.is_available = true;
-              await driverBySocketId.save();
+//               driverBySocketId.is_available = true;
+//               await driverBySocketId.save();
 
-              let updated_data = { trip_status: "Pending", driver_name: null };
-              let option = { new: true };
-              let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
+//               let updated_data = { trip_status: "Pending", driver_name: null };
+//               let option = { new: true };
+//               let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
               
-            }
+//             }
             
-            emitTripCancelledByDriver(trip , driverBySocketId  , socket.id , io);
-          }
+//             emitTripCancelledByDriver(trip , driverBySocketId  , socket.id , io);
+//           }
 
-          // sendBookingCancelledEmail(trip)
-        }
-      } catch (error) {
-        console.log("🚀 ~ socket.on cancelDriverTrip index ~ error:", error);
-        return io.to(socket.id).emit("driverNotification", {
-                                                              code: 200,
-                                                              message: "There is some error",
-                                                              error,
-                                                            }
-                                    );
-      }
-    }, 300);
-  });
+//           // sendBookingCancelledEmail(trip)
+//         }
+//       } catch (error) {
+//         console.log("🚀 ~ socket.on cancelDriverTrip index ~ error:", error);
+//         return io.to(socket.id).emit("driverNotification", {
+//                                                               code: 200,
+//                                                               message: "There is some error",
+//                                                               error,
+//                                                             }
+//                                     );
+//       }
+//     }, 300);
+//   });
 
-  socket.on("acceptDriverTrip", async ({ tripId }) => {
+//   socket.on("acceptDriverTrip", async ({ tripId }) => {
 
-    if (!tripId) {
-      return io.to(socket.id).emit("driverNotification",  {
-                                                            code: 200,
-                                                            message: "Trip id not valid",
-                                                          });
-    }
+//     if (!tripId) {
+//       return io.to(socket.id).emit("driverNotification",  {
+//                                                             code: 200,
+//                                                             message: "Trip id not valid",
+//                                                           });
+//     }
 
-    try {
+//     try {
       
-      const driverBySocketId = await driver_model.findOne({socketId: socket.id});
+//       const driverBySocketId = await driver_model.findOne({socketId: socket.id});
 
-      if (driverBySocketId) {
+//       if (driverBySocketId) {
 
-        const trip = await trip_model.findById(tripId);
+//         const trip = await trip_model.findById(tripId);
 
-        if (!trip) {
-          return io.to(socket.id).emit("driverNotification",  {
-                                                                code: 200,
-                                                                message: "Trip id not valid",
-                                                              });
-        }
-
-        
-
-        // const user = await user_model.findById(trip.created_by).populate("created_by");
-
-        let updated_data = { trip_status: "Booked", status: true };
-        let option = { new: true };
-        let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
+//         if (!trip) {
+//           return io.to(socket.id).emit("driverNotification",  {
+//                                                                 code: 200,
+//                                                                 message: "Trip id not valid",
+//                                                               });
+//         }
 
         
 
-        await io.to(socket.id).emit("refreshTrip", { message: "You have accepted the trip. Please refresh the data to view the updates", } )
-        io.to(socket.id).emit("driverNotification", {
-                                                      code: 200,
-                                                      message: "Trip accepted successfully",
-                                                    }
-                              );
+//         // const user = await user_model.findById(trip.created_by).populate("created_by");
+
+//         let updated_data = { trip_status: "Booked", status: true };
+//         let option = { new: true };
+//         let update_trip = await trip_model.findOneAndUpdate({ _id: tripId },updated_data,option);
+
         
-        emitTripAcceptedByDriver(update_trip , driverBySocketId , socket.id , io)
+
+//         await io.to(socket.id).emit("refreshTrip", { message: "You have accepted the trip. Please refresh the data to view the updates", } )
+//         io.to(socket.id).emit("driverNotification", {
+//                                                       code: 200,
+//                                                       message: "Trip accepted successfully",
+//                                                     }
+//                               );
+        
+//         emitTripAcceptedByDriver(update_trip , driverBySocketId , socket.id , io)
        
-      }
-    } catch (error) {
-      console.log("🚀 ~ socket.on AcceptDriver Trip ~ error:", error);
-      return io.to(socket.id).emit("driverNotification", {
-                                                            code: 200,
-                                                            message: "There is some error",
-                                                          }
-                                  );
-    }
-  });
+//       }
+//     } catch (error) {
+//       console.log("🚀 ~ socket.on AcceptDriver Trip ~ error:", error);
+//       return io.to(socket.id).emit("driverNotification", {
+//                                                             code: 200,
+//                                                             message: "There is some error",
+//                                                           }
+//                                   );
+//     }
+//   });
 
-  socket.on("activeDriverTrip", async ({ tripId }) => {
-    if (!tripId) {
+//   socket.on("activeDriverTrip", async ({ tripId }) => {
+//     if (!tripId) {
 
-      return io.to(socket.id).emit("driverNotification", {
-                                                            code: 200,
-                                                            message: "Trip id not valid",
-                                                          });
-    }
-    try {
-      const driverBySocketId = await driver_model.findOne({
-                                                            socketId: socket.id,
-                                                          });
+//       return io.to(socket.id).emit("driverNotification", {
+//                                                             code: 200,
+//                                                             message: "Trip id not valid",
+//                                                           });
+//     }
+//     try {
+//       const driverBySocketId = await driver_model.findOne({
+//                                                             socketId: socket.id,
+//                                                           });
 
-      if (driverBySocketId) {
+//       if (driverBySocketId) {
 
-        const trip = await trip_model.findById(tripId);
+//         const trip = await trip_model.findById(tripId);
 
-        if (!trip) {
-          return io.to(socket.id).emit("driverNotification", {
-                                                                code: 200,
-                                                                message: "Trip id not valid",
-                                                              });
-        }
+//         if (!trip) {
+//           return io.to(socket.id).emit("driverNotification", {
+//                                                                 code: 200,
+//                                                                 message: "Trip id not valid",
+//                                                               });
+//         }
 
-        if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
+//         if (trip.driver_name.toString() == driverBySocketId._id.toString()) {
 
-          const user = await user_model.findById(trip.created_by).populate("created_by");
+//           const user = await user_model.findById(trip.created_by).populate("created_by");
 
-          io.to(socket.id).emit("driverNotification", {
-            code: 200,
-            message: "Trip active successfully",
-          });
-        }
-      }
-    } catch (error) {
-      console.log("🚀 ~ socket.on ~ error:activeDriverTrip---", error);
-      return io.to(socket.id).emit("driverNotification", {
-        code: 200,
-        message: "There is some",
-      });
-    }
-  });
+//           io.to(socket.id).emit("driverNotification", {
+//             code: 200,
+//             message: "Trip active successfully",
+//           });
+//         }
+//       }
+//     } catch (error) {
+//       console.log("🚀 ~ socket.on ~ error:activeDriverTrip---", error);
+//       return io.to(socket.id).emit("driverNotification", {
+//         code: 200,
+//         message: "There is some",
+//       });
+//     }
+//   });
 
 
-  socket.on("disconnect", async (reason) => {
-    try {
+//   socket.on("disconnect", async (reason) => {
+//     try {
       
-      setTimeout(async () => {
-        const driverBySocketId = await driver_model.findOne({ socketId: socket.id});
+//       setTimeout(async () => {
+//         const driverBySocketId = await driver_model.findOne({ socketId: socket.id});
 
-        if (driverBySocketId) {
+//         if (driverBySocketId) {
           
-          driverBySocketId.isSocketConnected = false;
-          driverBySocketId.socketId = null;
+//           driverBySocketId.isSocketConnected = false;
+//           driverBySocketId.socketId = null;
 
-          await driverBySocketId.save();
+//           await driverBySocketId.save();
 
-          // If driver kill the app (or internet is not working)  and driver will not open (or connect to the internet) in 2 minutes then server will show the driver as oofline 
-          setTimeout(() => {
-            OfflineDriver(driverBySocketId);
-          }, 30 * 1000);
-        }
-      }, 3000);
-    } catch (error) {
-      console.log("🚀 ~ socket.disconnect ~ error:", error);
-    }
-  });
-});
+//           // If driver kill the app (or internet is not working)  and driver will not open (or connect to the internet) in 2 minutes then server will show the driver as oofline 
+//           setTimeout(() => {
+//             OfflineDriver(driverBySocketId);
+//           }, 30 * 1000);
+//         }
+//       }, 3000);
+//     } catch (error) {
+//       console.log("🚀 ~ socket.disconnect ~ error:", error);
+//     }
+//   });
+// });
 
-const OfflineDriver = async (driverInfo) => {
-  // console.log("🚀 ~ OfflineDriver ~ :--------------", driverInfo._id);
-  try {
-    const driverData = await driver_model.findOne({ _id: driverInfo._id});
+// const OfflineDriver = async (driverInfo) => {
+//   // console.log("🚀 ~ OfflineDriver ~ :--------------", driverInfo._id);
+//   try {
+//     const driverData = await driver_model.findOne({ _id: driverInfo._id});
 
 
-    if (driverData?.socketId === null) {
-      driverData.status = false; // when driver will kill the app then it will not be available to take the trips. driver have to manually change the online / Offline
-      console.log('status changed--------------------------------------------------------------')
-      await driverData.save();
-    }
-  } catch (err) {
-    console.log("🚀 ~ tripIsBooked ~ err:", err);
-  }
-};
+//     if (driverData?.socketId === null) {
+//       driverData.status = false; // when driver will kill the app then it will not be available to take the trips. driver have to manually change the online / Offline
+//       console.log('status changed--------------------------------------------------------------')
+//       await driverData.save();
+//     }
+//   } catch (err) {
+//     console.log("🚀 ~ tripIsBooked ~ err:", err);
+//   }
+// };
 
 async function logoutDriverAfterThreeHour() {
   try {
