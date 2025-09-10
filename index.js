@@ -12,11 +12,11 @@ const SETTING_MODEL = require('./models/user/setting_model');
 const CAR_TYPE_MODEL = require('./models/admin/car_type_model');
 var apiRouter = require("./routes/index.js");
 const { Server } = require("socket.io");
-const { driverDetailsByToken,
-        emitTripCancelledByDriver,
-        emitTripRetrivedByCompany,
-        emitTripAcceptedByDriver,
-      } = require("./Service/helperFuntion");
+// const { driverDetailsByToken,
+//         emitTripCancelledByDriver,
+//         emitTripRetrivedByCompany,
+//         emitTripAcceptedByDriver,
+//       } = require("./Service/helperFuntion");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
