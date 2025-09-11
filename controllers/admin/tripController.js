@@ -1374,6 +1374,8 @@ exports.get_access_trip = async (req, res) => {
           status: 1,
           passenger_detail: 1,
           vehicle_type: 1,
+          payment_method_price:1,
+          child_seat_price:1,
           comment: 1,
           commission: 1,
           pay_option: 1,
