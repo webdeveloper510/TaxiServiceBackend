@@ -2951,7 +2951,8 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
    
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
-   
+    const bookingTrackLink = `${process.env.BASEURL}/booking-details/${tripDetail?._id}/${tripDetail?.created_by_company_id}`
+    
     let bookingData = {
       trip_id: tripDetail?.trip_id,
       customerName: tripDetail?.customerDetails?.name,
