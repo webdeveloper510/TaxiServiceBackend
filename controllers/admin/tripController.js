@@ -1543,6 +1543,8 @@ exports.get_all_access_trip = async (req, res) => {
           commission: 1,
           pay_option: 1,
           customerDetails: 1,
+          payment_method_price:1,
+          child_seat_price:1,
           price: 1,
           passengerCount: 1,
           created_by_company_id:1,
