@@ -3,6 +3,7 @@ const  registerDriverHandlers  = require("./handlers/driver.handlers");
 const registerUserHandlers = require("./handlers/user.handlers");
 const registerTripHandlers = require("./handlers/trip.handlers");
 const { attachAuthMiddleware } = require("./middleware/auth"); // optional
+const redis = require("../utils/redis");
 console.log("driver.handlers export:", typeof registerDriverHandlers);
 function initSocket(httpServer) {
 
