@@ -9,5 +9,6 @@ const redisOptions = process.env.REDIS_URL ? process.env.REDIS_URL : {
 };
 
 const redis = new Redis(redisOptions);
+const sub = new Redis(redisOptions); // subscriber
 
-module.exports = redis;
+module.exports = { redis, sub };

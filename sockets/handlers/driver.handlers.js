@@ -4,6 +4,7 @@ const DRIVER_MODEL = require("../../models/user/driver_model");
 const CONSTANT = require('../../config/constant');
 const LOGS = require("../../models/user/logs_model");
 const { driverDetailsByToken } = require("../../Service/helperFuntion");
+const { redis , sub }= require("../../utils/redis");
 const { OfflineDriver } = require("../utils");
 
 function registerDriverHandlers(io, socket) {
@@ -56,6 +57,9 @@ function registerDriverHandlers(io, socket) {
 
             const driverByToken = await driverDetailsByToken(token);
             if (driverByToken) {
+
+                
+                updateDriverLocationInRedis(driverByToken._id , longitude , latitude , driverByToken)
             
                 const updatedDriver =   await DRIVER_MODEL.findByIdAndUpdate(
                                                                                 driverByToken._id, // use the id from the fetched driver
@@ -89,9 +93,14 @@ function registerDriverHandlers(io, socket) {
 
     // Driver live location
     socket.on("updateDriverLocation", async ({ longitude, latitude }) => {
+
         try {
             const driverBySocketId = await DRIVER_MODEL.findOne({ socketId: socket.id });
+            
             if (driverBySocketId) {
+
+                updateDriverLocationInRedis(driverBySocketId._id , longitude , latitude , driverBySocketId)
+                
                 
                 await DRIVER_MODEL.findOneAndUpdate(
                                                         { socketId: socket.id },
@@ -114,6 +123,29 @@ function registerDriverHandlers(io, socket) {
             console.log("updateDriverLocation error:", error);
         }
     });
+
+    async function updateDriverLocationInRedis(driverId , longitude  , latitude , driverDetail) {
+        
+            driverId = driverId.toString();
+            await redis.geoadd("drivers:geo",  longitude , latitude, driverId);
+            console.log('driver added------' , driverId , driverDetail.email , longitude , latitude)
+
+            // const pos = await redis.geopos("drivers:geo", driverDetail._id.toString());
+            // 2️⃣ Store other driver info in HASH (including lat/lng)
+            await redis.hset(`driver:${driverId}`,  {
+                                                        driverId : driverId,
+                                                        lat: latitude,
+                                                        lng: longitude,
+                                                        lastUpdate: Date.now(),
+                                                        details: JSON.stringify(driverDetail)
+                                                    }
+                            );
+                    
+            // get driver data                
+            // const driverData = await redis.hgetall(`driver:${driverId}`);
+
+            await redis.expire(`driver:${driverId}`, 60);
+    }
 
     // Clean up on disconnect
     socket.on("disconnect", async () => {

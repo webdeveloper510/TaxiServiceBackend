@@ -417,6 +417,142 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
   
 }
 
+exports.activeDriverInfo = async (driverId) => {
+
+  // let getDrivers = await driver_model.aggregate([
+  //       {
+  //         $match: {
+  //           _id: new mongoose.Types.ObjectId(driverId),
+  //           status: true,
+  //           is_login: true,
+  //           isVerified: true,
+  //           isDocUploaded: true,
+  //           is_deleted: false,
+  //           defaultVehicle: { $ne: null },
+  //           lastUsedTokenMobile: { $gte: threeHoursBefore },
+  //           "location.coordinates": { $ne: [null, null] },
+  //         },
+  //       },
+  //       {
+  //         $lookup: {
+  //           from: "vehicles", // Assuming the collection name for vehicles is "vehicles"
+  //           localField: "defaultVehicle",
+  //           foreignField: "_id",
+  //           as: "defaultVehicle",
+  //         },
+  //       },
+  //       {
+  //         $unwind: "$defaultVehicle",
+  //       },
+  //       {
+  //         $lookup: {
+  //           localField: "_id",
+  //           foreignField: "driver_name",
+  //           from: "trips",
+  //           as: "tripData",
+  //           pipeline: [
+  //             {
+  //               $match: {
+  //                 is_paid: "false",
+  //                 trip_status: "Completed",
+  //                 drop_time: {
+  //                   $lte: startOfCurrentWeek,
+  //                 },
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       },
+  //       {
+  //         $addFields: {
+  //           totalUnpaidTrips: {
+  //             $size: "$tripData",
+  //           },
+  //         },
+  //       },
+  //       // {
+  //       //   $lookup: {
+  //       //     localField: "_id",
+  //       //     foreignField: "driver_name",
+  //       //     from: "trips",
+  //       //     as: "tripDataBooked",
+  //       //     pipeline: [
+  //       //       {
+  //       //         $match: {
+  //       //           trip_status: "Booked",
+  //       //         },
+  //       //       },
+  //       //     ],
+  //       //   },
+  //       // },
+  //       // {
+  //       //   $addFields: {
+  //       //     totalBookedTrip: {
+  //       //       $size: "$tripDataBooked",
+  //       //     },
+  //       //   },
+  //       // },
+  //       //reached count
+  //       {
+  //         $lookup: {
+  //           localField: "_id",
+  //           foreignField: "driver_name",
+  //           from: "trips",
+  //           as: "tripDataReached",
+  //           pipeline: [
+  //             {
+  //               $match: {
+  //                 trip_status: "Reached",
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       },
+  //       {
+  //         $addFields: {
+  //           totalReachedTrip: {
+  //             $size: "$tripDataReached",
+  //           },
+  //         },
+  //       },
+  //       {
+  //         $lookup: {
+  //           from: "subscriptions", // Assuming the collection name for subscriptions is "subscriptions"
+  //           localField: "_id",
+  //           foreignField: "purchaseByDriverId", // Adjust based on your schema
+  //           as: "subscriptionData",
+  //           pipeline: [
+  //             {
+  //               $match: {
+  //                 paid: true,
+  //                 endPeriod: { $gt: new Date() }, // Current date filter
+  //               },
+  //             },
+  //           ],
+  //         },
+  //       },
+  //       {
+  //         $match: {
+  //           $or: [
+  //             { is_special_plan_active: true }, // subscription will not check when is_special_plan_active is true
+  //             { 
+  //               totalUnpaidTrips: 0, 
+  //               subscriptionData: { $ne: [] } // If user didn't have the plan then it will not add in the list if he didn't have is_special_plan_active true
+  //             }
+  //           ]
+  //         }
+  //       },
+  //       {
+  //         $match: {
+  //           totalUnpaidTrips: 0,
+  //         },
+  //       },
+  //       {
+  //         $sort: { createdAt: -1 },
+  //       },
+  //     ]);
+}
+
 exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
   const companyData = await user_model.findOne({ _id: companyId });

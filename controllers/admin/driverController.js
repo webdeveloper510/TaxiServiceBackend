@@ -1447,28 +1447,28 @@ exports.get_active_drivers = async (req, res) => {
           },
         },
       },
-      {
-        $lookup: {
-          localField: "_id",
-          foreignField: "driver_name",
-          from: "trips",
-          as: "tripDataBooked",
-          pipeline: [
-            {
-              $match: {
-                trip_status: "Booked",
-              },
-            },
-          ],
-        },
-      },
-      {
-        $addFields: {
-          totalBookedTrip: {
-            $size: "$tripDataBooked",
-          },
-        },
-      },
+      // {
+      //   $lookup: {
+      //     localField: "_id",
+      //     foreignField: "driver_name",
+      //     from: "trips",
+      //     as: "tripDataBooked",
+      //     pipeline: [
+      //       {
+      //         $match: {
+      //           trip_status: "Booked",
+      //         },
+      //       },
+      //     ],
+      //   },
+      // },
+      // {
+      //   $addFields: {
+      //     totalBookedTrip: {
+      //       $size: "$tripDataBooked",
+      //     },
+      //   },
+      // },
       //reached count
       {
         $lookup: {
