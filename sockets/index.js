@@ -3,8 +3,9 @@ const  registerDriverHandlers  = require("./handlers/driver.handlers");
 const registerUserHandlers = require("./handlers/user.handlers");
 const registerTripHandlers = require("./handlers/trip.handlers");
 const { attachAuthMiddleware } = require("./middleware/auth"); // optional
-console.log("driver.handlers export:", typeof registerDriverHandlers);
-function initSocket(httpServer) {
+const { redis , sub }= require("../utils/redis");
+
+async function initSocket(httpServer) {
 
   const io = new Server(httpServer, {
     cors: { origin: "*" },
@@ -13,7 +14,9 @@ function initSocket(httpServer) {
   // Optional: global connection-level middleware (JWT, etc.)
   // io.use(attachAuthMiddleware); // uncomment if you want auth
 
+
   io.on("connection", (socket) => {
+    
     // Register all your logical groups of events
     registerDriverHandlers(io, socket);
     registerUserHandlers(io, socket);

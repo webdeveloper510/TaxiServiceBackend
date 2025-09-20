@@ -2,6 +2,7 @@ require("dotenv").config();
 const i18n = require("i18n");
 const jwt = require("jsonwebtoken");
 const driver_model = require("../models/user/driver_model");
+const VEHICLE_MODEL = require("../models/user/vehicle_model");
 const user_model = require("../models/user/user_model");
 const SMS_TRANSACTION = require("../models/user/sms_transaction_model");
 const AGENCY_MODEL = require("../models/user/agency_model.js");
@@ -415,6 +416,63 @@ exports.noShowTrip = async (companyId , trip_data , message, io) => {
     }
   }
   
+}
+
+exports.activeDriverInfo = async (driverId) => {
+
+  // let driverDetail = await driver_model.findById(driverId).lean();
+  // let driverVehicleDetail = await VEHICLE_MODEL.findById(new mongoose.Types.ObjectId(driverDetail?.defaultVehicle));
+  // let planDetails = await SUBSCRIPTION_MODEL.find({
+  //                                                   purchaseByDriverId: new mongoose.Types.ObjectId(driverId),
+  //                                                   endPeriod: { $gte: new Date() }
+  //                                                 });
+  // driverDetail.defaultVehicleDetail = driverVehicleDetail;
+  // driverDetail.isPlan = driverDetail?.is_special_plan_active == true || planDetails.length > 0 ? true : false;
+  let getDrivers = await driver_model.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(driverId),
+      },
+    },
+    {
+      $lookup: {
+        from: "vehicles",
+        localField: "defaultVehicle",
+        foreignField: "_id",
+        as: "defaultVehicle",
+      },
+    },
+    {
+      $unwind: {
+        path: "$defaultVehicle",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        let: { driverId: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  { $eq: ["$purchaseByDriverId", "$$driverId"] },
+                  { $eq: ["$paid", true] },
+                  { $gt: ["$endPeriod", new Date()] }
+                ]
+              }
+            }
+          },
+          { $sort: { createdAt: -1 } },  // ✅ sort subscriptions here
+          { $limit: 1 }                  // ✅ only latest subscription
+        ],
+        as: "subscriptionData"
+      }
+    }
+  ]);
+
+  return getDrivers.length > 0 ? getDrivers[0] : {};
 }
 
 exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
