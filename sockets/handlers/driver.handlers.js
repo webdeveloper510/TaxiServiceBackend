@@ -3,9 +3,10 @@ const USER_MODEL = require('../../models/user/user_model.js');
 const DRIVER_MODEL = require("../../models/user/driver_model");
 const CONSTANT = require('../../config/constant');
 const LOGS = require("../../models/user/logs_model");
-const { driverDetailsByToken } = require("../../Service/helperFuntion");
+const { driverDetailsByToken  , activeDriverInfo} = require("../../Service/helperFuntion");
 const { redis , sub }= require("../../utils/redis");
 const { OfflineDriver } = require("../utils");
+const {isInsideBounds} = require("../bounds")
 
 function registerDriverHandlers(io, socket) {
 
@@ -58,8 +59,9 @@ function registerDriverHandlers(io, socket) {
             const driverByToken = await driverDetailsByToken(token);
             if (driverByToken) {
 
-                
-                updateDriverLocationInRedis(driverByToken._id , longitude , latitude , driverByToken)
+                const getDriverDetails = await activeDriverInfo(driverByToken._id)
+               
+                updateDriverLocationInRedis(driverByToken._id , longitude , latitude , getDriverDetails)
             
                 const updatedDriver =   await DRIVER_MODEL.findByIdAndUpdate(
                                                                                 driverByToken._id, // use the id from the fetched driver
@@ -98,9 +100,10 @@ function registerDriverHandlers(io, socket) {
             const driverBySocketId = await DRIVER_MODEL.findOne({ socketId: socket.id });
             
             if (driverBySocketId) {
-
-                updateDriverLocationInRedis(driverBySocketId._id , longitude , latitude , driverBySocketId)
-                
+                console.log('inside-------------------------------------------------------------------------')
+                const getDriverDetails = await activeDriverInfo(driverBySocketId._id)
+                console.log('getDriverDetails---------' , getDriverDetails)
+                updateDriverLocationInRedis(driverBySocketId._id , longitude , latitude , getDriverDetails);
                 
                 await DRIVER_MODEL.findOneAndUpdate(
                                                         { socketId: socket.id },
@@ -126,12 +129,21 @@ function registerDriverHandlers(io, socket) {
 
     async function updateDriverLocationInRedis(driverId , longitude  , latitude , driverDetail) {
         
+        try {
+            
+            const hasPassed = await canShowOnMap(driverDetail); // check if user passed all the condition that is neccassry to show on the map
+            if (!hasPassed) {
+                return true
+            }
+            
             driverId = driverId.toString();
             await redis.geoadd("drivers:geo",  longitude , latitude, driverId);
             console.log('driver added------' , driverId , driverDetail.email , longitude , latitude)
 
             // const pos = await redis.geopos("drivers:geo", driverDetail._id.toString());
             // 2️⃣ Store other driver info in HASH (including lat/lng)
+
+            
             await redis.hset(`driver:${driverId}`,  {
                                                         driverId : driverId,
                                                         lat: latitude,
@@ -143,9 +155,71 @@ function registerDriverHandlers(io, socket) {
                     
             // get driver data                
             // const driverData = await redis.hgetall(`driver:${driverId}`);
+            broadcastDriverLocation(driverId , longitude  , latitude, driverDetail)
 
-            await redis.expire(`driver:${driverId}`, 60);
+            await redis.expire(`driver:${driverId}`, 10800);// 3 * 60 * 60 = 3 hours
+        } catch (error) {
+            console.error("❌ Error in updateDriverLocationInRedis:", error);
+        }
     }
+
+    async function broadcastDriverLocation(driverId, longitude  , latitude, driverDetail) {
+        try {
+            // Get all app & web bounds keys
+            const keys = await redis.keys("bounds:*:*"); // matches both app + web
+
+            for (const key of keys) {
+                
+                // Example key: bounds:app:123  OR bounds:web:123
+                const [_, clientType, companyId] = key.split(":"); 
+                console.log('clientType-------' , clientType)
+                console.log('companyId-------' , companyId)
+
+
+                const boundsStr = await redis.get(key);
+                if (!boundsStr) continue;
+
+                const bounds = JSON.parse(boundsStr);
+
+                // Check if driver inside company bounds
+                console.log('checking bound------------' , { lat: parseFloat(latitude), lng: parseFloat(longitude)} , bounds)
+               
+                if (isInsideBounds({ lat: parseFloat(latitude), lng: parseFloat(longitude)} , bounds)) {
+                    // Room name can be different for app/web
+                    const room = `bounds:${clientType}:${companyId}`;
+                    console.log('room--------' , room)
+                    io.to(room).emit("driver::app:inBounds",    {
+                                                                    driverId: driverId,
+                                                                    lat: latitude,
+                                                                    lng: longitude,
+                                                                    details: driverDetail,
+                                                                    lastUpdate: Date.now(),
+                                                                    // source: clientType // 👈 tells whether app or web
+                                                                }
+                                    );
+                    console.log('sent single driver--------')
+                }
+            }
+        } catch (err) {
+            console.error("❌ Error in broadcastDriverLocation:", err);
+        }
+    }
+
+    async function canShowOnMap (driverDetail) {
+
+        
+        if (driverDetail?.status && driverDetail?.is_login 
+            && driverDetail?.isVerified  && driverDetail?.isDocUploaded 
+            && !driverDetail?.is_deleted && driverDetail?.defaultVehicle !== null 
+            && (driverDetail?.is_special_plan_active || driverDetail?.subscriptionData?.length > 0)) {
+                console.log('passed-----------' , driverDetail.email)
+                return true 
+            } else {
+                console.log('failed-----------' , driverDetail.email)
+                return false
+            }
+    }
+
 
     // Clean up on disconnect
     socket.on("disconnect", async () => {
