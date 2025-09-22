@@ -2,8 +2,10 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const USER_MODEL = require('../../models/user/user_model.js');
 const DRIVER_MODEL = require("../../models/user/driver_model");
-const {isInsideBounds} = require("../bounds")
+const {isInsideBounds} = require("../../utils/bounds.js")
 const { redis , sub }= require("../../utils/redis");
+const { activeDriverInfo } = require("../../Service/helperFuntion");
+const {updateDriverLocationInRedis}  = require("../../Service/driverLocation.service.js");
 
 function registerUserHandlers(io, socket) {
     // Web user (company or driver-as-partner) connections
@@ -62,7 +64,7 @@ function registerUserHandlers(io, socket) {
     });
 
     // Mobile user (company or driver-as-partner) connections
-    socket.on("addUser", async ({ token, socketId }) => {
+    socket.on("addUser", async ({ token, longitude, latitude, socketId }) => {
         if (!token) {
             socket.emit("userConnection", { code: 200, message: "token is required" });
             return;
@@ -84,13 +86,15 @@ function registerUserHandlers(io, socket) {
                 const user = await USER_MODEL.findByIdAndUpdate(id, { $set: { isSocketConnected: true, socketId } }, { new: true });
 
                 // If company also has a driver account
-                await DRIVER_MODEL.findOneAndUpdate(
+                const driverDetail = await DRIVER_MODEL.findOneAndUpdate(
                                                         { email: user?.email },
                                                         { $set: { isSocketConnected: true, socketId } },
                                                         { new: true }
                                                     );
-
+                
                 socket.emit("userConnection", { code: 200, message: "connected successfully with user id: " + id });
+                const getDriverDetails = await activeDriverInfo(driverDetail._id);
+                updateDriverLocationInRedis(io , redis ,driverDetail._id , longitude , latitude , getDriverDetails)
             }
         } catch (err) {
         console.log("addUser err:", err);
