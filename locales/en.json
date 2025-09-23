@@ -146,7 +146,10 @@
             "driverNotFound": "The requested driver could not be located.",
             "emailExistsWithAnotherAccount": "This email is linked to another account. Please choose a different email.",
             "phoneExistsWithAnotherAccount": "This phone is linked to another account. Please choose a different phone.",
-            "cannotGoOfflineWithActiveTrip": "You can't go offline while you have an active trip in progress. Please complete the trip first."
+            "cannotGoOfflineWithActiveTrip": "You can't go offline while you have an active trip in progress. Please complete the trip first.",
+            "invalidState": "invalid state found",
+            "deniedStatusChangeOnTheWay": "You cannot change your status while you are on the way to pick up a passenger.",
+            "deniedStatusChangeOnTheTrip": "You cannot change your status while a trip is in progress."
         },
         "success": {
             "driverAccountUpdated": "Driver account has been updated successfully",

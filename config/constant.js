@@ -75,11 +75,17 @@ module.exports={
         DELETED : 'Deleted',
     },
 
-    DRIVER_OFFLINE_ONLINE_STATUS: {
+    DRIVER_OFFLINE_ONLINE_STATUS: { // admin dashboard status
         ALL: 'All',
         OFFLINE: 'Offline', 
         ONLINE : 'Online',
         INRIDE : 'InRide',
+    },
+    DRIVER_STATE: { // admin dashboard status
+        AVAILABLE: 'AVAILABLE', // when he is free
+        NOT_AVAILABLE: 'NOT_AVAILABLE',  // when he is not free
+        ON_THE_WAY : 'ON_THE_WAY', // when he is going to pickup the customer
+        ON_TRIP : 'ON_TRIP', // when he pickup the customer and going to his destination
     },
     PAY_OPTION: {
         CASH: 'Cash',

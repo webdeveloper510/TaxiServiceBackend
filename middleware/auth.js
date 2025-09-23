@@ -1,12 +1,8 @@
 const { verify } = require("crypto");
 const jwt = require("jsonwebtoken");
-var config = require("../config/constant");
-const USER = require("../models/user/user_model");
-const AGENCY = require("../models/user/agency_model");
 const constant = require("../config/constant");
 const user_model = require("../models/user/user_model");
 const driver_model = require("../models/user/driver_model");
-const constants = require("../config/constant");
 const mongoose = require("mongoose");
 
 // const config = process.env
@@ -51,17 +47,9 @@ verifyToken = async (req, res, next) => {
         let user = await user_model.findOne(query).populate("created_by").populate("driverId");
 
         if (user) {
-          let updateLastUse = {};
-          if (isMobile) {
-            updateLastUse.lastUsedTokenMobile = new Date();
-          } else {
-            updateLastUse.lastUsedToken = new Date();
-          }
-          await user_model.updateOne({ _id: user._id }, updateLastUse);
-
-          if (user?.isDriver) {
-            await driver_model.updateOne({ _id: user.driverId._id }, updateLastUse);
-          }
+          const updateLastUse = { [isMobile ? "lastUsedTokenMobile" : "lastUsedToken"]: new Date()};
+          user_model.updateOne({ _id: user._id }, updateLastUse);
+          if (user?.isDriver) driver_model.updateOne({ _id: user.driverId._id }, updateLastUse);
         }
 
        
@@ -69,14 +57,8 @@ verifyToken = async (req, res, next) => {
           user = await driver_model.findOne(query).populate("created_by");
 
           if (user) {
-            if (isMobile) {
-              user.lastUsedTokenMobile = new Date();
-            } else {
-              user.lastUsedToken = new Date();
-            }
-
-            // user.is_login = false;
-            await user.save();
+            const updateLastUse = { [isMobile ? "lastUsedTokenMobile" : "lastUsedToken"]: new Date() };
+            driver_model.updateOne({ _id: user._id }, updateLastUse);
             user = user.toObject();
             user.role = "DRIVER";
           }
@@ -89,9 +71,8 @@ verifyToken = async (req, res, next) => {
           ;
         }
 
-        if (
-          user &&
-          user.role != "SUPER_ADMIN" &&
+        // blocked check
+        if ( user && user.role != "SUPER_ADMIN" &&
           user.role != "DRIVER" &&
           (user?.is_blocked || user?.created_by?.is_blocked)
         ) {

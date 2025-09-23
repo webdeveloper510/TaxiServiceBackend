@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const CONSTANT = require("../../config/constant");
 const INTERNATIONALIZATION_LANGUAGE_TYPE_ENUM = Object.values(CONSTANT.INTERNATIONALIZATION_LANGUAGE);
+const DRIVER_STATE_TYPE_ENUM = Object.values(CONSTANT.DRIVER_STATE);
+
+
 const driver = new Schema(
   {
     first_name: {
@@ -168,6 +171,11 @@ const driver = new Schema(
     driver_status: {
       type: String,
       enum: ["Active", "Inactive"],
+    },
+    driver_state: { // check if driver is online , oflline  , on the way for trip , on the active trip
+      type: String,
+      enum: DRIVER_STATE_TYPE_ENUM,
+      default: CONSTANT.DRIVER_STATE.NOT_AVAILABLE
     },
     created_by: {
       type: mongoose.Schema.Types.ObjectId,

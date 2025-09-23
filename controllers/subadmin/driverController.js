@@ -292,6 +292,88 @@ exports.update_driver = async (req, res) => {
   });
 };
 
+exports.changeDriverAvailability = async (req, res) => {
+
+  try {
+
+    let data = req.body;
+    let driver_info = await DRIVER.findById(req.userId);
+    if (!driver_info) {
+      return res.send({
+                        code: constant.success_code,
+                        message: res.__("getDrivers.error.noDriverFound"),
+                      });
+      
+    }
+
+    // If driver is on ride or on the way then he cant be  offline
+    if ([constant.DRIVER_STATE.ON_THE_WAY, constant.DRIVER_STATE.ON_TRIP].includes(driver_info?.driver_state)) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('updateDriver.error.cannotGoOfflineWithActiveTrip')
+                      });
+    }
+
+
+    await DRIVER.updateOne( { _id: driver_info?._id }, { $set: {status : data.status} });
+    return res.send({
+                          code: constant.success_code,
+                          message: res.__('updateDriver.success.driverAccountUpdated'),
+                          result: data,
+                        });
+  } catch (err) {
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
+
+exports.changeDriverState = async (req, res) => {
+  try {
+    const { driver_state } = req.body;
+    const driver_info = await DRIVER.findById(req.userId);
+
+    if (!driver_info) 
+      return res.send({ code: constant.success_code, message: res.__("getDrivers.error.noDriverFound") });
+
+    const validStates = new Set([
+      constant.DRIVER_STATE.AVAILABLE,
+      constant.DRIVER_STATE.NOT_AVAILABLE,
+      constant.DRIVER_STATE.ON_TRIP,
+      constant.DRIVER_STATE.ON_THE_WAY
+    ]);
+
+    if (!validStates.has(driver_state)) 
+      return res.send({ code: constant.error_code, message: res.__('updateDriver.error.invalidState') });
+
+    const blockedStates = new Map([
+      [constant.DRIVER_STATE.ON_THE_WAY, 'updateDriver.error.deniedStatusChangeOnTheWay'],
+      [constant.DRIVER_STATE.ON_TRIP, 'updateDriver.error.deniedStatusChangeOnTheTrip']
+    ]);
+
+    if (blockedStates.has(driver_info.driver_state)) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__(blockedStates.get(driver_info.driver_state))
+      });
+    }
+
+    await DRIVER.updateOne({ _id: driver_info._id }, { $set: { driver_state } });
+
+    return res.send({
+                      code: constant.success_code,
+                      message: res.__('updateDriver.success.driverAccountUpdated'),
+                      result: { driver_state }
+                    });
+
+  } catch (err) {
+    return res.send({ code: constant.error_code, message: err.message });
+  }
+};
+
+
 exports.reset_password = async (req, res) => {
   try {
     let data = req.body;
