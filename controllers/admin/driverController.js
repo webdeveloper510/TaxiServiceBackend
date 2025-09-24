@@ -1775,7 +1775,6 @@ exports.switchToDriver = async (req, res) => {
 
     // let driverData = await DRIVER.findOne({ _id: driverId, is_deleted: false});
 
-    let user = req.user;
     let driverId;
 
     // If current user have company partner access in token
@@ -1813,15 +1812,14 @@ exports.switchToDriver = async (req, res) => {
                               { expiresIn: "365d" }
                             );
 
-      const totalUnpaidTrips = await trip_model.find({
+      const totalUnpaidTrips = await trip_model.countDocuments({
                                                       driver_name: driverData._id,
                                                       trip_status: "Completed",
                                                       is_paid: false,
                                                       drop_time: {
                                                         $lte: startOfCurrentWeek,
                                                       },
-                                                    })
-                                                    .countDocuments();
+                                                    });
 
       if (req.isMobile) {
         driverData.jwtTokenMobile = jwtToken;

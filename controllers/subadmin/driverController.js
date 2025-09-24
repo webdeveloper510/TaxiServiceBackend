@@ -121,12 +121,8 @@ exports.get_driver_detail = async (req, res) => {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
 
     const driver = await DRIVER.findOne({
-                                          $and: [
-                                            {
-                                              $or: [{ _id: req.userId }],
-                                            },
-                                            { is_deleted: false },
-                                          ],
+                                          _id: req.userId,
+                                          is_deleted: false,
                                         });
     if (!driver) {
       res.send({
@@ -140,62 +136,86 @@ exports.get_driver_detail = async (req, res) => {
       startOfCurrentWeek.setDate(
         startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
       );
-      const completedTrips = await trip_model.find({
-                                                    driver_name: req.userId,
-                                                    trip_status: "Completed",
-                                                    is_paid: true,
-                                                  })
-                                                  .countDocuments();
+      // const completedTrips = await trip_model.countDocuments({
+      //                                               driver_name: req.userId,
+      //                                               trip_status: "Completed",
+      //                                               is_paid: true,
+      //                                             });
 
-      const totalActiveTrips = await trip_model.find({
-                                                      driver_name: req.userId,
-                                                      trip_status: "Active",
-                                                    })
-                                                    .countDocuments();
+      // const totalActiveTrips = await trip_model.countDocuments({
+      //                                                 driver_name: req.userId,
+      //                                                 trip_status: "Active",
+      //                                               });
 
-      const totalUnpaidTrips = await trip_model.find({
-                                                      driver_name: req.userId,
-                                                      trip_status: "Completed",
-                                                      is_paid: false,
-                                                      drop_time: {
-                                                        $lte: startOfCurrentWeek,
-                                                      },
-                                                    })
-                                                    .countDocuments();
+      // const totalUnpaidTrips = await trip_model.countDocuments({
+      //                                                 driver_name: req.userId,
+      //                                                 trip_status: "Completed",
+      //                                                 is_paid: false,
+      //                                                 drop_time: {
+      //                                                   $lte: startOfCurrentWeek,
+      //                                                 },
+      //                                               });
 
-      const totalReachedTrip = await trip_model.find({
-                                                      driver_name: req.userId,
-                                                      trip_status: "Reached",
-                                                      is_paid: false,
-                                                    })
-                                                    .countDocuments();
+      // const totalReachedTrip = await trip_model.countDocuments({
+      //                                                 driver_name: req.userId,
+      //                                                 trip_status: "Reached",
+      //                                                 is_paid: false,
+      //                                               });
 
       
-     
+      const [
+                completedTrips,
+                totalActiveTrips,
+                totalUnpaidTrips,
+                totalReachedTrip
+              ] = await Promise.all([
+                trip_model.countDocuments({ driver_name: driverId, trip_status: "Completed", is_paid: true }),
+                trip_model.countDocuments({ driver_name: driverId, trip_status: "Active" }),
+                trip_model.countDocuments({ driver_name: driverId, trip_status: "Completed", is_paid: false, drop_time: { $lte: startOfCurrentWeek } }),
+                trip_model.countDocuments({ driver_name: driverId, trip_status: "Reached", is_paid: false }),
+              ]);
 
       const result = driver.toObject();
 
-      if (result?.driver_company_id) {
-        const companyDetail = await USER.findById(result?.driver_company_id);
-        result.companyDetail = companyDetail
-      }
+      const companyDetailPromise = result.driver_company_id ? USER.findById(result.driver_company_id) : null;
       
-      result.totalTrips = completedTrips;
-      const partnerCompanyAccess = await result.parnter_account_access.map((data) =>  new mongoose.Types.ObjectId(data?.company_id?.toString()));
-      
-      result.partnerCompanyAccess =  partnerCompanyAccess ? await AGENCY.find({user_id: { $in: partnerCompanyAccess }}) : []
-      const driverPurchasedPlans = await getUserActivePaidPlans(req.user);
-      result.plan_access_status = driverPurchasedPlans.length > 0 ? true : false;
+      const partnerCompanyIds  = [];
+      const accessList = result.parnter_account_access || [];
 
-      res.send({
-        code: constant.success_code,
-        message: res.__("getDriverDetail.success.driverDetailsFetched"),
-        partner_access: partnerCompanyAccess,
-        result,
-        totalActiveTrips,
-        totalUnpaidTrips,
-        totalReachedTrip,
-      });
+      for (let i = 0; i < accessList.length; i++) {
+        const companyId = accessList[i]?.company_id;
+        if (companyId) {
+          partnerCompanyIds .push(new mongoose.Types.ObjectId(companyId));
+        }
+      }
+
+      // const partnerCompanyAccess = await result.parnter_account_access.map((data) =>  new mongoose.Types.ObjectId(data?.company_id?.toString()));
+      
+      // result.partnerCompanyAccess =  partnerCompanyIds  ? await AGENCY.find({user_id: { $in: partnerCompanyIds  }}) : []
+      const partnerCompaniesPromise = partnerCompanyIds.length ? AGENCY.find({ user_id: { $in: partnerCompanyIds } }) : Promise.resolve([]);
+      
+      const driverPurchasedPlansPromise  =  getUserActivePaidPlans(req.user);
+
+       const [companyDetail, partnerCompanies, driverPurchasedPlans] = await Promise.all([
+                                                                                            companyDetailPromise,
+                                                                                            partnerCompaniesPromise,
+                                                                                            driverPurchasedPlansPromise
+                                                                                          ]);
+
+      if (companyDetail) result.companyDetail = companyDetail;
+      result.partnerCompanyAccess = partnerCompanies;
+      result.plan_access_status = driverPurchasedPlans.length > 0 ? true : false;
+      result.totalTrips = completedTrips;
+
+      return res.send({
+                      code: constant.success_code,
+                      message: res.__("getDriverDetail.success.driverDetailsFetched"),
+                      partner_access: partnerCompanyIds,
+                      result,
+                      totalActiveTrips,
+                      totalUnpaidTrips,
+                      totalReachedTrip,
+                    });
     }
     // if (driver && driver.is_deleted === false) {
     //     res.send({

@@ -947,8 +947,6 @@ exports.get_token_detail = async (req, res) => {
                             foreignField: "user_id",
                             as: "agency_detail",
                         }
-    } else {
-
     }
 
     // Build aggregation pipeline
@@ -1047,6 +1045,33 @@ exports.get_token_detail = async (req, res) => {
   }
 };
 
+exports.getCompanyDetail = async (req , res) => {
+
+  try {
+
+    const compnayId = req.body.companyId;
+    const companyDetail = await USER.findById(compnayId).populate("driverId");
+    if (!companyDetail) {
+      res.send({
+                code: constants.error_code,
+                message: res.__('addSubAdmin.error.invalidCompany'),
+              });
+    }
+
+    return res.send({
+                        code: constant.success_code,
+                        message: res.__('getTokenDetail.success.informationRetrieved'),
+                        result: companyDetail,
+                      });
+    
+  } catch (error) {
+    console.log("🚀 ~ exports.getCompanyDetail= ~ err:", error);
+    res.send({
+      code: constants.error_code,
+      message: error.message,
+    });
+  }
+}
 exports.send_otp = async (req, res) => {
   try {
     let data = req.body;
