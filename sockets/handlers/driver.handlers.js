@@ -8,6 +8,7 @@ const { redis , sub }= require("../../utils/redis");
 const { OfflineDriver } = require("../utils");
 const {isInsideBounds} = require("../../utils/bounds.js")
 const {updateDriverLocationInRedis}  = require("../../Service/driverLocation.service.js");
+const i18n = require("i18n");
 
 function registerDriverHandlers(io, socket) {
 
@@ -127,6 +128,117 @@ function registerDriverHandlers(io, socket) {
             console.log("updateDriverLocation error:", error);
         }
     });
+
+    socket.on("getSingleDriverInfo", async ({lang , driverId} , ack) => {
+        try {
+            
+            let driver_info = await DRIVER_MODEL.findById(driverId);
+            if (!driver_info) {
+                
+                return ack({
+                    code: CONSTANT.success_code,
+                    message: i18n.__({ phrase: "getDrivers.error.noDriverFound", locale: lang }),
+                    status:driver_info?.status
+                    })
+            }
+
+            return ack({
+                        code: CONSTANT.success_code,
+                        driver_info: driver_info
+                    });
+
+        } catch (err) {
+            ack({
+              code: CONSTANT.error_code,
+              message: err.message,
+            })
+        }
+    })
+
+    socket.on("changeDriverAvailability", async ({ status  , lang , driverId} , ack) => {
+
+        try {
+            let driver_info = await DRIVER_MODEL.findById(driverId);
+            if (!driver_info) {
+                
+                return ack({
+                    code: CONSTANT.success_code,
+                    message: i18n.__({ phrase: "getDrivers.error.noDriverFound", locale: lang }),
+                    status:driver_info?.status
+                    })
+            }
+
+            const activeStates = new Set([CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP]);
+
+            if (activeStates.has(driver_info?.driver_state) && status == false) {
+                return ack({
+                    code: CONSTANT.error_code,
+                    message: i18n.__({ phrase: "updateDriver.error.cannotGoOfflineWithActiveTrip", locale: lang }),
+                    status:driver_info?.status
+                });
+            }
+
+            await DRIVER_MODEL.updateOne( { _id: driver_info?._id }, { $set: {status : status} });
+            return ack({
+                        code: CONSTANT.success_code,
+                        message: i18n.__({ phrase: "updateDriver.success.driverAccountUpdated", locale: lang }),
+                        status
+                    });
+
+        } catch (err) {
+            
+
+            ack({
+              code: CONSTANT.error_code,
+              message: err.message,
+            })
+        }
+    })
+
+    socket.on("changeDriverState", async ({ driver_state  , lang , driverId} , ack) => {
+
+        try {
+            const driver_info = await DRIVER_MODEL.findById(driverId);
+
+            if (!driver_info)
+                return ack({ code: CONSTANT.success_code, message: i18n.__({ phrase: "getDrivers.error.noDriverFound", locale: lang })})
+            
+            const validStates = new Set([ CONSTANT.DRIVER_STATE.AVAILABLE, CONSTANT.DRIVER_STATE.NOT_AVAILABLE, CONSTANT.DRIVER_STATE.ON_TRIP, CONSTANT.DRIVER_STATE.ON_THE_WAY]);
+            
+            if (!validStates.has(driver_state)) 
+                return ack({ code: CONSTANT.error_code, message: i18n.__({ phrase: 'updateDriver.error.invalidState' , locale: lang}) });
+
+            const blockedStates = new Map([
+                                            [CONSTANT.DRIVER_STATE.ON_THE_WAY, 'updateDriver.error.deniedStatusChangeOnTheWay'],
+                                            [CONSTANT.DRIVER_STATE.ON_TRIP, 'updateDriver.error.deniedStatusChangeOnTheTrip']
+                                        ]);
+                    
+            if (blockedStates.has(driver_info.driver_state) && driver_state !== CONSTANT.DRIVER_STATE.AVAILABLE) {
+                return  ack({
+                                code: CONSTANT.error_code,
+                                message: i18n.__({ phrase: blockedStates.get(driver_info.driver_state) , locale: lang })
+                            });
+            }
+
+            const newState  = driver_state == CONSTANT.DRIVER_STATE.AVAILABLE ? CONSTANT.DRIVER_STATE.NOT_AVAILABLE : CONSTANT.DRIVER_STATE.AVAILABLE;
+            
+            await DRIVER_MODEL.updateOne({ _id: driver_info._id }, { $set: { driver_state: newState } });
+
+            return ack({
+                        code: CONSTANT.success_code,
+                        message: i18n.__({ phrase: "updateDriver.success.driverAccountUpdated", locale: lang }),
+                        driver_state: newState
+                    });
+
+        } catch (err) {
+            
+
+            ack({
+              code: CONSTANT.error_code,
+              message: err.message,
+            })
+        }
+    })
 
     socket.on("disconnect", async () => {
         try {

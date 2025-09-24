@@ -82,10 +82,10 @@ module.exports={
         INRIDE : 'InRide',
     },
     DRIVER_STATE: { // admin dashboard status
-        AVAILABLE: 'AVAILABLE', // when he is free
-        NOT_AVAILABLE: 'NOT_AVAILABLE',  // when he is not free
-        ON_THE_WAY : 'ON_THE_WAY', // when he is going to pickup the customer
-        ON_TRIP : 'ON_TRIP', // when he pickup the customer and going to his destination
+        AVAILABLE: 'AVAILABLE', // when he is free // color green
+        NOT_AVAILABLE: 'NOT_AVAILABLE',  // when he is not free // color red
+        ON_THE_WAY : 'ON_THE_WAY', // when he is going to pickup the customer // color yellow
+        ON_TRIP : 'ON_TRIP', // when he pickup the customer and going to his destination // // color red
     },
     PAY_OPTION: {
         CASH: 'Cash',
