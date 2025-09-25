@@ -5,7 +5,7 @@ const DRIVER_MODEL = require("../../models/user/driver_model");
 const {isInsideBounds} = require("../../utils/bounds.js")
 const { redis , sub }= require("../../utils/redis");
 const { activeDriverInfo } = require("../../Service/helperFuntion");
-const {updateDriverLocationInRedis}  = require("../../Service/driverLocation.service.js");
+const {updateDriverLocationInRedis , getDriversInBounds}  = require("../../Service/location.service.js");
 
 function registerUserHandlers(io, socket) {
     // Web user (company or driver-as-partner) connections
@@ -65,36 +65,43 @@ function registerUserHandlers(io, socket) {
 
     // Mobile user (company or driver-as-partner) connections
     socket.on("addUser", async ({ token, longitude, latitude, socketId }) => {
+        
         if (!token) {
-            socket.emit("userConnection", { code: 200, message: "token is required" });
-            return;
+            return socket.emit("userConnection", { code: 200, message: "token is required" });
+            
         }
 
         try {
-            await USER_MODEL.updateMany(
-                                            { socketId },
-                                            { $set: { isSocketConnected: false, socketId: null } }
-                                        );
+            await USER_MODEL.updateMany( { socketId }, { $set: { isSocketConnected: false, socketId: null } } );
 
             const tokenData = jwt.verify(token, process.env.JWTSECRET);
             const id = tokenData?.companyPartnerAccess ? tokenData?.CompanyPartnerDriverId : tokenData?.userId;
 
             if (tokenData?.companyPartnerAccess) {
+
                 await DRIVER_MODEL.findByIdAndUpdate(id, { $set: { isSocketConnected: true, socketId } }, { new: true });
                 socket.emit("userConnection", { code: 200, message: "connected successfully with user id: " + id });
+
             } else {
+
                 const user = await USER_MODEL.findByIdAndUpdate(id, { $set: { isSocketConnected: true, socketId } }, { new: true });
 
                 // If company also has a driver account
                 const driverDetail = await DRIVER_MODEL.findOneAndUpdate(
-                                                        { email: user?.email },
-                                                        { $set: { isSocketConnected: true, socketId } },
-                                                        { new: true }
-                                                    );
+                                                                            { email: user?.email },
+                                                                            { $set: { isSocketConnected: true, socketId } },
+                                                                            { new: true }
+                                                                        );
                 
                 socket.emit("userConnection", { code: 200, message: "connected successfully with user id: " + id });
-                const getDriverDetails = await activeDriverInfo(driverDetail._id);
-                updateDriverLocationInRedis(io , redis ,driverDetail._id , longitude , latitude , getDriverDetails)
+
+                // If company is also the driver then update his location as driver also for the map to get the trip alocation
+                if (driverDetail) {
+                    
+                    const getDriverDetails = await activeDriverInfo(driverDetail._id);
+                    updateDriverLocationInRedis(io , redis ,driverDetail._id , longitude , latitude , getDriverDetails)
+                }
+                
             }
         } catch (err) {
         console.log("addUser err:", err);
@@ -106,11 +113,14 @@ function registerUserHandlers(io, socket) {
         try {
 
             const key = `bounds:app:${companyId}`;
-            await redis.set(key, JSON.stringify(bounds), "EX", 300);
+            await redis.set(key, JSON.stringify(bounds), "EX", 30);
             socket.join(key);
+
             console.log('key and room id ------------' , key)
             console.log(`🏢 Company ${companyId} subscribed`, bounds);
 
+            getDriversInBounds(bounds , companyId , socket)
+            return
             // Get center of the bounding box
 
             const centerLat = (bounds.latMin + bounds.latMax) / 2;
@@ -130,8 +140,7 @@ function registerUserHandlers(io, socket) {
                 const pipeline = redis.multi();
                 geoResults.forEach((entry) => {
                     
-                    const driverId = entry[0]
-                    console.log("Driver ID:", driverId);
+                    const driverId = entry[0];
                     pipeline.hgetall(`driver:${driverId}`)
                 });
                 const drivers = await pipeline.exec();
@@ -160,10 +169,13 @@ function registerUserHandlers(io, socket) {
                 });
 
                 if (driversToSend.length > 0) {
+
                     socket.emit("driver::app:inBounds", driversToSend);
                     console.log(`📡 Sent ${driversToSend.length} drivers to company ${companyId}`);
                 }
             }
+
+
         } catch (error) {
             console.error("❌ Error in company:subscribe:", error);
         }
@@ -179,8 +191,7 @@ function registerUserHandlers(io, socket) {
         } catch (error) {
             console.error("❌ Error in company:subscribe:", error);
         }
-    
-  });
+    });
 }
 
 module.exports = registerUserHandlers;

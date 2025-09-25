@@ -18,7 +18,7 @@ const stripe = require("stripe")(
   "sk_test_51OH1cSSIpj1PyQQaTWeLDPcDsiROliXqsb2ROV2SvHEXwIBbnM9doAQF4rIqWGTTFM7SK4kBxjMmSXMgcLcJTSVh00l0kUa708"
 );
 const { getUserActivePaidPlans , getUserCurrentActivePayedPlan , passwordResetOtpEmail } = require("../../Service/helperFuntion");
-
+const { redis , sub }= require("../../utils/redis");
 const mongoose = require("mongoose");
 const trip_model = require("../../models/user/trip_model");
 const driver_model = require("../../models/user/driver_model");
@@ -167,7 +167,7 @@ exports.login = async (req, res) => {
     if (!userData || (userData?.role == constants.ROLES.COMPANY &&  userData?.isDriver == true && userData?.is_blocked == true)) {
 
       
-      let check_again = await DRIVER.findOne({
+      let DriverDetails = await DRIVER.findOne({
                                               $and: [
                                                 {
                                                   $or: [
@@ -182,48 +182,43 @@ exports.login = async (req, res) => {
                                             });
       
 
-      if (!check_again) {
+      if (!DriverDetails) {
         return res.send({
                           code: constant.error_code,
                           message: res.__('userLogin.error.incorrectCredentials'),
                         });
       }
 
-      if (check_again?.is_blocked){
+      if (DriverDetails?.is_blocked){
         return res.send({
                           code: constant.error_code,
                           message: res.__('userLogin.error.accessRestricted')
                         });
       }
 
-      const completedTrips = await trip_model.find({
-                                                    driver_name: check_again._id,
-                                                    trip_status: "Completed",
-                                                    is_paid: false,
-                                                  })
-                                                  .countDocuments();
+      const completedTrips = await trip_model.countDocuments({
+                                                                driver_name: DriverDetails._id,
+                                                                trip_status: "Completed",
+                                                                is_paid: false,
+                                                              }); 
 
-      const totalUnpaidTrips = await trip_model.find({
-                                                      driver_name: check_again._id,
-                                                      trip_status: "Completed",
-                                                      is_paid: false,
-                                                      drop_time: {
-                                                        $lte: startOfCurrentWeek,
-                                                      },
-                                                    })
-                                                    .countDocuments();
+      const totalUnpaidTrips = await trip_model.countDocuments({
+                                                                driver_name: DriverDetails._id,
+                                                                trip_status: "Completed",
+                                                                is_paid: false,
+                                                                drop_time: {
+                                                                  $lte: startOfCurrentWeek,
+                                                                },
+                                                              });
 
-      const totalActiveTrips = await trip_model.find({
-                                                      driver_name: check_again._id,
-                                                      trip_status: "Active",
-                                                    })
-                                                    .countDocuments();
-
-      check_data = check_again;
+      const totalActiveTrips = await trip_model.countDocuments({
+                                                                driver_name: DriverDetails._id,
+                                                                trip_status: "Active",
+                                                              });
 
       let checkPassword = await bcrypt.compare(
                                                 data.password,
-                                                check_data.password
+                                                DriverDetails.password
                                               );
 
         
@@ -264,7 +259,7 @@ exports.login = async (req, res) => {
 
       let jwtToken =  jwt.sign(
                                 { 
-                                  userId: check_data._id,
+                                  userId: DriverDetails._id,
                                   companyPartnerAccess: false
                                 },
                                 process.env.JWTSECRET,
@@ -291,37 +286,28 @@ exports.login = async (req, res) => {
         updateDriver.deviceToken = deviceToken;
       }
       let updateLogin = await DRIVER.findOneAndUpdate(
-                                                        { _id: check_data._id },
+                                                        { _id: DriverDetails._id },
                                                         { $set: updateDriver },
                                                         { new: true }
                                                       );
 
       if (updateLogin?.isCompany) {
 
-        let updateUserDeviceToken = await USER.findOneAndUpdate(
-                                                                  { _id: updateLogin.driver_company_id },
-                                                                  { $set: {
-                                                                            deviceToken: deviceToken , 
-                                                                            webDeviceToken: webDeviceToken , 
-                                                                            ...setLocale
-                                                                          }
-                                                                  },
-                                                                  { new: true }
-                                                                );
+        await USER.updateOne( { _id: updateLogin.driver_company_id }, { $set: { deviceToken: deviceToken , webDeviceToken: webDeviceToken , ...setLocale } });
       }
 
-      let check_data2 = updateLogin.toObject();
-      check_data2.role = "DRIVER";
-      check_data2.totalTrips = completedTrips;
-      check_data2.totalUnpaidTrips = totalUnpaidTrips;
-      check_data2.totalActiveTrips = totalActiveTrips;
+      updateLogin = updateLogin.toObject();
+      updateLogin.role = "DRIVER";
+      updateLogin.totalTrips = completedTrips;
+      updateLogin.totalUnpaidTrips = totalUnpaidTrips;
+      updateLogin.totalActiveTrips = totalActiveTrips;
 
-      res.send({
-                code: constants.success_code,
-                message: res.__('userLogin.success.loginWelcome'),
-                result: check_data2,
-                jwtToken: jwtToken,
-              });
+      return res.send({
+                        code: constants.success_code,
+                        message: res.__('userLogin.success.loginWelcome'),
+                        result: updateLogin,
+                        jwtToken: jwtToken,
+                      });
     } else {
 
       check_data = userData;

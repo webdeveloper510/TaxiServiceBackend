@@ -7,7 +7,7 @@ const { driverDetailsByToken  , activeDriverInfo} = require("../../Service/helpe
 const { redis , sub }= require("../../utils/redis");
 const { OfflineDriver } = require("../utils");
 const {isInsideBounds} = require("../../utils/bounds.js")
-const {updateDriverLocationInRedis}  = require("../../Service/driverLocation.service.js");
+const { updateDriverLocationInRedis , getDriversInBounds , removeDriverForSubscribedClients}  = require("../../Service/location.service.js");
 const i18n = require("i18n");
 
 function registerDriverHandlers(io, socket) {
@@ -63,6 +63,7 @@ function registerDriverHandlers(io, socket) {
 
                 const getDriverDetails = await activeDriverInfo(driverByToken._id)
                
+                // update driver location for redis update
                 updateDriverLocationInRedis(io , redis ,driverByToken._id , longitude , latitude , getDriverDetails)
             
                 const updatedDriver =   await DRIVER_MODEL.findByIdAndUpdate(
@@ -102,9 +103,10 @@ function registerDriverHandlers(io, socket) {
             const driverBySocketId = await DRIVER_MODEL.findOne({ socketId: socket.id });
             
             if (driverBySocketId) {
-                console.log('inside-------------------------------------------------------------------------')
+                
                 const getDriverDetails = await activeDriverInfo(driverBySocketId._id)
-                console.log('getDriverDetails---------' , getDriverDetails)
+                
+                // update driver live location update
                 updateDriverLocationInRedis(io , redis , driverBySocketId._id , longitude , latitude , getDriverDetails);
                 
                 await DRIVER_MODEL.findOneAndUpdate(
@@ -128,6 +130,38 @@ function registerDriverHandlers(io, socket) {
             console.log("updateDriverLocation error:", error);
         }
     });
+
+    socket.on("driver::app:subscribe", async ({ driverId, bounds }) => {
+
+        try {
+
+            console.log('driver susbscribed-----------')
+            const key = `bounds:app:${driverId}`;
+            await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
+            socket.join(key);
+
+            console.log('key and room id ------------' , key)
+            console.log(`🏢 Company ${driverId} subscribed`, bounds);
+
+            getDriversInBounds(bounds , driverId , socket)
+
+        } catch (error) {
+            console.error("❌ Error in company:subscribe:", error);
+        }
+        
+    })
+
+    socket.on("driver::app:unsubscribe", async ({ driverId }) => {
+            try {
+                const key = `bounds:app:${driverId}`;
+                await redis.del(key);
+                socket.leave(driverId);
+                console.log(`🏢 Driver  ${driverId} unsubscribed`);
+            } catch (error) {
+                console.error("❌ Error in driverId :subscribe:", error);
+            }
+        
+        });
 
     socket.on("getSingleDriverInfo", async ({lang , driverId} , ack) => {
         try {
@@ -155,7 +189,7 @@ function registerDriverHandlers(io, socket) {
         }
     })
 
-    socket.on("changeDriverAvailability", async ({ status  , lang , driverId} , ack) => {
+    socket.on("changeDriverAvailability", async ({ status  , lang , driverId ,  longitude, latitude} , ack) => {
 
         try {
             let driver_info = await DRIVER_MODEL.findById(driverId);
@@ -170,15 +204,30 @@ function registerDriverHandlers(io, socket) {
 
             const activeStates = new Set([CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP]);
 
-            if (activeStates.has(driver_info?.driver_state) && status == false) {
-                return ack({
-                    code: CONSTANT.error_code,
-                    message: i18n.__({ phrase: "updateDriver.error.cannotGoOfflineWithActiveTrip", locale: lang }),
-                    status:driver_info?.status
-                });
-            }
+            // if (activeStates.has(driver_info?.driver_state) && status == false) {
+            //     return ack({
+            //         code: CONSTANT.error_code,
+            //         message: i18n.__({ phrase: "updateDriver.error.cannotGoOfflineWithActiveTrip", locale: lang }),
+            //         status:driver_info?.status
+            //     });
+            // }
+
+            
 
             await DRIVER_MODEL.updateOne( { _id: driver_info?._id }, { $set: {status : status} });
+
+            if (status == false) {
+                console.log('removing driver from map---------')
+                removeDriverForSubscribedClients(driver_info , io)
+            } else {
+
+                console.log('adding driver into map---------')
+                const getDriverDetails = await activeDriverInfo(driver_info._id)
+                
+                // update driver live location update
+                updateDriverLocationInRedis(io , redis , driver_info._id , longitude , latitude , getDriverDetails);
+            }
+            
             return ack({
                         code: CONSTANT.success_code,
                         message: i18n.__({ phrase: "updateDriver.success.driverAccountUpdated", locale: lang }),
