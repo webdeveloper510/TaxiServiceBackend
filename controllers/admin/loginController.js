@@ -12,12 +12,11 @@ const multer = require("multer");
 const path = require("path");
 const moment = require("moment");
 const constant = require("../../config/constant");
-const emailConstant = require("../../config/emailConstant");
-const nodemailer = require("nodemailer");
 const stripe = require("stripe")(
   "sk_test_51OH1cSSIpj1PyQQaTWeLDPcDsiROliXqsb2ROV2SvHEXwIBbnM9doAQF4rIqWGTTFM7SK4kBxjMmSXMgcLcJTSVh00l0kUa708"
 );
 const { getUserActivePaidPlans , getUserCurrentActivePayedPlan , passwordResetOtpEmail } = require("../../Service/helperFuntion");
+const { updateDriverMapCache } = require("../../Service/location.service")
 const { redis , sub }= require("../../utils/redis");
 const mongoose = require("mongoose");
 const trip_model = require("../../models/user/trip_model");
@@ -302,6 +301,8 @@ exports.login = async (req, res) => {
       updateLogin.totalUnpaidTrips = totalUnpaidTrips;
       updateLogin.totalActiveTrips = totalActiveTrips;
 
+      // update driver cahce data
+      updateDriverMapCache(DriverDetails._id);
       return res.send({
                         code: constants.success_code,
                         message: res.__('userLogin.success.loginWelcome'),
@@ -411,8 +412,10 @@ exports.login = async (req, res) => {
 
       // Update device token imn driver profile if compmany has driver account also
       if (check_data.isDriver) {
+
         let setLocale = mobile ? { app_locale: locale } : { web_locale: locale }
-        let updateDriverdata = {deviceToken: deviceToken , ...setLocale}
+        let updateDriverdata = {deviceToken: deviceToken , ...setLocale , is_login: true}
+        
         if (mobile) {
           updateDriverdata.jwtTokenMobile = null
           updateDriverdata.app_locale = locale;
@@ -421,14 +424,16 @@ exports.login = async (req, res) => {
           updateDriverdata.webDeviceToken = webDeviceToken;
           updateDriverdata.web_locale = locale;
         }
-        await DRIVER.findOneAndUpdate(
-                                        {_id: check_data.driverId},
-                                        updateDriverdata,
-                                        { 
-                                          new: true,     // Return the updated document
-                                          upsert: false, // Do not create a new document if none is found
-                                        }
-                                      )
+        
+        await DRIVER.updateOne(
+                                {_id: check_data.driverId},
+                                { $set: updateDriverdata }
+                              )
+
+        if (check_data?.driverId) { 
+          // update driver cahce data
+          updateDriverMapCache(check_data?.driverId); 
+        }
       }
       
       let getData;
@@ -473,6 +478,7 @@ exports.login = async (req, res) => {
       });
     }
   } catch (err) {
+    console.log('error----' , err)
     res.send({
       code: constants.error_code,
       message: err.message,

@@ -7,7 +7,7 @@ const { driverDetailsByToken  , activeDriverInfo} = require("../../Service/helpe
 const { redis , sub }= require("../../utils/redis");
 const { OfflineDriver } = require("../utils");
 const {isInsideBounds} = require("../../utils/bounds.js")
-const { updateDriverLocationInRedis , getDriversInBounds , removeDriverForSubscribedClients}  = require("../../Service/location.service.js");
+const { updateDriverLocationInRedis , getDriversInBounds , removeDriverForSubscribedClients , updateDriverMapCache , getDriverMapCache}  = require("../../Service/location.service.js");
 const i18n = require("i18n");
 
 function registerDriverHandlers(io, socket) {
@@ -61,35 +61,35 @@ function registerDriverHandlers(io, socket) {
             const driverByToken = await driverDetailsByToken(token);
             if (driverByToken) {
 
-                const getDriverDetails = await activeDriverInfo(driverByToken._id)
+                // update driver cahce data
+                const getDriverDetails = await updateDriverMapCache(driverByToken._id)
                
                 // update driver location for redis update
                 updateDriverLocationInRedis(io , redis ,driverByToken._id , longitude , latitude , getDriverDetails)
             
-                const updatedDriver =   await DRIVER_MODEL.findByIdAndUpdate(
-                                                                                driverByToken._id, // use the id from the fetched driver
-                                                                                {
-                                                                                $set: {
-                                                                                    location: { type: "Point", coordinates: [longitude, latitude] },
-                                                                                    locationUpdatedAt: new Date(),
-                                                                                    isSocketConnected: true,
-                                                                                    socketId: socketId,
-                                                                                },
-                                                                                },
-                                                                                { new: true } // return the updated document
-                                                                            );
+                await DRIVER_MODEL.updateOne(
+                                                { _id: driverByToken._id}, // use the id from the fetched driver
+                                                {
+                                                    $set: {
+                                                        location: { type: "Point", coordinates: [longitude, latitude] },
+                                                        locationUpdatedAt: new Date(),
+                                                        isSocketConnected: true,
+                                                        socketId: socketId,
+                                                    },
+                                                }
+                                            );
 
                 // Sync into company-user if same email
-                await USER_MODEL.findOneAndUpdate(
-                                                    { email: driverByToken.email },
-                                                    { $set: { isSocketConnected: true, socketId } },
-                                                    { new: true }
-                                                );
+                await USER_MODEL.updateOne(
+                                            { email: driverByToken.email },
+                                            { $set: { isSocketConnected: true, socketId } }
+                                        );
 
-                socket.emit("driverNotification", {
-                code: 200,
-                message: `connected successfully with addNewDriver driver id: ${driverByToken._id}`,
-                });
+                socket.emit("driverNotification",   {
+                                                        code: 200,
+                                                        message: `connected successfully with addNewDriver driver id: ${driverByToken._id}`,
+                                                    }
+                            );
             }
         } catch (err) {
         console.log("addNewDriver err:", err);
@@ -104,7 +104,7 @@ function registerDriverHandlers(io, socket) {
             
             if (driverBySocketId) {
                 
-                const getDriverDetails = await activeDriverInfo(driverBySocketId._id)
+                const getDriverDetails = await getDriverMapCache(driverBySocketId._id)
                 
                 // update driver live location update
                 updateDriverLocationInRedis(io , redis , driverBySocketId._id , longitude , latitude , getDriverDetails);
@@ -131,7 +131,7 @@ function registerDriverHandlers(io, socket) {
         }
     });
 
-    socket.on("driver::app:subscribe", async ({ driverId, bounds }) => {
+    socket.on("driver::app:subscribe", async ({ driverId, bounds } , ack) => {
 
         try {
 
@@ -145,11 +145,32 @@ function registerDriverHandlers(io, socket) {
 
             getDriversInBounds(bounds , driverId , socket)
 
+            return ack({
+                            code: CONSTANT.success_code,
+                            message: 'driver subscribed successfully'
+                        })
         } catch (error) {
             console.error("❌ Error in company:subscribe:", error);
         }
         
     })
+
+    socket.on("driver::app:heartbeat", async ({ driverId }) => {
+            try {
+                const key = `bounds:app:${driverId}`;
+                const exists = await redis.exists(key);
+    
+                if (exists) {
+                // Refresh TTL to 5 minutes again
+                await redis.expire(key, 300);
+                console.log(`💓 Heartbeat received, TTL refreshed for ${key}`);
+                } else {
+                console.log(`⚠️ Heartbeat received but no active subscription for ${key}`);
+                }
+            } catch (error) {
+                console.error("❌ Error in company:heartbeat:", error);
+            }
+        });
 
     socket.on("driver::app:unsubscribe", async ({ driverId }) => {
             try {
@@ -204,13 +225,13 @@ function registerDriverHandlers(io, socket) {
 
             const activeStates = new Set([CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP]);
 
-            // if (activeStates.has(driver_info?.driver_state) && status == false) {
-            //     return ack({
-            //         code: CONSTANT.error_code,
-            //         message: i18n.__({ phrase: "updateDriver.error.cannotGoOfflineWithActiveTrip", locale: lang }),
-            //         status:driver_info?.status
-            //     });
-            // }
+            if (activeStates.has(driver_info?.driver_state) && status == false) {
+                return ack({
+                    code: CONSTANT.error_code,
+                    message: i18n.__({ phrase: "updateDriver.error.cannotGoOfflineWithActiveTrip", locale: lang }),
+                    status:driver_info?.status
+                });
+            }
 
             
 
@@ -218,12 +239,15 @@ function registerDriverHandlers(io, socket) {
 
             if (status == false) {
                 console.log('removing driver from map---------')
-                removeDriverForSubscribedClients(driver_info , io)
+
+                // update driver cahce data
+                let getDriverDetails = await updateDriverMapCache(driver_info?._id);
+                removeDriverForSubscribedClients(getDriverDetails , io)
             } else {
 
                 console.log('adding driver into map---------')
-                const getDriverDetails = await activeDriverInfo(driver_info._id)
-                
+                // update driver cahce data
+                let getDriverDetails = await updateDriverMapCache(driver_info?._id);
                 // update driver live location update
                 updateDriverLocationInRedis(io , redis , driver_info._id , longitude , latitude , getDriverDetails);
             }
@@ -244,7 +268,7 @@ function registerDriverHandlers(io, socket) {
         }
     })
 
-    socket.on("changeDriverState", async ({ driver_state  , lang , driverId} , ack) => {
+    socket.on("changeDriverState", async ({ driver_state  , lang , driverId ,  longitude, latitude} , ack) => {
 
         try {
             const driver_info = await DRIVER_MODEL.findById(driverId);
@@ -272,7 +296,11 @@ function registerDriverHandlers(io, socket) {
             const newState  = driver_state == CONSTANT.DRIVER_STATE.AVAILABLE ? CONSTANT.DRIVER_STATE.NOT_AVAILABLE : CONSTANT.DRIVER_STATE.AVAILABLE;
             
             await DRIVER_MODEL.updateOne({ _id: driver_info._id }, { $set: { driver_state: newState } });
-
+            
+            // update driver cahce data
+            let getDriverDetails = await updateDriverMapCache(driver_info?._id);
+                // update driver live location update
+                updateDriverLocationInRedis(io , redis , driver_info._id , longitude , latitude , getDriverDetails);
             return ack({
                         code: CONSTANT.success_code,
                         message: i18n.__({ phrase: "updateDriver.success.driverAccountUpdated", locale: lang }),

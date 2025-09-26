@@ -5,7 +5,8 @@ const DRIVER_MODEL = require("../../models/user/driver_model");
 const {isInsideBounds} = require("../../utils/bounds.js")
 const { redis , sub }= require("../../utils/redis");
 const { activeDriverInfo } = require("../../Service/helperFuntion");
-const {updateDriverLocationInRedis , getDriversInBounds}  = require("../../Service/location.service.js");
+const CONSTANT = require('../../config/constant');
+const {updateDriverLocationInRedis , getDriversInBounds , updateDriverMapCache}  = require("../../Service/location.service.js");
 
 function registerUserHandlers(io, socket) {
     // Web user (company or driver-as-partner) connections
@@ -66,6 +67,7 @@ function registerUserHandlers(io, socket) {
     // Mobile user (company or driver-as-partner) connections
     socket.on("addUser", async ({ token, longitude, latitude, socketId }) => {
         
+        console.log('longitude, latitude, socketId--------' , longitude, latitude, socketId)
         if (!token) {
             return socket.emit("userConnection", { code: 200, message: "token is required" });
             
@@ -98,7 +100,7 @@ function registerUserHandlers(io, socket) {
                 // If company is also the driver then update his location as driver also for the map to get the trip alocation
                 if (driverDetail) {
                     
-                    const getDriverDetails = await activeDriverInfo(driverDetail._id);
+                    const getDriverDetails = await updateDriverMapCache(driverDetail._id);
                     updateDriverLocationInRedis(io , redis ,driverDetail._id , longitude , latitude , getDriverDetails)
                 }
                 
@@ -108,7 +110,7 @@ function registerUserHandlers(io, socket) {
         }
     });
 
-    socket.on("company::app:subscribe", async ({ companyId, bounds }) => {
+    socket.on("company::app:subscribe", async ({ companyId, bounds } , ack) => {
         
         try {
 
@@ -120,6 +122,10 @@ function registerUserHandlers(io, socket) {
             console.log(`🏢 Company ${companyId} subscribed`, bounds);
 
             getDriversInBounds(bounds , companyId , socket)
+            return ack({
+                        code: CONSTANT.success_code,
+                        message: 'compnay subscribed successfully'
+                    })
             return
             // Get center of the bounding box
 
@@ -182,8 +188,26 @@ function registerUserHandlers(io, socket) {
 
     })
 
+    socket.on("company::app:heartbeat", async ({ companyId }) => {
+        try {
+            const key = `bounds:app:${companyId}`;
+            const exists = await redis.exists(key);
+
+            if (exists) {
+            // Refresh TTL to 5 minutes again
+            await redis.expire(key, 300);
+            console.log(`💓 Heartbeat received, TTL refreshed for ${key}`);
+            } else {
+            console.log(`⚠️ Heartbeat received but no active subscription for ${key}`);
+            }
+        } catch (error) {
+            console.error("❌ Error in company:heartbeat:", error);
+        }
+    });
+
     socket.on("company::app:unsubscribe", async ({ companyId }) => {
         try {
+            
             const key = `bounds:app:${companyId}`;
             await redis.del(key);
             socket.leave(key);

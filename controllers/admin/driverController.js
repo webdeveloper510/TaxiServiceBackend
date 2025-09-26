@@ -21,6 +21,7 @@ const {
   driverDocumentVerifiedEmail,
   driverDocumentRejectionEmail
 } = require("../../Service/helperFuntion");
+const { updateDriverMapCache , removeDriverForSubscribedClients} = require("../../Service/location.service")
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -1576,53 +1577,56 @@ exports.logout = async (req, res) => {
 
     if (driverInfo) {
       // if driver is logging out
-      let driverUpdate = await DRIVER.findOneAndUpdate(
-                                                        { _id: data.driverId },
-                                                        {
-                                                          $set: { 
-                                                                  is_login: false, 
-                                                                  deviceToken: null, // driver will not recieve any notification in his device
-                                                                  webDeviceToken: null,
-                                                                  status: false // driver will be offline
-                                                                 },
-                                                        },
-                                                        { new: true }
-                                                      );
-
+      let driverUpdate = await DRIVER.updateOne(
+                                                  { _id: data.driverId },
+                                                  {
+                                                    $set: { 
+                                                            is_login: false, 
+                                                            deviceToken: null, // driver will not recieve any notification in his device
+                                                            webDeviceToken: null,
+                                                            status: false // driver will be offline
+                                                            },
+                                                  }
+                                                );
+      console.log('driver logout--------' )
+      // update driver cahce data
+      updateDriverMapCache(driverInfo?._id);
+      removeDriverForSubscribedClients(driverInfo , req.io)                                          
       if (driverInfo?.isCompany) { // if driver also a company
 
-        let companyUpdate = await USER.findOneAndUpdate(
-                                                          { _id: driverInfo?.driver_company_id },
-                                                          {
-                                                            $set: { deviceToken: null   , webDeviceToken: null,},
-                                                          },
-                                                          { new: true }
-                                                        );
+        let companyUpdate = await USER.updateOne(
+                                                  { _id: driverInfo?.driver_company_id },
+                                                  {
+                                                    $set: { deviceToken: null   , webDeviceToken: null,},
+                                                  }
+                                                );
       }
     } else {
       // If company logging out
-      let companyUpdate = await USER.findOneAndUpdate(
-                                                      { _id: data.driverId },
-                                                      {
-                                                        $set: { deviceToken: null  , webDeviceToken: null,},
-                                                      },
-                                                      { new: true }
-                                                    );
+      let companyUpdate = await USER.updateOne(
+                                                { _id: data.driverId },
+                                                {
+                                                  $set: { deviceToken: null  , webDeviceToken: null,},
+                                                }
+                                              );
 
       if (user_info?.isDriver) { // if driver also a company
 
-        let companyUpdate = await DRIVER.findOneAndUpdate(
-                                                            { _id: user_info?.driverId },
-                                                            {
-                                                              $set: { 
-                                                                      is_login: false, 
-                                                                      deviceToken: null, // driver will not recieve any notification in his device,
-                                                                      webDeviceToken: null,
-                                                                      status: false // driver will be offline
-                                                                    },
+        
+        let companyUpdate = await DRIVER.updateOne(
+                                                    { _id: user_info?.driverId },
+                                                    {
+                                                      $set: { 
+                                                              is_login: false, 
+                                                              deviceToken: null, // driver will not recieve any notification in his device,
+                                                              webDeviceToken: null,
+                                                              status: false // driver will be offline
                                                             },
-                                                            { new: true }
-                                                          );
+                                                    }
+                                                  );
+        // update driver cahce data
+        const driverData = await updateDriverMapCache(user_info?.driverId);
+        removeDriverForSubscribedClients(driverData , req.io) 
       }
     }
 
