@@ -16,6 +16,7 @@ const {
         notifyUserAccountReactivated , 
         getUserCurrentActivePayedPlan , 
         transferTripToCompanyAccount} = require("../../Service/helperFuntion");
+const { updateDriverMapCache , removeDriverForSubscribedClients , broadcastDriverLocation} = require("../../Service/location.service");
 // const imageStorage = new CloudinaryStorage({
 //     cloudinary: cloudinary,
 //     params: {
@@ -551,9 +552,22 @@ exports.blockUser = async (req, res) => {
 
             userInfo = await driver_model.findOneAndUpdate(criteria, updateData, option).lean();
 
+            // update driver profile cache
+            const driverId = data._id;
+            const driverDetails = await updateDriverMapCache(driverId);
+
             if(data?.is_blocked == 'true') {
+
                 transferTripToCompanyAccount(userInfo , req.io);
+                
+                // Remove the Driver immidiatly from the map
+                removeDriverForSubscribedClients(driverDetails , req.io);
+            } else {
+
+                // show the Driver on map 
+                await broadcastDriverLocation(req.io , driverId , driverDetails)
             }
+
         } else {
             return res.send({
                                 code: constant.error_code,

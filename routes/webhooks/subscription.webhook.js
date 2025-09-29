@@ -9,7 +9,7 @@ const LOGS = require("../../models/user/logs_model");
 const PLANS_MODEL = require("../../models/admin/plan_model");
 const mongoose = require("mongoose");
 const { sendPaymentFailEmail , sendEmailSubscribeSubcription } = require("../../Service/helperFuntion");
-
+const { updateDriverMapCache , broadcastDriverLocation} = require("../../Service/location.service")
 
 module.exports = async function subscription(req, res) {
      console.log('subscription webhook triggered----------------');
@@ -158,10 +158,17 @@ const susbcriptionCreate = async (invoice , req , event) => {
                                     invoiceUrl: invoice.hosted_invoice_url,
                                     billing_reason:CONSTANT.INVOICE_BILLING_REASON.SUBSCRIPTION_CREATE
                                 }
-            const result = await SUBSCRIPTION_MODEL.updateOne(
+            const result    = await SUBSCRIPTION_MODEL.updateOne(
                                                                     { _id: new mongoose.Types.ObjectId(subscriptionExist._id) }, // filter
                                                                     { $set: updateData } // update operation
                                                                 );
+            
+            // update driver profile cache
+            if (subscriptionExist?.role === CONSTANT.ROLES.DRIVER) {
+                const driverId = subscriptionExist?.purchaseByDriverId;
+                updateDriverMapCache(driverId);
+            }
+            
             let logs_data = {
                                 api_name: 'subscription_webhook',
                                 payload: event.type,
@@ -191,7 +198,7 @@ const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
         const userDetails = await USER_MODEL.findOne({stripeCustomerId: customerId});
         const driverDetails = await DRIVER_MODEL.findOne({stripeCustomerId: customerId});
         
-        const driveId = driverDetails && driverDetails._id ? driverDetails._id : null;
+        const driverId = driverDetails && driverDetails._id ? driverDetails._id : null;
         const userId = userDetails && userDetails._id ? userDetails._id : null;
 
         let  detail = {};
@@ -202,8 +209,8 @@ const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
             detail.purchaseBy = userId; 
             detail.role = CONSTANT.ROLES.COMPANY;
         } else {
-            detail.purchaseByDriverId = driveId; 
-            detail.purchaseBy = driveId; 
+            detail.purchaseByDriverId = driverId; 
+            detail.purchaseBy = driverId; 
             detail.role = CONSTANT.ROLES.DRIVER;
         }
 
@@ -234,6 +241,9 @@ const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
         
         const newSubscription = new SUBSCRIPTION_MODEL(subscriptionData);
         await newSubscription.save();
+
+        // update driver profile cache
+        if (detail.role === CONSTANT.ROLES.DRIVER)  updateDriverMapCache(driverId);
 
         const paymentIntent = await stripe.paymentIntents.retrieve(invoice.payment_intent);
         const payymentMethodId = paymentIntent?.payment_method;
@@ -287,6 +297,8 @@ const subscriptionCycle = async (invoice , event) => {
                                 customerId: subscriptionExist.customerId,
                                 role: subscriptionExist.role,
                                 purchaseBy: subscriptionExist.purchaseBy,
+                                purchaseByCompanyId: subscriptionExist?.purchaseByCompanyId,
+                                purchaseByDriverId: subscriptionExist?.purchaseByDriverId,
                                 amount: subscriptionExist.amount,
                                 billing_reason: CONSTANT.INVOICE_BILLING_REASON.SUBSCRIPTION_CYCLE,
                                 startPeriod: startPeriod,
@@ -303,6 +315,13 @@ const subscriptionCycle = async (invoice , event) => {
         const subscriptionRenewal = new SUBSCRIPTION_MODEL(updateData);
         subscriptionRenewal.save();
 
+        // update driver profile cache
+        if (subscriptionExist?.role === CONSTANT.ROLES.DRIVER) {
+            const driverId = subscriptionExist?.purchaseByDriverId;
+            updateDriverMapCache(driverId);
+        }
+
+        
         let logs_data = {
                         api_name: 'subscription_webhook',
                         payload: event.type,

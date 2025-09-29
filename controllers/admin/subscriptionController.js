@@ -15,7 +15,7 @@ const { getUserActivePaidPlans ,
         sendEmailCancelledSubcription , 
         createCustomAccount , 
         stripeOnboardingAccountLink} = require("../../Service/helperFuntion");
-
+const { updateDriverMapCache , broadcastDriverLocation} = require("../../Service/location.service")
 
 exports.createTax = async (req, res) => {
     try{
@@ -663,7 +663,7 @@ exports.createSubscription = async (req, res) => {
 
                 //  If there will be any current subscription then it will be cancelled. and new susbcription will be add
                 if (activePlan) {
-                    const subscriptionId = activePlan.subscriptionId
+                    const subscriptionId = activePlan.subscriptionId;
                     const canceledSubscription = await stripe.subscriptions.cancel(subscriptionId);// cancllled the previous plan
             
                     let option = { new: true };
@@ -741,6 +741,18 @@ exports.createSubscription = async (req, res) => {
                     // },
                 });
             }
+
+            if (req.user.role === constant.ROLES.DRIVER) {
+                
+                // driver detail will update after buy the plan
+                setTimeout(() => { 
+                                            const driverId = req.user._id
+                                            refreshDriverCacheAndNotify(req.io , driverId)
+                                        }, 
+                                        10 * 1000
+                            ); // function will  hit after 10 seconds
+            }
+            
             
             return res.send({
                                 code: constant.success_code,
@@ -768,6 +780,20 @@ exports.createSubscription = async (req, res) => {
 }
 
 
+const refreshDriverCacheAndNotify = async (io , driverId) => {
+    try {
+
+        const driverDetails = await updateDriverMapCache(driverId);
+        await broadcastDriverLocation(req.io , driverId , driverDetails)
+    } catch (error) {
+        console.error('Error updateDriverSusbcriptionRedis in subscription controller:', error.message);
+        return  res.send({
+                            code: constant.error_code,
+                            message: error.message,
+                        });
+      }
+}
+
 exports.cancelSubscription = async (req, res) => {
 
     try {
@@ -790,6 +816,13 @@ exports.cancelSubscription = async (req, res) => {
             await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
 
             sendEmailCancelledSubcription(subscriptionId);
+
+            // driver detail will update after cancel the plan
+            if (req.user.role === constant.ROLES.DRIVER) {
+
+                const driverId = req.user._id
+                refreshDriverCacheAndNotify(req.io , driverId)                                        
+            }
             return res.send({
                                 code: constant.success_code,
                                 message: res.__('payment.success.subscriptionCancelled')

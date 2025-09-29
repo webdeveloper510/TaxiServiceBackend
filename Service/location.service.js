@@ -11,7 +11,8 @@ async function canShowOnMap(details) {
   //   is_login: details?.is_login , 
   //   isVerified: details?.isVerified , 
   //   isDocUploaded: details?.isDocUploaded , 
-  //   is_deleted: !details?.is_deleted ,
+  //   is_deleted: details?.is_deleted ,
+  //   is_blocked :details?.is_blocked ,
   //   defaultVehicle: details?.defaultVehicle ? true : false ,
   //   last: (details?.is_special_plan_active || (details?.subscriptionData?.length ?? 0) > 0) , 
   // })
@@ -21,18 +22,27 @@ async function canShowOnMap(details) {
     details?.isVerified &&
     details?.isDocUploaded &&
     !details?.is_deleted &&
+    !details?.is_blocked &&
     details?.defaultVehicle !== null &&
     (details?.is_special_plan_active || (details?.subscriptionData?.length ?? 0) > 0)
   );
 }
 
 /** notifies all subscribed rooms whose saved bounds include this driver lat/lng */
-async function broadcastDriverLocation(io, redis, driverId, lng, lat, details) {
+async function broadcastDriverLocation(io, driverId, details) {
     try {
 
         const keys = await redis.keys("bounds:*:*");
-        const data = await redis.hgetall('driver:680650aaf26472a24298aa83');
-        
+
+        const driverKey = `driver:${driverId}`;
+
+        if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
+
+        if (!(await canShowOnMap(details))) return true; // check if it is eligible or not to show on the map
+
+        const [lat, lng] = await redis.hmget(driverKey, "lat", "lng");
+      
+       
         for (const key of keys) {
             const [, clientType, id] = key.split(":"); // bounds:app:123 or bounds:web:123
             const boundsStr = await redis.get(key);
@@ -42,15 +52,16 @@ async function broadcastDriverLocation(io, redis, driverId, lng, lat, details) {
             const point = { lat: parseFloat(lat), lng: parseFloat(lng) };
 
             if (isInsideBounds(point, bounds)) {
-                io.to(`bounds:${clientType}:${id}`).emit("driver::app:inBounds",    {
-                                                                                        driverId: String(driverId),
-                                                                                        lat,
-                                                                                        lng,
-                                                                                        details,
-                                                                                        lastUpdate: Date.now(),
-                                                                                    }
-                                                        );
-                console.log('sent single driver--------')
+              
+              io.to(`bounds:${clientType}:${id}`).emit("driver::app:inBounds",    {
+                                                                                      driverId: String(driverId),
+                                                                                      lat,
+                                                                                      lng,
+                                                                                      details,
+                                                                                      lastUpdate: Date.now(),
+                                                                                  }
+                                                      );
+              console.log('sent single driver--------')
             }
         }
     } catch (err) {
@@ -70,7 +81,7 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
     const key = `driver:${driverId}`;
     await redis.geoadd("drivers:geo", lng, lat, driverId); // Geo index
 
-    const driverDetails = await getDriverMapCache(driverId)
+    const driverDetails = await getDriverMapCache(driverId);
     // Metadata
     await redis.hset(key, {
                               driverId: driverId,
@@ -80,11 +91,10 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
                               details: JSON.stringify(driverDetails),
                           }
                     );
-
-    if (!(await canShowOnMap(driverDetails))) return true;
-    
+  
     // Broadcast to listeners
-    await broadcastDriverLocation(io, redis, driverId, lng, lat, driverDetails);
+    // await broadcastDriverLocation(io, redis, driverId, lng, lat, driverDetails);
+    await broadcastDriverLocation(io, driverId, driverDetails);
 
     // TTL (3h)
     // await redis.expire(key, 10800); // 3 hours expiration 10800
@@ -127,8 +137,9 @@ async function getDriversInBounds(bounds, id, socket) {
             const drivers = await pipeline.exec();
             
             const driversToSend = [];
-            let a = 1
+           
             console.log('here-----------' , drivers.length)
+
             // await drivers.forEach(async ([err, driver]) => {
               for (const [err, driver] of drivers) {
                 
@@ -140,17 +151,16 @@ async function getDriversInBounds(bounds, id, socket) {
                 if (!(await canShowOnMap(details))) return true;
 
                 const driverData = {
-                                        driverId: driver.driverId,
-                                        lat: parseFloat(driver.lat),
-                                        lng: parseFloat(driver.lng),
-                                        // info: JSON.parse(driver)
-                                        details: details
+                                      driverId: driver.driverId,
+                                      lat: parseFloat(driver.lat),
+                                      lng: parseFloat(driver.lng),
+                                      // info: JSON.parse(driver)
+                                      details: details
                                     };
                 
                 if (await isInsideBounds(driverData, bounds)) {
                     
                     driversToSend.push(driverData);
-             
                     // socket.emit("driver::app:inBounds", driverData);
                     // console.log(`📡 Sent existing driver ${driver.driverId} to company ${companyId}`);
                 }
@@ -173,6 +183,11 @@ async function removeDriverForSubscribedClients(driverInfo, io) {
     
     driverInfo = await getDriverMapCache(driverInfo?._id)
     const driverId = String(driverInfo?._id);
+
+    // const existingDriver = await redis.zscore("drivers:geo", driverId);
+
+    // if (existingDriver === null) return false;
+
     const driverData = await redis.hgetall(`driver:${driverId}`);
     const lat = driverData?.lat ? parseFloat(driverData.lat) : null;
     const lng = driverData?.lng ? parseFloat(driverData.lng) : null;

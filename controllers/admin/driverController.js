@@ -21,7 +21,7 @@ const {
   driverDocumentVerifiedEmail,
   driverDocumentRejectionEmail
 } = require("../../Service/helperFuntion");
-const { updateDriverMapCache , removeDriverForSubscribedClients} = require("../../Service/location.service")
+const { updateDriverMapCache , removeDriverForSubscribedClients , broadcastDriverLocation} = require("../../Service/location.service");
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -472,6 +472,8 @@ exports.remove_driver = async (req, res) => {
                                                               }
                                                             );
       sendAccountDeactivationEmail(removedDriver);
+      const driverDetails = await updateDriverMapCache(driverId);   // update driver profile cache
+      removeDriverForSubscribedClients(driverDetails , req.io);   // Remove the Driver immidiatly from the map
       return res.send({
                         code: constant.success_code,
                         message: res.__('deleteDriver.success.driverDeleted'),
@@ -524,6 +526,12 @@ exports.adminDeleteDriver = async (req, res) => {
                                                       );
 
       sendAccountDeactivationEmail(removedDriver);
+
+      
+      const driverDetails = await updateDriverMapCache(driverId);   // update driver profile cache
+      removeDriverForSubscribedClients(driverDetails , req.io);   // Remove the Driver immidiatly from the map
+
+
       res.send({
                 code: constant.success_code,
                 message:  res.__('deleteDriver.success.driverDeleted'),
@@ -1590,7 +1598,7 @@ exports.logout = async (req, res) => {
                                                 );
       console.log('driver logout--------' )
       // update driver cahce data
-      updateDriverMapCache(driverInfo?._id);
+      await updateDriverMapCache(driverInfo?._id);
       removeDriverForSubscribedClients(driverInfo , req.io)                                          
       if (driverInfo?.isCompany) { // if driver also a company
 
@@ -1793,7 +1801,7 @@ exports.switchToDriver = async (req, res) => {
                                             _id: driverId,
                                             is_deleted: false,
                                           });
-
+ 
     if (!driverData) {
       return res.send({
                         code: constant.error_code,
@@ -1825,13 +1833,12 @@ exports.switchToDriver = async (req, res) => {
                                                       },
                                                     });
 
-      if (req.isMobile) {
-        driverData.jwtTokenMobile = jwtToken;
-        driverData.lastUsedTokenMobile = new Date();
-      } else {
-        driverData.jwtToken = jwtToken;
-        driverData.lastUsedToken = new Date();
-      }
+      const tokenField = req.isMobile ? "jwtTokenMobile" : "jwtToken";
+      const lastUsedField = req.isMobile ? "lastUsedTokenMobile" : "lastUsedToken";
+      
+      driverData[tokenField] = jwtToken;
+      driverData[lastUsedField] = new Date();
+      
 
       driverData.is_login = true;
       driverData.currently_active_company = null;
@@ -1839,6 +1846,8 @@ exports.switchToDriver = async (req, res) => {
       await driverData.save();
       result.totalUnpaidTrips = totalUnpaidTrips;
       result.role = "DRIVER";
+
+      updateDriverMapCache(driverId);   // update driver profile cache
 
       res.send({
         code: constant.success_code,

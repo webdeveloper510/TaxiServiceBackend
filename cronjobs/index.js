@@ -1,12 +1,12 @@
 const { weeklyPayoutCron }= require("./weeklyPayout.cron");
 const { tripNotificationCron } = require("./tripNotification.cron")
 const { companyInvoicecreationCron } = require("./company.invoice")
-
-function startAllCrons() {
+const { driverAutoLogoutCron } = require("./driverAutoLogout.cron")
+function startAllCrons(io) {
   tripNotificationCron();
   weeklyPayoutCron();
   companyInvoicecreationCron();
-//   driverAutoLogoutCron();
+  driverAutoLogoutCron(io);
 }
 
 module.exports = { startAllCrons };

@@ -37,9 +37,10 @@ app.post('/payout_webhook', bodyParser.raw({ type: 'application/json' }), payout
 const subscriptionWebhook = require('./routes/webhooks/subscription.webhook'); // exports webhook handler function
 app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), subscriptionWebhook); // webhook for subscription and chekcout
 
+// IMPORTANT: initialize sockets
+const io = initSocket(httpServer);
 
-// 
-startAllCrons();
+startAllCrons(io);
 app.use(logger("dev"));
 app.use(i18n.init);
 app.use(express.json());
@@ -53,8 +54,7 @@ app.use(express.static(path.join(__dirname, "public")));
 //                                   }
 //                       );
 
-// IMPORTANT: initialize sockets
-const io = initSocket(httpServer);
+
 
 app.use((req, res, next) => {
   
