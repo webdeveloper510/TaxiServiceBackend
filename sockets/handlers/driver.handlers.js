@@ -73,6 +73,7 @@ function registerDriverHandlers(io, socket) {
                                                     $set: {
                                                         location: { type: "Point", coordinates: [longitude, latitude] },
                                                         locationUpdatedAt: new Date(),
+                                                        lastUsedTokenMobile: new Date(),
                                                         isSocketConnected: true,
                                                         socketId: socketId,
                                                     },
@@ -113,8 +114,9 @@ function registerDriverHandlers(io, socket) {
                                                         { socketId: socket.id },
                                                         {
                                                             $set: {
-                                                            location: { type: "Point", coordinates: [longitude, latitude] },
-                                                            locationUpdatedAt: new Date(),
+                                                                location: { type: "Point", coordinates: [longitude, latitude] },
+                                                                locationUpdatedAt: new Date(),
+                                                                lastUsedTokenMobile: new Date(), // we will logout the user if lastUsedToken time as been exceeded 3 hours
                                                             },
                                                         },
                                                         { new: true }

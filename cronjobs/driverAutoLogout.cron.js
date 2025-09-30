@@ -12,7 +12,7 @@ exports.driverAutoLogoutCron = (io) =>  {
 
 const autoLogout = async (io) => {
 
-
+   
     try {
         const now = new Date();
         const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 60 * 1000);
@@ -21,7 +21,7 @@ const autoLogout = async (io) => {
 
         const driverList = await DRIVER_MODEL.find({
                                                     is_login: true,
-                                                    lastUsedToken: { $lte: threeHoursBefore },
+                                                    lastUsedTokenMobile: { $lte: threeHoursBefore },
                                                     driver_state: { $nin: [CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP] }
                                                 });
 

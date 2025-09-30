@@ -22,7 +22,7 @@ const {
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 const i18n = require('../../i18n');
-
+const { updateDriverMapCache , broadcastDriverLocation} = require("../../Service/location.service")
 
 
 exports.add_trip = async (req, res) => {
@@ -600,19 +600,34 @@ exports.edit_trip = async (req, res) => {
       // When driver is going to take the customer 
       if (update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true}, option); 
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , driver_state: constant.DRIVER_STATE.ON_THE_WAY}, option);
+
+        // update driver prfile cache
+        let driverId = update_trip?.driver_name
+        const driverDetails = await updateDriverMapCache(driverId); 
+        await broadcastDriverLocation(req.io , driverId , driverDetails)
       }
 
       //  he has been start the trip from starting point after taking the customer
       if (update_trip?.trip_status == constant.TRIP_STATUS.ACTIVE) {
 
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , is_available: false , is_in_ride: true}, option); 
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , is_available: false , is_in_ride: true , driver_state: constant.DRIVER_STATE.ON_TRIP}, option); 
+        
+        // update driver prfile cache
+        let driverId = update_trip?.driver_name
+        const driverDetails = await updateDriverMapCache(driverId); 
+        await broadcastDriverLocation(req.io , driverId , driverDetails)
       }
 
       // When driver will be complete his trip
       if (data?.trip_status == constant.TRIP_STATUS.COMPLETED) {
 
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {is_available: true , is_in_ride: false}, option); // set driver as not available
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {is_available: true , is_in_ride: false , driver_state: constant.DRIVER_STATE.AVAILABLE}, option); // set driver as not available
+        
+        // update driver prfile cache
+        let driverId = update_trip?.driver_name
+        const driverDetails = await updateDriverMapCache(driverId); 
+        await broadcastDriverLocation(req.io , driverId , driverDetails)
       }
 
       // When company wants to cancel or delete the trip then customer will be notify

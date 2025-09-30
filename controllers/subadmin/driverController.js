@@ -1299,7 +1299,7 @@ exports.favoriteDriver = async (req, res) => {
     if (!driver) {
       return res.send({
                         code: constant.error_code,
-                        message: "Driver not found",
+                        message: res.__("getDrivers.error.inValidDriver"),
                       });
     }
 

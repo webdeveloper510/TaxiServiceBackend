@@ -135,18 +135,18 @@ app.use(function (req, res, next) {
 
 
 
-async function logoutDriverAfterThreeHour() {
-  try {
-    const now = new Date();
-    const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 60 * 1000);
-    let user = await driver_model.updateMany(
-      { is_login: true, lastUsedToken: { $lte: threeHoursBefore } },
-      { $set: { is_login: false } }
-    );
-  } catch (error) {
-    console.log("🚀 ~ logout driver 3 hour ~ error:", error);
-  }
-}
+// async function logoutDriverAfterThreeHour() {
+//   try {
+//     const now = new Date();
+//     const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+//     let user = await driver_model.updateMany(
+//       { is_login: true, lastUsedToken: { $lte: threeHoursBefore } },
+//       { $set: { is_login: false } }
+//     );
+//   } catch (error) {
+//     console.log("🚀 ~ logout driver 3 hour ~ error:", error);
+//   }
+// }
 
 
 
