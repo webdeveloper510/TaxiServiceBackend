@@ -7,6 +7,7 @@ const { redis , sub }= require("../../utils/redis");
 const { activeDriverInfo } = require("../../Service/helperFuntion");
 const CONSTANT = require('../../config/constant');
 const {updateDriverLocationInRedis , getDriversInBounds , updateDriverMapCache}  = require("../../Service/location.service.js");
+const i18n = require("i18n");
 
 function registerUserHandlers(io, socket) {
     // Web user (company or driver-as-partner) connections
@@ -109,6 +110,31 @@ function registerUserHandlers(io, socket) {
         console.log("addUser err:", err);
         }
     });
+
+    socket.on("getSingleCompanyInfo", async ({lang , companyId} , ack) => {
+            try {
+                
+                let userInfo = await USER_MODEL.findById(companyId);
+                if (!userInfo) {
+                    
+                    return ack({
+                                    code: CONSTANT.success_code,
+                                    message: i18n.__({ phrase: "addSubAdmin.error.noUserFound", locale: lang })
+                                })
+                }
+    
+                return ack({
+                            code: CONSTANT.success_code,
+                            userInfo: userInfo
+                        });
+    
+            } catch (err) {
+                ack({
+                  code: CONSTANT.error_code,
+                  message: err.message,
+                })
+            }
+        })
 
     socket.on("company::app:subscribe", async ({ companyId, bounds } , ack) => {
         
