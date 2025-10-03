@@ -147,10 +147,11 @@ function registerUserHandlers(io, socket) {
             console.log('key and room id ------------' , key)
             console.log(`🏢 Company ${companyId} subscribed`, bounds);
 
-            getDriversInBounds(bounds , companyId , socket)
+            const driverList = await getDriversInBounds(bounds , companyId , socket)
             return ack({
                         code: CONSTANT.success_code,
-                        message: 'compnay subscribed successfully'
+                        message: 'compnay subscribed successfully',
+                        driverList: driverList
                     })
             return
             // Get center of the bounding box

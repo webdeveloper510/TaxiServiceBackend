@@ -168,11 +168,13 @@ async function getDriversInBounds(bounds, id, socket) {
 
             if (driversToSend.length > 0) {
 
-                socket.emit("driver::app:inBounds", driversToSend); // only initiated user will get all the drivers on his side
+                // socket.emit("driver::app:inBounds", driversToSend); // only initiated user will get all the drivers on his side
                 console.log(`📡 Sent ${driversToSend.length} drivers to company ${id}`);
             } else {
               socket.emit("driver::app:inBounds", [])
             }
+
+            return driversToSend
         }
     } catch (error) {
         console.error("❌ Error in getDriversInBounds:", error);
