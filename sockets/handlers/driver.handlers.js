@@ -277,13 +277,15 @@ function registerDriverHandlers(io, socket) {
         try {
             const driver_info = await DRIVER_MODEL.findById(driverId);
 
-            if (!driver_info)
-                return ack({ code: CONSTANT.success_code, message: i18n.__({ phrase: "getDrivers.error.noDriverFound", locale: lang })})
-            
+            if (!driver_info){
+                return ack({ code: CONSTANT.error_code, message: i18n.__({ phrase: "getDrivers.error.noDriverFound", locale: lang })})
+            }
+
             const validStates = new Set([ CONSTANT.DRIVER_STATE.AVAILABLE, CONSTANT.DRIVER_STATE.NOT_AVAILABLE, CONSTANT.DRIVER_STATE.ON_TRIP, CONSTANT.DRIVER_STATE.ON_THE_WAY]);
             
-            if (!validStates.has(driver_state)) 
+            if (!validStates.has(driver_state)) {
                 return ack({ code: CONSTANT.error_code, message: i18n.__({ phrase: 'updateDriver.error.invalidState' , locale: lang}) });
+            }
 
             const blockedStates = new Map([
                                             [CONSTANT.DRIVER_STATE.ON_THE_WAY, 'updateDriver.error.deniedStatusChangeOnTheWay'],
@@ -299,6 +301,7 @@ function registerDriverHandlers(io, socket) {
 
             const newState  = driver_state == CONSTANT.DRIVER_STATE.AVAILABLE ? CONSTANT.DRIVER_STATE.NOT_AVAILABLE : CONSTANT.DRIVER_STATE.AVAILABLE;
             
+            console.log('sending' , driver_state ,'-----state checking-----' , { driver_state: newState })
             await DRIVER_MODEL.updateOne({ _id: driver_info._id }, { $set: { driver_state: newState } });
             
             // update driver cahce data
