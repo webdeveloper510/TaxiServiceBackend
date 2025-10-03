@@ -141,7 +141,7 @@ function registerUserHandlers(io, socket) {
         try {
 
             const key = `bounds:app:${companyId}`;
-            await redis.set(key, JSON.stringify(bounds), "EX", 30);
+            await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
             socket.join(key);
 
             console.log('key and room id ------------' , key)
@@ -223,9 +223,9 @@ function registerUserHandlers(io, socket) {
             if (exists) {
             // Refresh TTL to 5 minutes again
             await redis.expire(key, 300);
-            console.log(`💓 Heartbeat received, TTL refreshed for ${key}`);
+            console.log(`💓 Heartbeat received for compnay, TTL refreshed for ${key}`);
             } else {
-            console.log(`⚠️ Heartbeat received but no active subscription for ${key}`);
+            console.log(`⚠️ Heartbeat received for company but no active subscription for ${key}`);
             }
         } catch (error) {
             console.error("❌ Error in company:heartbeat:", error);

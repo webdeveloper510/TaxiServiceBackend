@@ -598,7 +598,7 @@ exports.edit_trip = async (req, res) => {
       }
 
       // When driver is going to take the customer 
-      if (update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
+      if (update_trip?.trip_status == constant.TRIP_STATUS.REACHED) { // -----------------------------Reached
 
         await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , driver_state: constant.DRIVER_STATE.ON_THE_WAY}, option);
 
@@ -609,7 +609,7 @@ exports.edit_trip = async (req, res) => {
       }
 
       //  he has been start the trip from starting point after taking the customer
-      if (update_trip?.trip_status == constant.TRIP_STATUS.ACTIVE) {
+      if (update_trip?.trip_status == constant.TRIP_STATUS.ACTIVE) {  // -----------------------------Active or ON trip
 
         await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , is_available: false , is_in_ride: true , driver_state: constant.DRIVER_STATE.ON_TRIP}, option); 
         
@@ -620,9 +620,22 @@ exports.edit_trip = async (req, res) => {
       }
 
       // When driver will be complete his trip
-      if (data?.trip_status == constant.TRIP_STATUS.COMPLETED) {
+      if (data?.trip_status == constant.TRIP_STATUS.COMPLETED) {  // -----------------------------Completed
 
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {is_available: true , is_in_ride: false , driver_state: constant.DRIVER_STATE.AVAILABLE}, option); // set driver as not available
+        
+        let activeOrReachedTrip = await TRIP.findOne({
+                                                      driver_name: update_trip?.driver_name,
+                                                      trip_status: { $in: [constant.TRIP_STATUS.REACHED, constant.TRIP_STATUS.ACTIVE] },
+                                                    });
+
+        
+        const driverState =  activeOrReachedTrip?.trip_status === constant.TRIP_STATUS.REACHED
+                              ? constant.DRIVER_STATE.ON_THE_WAY
+                              : activeOrReachedTrip?.trip_status === constant.TRIP_STATUS.ACTIVE
+                              ? constant.DRIVER_STATE.ON_TRIP
+                              : constant.DRIVER_STATE.AVAILABLE;
+        const isAvailable = driverState === constant.DRIVER_STATE.AVAILABLE ? true : false;
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {is_available: isAvailable , is_in_ride: false , driver_state: driverState}); // set driver as not available
         
         // update driver prfile cache
         let driverId = update_trip?.driver_name
@@ -835,7 +848,31 @@ exports.driverCancelTripDecision = async (req, res) => {
 
     await TRIP.findOneAndUpdate(criteria , tripUpdateData);
 
-    
+    //------------- start check if any trip is under progress then update his map chache profile accordingly
+    let activeOrReachedTrip = await TRIP.findOne({
+                                                  driver_name: tripDetails?.driver_name,
+                                                  trip_status: { $in: [constant.TRIP_STATUS.REACHED, constant.TRIP_STATUS.ACTIVE] },
+                                                });
+
+    const driverState =  activeOrReachedTrip?.trip_status === constant.TRIP_STATUS.REACHED
+                              ? constant.DRIVER_STATE.ON_THE_WAY
+                              : activeOrReachedTrip?.trip_status === constant.TRIP_STATUS.ACTIVE
+                              ? constant.DRIVER_STATE.ON_TRIP
+                              : constant.DRIVER_STATE.AVAILABLE;
+
+    const isAvailable = driverState === constant.DRIVER_STATE.AVAILABLE ? true : false;
+    console.log('check approved---------' , {is_available: isAvailable , driver_state: driverState})
+    await DRIVER.findOneAndUpdate({_id: tripDetails?.driver_name}, {is_available: isAvailable , driver_state: driverState}); // set driver as not available
+
+    // update driver prfile cache
+    let driverId = tripDetails?.driver_name
+    const driverDetails = await updateDriverMapCache(driverId); 
+    console.log('driverDetails-----' , driverDetails)
+    await broadcastDriverLocation(req.io , driverId , driverDetails)
+
+    //------------- end check if any trip is under progress then update his map chache profile accordingly
+
+
 
     // Refesh the trip for the company and its partner and account access drivers
     partnerAccountRefreshTrip(tripDetails.created_by_company_id ,res.__('driverCancelTripReason.socket.tripChangedRefresh'),  req.io);

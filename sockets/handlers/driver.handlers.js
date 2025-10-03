@@ -145,12 +145,14 @@ function registerDriverHandlers(io, socket) {
             console.log('key and room id ------------' , key)
             console.log(`🏢 Company ${driverId} subscribed`, bounds);
 
-            getDriversInBounds(bounds , driverId , socket)
+            const driverList = await getDriversInBounds(bounds , driverId , socket)
 
             return ack({
-                            code: CONSTANT.success_code,
-                            message: 'driver subscribed successfully'
-                        })
+                        code: CONSTANT.success_code,
+                        message: 'driver subscribed successfully',
+                        driverList: driverList
+                    })
+            
         } catch (error) {
             console.error("❌ Error in company:subscribe:", error);
         }
@@ -165,9 +167,9 @@ function registerDriverHandlers(io, socket) {
                 if (exists) {
                 // Refresh TTL to 5 minutes again
                 await redis.expire(key, 300);
-                console.log(`💓 Heartbeat received, TTL refreshed for ${key}`);
+                console.log(`💓 Heartbeat received for driver, TTL refreshed for ${key}`);
                 } else {
-                console.log(`⚠️ Heartbeat received but no active subscription for ${key}`);
+                console.log(`⚠️ Heartbeat received for driver but no active subscription for ${key}`);
                 }
             } catch (error) {
                 console.error("❌ Error in company:heartbeat:", error);

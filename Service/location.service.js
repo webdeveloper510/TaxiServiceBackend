@@ -75,6 +75,14 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
     
   try {
 
+    // fake lat long added for web testing only- start--------
+    let newLatlng = await randomOffsetLatLng(lat , lng , 1500);
+    console.log('OldLatlng--------' , lat , lng)
+    console.log('newLatlng--------' , newLatlng)
+    lat = newLatlng.lat;
+    lng = newLatlng.lng;
+    // fake lat long added for web testing only- end--------
+
     driverId = String(driverId);
 
     console.log("drivers:geo", lng, lat, driverId)
@@ -104,6 +112,24 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
     }
 
     
+}
+
+async function randomOffsetLatLng(lat, lng, radiusMeters = 50) {
+  const earthRadius = 6378137; // meters
+  // Random distance in meters (0 to radiusMeters)
+  const distance = Math.random() * radiusMeters;
+  // Random angle in radians (0 to 2π)
+  const angle = Math.random() * 2 * Math.PI;
+
+  // Offset in meters
+  const dx = distance * Math.cos(angle);
+  const dy = distance * Math.sin(angle);
+
+  // Convert meters to degrees
+  const newLat = lat + (dy / earthRadius) * (180 / Math.PI);
+  const newLng = lng + (dx / (earthRadius * Math.cos((Math.PI * lat) / 180))) * (180 / Math.PI);
+
+  return {lat:newLat, lng: newLng};
 }
 
 // get all matched driver and send to single user initiated the map susbcription  (get all drivers and send it to single user)
@@ -148,7 +174,7 @@ async function getDriversInBounds(bounds, id, socket) {
                 const details = driver?.details ? JSON.parse(driver.details) : {}
                 
                 console.log("show on map " , await canShowOnMap(details))
-                if (!(await canShowOnMap(details))) return true;
+                if (!(await canShowOnMap(details))) continue;
 
                 const driverData = {
                                       driverId: driver.driverId,
