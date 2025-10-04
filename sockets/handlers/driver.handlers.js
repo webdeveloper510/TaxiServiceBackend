@@ -160,33 +160,33 @@ function registerDriverHandlers(io, socket) {
     })
 
     socket.on("driver::app:heartbeat", async ({ driverId }) => {
-            try {
-                const key = `bounds:app:${driverId}`;
-                const exists = await redis.exists(key);
-    
-                if (exists) {
-                // Refresh TTL to 5 minutes again
-                await redis.expire(key, 300);
-                console.log(`💓 Heartbeat received for driver, TTL refreshed for ${key}`);
-                } else {
-                console.log(`⚠️ Heartbeat received for driver but no active subscription for ${key}`);
-                }
-            } catch (error) {
-                console.error("❌ Error in company:heartbeat:", error);
+        try {
+            const key = `bounds:app:${driverId}`;
+            const exists = await redis.exists(key);
+
+            if (exists) {
+            // Refresh TTL to 5 minutes again
+            await redis.expire(key, 300);
+            console.log(`💓 Heartbeat received for driver, TTL refreshed for ${key}`);
+            } else {
+            console.log(`⚠️ Heartbeat received for driver but no active subscription for ${key}`);
             }
-        });
+        } catch (error) {
+            console.error("❌ Error in company:heartbeat:", error);
+        }
+    });
 
     socket.on("driver::app:unsubscribe", async ({ driverId }) => {
-            try {
-                const key = `bounds:app:${driverId}`;
-                await redis.del(key);
-                socket.leave(driverId);
-                console.log(`🏢 Driver  ${driverId} unsubscribed`);
-            } catch (error) {
-                console.error("❌ Error in driverId :subscribe:", error);
-            }
-        
-        });
+        try {
+            const key = `bounds:app:${driverId}`;
+            await redis.del(key);
+            socket.leave(driverId);
+            console.log(`🏢 Driver  ${driverId} unsubscribed`);
+        } catch (error) {
+            console.error("❌ Error in driverId :subscribe:", error);
+        }
+    
+    });
 
     socket.on("getSingleDriverInfo", async ({lang , driverId} , ack) => {
         try {
@@ -208,8 +208,8 @@ function registerDriverHandlers(io, socket) {
 
         } catch (err) {
             ack({
-              code: CONSTANT.error_code,
-              message: err.message,
+                code: CONSTANT.error_code,
+                message: err.message,
             })
         }
     })

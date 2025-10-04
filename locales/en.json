@@ -376,6 +376,9 @@
         }
     },
     "logout": {
+        "error": {
+            "canNotLogoutTripUnderProcessing": "You can't logout while you have an active trip in progress. Please complete the trip first."
+        },
         "success": {
             "logout": "You have been logged out successfully."
         }

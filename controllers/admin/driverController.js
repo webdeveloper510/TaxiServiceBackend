@@ -1584,6 +1584,20 @@ exports.logout = async (req, res) => {
     let user_info = await USER.findOne({ _id: data.driverId });
 
     if (driverInfo) {
+
+      const canDriverLogout = await this.canLogout(data.driverId);
+
+      // If any trip under running with cancellation then user can't logout
+      if (!canDriverLogout) {
+          return res.send({
+                            code: constant.error_code,
+                            message: res.__('logout.error.canNotLogoutTripUnderProcessing'),
+                          });
+      }
+
+      const isTripUnderCancellationReview = await this.isTripUnderReview(data.driverId)
+
+
       // if driver is logging out
       let driverUpdate = await DRIVER.updateOne(
                                                   { _id: data.driverId },
@@ -1592,7 +1606,7 @@ exports.logout = async (req, res) => {
                                                             is_login: false, 
                                                             deviceToken: null, // driver will not recieve any notification in his device
                                                             webDeviceToken: null,
-                                                            status: false // driver will be offline
+                                                            status: isTripUnderCancellationReview ? true : false // driver will be offline
                                                             },
                                                   }
                                                 );
@@ -1620,7 +1634,18 @@ exports.logout = async (req, res) => {
 
       if (user_info?.isDriver) { // if driver also a company
 
-        
+        const canDriverLogout = await this.canLogout(user_info?.driverId);
+
+        // If any trip under running with cancellation then user can't logout
+        if (!canDriverLogout) {
+          return res.send({
+                            code: constant.error_code,
+                            message: res.__('logout.error.canNotLogoutTripUnderProcessing'),
+                          });
+        }
+
+        const isTripUnderCancellationReview = await this.isTripUnderReview(data.driverId)
+
         let companyUpdate = await DRIVER.updateOne(
                                                     { _id: user_info?.driverId },
                                                     {
@@ -1628,7 +1653,7 @@ exports.logout = async (req, res) => {
                                                               is_login: false, 
                                                               deviceToken: null, // driver will not recieve any notification in his device,
                                                               webDeviceToken: null,
-                                                              status: false // driver will be offline
+                                                              status: isTripUnderCancellationReview ? true : false // driver will be offline
                                                             },
                                                     }
                                                   );
@@ -1649,6 +1674,26 @@ exports.logout = async (req, res) => {
     });
   }
 };
+
+exports.canLogout = async (driverId) => {
+  
+  let activeOrReachedTrip = await TRIP.findOne({
+                                                  driver_name: driverId,
+                                                  trip_status: { $in: [constant.TRIP_STATUS.REACHED, constant.TRIP_STATUS.ACTIVE] },
+                                                  under_cancellation_review: { $ne: true },
+                                                });               
+  return activeOrReachedTrip ? false : true       
+}
+
+exports.isTripUnderReview =async (driverId) => {
+  
+  let tripUnderReview = await TRIP.findOne({
+                                                  driver_name: driverId,
+                                                  trip_status: { $in: [constant.TRIP_STATUS.REACHED, constant.TRIP_STATUS.ACTIVE] },
+                                                  under_cancellation_review: true,
+                                                });               
+  return tripUnderReview ? true : false       
+}
 
 exports.convertIntoDriver = async (req, res) => {
   driverUpload(req, res, async (err) => {

@@ -77,8 +77,7 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
 
     // fake lat long added for web testing only- start--------
     let newLatlng = await randomOffsetLatLng(lat , lng , 1500);
-    console.log('OldLatlng--------' , lat , lng)
-    console.log('newLatlng--------' , newLatlng)
+    
     lat = newLatlng.lat;
     lng = newLatlng.lng;
     // fake lat long added for web testing only- end--------
@@ -275,6 +274,15 @@ async function updateDriverMapCache (driverId) {
 
     await redis.set(key, JSON.stringify(getDriverDetails));
     console.log('Cache updated:', key);
+
+    const driverKey = `driver:${driverId}`;
+
+    const isDriverExistInCache = await redis.exists(driverKey);
+
+    if (isDriverExistInCache) {
+      // Update only the 'details' field
+      await redis.hset(driverKey, 'details', JSON.stringify(getDriverDetails));
+    }
 
     return getDriverDetails;
   } catch (err) {

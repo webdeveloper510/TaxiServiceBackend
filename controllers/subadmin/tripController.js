@@ -577,6 +577,13 @@ exports.edit_trip = async (req, res) => {
           
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
         }
+
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , driver_state: constant.DRIVER_STATE.ON_THE_WAY}, option);
+        // update driver prfile cache
+        let driverId = update_trip?.driver_name
+        const driverDetails = await updateDriverMapCache(driverId); 
+        console.log('reched driver_state-----' , driverDetails?.driver_state)
+        await broadcastDriverLocation(req.io , driverId , driverDetails)
       }
         
       // when company send the trip to the driver for accepting and company want to cancel in between before accepying the driver
@@ -602,10 +609,7 @@ exports.edit_trip = async (req, res) => {
 
         await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , driver_state: constant.DRIVER_STATE.ON_THE_WAY}, option);
 
-        // update driver prfile cache
-        let driverId = update_trip?.driver_name
-        const driverDetails = await updateDriverMapCache(driverId); 
-        await broadcastDriverLocation(req.io , driverId , driverDetails)
+        
       }
 
       //  he has been start the trip from starting point after taking the customer

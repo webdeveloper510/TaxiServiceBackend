@@ -376,6 +376,9 @@
     }
   },
   "logout": {
+    "error": {
+      "canNotLogoutTripUnderProcessing": "U kunt niet uitloggen terwijl er een actieve rit bezig is. Voltooi eerst de rit alstublieft."
+    },
     "success": {
       "logout": "U bent succesvol uitgelogd."
     }
