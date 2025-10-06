@@ -25,18 +25,26 @@ const autoLogout = async (io) => {
                                                     driver_state: { $nin: [CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP] }
                                                 });
 
-        // Step 2: Update all of them
-        await DRIVER_MODEL.updateMany(
-                                        { _id: { $in: driverList.map(u => u._id) } },
-                                        { $set: { is_login: false } }
-                                    );
+        console.log('find autoLogout users----' , driverList)
 
-        for (let driverInfo of driverList) {
-            console.log('logout email------------' , driverInfo.email)
-            const driverId = driverInfo?._id;
-            const driverDetails = await updateDriverMapCache(driverId);
-            removeDriverForSubscribedClients(driverDetails , io)
+        if (driverList) {
+
+            // Step 2: Update all of them
+            await DRIVER_MODEL.updateMany(
+                                            { _id: { $in: driverList.map(u => u._id) } },
+                                            { $set: { is_login: false } }
+                                        );
+
+            for (let driverInfo of driverList) {
+                console.log('logout email------------' , driverInfo.email)
+                const driverId = driverInfo?._id;
+                const driverDetails = await updateDriverMapCache(driverId);
+                removeDriverForSubscribedClients(driverDetails , io)
+            }
         }
+        
+
+        
 
     } catch (error) {
         console.log("🚀 ~ logout driver 3 hour ~ error:", error);

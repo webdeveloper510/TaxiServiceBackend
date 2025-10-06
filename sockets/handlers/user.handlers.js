@@ -82,17 +82,17 @@ function registerUserHandlers(io, socket) {
 
             if (tokenData?.companyPartnerAccess) {
 
-                await DRIVER_MODEL.findByIdAndUpdate(id, { $set: { isSocketConnected: true, socketId } }, { new: true });
+                await DRIVER_MODEL.findByIdAndUpdate(id, { $set: { isSocketConnected: true, socketId  , lastUsedTokenMobile: new Date()} }, { new: true });
                 socket.emit("userConnection", { code: 200, message: "connected successfully with user id: " + id });
 
             } else {
 
-                const user = await USER_MODEL.findByIdAndUpdate(id, { $set: { isSocketConnected: true, socketId } }, { new: true });
+                const user = await USER_MODEL.findByIdAndUpdate(id, { $set: { isSocketConnected: true, socketId , lastUsedTokenMobile: new Date()} }, { new: true });
 
                 // If company also has a driver account
                 const driverDetail = await DRIVER_MODEL.findOneAndUpdate(
                                                                             { email: user?.email },
-                                                                            { $set: { isSocketConnected: true, socketId } },
+                                                                            { $set: { isSocketConnected: true, socketId  ,  lastUsedTokenMobile: new Date()} },
                                                                             { new: true }
                                                                         );
                 
@@ -151,7 +151,7 @@ function registerUserHandlers(io, socket) {
             return ack({
                         code: CONSTANT.success_code,
                         message: 'compnay subscribed successfully',
-                        driverList: driverList
+                        driverList: driverList ? driverList : []
                     })
            
            

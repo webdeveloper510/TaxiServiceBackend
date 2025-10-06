@@ -412,7 +412,7 @@ exports.login = async (req, res) => {
 
       // Update device token imn driver profile if compmany has driver account also
       if (check_data.isDriver) {
-
+        console.log('yes this is a driver')
         let setLocale = mobile ? { app_locale: locale } : { web_locale: locale }
         let updateDriverdata = {deviceToken: deviceToken , ...setLocale , is_login: true}
         
@@ -432,7 +432,8 @@ exports.login = async (req, res) => {
 
         if (check_data?.driverId) { 
           // update driver cahce data
-          updateDriverMapCache(check_data?.driverId); 
+          const t = await updateDriverMapCache(check_data?.driverId); 
+          console.log('d-t------' , t)
         }
       }
       

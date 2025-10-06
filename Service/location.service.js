@@ -6,16 +6,17 @@ const { activeDriverInfo } = require("../Service/helperFuntion");
 
 /** returns boolean: whether this driver should be visible on map */
 async function canShowOnMap(details) {
-  // console.log({
-  //   status: details?.status , 
-  //   is_login: details?.is_login , 
-  //   isVerified: details?.isVerified , 
-  //   isDocUploaded: details?.isDocUploaded , 
-  //   is_deleted: details?.is_deleted ,
-  //   is_blocked :details?.is_blocked ,
-  //   defaultVehicle: details?.defaultVehicle ? true : false ,
-  //   last: (details?.is_special_plan_active || (details?.subscriptionData?.length ?? 0) > 0) , 
-  // })
+  console.log({
+    email: details?.email,
+    status: details?.status , 
+    is_login: details?.is_login , 
+    isVerified: details?.isVerified , 
+    isDocUploaded: details?.isDocUploaded , 
+    is_deleted: details?.is_deleted ,
+    is_blocked :details?.is_blocked ,
+    defaultVehicle: details?.defaultVehicle ? true : false ,
+    last: (details?.is_special_plan_active || (details?.subscriptionData?.length ?? 0) > 0) , 
+  })
   return !!(
     details?.status &&
     details?.is_login &&
@@ -172,7 +173,8 @@ async function getDriversInBounds(bounds, id, socket) {
                 
                 const details = driver?.details ? JSON.parse(driver.details) : {}
                 
-                console.log("show on map " , await canShowOnMap(details))
+                console.log("show on map " , await canShowOnMap(details) , 'email-------' ,details?.email)
+                
                 if (!(await canShowOnMap(details))) continue;
 
                 const driverData = {
@@ -188,6 +190,8 @@ async function getDriversInBounds(bounds, id, socket) {
                     driversToSend.push(driverData);
                     // socket.emit("driver::app:inBounds", driverData);
                     // console.log(`📡 Sent existing driver ${driver.driverId} to company ${companyId}`);
+                } else {
+                  console.log('out of bounds----------' , details?.email)
                 }
             }
 
@@ -282,6 +286,9 @@ async function updateDriverMapCache (driverId) {
     if (isDriverExistInCache) {
       // Update only the 'details' field
       await redis.hset(driverKey, 'details', JSON.stringify(getDriverDetails));
+      console.log('cache details update for the exist driver----------')
+    } else {
+      console.log('no driver already found for redis --------------------')
     }
 
     return getDriverDetails;

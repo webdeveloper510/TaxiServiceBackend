@@ -127,6 +127,33 @@ function registerTripHandlers(io, socket) {
             return socket.emit("driverNotification", { code: 200, message: "There was an error" });
         }
     });
+
+    socket.on("getSingleTripInfo", async ({lang , tripId} , ack) => {
+            try {
+                
+                console.log('i am here------')
+                let tripDetail = await TRIP_MODEL.findById(tripId);
+                if (!tripDetail) {
+                    
+                    return ack({
+                        code: CONSTANT.error_code,
+                        message: i18n.__({ phrase: "getTrip.error.inValidTrip", locale: lang }),
+                        tripId:tripId
+                        })
+                }
+    
+                return ack({
+                            code: CONSTANT.success_code,
+                            tripDetail: tripDetail
+                        });
+    
+            } catch (err) {
+                ack({
+                    code: CONSTANT.error_code,
+                    message: err.message,
+                })
+            }
+        })
 }
 
 module.exports = registerTripHandlers;
