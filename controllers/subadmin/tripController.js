@@ -582,7 +582,7 @@ exports.edit_trip = async (req, res) => {
         // update driver prfile cache
         let driverId = update_trip?.driver_name
         const driverDetails = await updateDriverMapCache(driverId); 
-        console.log('reched driver_state-----' , driverDetails?.driver_state)
+        
         await broadcastDriverLocation(req.io , driverId , driverDetails)
       }
         

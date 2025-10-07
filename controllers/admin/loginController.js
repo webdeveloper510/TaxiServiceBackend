@@ -135,6 +135,8 @@ exports.login = async (req, res) => {
                           message: res.__('userLogin.error.accountDeleted')
                         });
     }
+
+    
     // If user is blocked by admin or super admin
     if (userData && userData.role != "SUPER_ADMIN" && (userData?.is_blocked) ) {
 
@@ -162,6 +164,7 @@ exports.login = async (req, res) => {
       }
     }
 
+    
     // drver login code
     if (!userData || (userData?.role == constants.ROLES.COMPANY &&  userData?.isDriver == true && userData?.is_blocked == true)) {
 
@@ -373,6 +376,7 @@ exports.login = async (req, res) => {
         }
       }
 
+      
       // Update token
       if (deviceToken) {
         await Promise.all([
@@ -406,24 +410,21 @@ exports.login = async (req, res) => {
         updateData.deviceToken = deviceToken;
       }
 
-
+      
       // await check_data.save();
       await USER.findByIdAndUpdate( check_data._id, { $set: updateData }, { new: true });
 
       // Update device token imn driver profile if compmany has driver account also
       if (check_data.isDriver) {
-        console.log('yes this is a driver')
-        let setLocale = mobile ? { app_locale: locale } : { web_locale: locale }
-        let updateDriverdata = {deviceToken: deviceToken , ...setLocale , is_login: true}
         
-        if (mobile) {
-          updateDriverdata.jwtTokenMobile = null
-          updateDriverdata.app_locale = locale;
-        } else {
-          updateDriverdata.jwtToken = null
-          updateDriverdata.webDeviceToken = webDeviceToken;
-          updateDriverdata.web_locale = locale;
-        }
+
+        let updateDriverdata =  {
+                                    deviceToken,
+                                    is_login: true,
+                                    ...(mobile
+                                      ? { app_locale: locale, lastUsedTokenMobile: new Date(), jwtTokenMobile: null }
+                                      : { web_locale: locale, webDeviceToken, lastUsedToken: new Date(), jwtToken: null })
+                                  };
         
         await DRIVER.updateOne(
                                 {_id: check_data.driverId},
@@ -433,7 +434,7 @@ exports.login = async (req, res) => {
         if (check_data?.driverId) { 
           // update driver cahce data
           const t = await updateDriverMapCache(check_data?.driverId); 
-          console.log('d-t------' , t)
+          
         }
       }
       

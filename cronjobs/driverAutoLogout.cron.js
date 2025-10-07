@@ -21,10 +21,10 @@ const autoLogout = async (io) => {
 
         const driverList = await DRIVER_MODEL.find({
                                                     is_login: true,
-                                                    lastUsedTokenMobile: { $lte: threeHoursBefore },
+                                                    lastUsedTokenMobile: { $lte: threeHoursBefore }, // for mobile user
                                                     driver_state: { $nin: [CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP] }
                                                 });
-
+        
         console.log('find autoLogout users----' , driverList)
 
         if (driverList) {
