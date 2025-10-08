@@ -9,6 +9,7 @@ var fareController = require("../controllers/admin/fareController");
 var tripController = require("../controllers/admin/tripController");
 let paymentController = require("../controllers/admin/paymentController.js");
 let subscriptionController = require("../controllers/admin/subscriptionController.js");
+let redisController = require("../controllers/admin/redisController.js");
 const { verifyToken } = require("../middleware/auth");
 const { adminAuth } = require("../middleware/adminAuth");
 const { companyAuth } = require("../middleware/companyAuth");
@@ -19,6 +20,7 @@ router.get("/", function (req, res, next) {
 });
 
 router.get("/get_ios_app_version", loginController.getIosAppVersion);
+router.get("/checkRedisMemory", redisController.checkRedisMemory);
 
 router.post("/createPaymentSession", loginController.createPaymentSession);
 
