@@ -8,6 +8,8 @@ const redisOptions = process.env.REDIS_URL ? process.env.REDIS_URL : {
   ...(process.env.REDIS_PASSWORD && { password: process.env.REDIS_PASSWORD }),
 };
 
+console.log('redis testing-----------' , redisOptions)
+
 const redis = new Redis(redisOptions);
 const sub = new Redis(redisOptions); // subscriber
 
