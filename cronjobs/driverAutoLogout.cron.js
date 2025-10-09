@@ -25,7 +25,7 @@ const autoLogout = async (io) => {
                                                     driver_state: { $nin: [CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP] }
                                                 });
         
-        console.log('find autoLogout users----' , driverList)
+        console.log('find autoLogout users----' , driverList.length)
 
         if (driverList) {
 
