@@ -76,12 +76,12 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
     
   try {
 
-    // fake lat long added for web testing only- start--------
-    let newLatlng = await randomOffsetLatLng(lat , lng , 1500);
+    // // fake lat long added for web testing only- start--------
+    // let newLatlng = await randomOffsetLatLng(lat , lng , 1500);
     
-    lat = newLatlng.lat;
-    lng = newLatlng.lng;
-    // fake lat long added for web testing only- end--------
+    // lat = newLatlng.lat;
+    // lng = newLatlng.lng;
+    // // fake lat long added for web testing only- end--------
 
     driverId = String(driverId);
 
