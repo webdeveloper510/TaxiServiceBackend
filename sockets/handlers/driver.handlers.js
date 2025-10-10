@@ -112,13 +112,15 @@ function registerDriverHandlers(io, socket) {
                 updateDriverLocationInRedis(io , redis , driverBySocketId._id , longitude , latitude , getDriverDetails);
 
                 // 1️⃣ Throttled Database Save (every 15 seconds)
+                const driverId = String(driverBySocketId._id);
                 const now = Date.now();
-                const lastSave = lastDbUpdate.get(driverBySocketId._id) || 0;
+                const lastSave = lastDbUpdate.get(driverId);
 
-                if (now - lastSave > 15000) { // 15 seconds gap
+                if (!lastSave || now - lastSave > 15000) { // 15 seconds gap
                     
                     console.log('code updated after 15 seconds for the driver location----------------')
-                    lastDbUpdate.set(driverBySocketId._id, now);
+                    console.log(`[ThrottleCheck] ${driverId} → ${(now - lastSave) / 1000}s since last DB save`);
+                    lastDbUpdate.set(driverId, now);
                     await DRIVER_MODEL.findOneAndUpdate(
                                                         { _id: driverBySocketId._id },
                                                         {
