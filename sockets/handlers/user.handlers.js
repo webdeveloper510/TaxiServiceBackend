@@ -68,7 +68,7 @@ function registerUserHandlers(io, socket) {
     // Mobile user (company or driver-as-partner) connections
     socket.on("addUser", async ({ token, longitude, latitude, socketId }) => {
         
-        console.log('longitude, latitude, socketId--------' , longitude, latitude, socketId)
+        // console.log('longitude, latitude, socketId--------' , longitude, latitude, socketId)
         if (!token) {
             return socket.emit("userConnection", { code: 200, message: "token is required" });
             
@@ -144,8 +144,8 @@ function registerUserHandlers(io, socket) {
             await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
             socket.join(key);
 
-            console.log('key and room id ------------' , key)
-            console.log(`🏢 Company ${companyId} subscribed`, bounds);
+            console.log('company::app:subscribe -----------key and room id ------------' , key)
+            // console.log(`🏢 Company ${companyId} subscribed`, bounds);
 
             const driverList = await getDriversInBounds(bounds , companyId , socket)
             return ack({

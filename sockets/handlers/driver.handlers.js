@@ -152,7 +152,7 @@ function registerDriverHandlers(io, socket) {
             await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
             socket.join(key);
 
-            console.log('key and room id ------------' , key)
+            console.log('driver::app:subscribe---key and room id ------------' , key)
             console.log(`🏢 Company ${driverId} subscribed`, bounds);
 
             const driverList = await getDriversInBounds(bounds , driverId , socket)

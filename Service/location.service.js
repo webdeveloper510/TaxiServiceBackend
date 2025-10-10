@@ -6,17 +6,17 @@ const { activeDriverInfo } = require("../Service/helperFuntion");
 
 /** returns boolean: whether this driver should be visible on map */
 async function canShowOnMap(details) {
-  console.log({
-    email: details?.email,
-    status: details?.status , 
-    is_login: details?.is_login , 
-    isVerified: details?.isVerified , 
-    isDocUploaded: details?.isDocUploaded , 
-    is_deleted: details?.is_deleted ,
-    is_blocked :details?.is_blocked ,
-    defaultVehicle: details?.defaultVehicle ? true : false ,
-    last: (details?.is_special_plan_active || (details?.subscriptionData?.length ?? 0) > 0) , 
-  })
+  // console.log({
+  //   email: details?.email,
+  //   status: details?.status , 
+  //   is_login: details?.is_login , 
+  //   isVerified: details?.isVerified , 
+  //   isDocUploaded: details?.isDocUploaded , 
+  //   is_deleted: details?.is_deleted ,
+  //   is_blocked :details?.is_blocked ,
+  //   defaultVehicle: details?.defaultVehicle ? true : false ,
+  //   last: (details?.is_special_plan_active || (details?.subscriptionData?.length ?? 0) > 0) , 
+  // })
   return !!(
     details?.status &&
     details?.is_login &&
@@ -62,7 +62,7 @@ async function broadcastDriverLocation(io, driverId, details) {
                                                                                       lastUpdate: Date.now(),
                                                                                   }
                                                       );
-              console.log('sent single driver--------')
+              console.log('sent single driver--------' , details.email)
             }
         }
     } catch (err) {
