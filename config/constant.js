@@ -237,5 +237,10 @@ module.exports={
     PLATFORM:{
         MOBILE:'mobile',
         WEBSITE:"website"
-    }
+    },
+    SPEED_BANDS :   [
+                        { max: 20, value: 15 },
+                        { max: 60, value: 30 },
+                        { max: Infinity, value: 50 },
+                    ]
 }

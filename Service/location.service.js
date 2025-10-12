@@ -2,7 +2,7 @@
 const { isInsideBounds } = require("../utils/bounds");
 const { redis , sub }= require("../utils/redis");
 const { activeDriverInfo } = require("../Service/helperFuntion");
-
+const CONSTANT = require('../config/constant');
 
 /** returns boolean: whether this driver should be visible on map */
 async function canShowOnMap(details) {
@@ -310,6 +310,43 @@ async function getDriverMapCache(driverId) {
   return updateDriverMapCache(driverId);
 }
 
+// Haversine distance in meters -------- get distance in meter betwwen 2 lat long
+function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
+  // --- Validate ---
+  const isNum = Number.isFinite;
+  if (![lat1, lon1, lat2, lon2].every(isNum))
+    return { ok: false, error: "Inputs must be finite numbers" };
+  if (Math.abs(lat1) > 90 || Math.abs(lat2) > 90)
+    return { ok: false, error: "Latitude must be in [-90, 90]" };
+  if (Math.abs(lon1) > 180 || Math.abs(lon2) > 180)
+    return { ok: false, error: "Longitude must be in [-180, 180]" };
+
+  // --- Haversine ---
+  const R = 6371e3;                 // Earth radius in meters
+  const RAD = Math.PI / 180;        // degrees → radians
+  const φ1 = lat1 * RAD, φ2 = lat2 * RAD;
+  const dφ = (lat2 - lat1) * RAD;
+  const dλ = (lon2 - lon1) * RAD;
+
+  let a = Math.sin(dφ / 2) ** 2 +
+          Math.cos(φ1) * Math.cos(φ2) * Math.sin(dλ / 2) ** 2;
+  a = Math.min(1, Math.max(0, a));  // numeric guard
+
+  const meters = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Number.isFinite(meters)
+    ? { ok: true, meters }
+    : { ok: false, error: "Computation failed" };
+}
+
+/**
+ * Adaptive threshold by speed (km/h):
+ * < 20 → 15 m, 20–60 → 30 m, > 60 → 50 m
+ */
+function thresholdBySpeedKmh(speedKmh) {
+  const band = CONSTANT.SPEED_BANDS.find(b => speedKmh < b.max);
+  return band.value;
+}
+
 module.exports = {
   canShowOnMap,
   broadcastDriverLocation,
@@ -317,5 +354,7 @@ module.exports = {
   getDriversInBounds,
   removeDriverForSubscribedClients,
   updateDriverMapCache,
-  getDriverMapCache
+  getDriverMapCache,
+  haversineDistanceMeters,
+  thresholdBySpeedKmh
 };
