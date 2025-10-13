@@ -33,11 +33,13 @@ async function canShowOnMap(details) {
 async function broadcastDriverLocation(io, driverId, details) {
     try {
 
-        const keys = await redis.keys("bounds:*:*");
-
+        driverId = String(driverId);
         const driverKey = `driver:${driverId}`;
 
         if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
+        const keys = await redis.keys("bounds:*:*");
+
+        
 
         if (!(await canShowOnMap(details))) return true; // check if it is eligible or not to show on the map
 
@@ -109,9 +111,7 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
 
   } catch (err) {
         console.error("❌ Error in updateDriverLocationInRedis:", err);
-    }
-
-    
+    } 
 }
 
 async function randomOffsetLatLng(lat, lng, radiusMeters = 50) {
