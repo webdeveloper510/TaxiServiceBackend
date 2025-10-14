@@ -433,8 +433,7 @@ exports.login = async (req, res) => {
 
         if (check_data?.driverId) { 
           // update driver cahce data
-          const driverMapCache = await updateDriverMapCache(check_data?.driverId); 
-          
+          updateDriverMapCache(check_data?.driverId); 
         }
       }
       
