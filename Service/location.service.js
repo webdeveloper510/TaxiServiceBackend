@@ -33,12 +33,14 @@ async function canShowOnMap(details) {
 async function broadcastDriverLocation(io, driverId, details) {
     try {
 
+        
+
         driverId = String(driverId);
         const driverKey = `driver:${driverId}`;
 
         if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
         const keys = await redis.keys("bounds:*:*");
-
+       
         
 
         if (!(await canShowOnMap(details))) return true; // check if it is eligible or not to show on the map
@@ -64,7 +66,7 @@ async function broadcastDriverLocation(io, driverId, details) {
                                                                                       lastUpdate: Date.now(),
                                                                                   }
                                                       );
-              console.log('sent single driver--------' , details.email)
+              console.log('sent single driver--------' , key , new Date() , '-----email---------' ,details.email)
             }
         }
     } catch (err) {

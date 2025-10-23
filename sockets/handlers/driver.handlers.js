@@ -116,7 +116,7 @@ function registerDriverHandlers(io, socket) {
     // Driver live location update
     socket.on("updateDriverLocation", async ({ longitude, latitude , driverId }) => {
 
-        console.log('in--------📍📍')
+        // console.log('in--------📍📍')
         try {
             
             if (driverId) {
@@ -136,7 +136,7 @@ function registerDriverHandlers(io, socket) {
                     const result = await haversineDistanceMeters(prev.lat, prev.lng, latitude, longitude);
 
                     if (!result.ok) {
-                        console.log('distance meter erro-----❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌-----' , result?.error)
+                        // console.log('distance meter erro-----❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌-----' , result?.error)
                         return
                     }
                     distanceMoved = result?.meters
@@ -147,11 +147,9 @@ function registerDriverHandlers(io, socket) {
                 }
 
                 
-               
-                
                 // 2) ignore tiny jitter if under min time window
                 if (hasPrev && distanceMoved < JITTER_METERS && elapsedSinceEmit < MIN_TIME_MS) {
-                    console.log("ignore tiny jitter failed***************************************")
+                    // console.log("ignore tiny jitter failed***************************************")
                     return false; // skipped
                 }
 
@@ -162,15 +160,15 @@ function registerDriverHandlers(io, socket) {
                 const shouldEmit = !hasPrev || distanceMoved >= distanceThreshold || elapsedSinceEmit >= MIN_TIME_MS;
 
                 if (!shouldEmit) {
-                    console.log("shouldEmit failed***************************************")
+                    // console.log("shouldEmit failed***************************************")
                     return false;
                 }
 
-                console.log('distanceMoved-------------' , {distanceMoved , speedKmh , elapsedSinceEmit: (elapsedSinceEmit / 1000).toFixed(3) , distanceThreshold} )
-                console.log('')
-                console.log('')
-                console.log('')
-                console.log('passsssssssssssssssssssssssseeeeeeeeeeedddddddd--------')
+                // console.log('distanceMoved-------------' , {distanceMoved , speedKmh , elapsedSinceEmit: (elapsedSinceEmit / 1000).toFixed(3) , distanceThreshold} )
+                // console.log('')
+                // console.log('')
+                // console.log('')
+                // console.log('passsssssssssssssssssssssssseeeeeeeeeeedddddddd--------')
                 const getDriverDetails = await getDriverMapCache(driverId);
                 
                 // 5) update driver live location update
@@ -185,8 +183,8 @@ function registerDriverHandlers(io, socket) {
 
                 if (!lastSave || now - lastSave > DB_SAVE_MS) { // 15 seconds gap
                     
-                    console.log('code updated after 15 seconds for the driver location----------------')
-                    console.log(`[ThrottleCheck] ${driverId} → ${(now - lastSave) / 1000}s since last DB save-----------📍📍📍📍📍--------------------------📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍`);
+                    // console.log('code updated after 15 seconds for the driver location----------------')
+                    // console.log(`[ThrottleCheck] ${driverId} → ${(now - lastSave) / 1000}s since last DB save-----------📍📍📍📍📍--------------------------📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍`);
                     lastDbUpdate.set(driverId, now); 
                     await DRIVER_MODEL.findOneAndUpdate(
                                                         { _id: driverId },
@@ -218,7 +216,7 @@ function registerDriverHandlers(io, socket) {
 
         try {
 
-            console.log('driver susbscribed-----------')
+            console.log('driver app susbscribed-----------')
             const key = `bounds:app:${driverId}`;
             await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
             socket.join(key);
@@ -235,7 +233,29 @@ function registerDriverHandlers(io, socket) {
                     })
             
         } catch (error) {
-            console.error("❌ Error in company:subscribe:", error);
+            console.error("❌ Error in driver:subscribe:", error);
+        }
+    })
+
+    socket.on("driver::web:subscribe", async ({ driverId, bounds } , ack) => {
+
+        try {
+
+            console.log('driver web susbscribed-----------')
+            const key = `bounds:web:${driverId}`;
+            await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
+            socket.join(key);
+
+            const driverList = await getDriversInBounds(bounds , driverId , socket)
+
+            return ack({
+                        code: CONSTANT.success_code,
+                        message: 'driver subscribed successfully',
+                        driverList: driverList
+                    })
+            
+        } catch (error) {
+            console.error("❌ Error in driver web:subscribe:", error);
         }
         
     })
@@ -257,6 +277,23 @@ function registerDriverHandlers(io, socket) {
         }
     });
 
+    socket.on("driver::web:heartbeat", async ({ driverId }) => {
+        try {
+            const key = `bounds:web:${driverId}`;
+            const exists = await redis.exists(key);
+
+            if (exists) {
+            // Refresh TTL to 5 minutes again
+            await redis.expire(key, 300);
+            console.log(`💓 Heartbeat received for web driver, TTL refreshed for ${key}`);
+            } else {
+            console.log(`⚠️ Heartbeat received for web driver but no active subscription for ${key}`);
+            }
+        } catch (error) {
+            console.error("❌ Error in driver web :heartbeat:", error);
+        }
+    });
+
     socket.on("driver::app:unsubscribe", async ({ driverId }) => {
         try {
             const key = `bounds:app:${driverId}`;
@@ -265,6 +302,18 @@ function registerDriverHandlers(io, socket) {
             console.log(`🏢 Driver  ${driverId} unsubscribed`);
         } catch (error) {
             console.error("❌ Error in driverId :subscribe:", error);
+        }
+    
+    });
+
+    socket.on("driver::web:unsubscribe", async ({ driverId }) => {
+        try {
+            const key = `bounds:web:${driverId}`;
+            await redis.del(key);
+            socket.leave(driverId);
+            console.log(`🏢 Driver web ${driverId} unsubscribed`);
+        } catch (error) {
+            console.error("❌ Error in driverId web :subscribe:", error);
         }
     
     });

@@ -161,6 +161,31 @@ function registerUserHandlers(io, socket) {
 
     })
 
+    socket.on("company::web:subscribe", async ({ companyId, bounds } , ack) => {
+        
+        try {
+
+            const key = `bounds:web:${companyId}`;
+            await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
+            socket.join(key);
+
+            console.log('company::web:subscribe -----------key and room id ------------' , key)
+            // console.log(`🏢 Company ${companyId} subscribed`, bounds);
+
+            const driverList = await getDriversInBounds(bounds , companyId , socket)
+            return ack({
+                        code: CONSTANT.success_code,
+                        message: 'compnay subscribed successfully',
+                        driverList: driverList ? driverList : []
+                    })
+           
+           
+        } catch (error) {
+            console.error("❌ Error in company:subscribe:", error);
+        }
+
+    })
+
     socket.on("company::app:heartbeat", async ({ companyId }) => {
         try {
             const key = `bounds:app:${companyId}`;
@@ -178,6 +203,23 @@ function registerUserHandlers(io, socket) {
         }
     });
 
+    socket.on("company::web:heartbeat", async ({ companyId }) => {
+        try {
+            const key = `bounds:web:${companyId}`;
+            const exists = await redis.exists(key);
+
+            if (exists) {
+            // Refresh TTL to 5 minutes again
+            await redis.expire(key, 300);
+            console.log(`💓 Heartbeat received for compnay web, TTL refreshed for ${key}`);
+            } else {
+            console.log(`⚠️ Heartbeat received for company web but no active subscription for ${key}`);
+            }
+        } catch (error) {
+            console.error("❌ Error in company:heartbeat:", error);
+        }
+    });
+
     socket.on("company::app:unsubscribe", async ({ companyId }) => {
         try {
             
@@ -187,6 +229,18 @@ function registerUserHandlers(io, socket) {
             console.log(`🏢 Company ${companyId} unsubscribed`);
         } catch (error) {
             console.error("❌ Error in company:subscribe:", error);
+        }
+    });
+
+    socket.on("company::web:unsubscribe", async ({ companyId }) => {
+        try {
+            
+            const key = `bounds:web:${companyId}`;
+            await redis.del(key);
+            socket.leave(key);
+            console.log(`🏢 Company web ${companyId} unsubscribed`);
+        } catch (error) {
+            console.error("❌ Error in web company:unsubscribe:", error);
         }
     });
 }
