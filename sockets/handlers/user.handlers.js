@@ -135,6 +135,31 @@ function registerUserHandlers(io, socket) {
                 })
             }
         })
+    
+    socket.on("trip::company::app:subscribe", async ({ companyId, bounds  , driverId , tripId} , ack) => {
+        
+        try {
+
+            const key = `bounds:trip:app:${tripId}`;
+            await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
+            socket.join(key);
+
+            console.log('company::app:subscribe -----------key and room id ------------' , key)
+            // console.log(`🏢 Company ${companyId} subscribed`, bounds);
+
+            const driverList = await getDriversInBounds(bounds , companyId , socket)
+            return ack({
+                        code: CONSTANT.success_code,
+                        message: 'compnay subscribed successfully',
+                        driverList: driverList ? driverList : []
+                    })
+           
+           
+        } catch (error) {
+            console.error("❌ Error in company:subscribe:", error);
+        }
+
+    })
 
     socket.on("company::app:subscribe", async ({ companyId, bounds } , ack) => {
         

@@ -33,14 +33,12 @@ async function canShowOnMap(details) {
 async function broadcastDriverLocation(io, driverId, details) {
     try {
 
-        
-
         driverId = String(driverId);
         const driverKey = `driver:${driverId}`;
 
         if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
         const keys = await redis.keys("bounds:*:*");
-       
+
         
 
         if (!(await canShowOnMap(details))) return true; // check if it is eligible or not to show on the map
@@ -66,7 +64,7 @@ async function broadcastDriverLocation(io, driverId, details) {
                                                                                       lastUpdate: Date.now(),
                                                                                   }
                                                       );
-              console.log('sent single driver--------' , key , new Date() , '-----email---------' ,details.email)
+              console.log('sent single driver--------' , details.email)
             }
         }
     } catch (err) {
@@ -348,6 +346,25 @@ function thresholdBySpeedKmh(speedKmh) {
   const band = CONSTANT.SPEED_BANDS.find(b => speedKmh < b.max);
   return band.value;
 }
+
+// --- WGS84 helpers ---
+function normalizeLon(lon) {
+  // 238 -> -122, 361 -> 1, keeps result in [-180,180)
+  return ((Number(lon) + 180) % 360 + 360) % 360 - 180;
+}
+function sanitizeLonLat(rawLon, rawLat) {
+  let lon = Number(rawLon), lat = Number(rawLat);
+  if (!Number.isFinite(lon) || !Number.isFinite(lat)) return null;
+
+  // If it looks swapped (common bug): lon way out, lat looks like a lon
+  if (Math.abs(lon) > 180 && Math.abs(lat) <= 90) [lon, lat] = [lat, lon];
+
+  lon = normalizeLon(lon);
+  if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+
+  return { lon, lat };
+}
+
 
 module.exports = {
   canShowOnMap,
