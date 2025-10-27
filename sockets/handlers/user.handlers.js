@@ -136,15 +136,17 @@ function registerUserHandlers(io, socket) {
             }
         })
     
-    socket.on("trip::company::app:subscribe", async ({ companyId, bounds  , driverId , tripId} , ack) => {
+        // Id can be driver ID or compnay id who is seeing the driver location on map
+    socket.on("driver::trip::update:subscribe", async ({ id, bounds  , driverId , tripId} , ack) => {
         
         try {
 
-            const key = `bounds:trip:app:${tripId}`;
+            const key = `driver:trip:update:${tripId}`;
             // await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
             socket.join(key);
 
             const driverKey = `driver:${driverId}`; // same pattern you used to store
+            
             const driverData = await redis.hgetall(driverKey);
             let driverList = [];
 
@@ -177,13 +179,13 @@ function registerUserHandlers(io, socket) {
 
     })
 
-    socket.on("trip::company::app:unsubscribe", async ({ companyId, bounds  , driverId , tripId} , ack) => {
+    socket.on("driver::trip::update:unsubscribe", async ({ id , driverId , tripId} , ack) => {
         try {
 
-            const key = `bounds:trip:app:${tripId}`;
+            const key = `driver:trip:update:${tripId}`;
             // await redis.del(key);
             socket.leave(key);
-            console.log(`🏢 Driver  ${driverId} unsubscribed`);
+            console.log(`🏢 trip Driver  ${driverId} update unsubscribed`);
         } catch (error) {
             console.error("❌ Error in company:subscribe:", error);
         }

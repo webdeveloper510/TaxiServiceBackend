@@ -13,7 +13,8 @@ const { updateDriverLocationInRedis ,
         updateDriverMapCache , 
         getDriverMapCache ,
         haversineDistanceMeters , 
-        thresholdBySpeedKmh
+        thresholdBySpeedKmh,
+        broadcastForTripDriverLocation
     }  = require("../../Service/location.service.js");
 const i18n = require("i18n");
 
@@ -173,7 +174,7 @@ function registerDriverHandlers(io, socket) {
                 
                 // 5) update driver live location update
                 updateDriverLocationInRedis(io , redis , driverId , longitude , latitude , getDriverDetails);
-
+                broadcastForTripDriverLocation(io , driverId , longitude , latitude , getDriverDetails)
                 // 6) update in-process last emit
                 lastEmitByDriver.set(driverId, { lat: latitude, lng: longitude, ts: now });
 

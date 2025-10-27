@@ -114,6 +114,31 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
     } 
 }
 
+async function broadcastForTripDriverLocation (io , driverId  , lng , lat  , details) {
+
+  try {
+
+    driverId = String(driverId);
+    const driverKey = `driver:${driverId}`;
+    if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
+    
+    if (!details?.currentTripId) return; 
+    const tripId = details.currentTripId;
+    io.to( `driver:trip:update:${tripId}`).emit("driver:trip:update",    {
+                                                                              driverId: String(driverId),
+                                                                              lat,
+                                                                              lng,
+                                                                              details,
+                                                                              lastUpdate: Date.now(),
+                                                                          }
+                                                );
+                                                
+    console.log('driver send updates for trips--------' , details.email)
+  } catch (err) {
+      console.error("❌ Error in broadcastForTripDriverLocation:", err);
+  }
+}
+
 async function randomOffsetLatLng(lat, lng, radiusMeters = 50) {
   const earthRadius = 6378137; // meters
   // Random distance in meters (0 to radiusMeters)
@@ -375,5 +400,6 @@ module.exports = {
   updateDriverMapCache,
   getDriverMapCache,
   haversineDistanceMeters,
-  thresholdBySpeedKmh
+  thresholdBySpeedKmh , 
+  broadcastForTripDriverLocation
 };
