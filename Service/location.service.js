@@ -118,6 +118,8 @@ async function broadcastForTripDriverLocation (io , driverId  , lng , lat  , det
 
   try {
 
+    console.log('locatioin updating in trip////////////////////////////======')
+
     driverId = String(driverId);
     const driverKey = `driver:${driverId}`;
     if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
@@ -132,7 +134,7 @@ async function broadcastForTripDriverLocation (io , driverId  , lng , lat  , det
                                                                               lastUpdate: Date.now(),
                                                                           }
                                                 );
-                                                
+
     console.log('driver send updates for trips--------' , details.email)
   } catch (err) {
       console.error("❌ Error in broadcastForTripDriverLocation:", err);
