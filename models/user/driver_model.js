@@ -177,6 +177,11 @@ const driver = new Schema(
       enum: DRIVER_STATE_TYPE_ENUM,
       default: CONSTANT.DRIVER_STATE.NOT_AVAILABLE
     },
+    currentTripId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "trip",  // ✅ keep this singular
+      default: null,
+    },
     created_by: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",

@@ -578,12 +578,37 @@ exports.edit_trip = async (req, res) => {
           sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
         }
 
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , driver_state: constant.DRIVER_STATE.ON_THE_WAY}, option);
+        // Store the driver status and trip id into driver profile to track on which trip driver working currently
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, { status: true , driver_state: constant.DRIVER_STATE.ON_THE_WAY , currentTripId: trip_data?._id}, option);
         // update driver prfile cache
         let driverId = update_trip?.driver_name
         const driverDetails = await updateDriverMapCache(driverId); 
         
         await broadcastDriverLocation(req.io , driverId , driverDetails)
+      }
+
+      // when driver just start the ride for pickup but he dont want to start the trip then trip will go back to booked status
+      if (update_trip?.trip_status == constant.TRIP_STATUS.BOOKED && trip_data?.trip_status == constant.TRIP_STATUS.REACHED) {
+
+        let activeOrReachedTrip = await TRIP.findOne({
+                                                      driver_name: update_trip?.driver_name,
+                                                      trip_status: { $in: [constant.TRIP_STATUS.REACHED, constant.TRIP_STATUS.ACTIVE] },
+                                                    });
+
+        
+        const driverState =  activeOrReachedTrip?.trip_status === constant.TRIP_STATUS.REACHED
+                              ? constant.DRIVER_STATE.ON_THE_WAY
+                              : activeOrReachedTrip?.trip_status === constant.TRIP_STATUS.ACTIVE
+                              ? constant.DRIVER_STATE.ON_TRIP
+                              : constant.DRIVER_STATE.AVAILABLE;
+        const isAvailable = driverState === constant.DRIVER_STATE.AVAILABLE ? true : false;
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {is_available: isAvailable , is_in_ride: false , driver_state: driverState , currentTripId: activeOrReachedTrip?._id ? activeOrReachedTrip?._id : null}); // set driver as not available
+        
+        // update driver prfile cache
+        let driverId = update_trip?.driver_name
+        const driverDetails = await updateDriverMapCache(driverId); 
+        await broadcastDriverLocation(req.io , driverId , driverDetails);
+
       }
         
       // when company send the trip to the driver for accepting and company want to cancel in between before accepying the driver
@@ -607,7 +632,7 @@ exports.edit_trip = async (req, res) => {
       // When driver is going to take the customer 
       if (update_trip?.trip_status == constant.TRIP_STATUS.REACHED) { // -----------------------------Reached
 
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , driver_state: constant.DRIVER_STATE.ON_THE_WAY}, option);
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {status: true , driver_state: constant.DRIVER_STATE.ON_THE_WAY , currentTripId: trip_data?._id}, option);
 
         
       }
@@ -639,7 +664,7 @@ exports.edit_trip = async (req, res) => {
                               ? constant.DRIVER_STATE.ON_TRIP
                               : constant.DRIVER_STATE.AVAILABLE;
         const isAvailable = driverState === constant.DRIVER_STATE.AVAILABLE ? true : false;
-        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {is_available: isAvailable , is_in_ride: false , driver_state: driverState}); // set driver as not available
+        await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, {is_available: isAvailable , is_in_ride: false , driver_state: driverState , currentTripId: null}); // set driver as not available
         
         // update driver prfile cache
         let driverId = update_trip?.driver_name
@@ -864,9 +889,9 @@ exports.driverCancelTripDecision = async (req, res) => {
                               ? constant.DRIVER_STATE.ON_TRIP
                               : constant.DRIVER_STATE.AVAILABLE;
 
-    const isAvailable = driverState === constant.DRIVER_STATE.AVAILABLE ? true : false;
+    const isAvailable = driverState === constant.DRIVER_STATE.AVAILABLE ? true : false; 
     console.log('check approved---------' , {is_available: isAvailable , driver_state: driverState})
-    await DRIVER.findOneAndUpdate({_id: tripDetails?.driver_name}, {is_available: isAvailable , driver_state: driverState}); // set driver as not available
+    await DRIVER.findOneAndUpdate({_id: tripDetails?.driver_name}, {is_available: isAvailable , driver_state: driverState , currentTripId: driverState == constant.DRIVER_STATE.AVAILABLE ? null : tripDetails?._id}); // set driver as not available
 
     // update driver prfile cache
     let driverId = tripDetails?.driver_name
