@@ -137,7 +137,7 @@ function registerDriverHandlers(io, socket) {
                     const result = await haversineDistanceMeters(prev.lat, prev.lng, latitude, longitude);
 
                     if (!result.ok) {
-                        // console.log('distance meter erro-----❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌-----' , result?.error)
+                        
                         return
                     }
                     distanceMoved = result?.meters
@@ -147,10 +147,10 @@ function registerDriverHandlers(io, socket) {
                     speedKmh = (distanceMoved / sec) * 3.6;
                 }
 
-                
+                console.log('elapsedSinceEmit-------------------' , elapsedSinceEmit , MIN_TIME_MS)
                 // 2) ignore tiny jitter if under min time window
                 if (hasPrev && distanceMoved < JITTER_METERS && elapsedSinceEmit < MIN_TIME_MS) {
-                    // console.log("ignore tiny jitter failed***************************************")
+                   
                     return false; // skipped
                 }
 
@@ -161,15 +161,10 @@ function registerDriverHandlers(io, socket) {
                 const shouldEmit = !hasPrev || distanceMoved >= distanceThreshold || elapsedSinceEmit >= MIN_TIME_MS;
 
                 if (!shouldEmit) {
-                    // console.log("shouldEmit failed***************************************")
+                   
                     return false;
                 }
 
-                // console.log('distanceMoved-------------' , {distanceMoved , speedKmh , elapsedSinceEmit: (elapsedSinceEmit / 1000).toFixed(3) , distanceThreshold} )
-                // console.log('')
-                // console.log('')
-                // console.log('')
-                // console.log('passsssssssssssssssssssssssseeeeeeeeeeedddddddd--------')
                 const getDriverDetails = await getDriverMapCache(driverId);
                 
                 // 5) update driver live location update
