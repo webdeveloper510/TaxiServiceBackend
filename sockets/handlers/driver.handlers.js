@@ -298,7 +298,7 @@ function registerDriverHandlers(io, socket) {
         try {
             const key = `bounds:app:${driverId}`;
             await redis.del(key);
-            socket.leave(driverId);
+            socket.leave(key);
             console.log(`🏢 Driver  ${driverId} unsubscribed`);
         } catch (error) {
             console.error("❌ Error in driverId :subscribe:", error);
@@ -310,7 +310,7 @@ function registerDriverHandlers(io, socket) {
         try {
             const key = `bounds:web:${driverId}`;
             await redis.del(key);
-            socket.leave(driverId);
+            socket.leave(key);
             console.log(`🏢 Driver web ${driverId} unsubscribed`);
         } catch (error) {
             console.error("❌ Error in driverId web :subscribe:", error);

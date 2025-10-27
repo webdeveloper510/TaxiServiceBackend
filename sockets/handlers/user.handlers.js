@@ -141,16 +141,32 @@ function registerUserHandlers(io, socket) {
         try {
 
             const key = `bounds:trip:app:${tripId}`;
-            await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
+            // await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
             socket.join(key);
 
-            console.log('company::app:subscribe -----------key and room id ------------' , key)
-            // console.log(`🏢 Company ${companyId} subscribed`, bounds);
+            const driverKey = `driver:${driverId}`; // same pattern you used to store
+            const driverData = await redis.hgetall(driverKey);
+            let driverList = [];
 
-            const driverList = await getDriversInBounds(bounds , companyId , socket)
+            if (driverData || Object.keys(driverData).length !== 0) {
+                
+                const details = driverData.details ? JSON.parse(driverData.details) : null;
+
+
+                driverList  =   [
+                                    {
+                                        driverId: driverData.driverId,
+                                        lat: parseFloat(driverData.lat),
+                                        lng: parseFloat(driverData.lng),
+                                        lastUpdate: Number(driverData.lastUpdate),
+                                        details,
+                                    }
+                                ];
+            }
+
             return ack({
                         code: CONSTANT.success_code,
-                        message: 'compnay subscribed successfully',
+                        message: 'company subscribed successfully for trip updates',
                         driverList: driverList ? driverList : []
                     })
            
@@ -160,6 +176,18 @@ function registerUserHandlers(io, socket) {
         }
 
     })
+
+    socket.on("trip::company::app:unsubscribe", async ({ companyId, bounds  , driverId , tripId} , ack) => {
+        try {
+
+            const key = `bounds:trip:app:${tripId}`;
+            // await redis.del(key);
+            socket.leave(key);
+            console.log(`🏢 Driver  ${driverId} unsubscribed`);
+        } catch (error) {
+            console.error("❌ Error in company:subscribe:", error);
+        }
+    })     
 
     socket.on("company::app:subscribe", async ({ companyId, bounds } , ack) => {
         
