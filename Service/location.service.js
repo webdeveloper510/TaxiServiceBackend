@@ -457,8 +457,6 @@ async function removeDriverForSubscribedClients(driverInfo, io) {
     // 4️⃣ Determine which clients this driver is inside of
     const removals = [];
 
-    console.log('allBoundKeys----------' , allBoundKeys)
-    console.log('boundsResults----------' , boundsResults)
     for (let i = 0; i < allBoundKeys.length; i++) {
       const [err, boundsStr] = boundsResults[i];
       if (err || !boundsStr) continue;
@@ -473,11 +471,11 @@ async function removeDriverForSubscribedClients(driverInfo, io) {
         }
         continue;
       }
-      console.log('bounds-----------' , bounds)
+      
       if (isInsideBounds(point, bounds)) {
         const [, clientType, id] =  allBoundKeys[i].split(":");
         const roomId =  allBoundKeys[i];
-        console.log('room-------' , `bounds:${clientType}:${id}`)
+        
         removals.push({
           room: roomId,
           driverInfo,
