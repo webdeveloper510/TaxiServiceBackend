@@ -217,6 +217,7 @@ function registerDriverHandlers(io, socket) {
             console.log('driver app susbscribed-----------')
             const key = `bounds:app:${driverId}`;
             await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
+            await redis.sadd("bounds:index:app:driver", key);
             socket.join(key);
 
             console.log('driver::app:subscribe---key and room id ------------' , key)
@@ -242,6 +243,7 @@ function registerDriverHandlers(io, socket) {
             console.log('driver web susbscribed-----------')
             const key = `bounds:web:${driverId}`;
             await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
+            await redis.sadd("bounds:index:web:driver", key);
             socket.join(key);
 
             const driverList = await getDriversInBounds(bounds , driverId , socket)
@@ -294,9 +296,12 @@ function registerDriverHandlers(io, socket) {
 
     socket.on("driver::app:unsubscribe", async ({ driverId }) => {
         try {
+
             const key = `bounds:app:${driverId}`;
             await redis.del(key);
+            await redis.srem("bounds:index:app:driver", key);
             socket.leave(key);
+
             console.log(`🏢 Driver  ${driverId} unsubscribed`);
         } catch (error) {
             console.error("❌ Error in driverId :subscribe:", error);
@@ -306,9 +311,12 @@ function registerDriverHandlers(io, socket) {
 
     socket.on("driver::web:unsubscribe", async ({ driverId }) => {
         try {
+            
             const key = `bounds:web:${driverId}`;
             await redis.del(key);
+            await redis.srem("bounds:index:web:driver", key);
             socket.leave(key);
+
             console.log(`🏢 Driver web ${driverId} unsubscribed`);
         } catch (error) {
             console.error("❌ Error in driverId web :subscribe:", error);

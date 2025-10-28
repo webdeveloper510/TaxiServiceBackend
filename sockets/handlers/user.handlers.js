@@ -197,6 +197,7 @@ function registerUserHandlers(io, socket) {
 
             const key = `bounds:app:${companyId}`;
             await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
+            await redis.sadd("bounds:index:app:company", key);
             socket.join(key);
 
             console.log('company::app:subscribe -----------key and room id ------------' , key)
@@ -222,6 +223,7 @@ function registerUserHandlers(io, socket) {
 
             const key = `bounds:web:${companyId}`;
             await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
+            await redis.sadd("bounds:index:web:company", key);
             socket.join(key);
 
             console.log('company::web:subscribe -----------key and room id ------------' , key)
@@ -280,6 +282,7 @@ function registerUserHandlers(io, socket) {
             
             const key = `bounds:app:${companyId}`;
             await redis.del(key);
+            await redis.srem("bounds:index:app:company", key);
             socket.leave(key);
             console.log(`🏢 Company ${companyId} unsubscribed`);
         } catch (error) {
@@ -292,6 +295,7 @@ function registerUserHandlers(io, socket) {
             
             const key = `bounds:web:${companyId}`;
             await redis.del(key);
+            await redis.srem("bounds:index:web:company", key);
             socket.leave(key);
             console.log(`🏢 Company web ${companyId} unsubscribed`);
         } catch (error) {
