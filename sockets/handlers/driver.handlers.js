@@ -169,6 +169,8 @@ function registerDriverHandlers(io, socket) {
                 
                 // 5) update driver live location update
                 updateDriverLocationInRedis(io , redis , driverId , longitude , latitude , getDriverDetails);
+
+                // send location pudate to the trip viewer
                 broadcastForTripDriverLocation(io , driverId , longitude , latitude , getDriverDetails)
                 // 6) update in-process last emit
                 lastEmitByDriver.set(driverId, { lat: latitude, lng: longitude, ts: now });

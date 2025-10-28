@@ -37,11 +37,10 @@ async function broadcastDriverLocation(io, driverId, details) {
         const driverKey = `driver:${driverId}`;
 
         if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
-        const keys = await redis.keys("bounds:*:*");
-
         
-
         if (!(await canShowOnMap(details))) return true; // check if it is eligible or not to show on the map
+
+        const keys = await redis.keys("bounds:*:*");
 
         const [lat, lng] = await redis.hmget(driverKey, "lat", "lng");
       
