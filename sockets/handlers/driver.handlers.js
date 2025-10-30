@@ -101,8 +101,6 @@ function registerDriverHandlers(io, socket) {
                 // update driver cahce data
                 const getDriverDetails = await updateDriverMapCache(driverByToken._id)
                
-                console.log('add driver hitting--------🥹')
-                                       
                 const driverId = String(driverByToken._id);
                 const now = Date.now();
                 const prevEmit = lastEmitByDriver.get(driverId);
