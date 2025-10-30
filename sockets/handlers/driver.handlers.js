@@ -16,16 +16,17 @@ const { updateDriverLocationInRedis ,
         thresholdBySpeedKmh,
         broadcastForTripDriverLocation
     }  = require("../../Service/location.service.js");
+const { lastEmitByDriver, lastDbUpdate } = require('./../../utils/driverCache.js');
 const i18n = require("i18n");
 
 // ---- Tunables ----
-const MIN_TIME_MS = 15_000;         // ✅ minimum time between broadcasts
-const DB_SAVE_MS  = 15_000;         // ✅ minimum time between DB saves
-const JITTER_METERS = 5;            // ignore tiny GPS jitte
+const MIN_TIME_MS = CONSTANT.MIN_TIME_MS;         // ✅ minimum time between broadcasts
+const DB_SAVE_MS  = CONSTANT.DB_SAVE_MS;         // ✅ minimum time between DB saves
+const JITTER_METERS = CONSTANT.JITTER_METERS;            // ignore tiny GPS jitte
 
 // per-driver memory (in-process)
-const lastEmitByDriver = new Map(); // driverId -> { lat, lng, ts }
-const lastDbUpdate = new Map(); // key: driverId, value: timestamp
+const MIN_EMIT_INTERVAL_MS = CONSTANT.MIN_EMIT_INTERVAL_MS;  // ✅ minimum time between frontend emits
+
 
 function registerDriverHandlers(io, socket) {
 
@@ -100,8 +101,23 @@ function registerDriverHandlers(io, socket) {
                 // update driver cahce data
                 const getDriverDetails = await updateDriverMapCache(driverByToken._id)
                
-                // update driver location for redis update
-                updateDriverLocationInRedis(io , redis ,driverByToken._id , longitude , latitude , getDriverDetails)
+                console.log('add driver hitting--------🥹')
+                                       
+                const driverId = String(driverByToken._id);
+                const now = Date.now();
+                const prevEmit = lastEmitByDriver.get(driverId);
+                const elapsed = prevEmit ? now - prevEmit.ts : Infinity;
+
+                if (elapsed >= MIN_EMIT_INTERVAL_MS) {
+
+                    // update driver location for redis update
+                    updateDriverLocationInRedis(io , redis ,driverByToken._id , longitude , latitude , getDriverDetails)
+                    lastEmitByDriver.set(driverId, { lat: latitude, lng: longitude, ts: now });
+                } else {
+                    console.log(
+                        `⏳ Skipped Redis update for ${driverId} (elapsed: ${elapsed}ms < ${MIN_EMIT_INTERVAL_MS}ms)`
+                    );
+                }
 
                 socket.emit("driverNotification",   {
                                                         code: 200,
@@ -117,94 +133,97 @@ function registerDriverHandlers(io, socket) {
     // Driver live location update
     socket.on("updateDriverLocation", async ({ longitude, latitude , driverId }) => {
 
-        // console.log('in--------📍📍')
+        // console.log('in--------📍📍' , driverId)
         try {
             
-            if (driverId) {
-                
-                driverId = String(driverId);
-                const now = Date.now();
+            if (!driverId) return console.warn("⚠️ Missing driverId in location update------❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌");
 
-                // 1) last emitted sample
-                const prev = lastEmitByDriver.get(driverId); // { lat, lng, ts }
-                const hasPrev = !!prev;
-
-                let distanceMoved = Infinity;
-                let elapsedSinceEmit = Infinity;
-                let speedKmh = 0;
-
-                if (hasPrev) {
-                    const result = await haversineDistanceMeters(prev.lat, prev.lng, latitude, longitude);
-
-                    if (!result.ok) {
-                        
-                        return
-                    }
-                    distanceMoved = result?.meters
-                    elapsedSinceEmit = now - prev.ts;
-
-                    const sec = Math.max(elapsedSinceEmit / 1000, 0.001);
-                    speedKmh = (distanceMoved / sec) * 3.6;
-                }
-
-                console.log('elapsedSinceEmit-------------------' , elapsedSinceEmit , MIN_TIME_MS)
-                // 2) ignore tiny jitter if under min time window
-                if (hasPrev && distanceMoved < JITTER_METERS && elapsedSinceEmit < MIN_TIME_MS) {
-                   
-                    return false; // skipped
-                }
-
-                // 3) dynamic distance threshold by speed
-                const distanceThreshold = await thresholdBySpeedKmh(speedKmh);
-
-                // 4) decide whether to emit
-                const shouldEmit = !hasPrev || distanceMoved >= distanceThreshold || elapsedSinceEmit >= MIN_TIME_MS;
-
-                if (!shouldEmit) {
-                   
-                    return false;
-                }
-
-                const getDriverDetails = await getDriverMapCache(driverId);
-                
-                // 5) update driver live location update
-                updateDriverLocationInRedis(io , redis , driverId , longitude , latitude , getDriverDetails);
-
-                // send location pudate to the trip viewer
-                broadcastForTripDriverLocation(io , driverId , longitude , latitude , getDriverDetails)
-                // 6) update in-process last emit
-                lastEmitByDriver.set(driverId, { lat: latitude, lng: longitude, ts: now });
-
-                // 7) Throttled Database Save (every 15 seconds)
-                
-                const lastSave = lastDbUpdate.get(driverId);
-
-                if (!lastSave || now - lastSave > DB_SAVE_MS) { // 15 seconds gap
-                    
-                    // console.log('code updated after 15 seconds for the driver location----------------')
-                    // console.log(`[ThrottleCheck] ${driverId} → ${(now - lastSave) / 1000}s since last DB save-----------📍📍📍📍📍--------------------------📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍`);
-                    lastDbUpdate.set(driverId, now); 
-                    await DRIVER_MODEL.findOneAndUpdate(
-                                                        { _id: driverId },
-                                                        {
-                                                            $set: {
-                                                                location: { type: "Point", coordinates: [longitude, latitude] },
-                                                                locationUpdatedAt: new Date(),
-                                                                lastUsedTokenMobile: new Date(), // we will logout the user if lastUsedToken time as been exceeded 3 hours
-                                                            },
-                                                        },
-                                                        { new: true }
-                                                    );
-                }
-
-                // socket.emit("UpdateLocationDriver",     {
-                //                                             code: 200,
-                //                                             message: "location Updated successfully",
-                //                                         }
-                //         );
-            } else {
-                console.log('no driver Id find in update driver location------❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌')
+            // ✅ Validate coordinates
+            if ( isNaN(latitude) || isNaN(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180 ) {
+                return console.warn(`⚠️ Invalid coordinates for driver ${driverId}`);
             }
+            
+            driverId = String(driverId);
+            const now = Date.now();
+
+            // 1) last emitted sample
+            const prev = lastEmitByDriver.get(driverId); // { lat, lng, ts }
+            const hasPrev = !!prev;
+
+            let distanceMoved = Infinity;
+            let elapsedSinceEmit = Infinity;
+            let speedKmh = 0;
+
+            if (hasPrev) {
+                const result = await haversineDistanceMeters(prev.lat, prev.lng, latitude, longitude);
+
+                if (!result.ok) {
+                    
+                    return
+                }
+                distanceMoved = result?.meters
+                elapsedSinceEmit = now - prev.ts;
+
+                const sec = Math.max(elapsedSinceEmit / 1000, 0.001);
+                speedKmh = (distanceMoved / sec) * 3.6;
+            }
+
+            // console.log('elapsedSinceEmit-------------------' , elapsedSinceEmit , MIN_TIME_MS)
+            // 2) ignore tiny jitter if under min time window
+            if (hasPrev && distanceMoved < JITTER_METERS && elapsedSinceEmit < MIN_TIME_MS) {
+                
+                return false; // skipped
+            }
+
+            // 3) dynamic distance threshold by speed
+            const distanceThreshold = await thresholdBySpeedKmh(speedKmh);
+
+            // 4) decide whether to emit
+            const shouldEmit = !hasPrev || (distanceMoved >= distanceThreshold && elapsedSinceEmit >= MIN_EMIT_INTERVAL_MS) || elapsedSinceEmit >= MIN_TIME_MS;
+
+            if (!shouldEmit) {
+                
+                return false;
+            }
+
+            const getDriverDetails = await getDriverMapCache(driverId);
+            
+            // 5) update driver live location update
+            updateDriverLocationInRedis(io , redis , driverId , longitude , latitude , getDriverDetails);
+
+            // send location pudate to the trip viewer
+            broadcastForTripDriverLocation(io , driverId , longitude , latitude , getDriverDetails)
+            // 6) update in-process last emit
+            lastEmitByDriver.set(driverId, { lat: latitude, lng: longitude, ts: now });
+
+            // 7) Throttled Database Save (every 15 seconds)
+            
+            const lastSave = lastDbUpdate.get(driverId);
+
+            if (!lastSave || now - lastSave > DB_SAVE_MS) { // 15 seconds gap
+                
+                // console.log('code updated after 15 seconds for the driver location----------------')
+                // console.log(`[ThrottleCheck] ${driverId} → ${(now - lastSave) / 1000}s since last DB save-----------📍📍📍📍📍--------------------------📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍`);
+                lastDbUpdate.set(driverId, now); 
+                DRIVER_MODEL.findOneAndUpdate(
+                                                    { _id: driverId },
+                                                    {
+                                                        $set: {
+                                                            location: { type: "Point", coordinates: [longitude, latitude] },
+                                                            locationUpdatedAt: new Date(),
+                                                            lastUsedTokenMobile: new Date(), // we will logout the user if lastUsedToken time as been exceeded 3 hours
+                                                        },
+                                                    },
+                                                    { new: true }
+                                                );
+            }
+
+            // socket.emit("UpdateLocationDriver",     {
+            //                                             code: 200,
+            //                                             message: "location Updated successfully",
+            //                                         }
+            //         );
+            
         } catch (error) {
             console.log("updateDriverLocation error:", error);
         }

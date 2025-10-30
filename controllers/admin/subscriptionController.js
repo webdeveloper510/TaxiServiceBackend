@@ -784,13 +784,10 @@ const refreshDriverCacheAndNotify = async (io , driverId) => {
     try {
 
         const driverDetails = await updateDriverMapCache(driverId);
-        await broadcastDriverLocation(req.io , driverId , driverDetails)
+        await broadcastDriverLocation(io , driverId , driverDetails)
     } catch (error) {
         console.error('Error updateDriverSusbcriptionRedis in subscription controller:', error.message);
-        return  res.send({
-                            code: constant.error_code,
-                            message: error.message,
-                        });
+        
       }
 }
 

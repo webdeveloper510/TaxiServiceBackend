@@ -9,6 +9,10 @@ module.exports={
     ACCOUNT_SHARE_INVOKED: "INVOKED",
     ACCESS_ERROR_CODE: 202,
     NETHERLANDS_COUNTRY_CODE: `+31`,
+    MIN_TIME_MS: 15_000 ,         // ✅ minimum time between broadcasts
+    DB_SAVE_MS : 15_000,         // ✅ minimum time between DB saves
+    JITTER_METERS: 5,            // ignore tiny GPS jitte
+    MIN_EMIT_INTERVAL_MS : 4_000,  // ✅ minimum time between frontend emits
     ADMIN_SETTINGS_SEED: [
         { 
             key: 'commision', 

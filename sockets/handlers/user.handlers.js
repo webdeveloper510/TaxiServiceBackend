@@ -7,7 +7,9 @@ const { redis , sub }= require("../../utils/redis");
 const { activeDriverInfo } = require("../../Service/helperFuntion");
 const CONSTANT = require('../../config/constant');
 const {updateDriverLocationInRedis , getDriversInBounds , updateDriverMapCache}  = require("../../Service/location.service.js");
+const { lastEmitByDriver, lastDbUpdate } = require('./../../utils/driverCache.js');
 const i18n = require("i18n");
+const MIN_EMIT_INTERVAL_MS = CONSTANT.MIN_EMIT_INTERVAL_MS;  // ✅ minimum time between frontend emits
 
 function registerUserHandlers(io, socket) {
     // Web user (company or driver-as-partner) connections
@@ -102,7 +104,21 @@ function registerUserHandlers(io, socket) {
                 if (driverDetail) {
                     
                     const getDriverDetails = await updateDriverMapCache(driverDetail._id);
-                    updateDriverLocationInRedis(io , redis ,driverDetail._id , longitude , latitude , getDriverDetails)
+
+                    const driverId = String(driverDetail._id);
+                    const now = Date.now();
+                    const prevEmit = lastEmitByDriver.get(driverId);
+                    const elapsed = prevEmit ? now - prevEmit.ts : Infinity;
+
+                    if (elapsed >= MIN_EMIT_INTERVAL_MS) {
+                        
+                        updateDriverLocationInRedis(io , redis ,driverDetail._id , longitude , latitude , getDriverDetails)
+                        lastEmitByDriver.set(driverId, { lat: latitude, lng: longitude, ts: now });
+                    } else {
+                        console.log(
+                            `⏳ Skipped Redis update for ${driverId} (elapsed: ${elapsed}ms < ${MIN_EMIT_INTERVAL_MS}ms) durign compamy driver add`
+                        );
+                    }
                 }
                 
             }
@@ -150,9 +166,14 @@ function registerUserHandlers(io, socket) {
             const driverData = await redis.hgetall(driverKey);
             let driverList = [];
 
-            if (driverData || Object.keys(driverData).length !== 0) {
+            if (driverData && Object.keys(driverData).length !== 0) {
                 
-                const details = driverData.details ? JSON.parse(driverData.details) : null;
+                let details = null;
+                try {
+                    details = driverData.details ? JSON.parse(driverData.details) : null;
+                } catch (err) {
+                    console.warn(`Invalid JSON for driver ${driverId}:`, err.message);
+                }
 
 
                 driverList  =   [

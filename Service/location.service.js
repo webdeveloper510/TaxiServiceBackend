@@ -294,6 +294,7 @@ async function broadcastForTripDriverLocation (io , driverId  , lng , lat  , det
     if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
     
     if (!details?.currentTripId) return; 
+    
     const tripId = details.currentTripId;
     io.to( `driver:trip:update:${tripId}`).emit("driver:trip:update",    {
                                                                               driverId: String(driverId),
