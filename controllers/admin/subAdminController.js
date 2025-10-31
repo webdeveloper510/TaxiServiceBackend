@@ -621,6 +621,7 @@ exports.get_sub_admin_detail = async (req, res) => {
                                                   first_name: 1,
                                                   last_name: 1,
                                                   email: 1,
+                                                  user_name: 1 ,
                                                   // company_id:1,
                                                   created_by: 1,
                                                   phone: 1,
@@ -657,12 +658,15 @@ exports.get_sub_admin_detail = async (req, res) => {
                                               },
                                             ]);
     let get_color = await USER.findOne({ _id: check_detail[0].created_by });
+
+    // no data found
     if (check_detail.length == 0) {
       return res.send({
                         code: constant.error_code,
                         message: res.__('addSubAdmin.error.noUserFound'),
                       });
     } else {
+
       let get_name = await AGENCY.findOne({ user_id: check_detail[0]._id });
       check_detail[0].hotel_name = get_name.company_name ? get_name.company_name : "N/A";
       check_detail[0].meta = get_color?.toObject();
@@ -671,6 +675,7 @@ exports.get_sub_admin_detail = async (req, res) => {
       return res.send({
                         code: constant.success_code,
                         message: res.__('addSubAdmin.success.infoRetrievedSuccess'),
+                        "get_sub_admin_detail":"get_sub_admin_detail",
                         result,
                       });
     }
