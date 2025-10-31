@@ -1731,7 +1731,7 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
 exports.driverDocumentSubmissionEmail = async (driverInfo) => {
 
 
-    let subject = `Your Documents Are Under Review – iDispatch Driver Onboarding`;
+    let subject = `Your Documents Are Under Review – iDispatch Mobility Driver Onboarding`;
     const driverData = {
       driverName: `${driverInfo.first_name} ${driverInfo.last_name}`,
       driverEmail: driverInfo.email,
@@ -1754,7 +1754,7 @@ exports.driverDocumentSubmissionEmail = async (driverInfo) => {
 exports.driverDocumentVerifiedEmail = async (driverInfo) => {
 
 
-    let subject = `Verified – Welcome to iDispatch`;
+    let subject = `Verified – Welcome to iDispatch Mobility `;
     const driverData = {
       driverName: `${driverInfo.first_name} ${driverInfo.last_name}`,
       // driverEmail: driverInfo.email,
@@ -1777,7 +1777,7 @@ exports.driverDocumentVerifiedEmail = async (driverInfo) => {
 exports.passwordResetOtpEmail = async (info , otp) => {
 
 
-    let subject = `Password Reset Code – iDispatch`;
+    let subject = `Password Reset Code – iDispatch  Mobility `;
     const data = {
       userName: `${info.first_name} ${info.last_name}`,
       email: info.email,
@@ -1822,7 +1822,7 @@ exports.driverDocumentRejectionEmail = async (driverInfo) => {
 exports.companyHotelAccountCreationEmail = async (userInfo , password) => {
 
 
-    let subject = `Welcome to iDispatch – Your Account Is Now Active`; 
+    let subject = `Welcome to iDispatch  Mobility – Your Account Is Now Active`; 
     const data = {
       userName: `${userInfo.first_name} ${userInfo.last_name}`,
       email: userInfo.email,
@@ -1846,7 +1846,7 @@ exports.companyHotelAccountCreationEmail = async (userInfo , password) => {
 exports.adminAccountCreationEmail = async (userInfo , password) => {
 
 
-    let subject = `Welcome to iDispatch – Your Account Is Now Active`; 
+    let subject = `Welcome to iDispatch  Mobility – Your Account Is Now Active`; 
     const data = {
       userName: `${userInfo.first_name} ${userInfo.last_name}`,
       email: userInfo.email,

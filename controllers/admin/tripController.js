@@ -3368,7 +3368,7 @@ exports.add_trip1 = async (req, res) => {
                                       </tr>
                                       <tr class="">
                                         <td class="headline">
-                                          Greeting from iDispatch!
+                                          Greeting from iDispatch Mobility!
                                         </td>
                                       </tr>
                                       <tr>
@@ -3389,7 +3389,7 @@ exports.add_trip1 = async (req, res) => {
                                                   >
                                                     <br />
                                                     <br /><br />
-                                                    Greeting from iDispatch! Your booking
+                                                    Greeting from iDispatch Mobility! Your booking
                                                     has been created<br />
                                                     <br />
                                                     by this email:

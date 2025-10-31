@@ -3395,13 +3395,13 @@ exports.send_request_trip = async (req, res) => {
                     
                     </td>
                     </tr>
-                    <tr class=""><td class="headline">Welcome to iDispatch!</td></tr>
+                    <tr class=""><td class="headline">Welcome to iDispatch Mobility!</td></tr>
                     <tr>
                     <td>
                     <center class=""><table cellpadding="0" cellspacing="0" class="" style="margin: 0 auto;" width="75%"><tbody class=""><tr class="">
                     <td class="" style="color:#444; font-weight: 400;"><br>
                      A property management application that helps you manage your real estate portfolio with ease and efficiency. <br><br>
-                      You have successfully been registered to use iDispatch App as a <em>Customer</em><br>
+                      You have successfully been registered to use iDispatch Mobility App as a <em>Customer</em><br>
                      <br>
                       Your login credentials are provided below:
                     <br>
