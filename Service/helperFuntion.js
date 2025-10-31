@@ -2907,8 +2907,11 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
       fare: totalPrice,
       paymentOption: tripDetail?.pay_option,
       paymentMethodPrice: tripDetail?.payment_method_price,
+      comment: tripDetail?.comment,
       childSeat: tripDetail?.child_seat_price,
+      isChildSeat: tripDetail?.customerDetails?.childSeat,
       flightNo: tripDetail?.customerDetails?.flightNumber,
+      luggage: tripDetail?.customerDetails?.luggage,
       driverRemark: tripDetail?.comment,
       companyName: companyAgencyDetails?.company_name,
       companyEmail: companyDetails?.email,
@@ -2917,7 +2920,6 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
       companyAddress: companyAgencyDetails?.house_number+" "+ companyAgencyDetails?.land,
       trackUrl: bookingTrackLink
     }
-
   
     // console.log('bookingData--------' , bookingData)
     const emailSent = await sendEmail(
@@ -3277,8 +3279,11 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
       fare: totalPrice,
       paymentOption: tripDetail?.pay_option,
       paymentMethodPrice: tripDetail?.payment_method_price,
+      comment: tripDetail?.comment,
       childSeat: tripDetail?.child_seat_price,
+      isChildSeat: tripDetail?.customerDetails?.childSeat,
       flightNo: tripDetail?.customerDetails?.flightNumber,
+      luggage: tripDetail?.customerDetails?.luggage,
       driverRemark: tripDetail?.comment,
       companyName: companyAgencyDetails?.company_name,
       companyEmail: companyDetails?.email,

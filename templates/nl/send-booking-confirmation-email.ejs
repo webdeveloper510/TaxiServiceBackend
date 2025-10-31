@@ -161,21 +161,45 @@
                                     <% } %>
                     </td>
                 </tr>
-                <% if (childSeat) { %>
+
+
+                <% if (isChildSeat) { %>
                     <tr>
                         <th>Kinderzitje</th>
-                        <td>Ja ( €<%= childSeat %> inbegrepen in de prijs )</td>
+                        <td> Ja
+                            <% if (childSeat) { %>
+                                ( €<%= €<%=childSeat %> inbegrepen in de prijs )
+                                    <% } %>
+                        </td>
                     </tr>
                     <% } %>
 
-                        <% if (flightNo) { %>
+                        <% if (comment) { %>
                             <tr>
-                                <th>Vluchtnummer</th>
+                                <th>Commentaar</th>
                                 <td>
-                                    <%= flightNo %>
+                                    <%= comment %>
                                 </td>
                             </tr>
                             <% } %>
+
+                                <% if (luggage) { %>
+                                    <tr>
+                                        <th>Bagage</th>
+                                        <td>
+                                            <%= luggage %>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+
+                                        <% if (flightNo) { %>
+                                            <tr>
+                                                <th>Vluchtnummer</th>
+                                                <td>
+                                                    <%= flightNo %>
+                                                </td>
+                                            </tr>
+                                            <% } %>
             </table>
 
             <a href="<%= trackUrl %>" class="button">Volg mijn rit</a>

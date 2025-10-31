@@ -657,7 +657,9 @@ exports.get_sub_admin_detail = async (req, res) => {
                                                 },
                                               },
                                             ]);
-    let get_color = await USER.findOne({ _id: check_detail[0].created_by });
+
+                                            
+    let get_color = await USER.findOne({ _id: check_detail[0]?.created_by });
 
     // no data found
     if (check_detail.length == 0) {

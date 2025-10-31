@@ -1096,6 +1096,13 @@ exports.update_driver = async (req, res) => {
       }
       const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
       const updates = req.body; // Assuming you send the updated driver data in the request body
+
+      if (!driverId || driverId === 'null' || driverId === 'undefined') {
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('updateDriver.error.driverNotFound')
+                        });
+      }
       if (updates.email) updates.email = updates.email.toLowerCase();
       // Check if the driver exists
       const existingDriver = await DRIVER.findById(driverId);

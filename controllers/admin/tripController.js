@@ -168,7 +168,7 @@ exports.add_trip = async (req, res) => {
       partnerAccountRefreshTrip(data.created_by_company_id , res.__('addTrip.socket.tripCreatedRefresh'),  req.io);
 
       if (data?.created_by_company_id) {
-
+        
         sendBookingConfirmationEmail(add_trip)
         const companyDetail = await user_model.findById(data?.created_by_company_id);
        

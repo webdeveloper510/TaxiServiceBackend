@@ -172,21 +172,44 @@
                     </tr>
                     <% } %>
 
-                        <% if (childSeat) { %>
+                        <% if (isChildSeat) { %>
                             <tr>
                                 <th>Child Seat</th>
-                                <td> yes ( €<%= childSeat %> included in the price ) </td>
+                                <td> yes
+                                    <% if (childSeat) { %>
+                                        ( €<%= childSeat %> included in the price )
+                                            <% } %>
+                                </td>
                             </tr>
                             <% } %>
 
-                                <% if (flightNo) { %>
+                                <% if (comment) { %>
                                     <tr>
-                                        <th>Flight No.</th>
+                                        <th>Comment</th>
                                         <td>
-                                            <%= flightNo %>
+                                            <%= comment %>
                                         </td>
                                     </tr>
                                     <% } %>
+
+                                        <% if (luggage) { %>
+                                            <tr>
+                                                <th>Luggage</th>
+                                                <td>
+                                                    <%= luggage %>
+                                                </td>
+                                            </tr>
+                                            <% } %>
+
+
+                                                <% if (flightNo) { %>
+                                                    <tr>
+                                                        <th>Flight No.</th>
+                                                        <td>
+                                                            <%= flightNo %>
+                                                        </td>
+                                                    </tr>
+                                                    <% } %>
             </table>
 
             <a href="<%= trackUrl %>" class="button">Track My Ride</a>
