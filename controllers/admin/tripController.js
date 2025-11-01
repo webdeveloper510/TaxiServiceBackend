@@ -1486,6 +1486,7 @@ exports.get_all_access_trip = async (req, res) => {
     let   criteria =  {
                         status: true,
                         trip_status: req.params.status,
+                        under_cancellation_review: false, // trip is not under review
                         is_deleted: false,
                         created_by_company_id: { $in: companyIds.map(id => new mongoose.Types.ObjectId(id)) }
                       };

@@ -754,14 +754,14 @@ exports.driverCancelTrip = async (req, res) => {
     let criteria = { _id: req.params.id };
     let tripInfo = await TRIP.findOne(criteria);
 
-    if (!criteria) {
+    if (!tripInfo) {
       return res.send({
                       code: constant.error_code,
                       message: res.__('driverCancelTripReason.error.invalidTrip'),
                     });
     }
 
-    if (criteria?.under_cancellation_review) {
+    if (tripInfo?.under_cancellation_review) {
       return res.send({
                       code: constant.error_code,
                       message: res.__('driverCancelTripReason.error.tripUnderCancellationReview'),
@@ -860,6 +860,7 @@ exports.driverCancelTripDecision = async (req, res) => {
       
     } else {
       tripDecisionData.reviewed_by_role = constant.ROLES.DRIVER;
+      updatedBy = 'Company'
     }
 
     // Update trip request
@@ -1439,7 +1440,6 @@ exports.driverCancelTripRequests = async (req, res) => {
 
     return res.send({
                       code: constant.success_code,
-                      filter,
                       currentPage: page,
                       totalPages: Math.ceil(total / limit),
                       totalTrips: total,
