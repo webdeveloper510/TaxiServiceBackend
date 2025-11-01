@@ -1409,10 +1409,10 @@ exports.customerCancelTrip = async (req , res) => {
 exports.driverCancelTripRequests = async (req, res) => {
   try {
 
-    const page = parseInt(req.query.page) || 1; // default to page 1
-    const limit = parseInt(req.query.limit) || 10; // default to 10 items per page
+    const page = parseInt(req.body.page) || 1; // default to page 1
+    const limit = parseInt(req.body.limit) || 10; // default to 10 items per page
     const skip = (page - 1) * limit;
-    const date = req.query.date ? new Date(req.query.date) : null;
+    const date = req.body.date ? new Date(req.body.date) : null;
 
     // Optional filter (e.g., by user or company)
     let filter = { 
@@ -1423,25 +1423,28 @@ exports.driverCancelTripRequests = async (req, res) => {
     if (date) {
       const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
       const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999));
-      dateFilter.updatedAt = { $gte: startOfDay, $lte: endOfDay };
+      filter.updatedAt = { $gte: startOfDay, $lte: endOfDay };
     }
 
     if (req.user.role == constant.ROLES.COMPANY) {
 
-      dateFilter.created_by_company_id = req.user._id;
+      filter.created_by_company_id = req.user._id;
     } else if (req.user.role == constant.ROLES.DRIVER) {
-
-      dateFilter.created_by_company_id = req.query?.company_id;
+      
+      filter.created_by_company_id = req.body?.company_id;
     }
+
     let tripInfo = await TRIP.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
     const total = await TRIP.countDocuments(filter);
 
     return res.send({
                       code: constant.success_code,
-                      data: tripInfo,
+                      filter,
                       currentPage: page,
                       totalPages: Math.ceil(total / limit),
-                      totalTrips: total
+                      totalTrips: total,
+                      data: tripInfo,
+                      
                     });
   } catch (err) {
     console.log('driverCancelTripRequests------', err)
