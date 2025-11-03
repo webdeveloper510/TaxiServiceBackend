@@ -380,6 +380,7 @@ function registerDriverHandlers(io, socket) {
                                                         { _id: driverId },
                                                         {
                                                             $set: {
+                                                                status: true,
                                                                 location: { type: "Point", coordinates: [longitude, latitude] },
                                                                 locationUpdatedAt: new Date(),
                                                                 lastUsedTokenMobile: new Date(), // we will logout the user if lastUsedToken time as been exceeded 3 hours
