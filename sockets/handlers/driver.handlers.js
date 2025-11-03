@@ -367,6 +367,56 @@ function registerDriverHandlers(io, socket) {
         }
     })
 
+    // when driver internet will be restored then driver will be visible on the map
+    socket.on("driverOnlineRestored", async ({longitude, latitude , driverId  , token} , ack) => {
+        try {
+            
+            let driver_info = await DRIVER_MODEL.findOne({"jwtTokenMobile": token});
+            if (!driver_info) {
+                
+                const driverId = driver_info?._id;
+
+                await DRIVER_MODEL.findOneAndUpdate(
+                                                        { _id: driverId },
+                                                        {
+                                                            $set: {
+                                                                location: { type: "Point", coordinates: [longitude, latitude] },
+                                                                locationUpdatedAt: new Date(),
+                                                                lastUsedTokenMobile: new Date(), // we will logout the user if lastUsedToken time as been exceeded 3 hours
+                                                            },
+                                                        }
+                                                    );
+
+                const getDriverDetails = await updateDriverMapCache(driverId);
+            
+                // 5) update driver live location update
+                updateDriverLocationInRedis(io , redis , driverId , longitude , latitude , getDriverDetails);
+
+                // send location pudate to the trip viewer
+                broadcastForTripDriverLocation(io , driverId , longitude , latitude , getDriverDetails)
+                
+
+                return ack({
+                                code: CONSTANT.success_code,
+                                message: i18n.__({ phrase: "getDrivers.error.noDriverFound", locale: lang }),
+                            });
+            }
+
+            return ack({
+                        code: CONSTANT.error_code,
+                        message: i18n.__({ phrase: "auth.error.tokenError", locale: lang }),
+                    });
+
+        } catch (err) {
+            ack({
+                code: CONSTANT.error_code,
+                message: err.message,
+            })
+        }
+    })
+
+
+
     socket.on("changeDriverAvailability", async ({ status  , lang , driverId ,  longitude, latitude} , ack) => {
 
         try {
