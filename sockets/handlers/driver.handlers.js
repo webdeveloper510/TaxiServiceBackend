@@ -367,57 +367,7 @@ function registerDriverHandlers(io, socket) {
         }
     })
 
-    // when driver internet will be restored then driver will be visible on the map
-    socket.on("driverOnlineRestored", async ({longitude, latitude , driverId  , token} , ack) => {
-        try {
-            
-            let driver_info = await DRIVER_MODEL.findOne({"jwtTokenMobile": token});
-            if (!driver_info) {
-                
-                const driverId = driver_info?._id;
-
-                await DRIVER_MODEL.findOneAndUpdate(
-                                                        { _id: driverId },
-                                                        {
-                                                            $set: {
-                                                                status: true,
-                                                                location: { type: "Point", coordinates: [longitude, latitude] },
-                                                                locationUpdatedAt: new Date(),
-                                                                lastUsedTokenMobile: new Date(), // we will logout the user if lastUsedToken time as been exceeded 3 hours
-                                                            },
-                                                        }
-                                                    );
-
-                const getDriverDetails = await updateDriverMapCache(driverId);
-            
-                // 5) update driver live location update
-                updateDriverLocationInRedis(io , redis , driverId , longitude , latitude , getDriverDetails);
-
-                // send location pudate to the trip viewer
-                broadcastForTripDriverLocation(io , driverId , longitude , latitude , getDriverDetails)
-                
-
-                return ack({
-                                code: CONSTANT.success_code,
-                                message: i18n.__({ phrase: "getDrivers.error.noDriverFound", locale: lang }),
-                            });
-            }
-
-            return ack({
-                        code: CONSTANT.error_code,
-                        message: i18n.__({ phrase: "auth.error.tokenError", locale: lang }),
-                    });
-
-        } catch (err) {
-            ack({
-                code: CONSTANT.error_code,
-                message: err.message,
-            })
-        }
-    })
-
-
-
+ 
     socket.on("changeDriverAvailability", async ({ status  , lang , driverId ,  longitude, latitude} , ack) => {
 
         try {
@@ -530,11 +480,63 @@ function registerDriverHandlers(io, socket) {
         }
     })
 
+     // when driver internet will be restored then driver will be visible on the map
+    socket.on("driverOnlineRestored", async ({longitude, latitude , driverId  , token} , ack) => {
+        try {
+            
+            let driver_info = await DRIVER_MODEL.findOne({"jwtTokenMobile": token});
+            if (!driver_info) {
+                
+                const driverId = driver_info?._id;
+
+                const updatedDriver = await DRIVER_MODEL.findOneAndUpdate(
+                                                        { _id: driverId },
+                                                        {
+                                                            $set: {
+                                                                status: true,
+                                                                location: { type: "Point", coordinates: [longitude, latitude] },
+                                                                locationUpdatedAt: new Date(),
+                                                                lastUsedTokenMobile: new Date(), // we will logout the user if lastUsedToken time as been exceeded 3 hours
+                                                            },
+                                                        },
+                                                        { new: true }
+                                                    );
+
+                console.log('driverOnlineRestored-----------' , updatedDriver.email , updatedDriver?.status)
+                const getDriverDetails = await updateDriverMapCache(driverId);
+            
+                // 5) update driver live location update
+                updateDriverLocationInRedis(io , redis , driverId , longitude , latitude , getDriverDetails);
+
+                // send location pudate to the trip viewer
+                broadcastForTripDriverLocation(io , driverId , longitude , latitude , getDriverDetails)
+                
+
+                return ack({
+                                code: CONSTANT.success_code,
+                                message: i18n.__({ phrase: "getDrivers.error.noDriverFound", locale: lang }),
+                            });
+            }
+
+            return ack({
+                        code: CONSTANT.error_code,
+                        message: i18n.__({ phrase: "auth.error.tokenError", locale: lang }),
+                    });
+
+        } catch (err) {
+            ack({
+                code: CONSTANT.error_code,
+                message: err.message,
+            })
+        }
+    })
+
     socket.on("disconnect", async () => {
 
-        console.log("socket disconnected now~-------")
+        console.log("socket disconnected now~-------checomg vijay")
         try {
         setTimeout(async () => {
+            console.log('🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓settime out caling')
             const driverBySocketId = await DRIVER_MODEL.findOne({ socketId: socket.id });
             
             if (driverBySocketId) {
@@ -554,7 +556,7 @@ function registerDriverHandlers(io, socket) {
             }
         }, 3000);
         } catch (error) {
-        console.log("socket.disconnect error:", error);
+            console.log("socket.disconnect error:", error);
         }
     });
 
