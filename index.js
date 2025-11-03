@@ -38,7 +38,12 @@ const subscriptionWebhook = require('./routes/webhooks/subscription.webhook'); /
 app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), subscriptionWebhook); // webhook for subscription and chekcout
 
 // IMPORTANT: initialize sockets
-const io = initSocket(httpServer);
+const io = initSocket(httpServer , 
+  {
+  pingInterval: 5000,   // send ping every 5 seconds
+  pingTimeout: 5000,    // disconnect if no pong in 5 seconds
+}
+);
 
 startAllCrons(io);
 app.use(logger("dev"));
