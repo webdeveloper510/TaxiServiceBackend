@@ -536,9 +536,9 @@ function registerDriverHandlers(io, socket) {
         console.log("socket disconnected now~-------checomg vijay")
         try {
         setTimeout(async () => {
-            console.log('🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓settime out caling')
-            const driverBySocketId = await DRIVER_MODEL.findOne({ socketId: socket.id });
             
+            const driverBySocketId = await DRIVER_MODEL.findOne({ socketId: socket.id });
+            console.log('🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓settime out caling' , driverBySocketId)
             if (driverBySocketId) {
                 console.log('driverBySocketId logout-⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️-------------------------------------------------------------------------------------' , driverBySocketId?.email)
                 await DRIVER_MODEL.findByIdAndUpdate(
