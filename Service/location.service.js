@@ -124,7 +124,7 @@ async function broadcastDriverLocation(io, driverId, details) {
           }
 
           console.log(
-            `📡 Broadcasted to ${matchedRooms.length} rooms for driver ${details.email}`
+            // `📡 Broadcasted to ${matchedRooms.length} rooms for driver ${details.email}`
           );
         }
 
@@ -256,7 +256,7 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
 
     driverId = String(driverId);
 
-    console.log("drivers:geo", lng, lat, driverId)
+    // console.log("drivers:geo", lng, lat, driverId)
     const key = `driver:${driverId}`;
     await redis.geoadd("drivers:geo", lng, lat, driverId); // Geo index
 
@@ -287,7 +287,7 @@ async function broadcastForTripDriverLocation (io , driverId  , lng , lat  , det
 
   try {
 
-    console.log('locatioin updating in trip////////////////////////////======')
+    // console.log('locatioin updating in trip////////////////////////////======')
 
     driverId = String(driverId);
     const driverKey = `driver:${driverId}`;
@@ -305,7 +305,7 @@ async function broadcastForTripDriverLocation (io , driverId  , lng , lat  , det
                                                                           }
                                                 );
 
-    console.log('driver send updates for trips--------' , details.email)
+    // console.log('driver send updates for trips--------' , details.email)
   } catch (err) {
       console.error("❌ Error in broadcastForTripDriverLocation:", err);
   }
@@ -370,7 +370,7 @@ async function getDriversInBounds(bounds, id, socket) {
                 
                 const details = driver?.details ? JSON.parse(driver.details) : {}
                 
-                console.log("show on map " , await canShowOnMap(details) , 'email-------' ,details?.email)
+                // console.log("show on map " , await canShowOnMap(details) , 'email-------' ,details?.email)
                 
                 if (!(await canShowOnMap(details))) continue;
 
@@ -388,14 +388,14 @@ async function getDriversInBounds(bounds, id, socket) {
                     // socket.emit("driver::app:inBounds", driverData);
                     // console.log(`📡 Sent existing driver ${driver.driverId} to company ${companyId}`);
                 } else {
-                  console.log('out of bounds----------' , details?.email)
+                  // console.log('out of bounds----------' , details?.email)
                 }
             }
 
             if (driversToSend.length > 0) {
 
                 // socket.emit("driver::app:inBounds", driversToSend); // only initiated user will get all the drivers on his side
-                console.log(`📡 Sent ${driversToSend.length} drivers to company ${id}`);
+                // console.log(`📡 Sent ${driversToSend.length} drivers to company ${id}`);
             } else {
               socket.emit("driver::app:inBounds", [])
             }
