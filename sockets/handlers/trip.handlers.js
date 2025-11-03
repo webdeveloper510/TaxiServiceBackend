@@ -131,7 +131,6 @@ function registerTripHandlers(io, socket) {
     socket.on("getSingleTripInfo", async ({lang , tripId} , ack) => {
             try {
                 
-                console.log('i am here------')
                 let tripDetail = await TRIP_MODEL.findById(tripId);
                 if (!tripDetail) {
                     
@@ -148,6 +147,7 @@ function registerTripHandlers(io, socket) {
                         });
     
             } catch (err) {
+                console.log('getSingleTripInfo error ~:-- ' , err.message)
                 ack({
                     code: CONSTANT.error_code,
                     message: err.message,

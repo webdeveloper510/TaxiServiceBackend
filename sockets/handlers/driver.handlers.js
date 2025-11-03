@@ -480,11 +480,14 @@ function registerDriverHandlers(io, socket) {
     })
 
     socket.on("disconnect", async () => {
+
+        console.log("socket disconnected now~-------")
         try {
         setTimeout(async () => {
             const driverBySocketId = await DRIVER_MODEL.findOne({ socketId: socket.id });
+            
             if (driverBySocketId) {
-                
+                console.log('driverBySocketId logout-⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️-------------------------------------------------------------------------------------' , driverBySocketId?.email)
                 await DRIVER_MODEL.findByIdAndUpdate(
                                                         driverBySocketId?._id , 
                                                         { 
@@ -495,7 +498,8 @@ function registerDriverHandlers(io, socket) {
                                                         }
                                                     )
                 // Mark offline after grace period
-                setTimeout(() => OfflineDriver(driverBySocketId), 30 * 1000);
+                console.log('CONSTANT.DRIVER_AUTO_LOGOUT-------' , CONSTANT.DRIVER_AUTO_LOGOUT)
+                setTimeout(() => OfflineDriver(driverBySocketId , io), CONSTANT.DRIVER_AUTO_LOGOUT); // 30 * 1000 = 30 seconds
             }
         }, 3000);
         } catch (error) {
