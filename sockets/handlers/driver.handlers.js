@@ -16,7 +16,7 @@ const { updateDriverLocationInRedis ,
         thresholdBySpeedKmh,
         broadcastForTripDriverLocation
     }  = require("../../Service/location.service.js");
-const { lastEmitByDriver, lastDbUpdate } = require('./../../utils/driverCache.js');
+const { lastEmitByDriver, lastDbUpdate ,disconnectTimers } = require('./../../utils/driverCache.js');
 const i18n = require("i18n");
 
 // ---- Tunables ----
@@ -78,6 +78,13 @@ function registerDriverHandlers(io, socket) {
 
             const driverByToken = await driverDetailsByToken(token);
             if (driverByToken) {
+
+                // Cancel any pending disconnect timers
+                if (disconnectTimers.has(driverByToken._id.toString())) {
+                    clearTimeout(disconnectTimers.get(driverByToken._id.toString()));
+                    disconnectTimers.delete(driverByToken._id.toString());
+                    console.log(`🟢 Driver ${driverByToken._id} reconnected — offline timer cleared`);
+                }
 
                 await DRIVER_MODEL.updateOne(
                                                 { _id: driverByToken._id}, // use the id from the fetched driver
@@ -552,9 +559,23 @@ function registerDriverHandlers(io, socket) {
                                                                     }
                                                         }
                                                     )
+
+                // Clear any previous pending timeout for this driver
+                if (disconnectTimers.has(driverBySocketId._id.toString())) {
+                    clearTimeout(disconnectTimers.get(driverBySocketId._id.toString()));
+                    disconnectTimers.delete(driverBySocketId._id.toString());
+                }
+
                 // Mark offline after grace period
                 console.log('CONSTANT.DRIVER_AUTO_LOGOUT-------' , CONSTANT.DRIVER_AUTO_LOGOUT)
-                setTimeout(() => OfflineDriver(driverBySocketId , io), CONSTANT.DRIVER_AUTO_LOGOUT); // 30 * 1000 = 30 seconds
+                setTimeout(() =>    { 
+                                        OfflineDriver(driverBySocketId , io); 
+                                        disconnectTimers.delete(driverBySocketId._id.toString()); 
+                                    }, 
+                            CONSTANT.DRIVER_AUTO_LOGOUT
+                        ); // 30 * 1000 = 30 seconds
+
+                disconnectTimers.set(driverBySocketId._id.toString(), timer);
             }
         }, 3000);
         } catch (error) {
