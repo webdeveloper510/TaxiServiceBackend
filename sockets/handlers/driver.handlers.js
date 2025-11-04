@@ -485,6 +485,7 @@ function registerDriverHandlers(io, socket) {
         try {
             
             let driver_info = await DRIVER_MODEL.findOne({"jwtTokenMobile": token});
+            console.log('checking -token=------------>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>' , {"jwtTokenMobile": token})
             if (!driver_info) {
                 
                 const driverId = driver_info?._id;
