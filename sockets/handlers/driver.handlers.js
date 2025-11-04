@@ -533,14 +533,14 @@ function registerDriverHandlers(io, socket) {
 
     socket.on("disconnect", async () => {
 
-        console.log("socket disconnected now~-------checomg vijay")
+        console.log("socket disconnected now~-------checomg vijay" , new Date())
         try {
         setTimeout(async () => {
             
             const driverBySocketId = await DRIVER_MODEL.findOne({ socketId: socket.id });
-            console.log('🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓settime out caling' , socket.id)
+            console.log('🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓🕓settime out caling' , socket.id , new Date())
             if (driverBySocketId) {
-                console.log('driverBySocketId logout-⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️-------------------------------------------------------------------------------------' , driverBySocketId?.email)
+                console.log('driverBySocketId logout-⚠️⚠️⚠️⚠️⚠️------------------------------------------------------------' , driverBySocketId?.email , new Date())
                 await DRIVER_MODEL.findByIdAndUpdate(
                                                         driverBySocketId?._id , 
                                                         { 

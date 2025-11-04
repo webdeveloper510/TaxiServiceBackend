@@ -5,7 +5,7 @@ const { updateDriverMapCache , removeDriverForSubscribedClients} = require("../S
 // driver will be offline and removed from the map 
 async function OfflineDriver(driverInfo , io) {
 
-  
+  console.log('⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️functon called----------------------------- , new Date()')
   if (!driverInfo?._id) {
     console.warn("⚠️ OfflineDriver: Missing driver _id, skipping update.");
     return;
