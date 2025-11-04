@@ -360,8 +360,6 @@ async function getDriversInBounds(bounds, id, socket) {
             const drivers = await pipeline.exec();
             
             const driversToSend = [];
-           
-            console.log('here-----------' , drivers.length)
 
             // await drivers.forEach(async ([err, driver]) => {
               for (const [err, driver] of drivers) {

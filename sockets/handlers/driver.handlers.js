@@ -481,7 +481,7 @@ function registerDriverHandlers(io, socket) {
     })
 
      // when driver internet will be restored then driver will be visible on the map
-    socket.on("driverOnlineRestored", async ({longitude, latitude , driverId  , token} , ack) => {
+    socket.on("driverOnlineRestored", async ({lang , longitude, latitude , driverId  , token} , ack) => {
         try {
             
             let driver_info = await DRIVER_MODEL.findOne({"jwtTokenMobile": token});

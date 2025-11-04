@@ -221,7 +221,6 @@ function registerUserHandlers(io, socket) {
             await redis.sadd("bounds:index:app:company", key);
             socket.join(key);
 
-            console.log('company::app:subscribe -----------key and room id ------------' , key)
             // console.log(`🏢 Company ${companyId} subscribed`, bounds);
 
             const driverList = await getDriversInBounds(bounds , companyId , socket)
