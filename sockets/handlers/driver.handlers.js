@@ -485,8 +485,8 @@ function registerDriverHandlers(io, socket) {
         try {
             
             let driver_info = await DRIVER_MODEL.findOne({"jwtTokenMobile": token});
-            console.log('checking -token=------------>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>' , {"jwtTokenMobile": token} , driver_info)
-            if (!driver_info) {
+            
+            if (driver_info) {
                 
                 const driverId = driver_info?._id;
 
@@ -515,7 +515,8 @@ function registerDriverHandlers(io, socket) {
 
                 return ack({
                                 code: CONSTANT.success_code,
-                                message: i18n.__({ phrase: "getDrivers.error.noDriverFound", locale: lang }),
+                                message: i18n.__({ phrase: "updateDriver.success.driverAvailabilityRestored", locale: lang }),
+                                driverInfo : updatedDriver
                             });
             }
 

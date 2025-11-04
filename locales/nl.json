@@ -153,6 +153,7 @@
     },
     "success": {
       "driverAccountUpdated": "Bestuurdersaccount succesvol bijgewerkt.",
+      "driverAvailabilityRestored": "Verbinding hersteld. Je beschikbaarheidsstatus is bijgewerkt op de kaart.",
       "emailDocumentUnderReviewConetnt": {
         "welcomeToIDispatch": "Welkom bij iDispatch Mobility!",
         "driverRegistrationUnderReview": "Bedankt voor uw registratie als bestuurder. Uw profiel wordt momenteel beoordeeld. Na goedkeuring ontvangt u een e-mail en kunt u inloggen. Dank voor uw geduld.",

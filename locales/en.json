@@ -153,6 +153,7 @@
         },
         "success": {
             "driverAccountUpdated": "Driver account has been updated successfully",
+            "driverAvailabilityRestored": "Connection restored. Your availability status has been updated on the map",
             "emailDocumentUnderReviewConetnt": {
                 "welcomeToIDispatch": "Welcome to iDispatch Mobility!",
                 "driverRegistrationUnderReview": "Thank you for registering as a driver with us. Your driver profile is currently under review. Once approved, you will receive an email notification and be able to log in. We appreciate your patience.",
