@@ -59,6 +59,8 @@ exports.add_fare = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ add fare error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -120,6 +122,7 @@ exports.get_fares = async (req, res) => {
       });
     }
   } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌ get fare error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -165,6 +168,8 @@ exports.companyGetFares = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ compnay get fare error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -226,6 +231,8 @@ exports.access_get_fares = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ access get fare error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -250,6 +257,8 @@ exports.get_fare_detail = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ get fare details error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -280,6 +289,8 @@ exports.delete_fare = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ delete fare error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -338,6 +349,8 @@ exports.edit_fare = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ edit fare error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -353,6 +366,8 @@ exports.adminSettings = async (req, res) => {
       message:settings,
     });
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ addmin setting error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -399,6 +414,7 @@ exports.updateAdminSettings = async (req, res) => {
                     });
   } catch (err) {
 
+    console.log('❌❌❌❌❌❌❌❌❌ update setting error --------------' , err.message)
     return res.send({
                       code: constant.error_code,
                       message: err.message,

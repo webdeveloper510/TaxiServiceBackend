@@ -130,7 +130,7 @@ verifyToken = async (req, res, next) => {
       });
     }
   } catch (err) {
-    console.log("🚀 ~ verifyToken= ~ err:", err);
+    console.log('❌❌❌❌❌❌❌❌❌Error verify token:', err.message);
     return res.send({
                     status: constant.tokenError,
                     Message: res.__('auth.error.tokenExpired'),

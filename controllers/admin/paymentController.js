@@ -49,6 +49,8 @@ exports.tripCommissionPayment = async (req, res) => {
                   message: res.__('tripCommissionPayment.success.paymentLinkGenerated'),
                 });
     } catch (error) {
+
+      console.log('❌❌❌❌❌❌❌❌❌ tripCommissionPayment.error.paymentFailed error --------------' , error.message)
       return res.send({
                         code: constant.error_code,
                         message: res.__('tripCommissionPayment.error.paymentFailed'),
@@ -56,7 +58,7 @@ exports.tripCommissionPayment = async (req, res) => {
     }
   } catch (err) {
     
-    console.log("🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",err);
+    console.log("❌❌❌❌❌❌❌❌❌🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",err.message);
 
     return res.send({
                       code: constant.error_code,
@@ -91,8 +93,8 @@ exports.failedTripPay = async (req, res) => {
     });
   } catch (err) {
     console.log(
-      "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",
-      err
+      "❌❌❌❌❌❌❌❌❌🚀 ~ failed trip pay= ~ err:",
+      err.message
     );
 
     res.send({
@@ -213,7 +215,8 @@ exports.successTripPay = async (req, res) => {
       throw error;
     }
   } catch (err) {
-    console.log( "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:", err );
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ success trip pay= ~ err:", err.message );
 
     return res.send({
                       code: constant.error_code,
@@ -270,10 +273,7 @@ exports.payCompany = async (req, res) => {
       transaction: newTransaction,
     });
   } catch (err) {
-    console.log(
-      "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",
-      err
-    );
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ pay company= ~ err:", err.message );
 
     res.send({
       code: constant.error_code,
@@ -389,10 +389,7 @@ exports.getCommissionTrans = async (req, res) => {
       ),
     });
   } catch (err) {
-    console.log(
-      "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:",
-      err
-    );
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ get commisiontransy= ~ err:", err.message );
 
     res.send({
       code: constant.error_code,
@@ -483,7 +480,7 @@ exports.adminTransaction = async (req, res) => {
             });
 
   } catch (err) {
-    console.log( "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:", err );
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ admin transaction~ err:", err.message );
     res.send({
               code: constant.error_code,
               message: err.message,
@@ -526,7 +523,7 @@ exports.companyTransaction = async (req, res) => {
                     });
 
   } catch (err) {
-    console.log( "🚀 ~ file: paymentController.js:37 ~ exports.tripCommissionPayment= ~ err:", err );
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ compnay transcation= ~ err:", err.message );
     res.send({
               code: constant.error_code,
               message: err.message,
@@ -557,10 +554,7 @@ const getTotalPurchasedSubscriptionAmount = async (dateQuery = undefined) => {
     const total = totalAmount.length > 0 ? totalAmount[0].totalAmount.toFixed(2) : 0;
     return total
   } catch (err) {
-    console.log(
-      "🚀 ~ function: fetchTotalAmountPurchasedPlans ~ err:",
-      err
-    );
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ getTotalPurchasedSubscriptionAmount ~ err:", err.message );
 
     res.send({
       code: constant.error_code,
@@ -709,7 +703,8 @@ exports.adminUpdatePayment = async (req, res) => {
       }
     }
   } catch (err) {
-    console.log( "🚀 ~ file: adminUpdatePayment.", err.message );
+    
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ admin update ~ err:", err.message );
 
     return res.send({
                       code: constant.error_code,

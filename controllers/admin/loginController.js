@@ -35,7 +35,7 @@ const removeOTPAfter5Minutes = async (login_sms_otp_uid) => {
 
     return updatedUser;
   } catch (error) {
-    console.error("Error updating user:", error);
+    console.log('❌❌❌❌❌❌❌❌❌ remove otp after 5c minutes error --------------' , error.message)
   }
 };
 
@@ -85,6 +85,7 @@ exports.create_super_admin = async (req, res) => {
       });
     }
   } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌ create super admin error --------------' , err.message)
     res.send({
       code: constants.error_code,
       message: err.message,
@@ -479,7 +480,7 @@ exports.login = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log('error----' , err)
+    console.log('❌❌❌❌❌❌❌❌❌ login error --------------' , err.message)
     res.send({
       code: constants.error_code,
       message: err.message,
@@ -735,6 +736,8 @@ console.log('get it inoto-----------')
     }
 
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ app login error --------------' , err.message)
     return res.send({
                       code: constants.error_code,
                       message: err.message,
@@ -754,6 +757,8 @@ exports.getIosAppVersion = async (req, res) => {
       message: data.results[0].version
     });
   } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ get ISO app version error --------------' , error.message)
     res.send({
       code: constants.error_code,
       message: res.__('userLogin.error.appVersionNotFound')
@@ -834,7 +839,7 @@ exports.login_otp_verify = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("🚀 ~ exports.login= ~ err:", error);
+    console.log('❌❌❌❌❌❌❌❌❌ login otp verify error --------------' , error.message)
     return res.send({
         code: constants.error_code,
         message: error.message,
@@ -896,7 +901,7 @@ exports.resend_login_otp = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("🚀 ~ exports.login= ~ err:", error);
+    console.log('❌❌❌❌❌❌❌❌❌ resend login otp error --------------' , error.message)
     res.send({
       code: constants.error_code,
       message: error.message,
@@ -1031,6 +1036,8 @@ exports.get_token_detail = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ get token details error --------------' , err.message)
     return  res.send({
                       code: constants.error_code,
                       message: err.message,
@@ -1058,7 +1065,7 @@ exports.getCompanyDetail = async (req , res) => {
                       });
     
   } catch (error) {
-    console.log("🚀 ~ exports.getCompanyDetail= ~ err:", error);
+    console.log("❌❌❌❌❌❌❌❌❌🚀 ~ exports.getCompanyDetail= ~ err:", error.message);
     res.send({
       code: constants.error_code,
       message: error.message,
@@ -1158,6 +1165,8 @@ exports.send_otp = async (req, res) => {
       }
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ send OTP error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1210,7 +1219,7 @@ exports.verify_otp = async (req, res) => {
      
     }
   } catch (err) {
-    console.log(err);
+    console.log('❌❌❌❌❌❌❌❌❌ verify otp error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1288,6 +1297,8 @@ exports.forgot_password = async (req, res) => {
       }
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ forgot password error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1378,6 +1389,7 @@ exports.reset_password = async (req, res) => {
       }
     }
   } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌ reset password error --------------' , err.message)
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -1402,6 +1414,8 @@ exports.save_feedback = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ save feedback error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1454,6 +1468,8 @@ exports.get_feedback = async (req, res) => {
       result: get_feedbacks,
     });
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ get feedback error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1488,6 +1504,8 @@ exports.createPaymentSession = async (req, res) => {
       result: session,
     });
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ create paymemr session error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,

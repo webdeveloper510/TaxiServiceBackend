@@ -102,7 +102,8 @@ app.get( "/weekly-company-payment", async (req, res) => {
                       message: "weekly-company-payment"
                     });
   } catch (error) {
-    console.error("Error weekly-company-payment:", error);
+    
+    console.log("❌❌❌❌❌❌❌❌❌Error weekly-company-payment:", error);
     return  res.send({
                         code: constant.error_code,
                         message: error.message,

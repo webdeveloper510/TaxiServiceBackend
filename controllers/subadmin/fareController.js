@@ -29,6 +29,8 @@ exports.add_fare = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error add fare:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -53,6 +55,8 @@ exports.get_fares = async(req,res)=>{
             })
         }
     }catch(err){
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get fare:', err.message);
         res.send({
             code:constant.error_code,
             message:err.message
@@ -77,6 +81,8 @@ exports.get_fare_detail = async(req,res)=>{
             })
         }
     }catch(err){
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get fare details:', err.message);
         res.send({
             code:constant.error_code,
             message:err.message
@@ -107,6 +113,8 @@ exports.delete_fare = async(req,res)=>{
             })
         }
     }catch(err){
+
+        console.log('❌❌❌❌❌❌❌❌❌Error delete fare:', err.message);
         res.send({
             code:constant.error_code,
             message:err.message
@@ -133,6 +141,8 @@ exports.edit_fare = async(req,res)=>{
             })
         }
     }catch(err){
+
+        console.log('❌❌❌❌❌❌❌❌❌Error edit fare:', err.message);
         res.send({
             code:constant.error_code,
             message:err.message

@@ -17,7 +17,8 @@ const {
   sendBookingUpdateDateTimeEmail , 
   sendTripUpdateToCustomerViaSMS ,
   sendBookingCancelledEmail ,
-  getDistanceAndDuration 
+  getDistanceAndDuration , 
+  emitTripCancellationRequestByDriver
 } = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
@@ -66,6 +67,8 @@ exports.add_trip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error add trip l', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -195,6 +198,8 @@ exports.get_trip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get trip :', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -281,6 +286,8 @@ exports.get_recent_trip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get recent trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -371,6 +378,8 @@ exports.get_counts_dashboard = async (req, res) => {
                       },
                     });
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get counts dashboard:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -486,6 +495,8 @@ exports.update_trip = async (req , res) => {
                       });
 
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error update trip:', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -703,6 +714,8 @@ exports.edit_trip = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error edit trip :', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -740,6 +753,8 @@ exports.noShowUser = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error no show user:', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -798,13 +813,14 @@ exports.driverCancelTrip = async (req, res) => {
     
     partnerAccountRefreshTrip(tripInfo.created_by_company_id , res.__('driverCancelTripReason.socket.tripChangedRefresh'), req.io);
     
-  
+    // const driverDetail = await DRIVER.findById(req.userId);
+    // emitTripCancellationRequestByDriver(tripInfo , driverDetail , driverDetail.socketId , req.io);
     return res.send({
       code: constant.success_code,
       message: res.__('driverCancelTripReason.success.tripCancellationRequestSubmitted')
     });
   } catch (err) {
-    console.log('driverCancelTrip------', err)
+    console.log('❌❌❌❌❌❌❌❌❌Error driver cancel trip:', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -1146,7 +1162,7 @@ exports.driverCancelTripDecision = async (req, res) => {
                     });
     
   } catch (err) {
-    console.log('❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌')
+    console.log('❌❌❌❌❌❌❌❌❌ driver cancel tripn cdecisons:', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -1402,7 +1418,7 @@ exports.customerCancelTrip = async (req , res) => {
       message: res.__('customerCancelTrip.notification.customercancellTrip')
     });
   } catch (err) {
-    console.log('customerCancelTrip------', err)
+    console.log('❌❌❌❌❌❌❌❌❌Error customer cancel trip:', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -1450,7 +1466,7 @@ exports.driverCancelTripRequests = async (req, res) => {
                       
                     });
   } catch (err) {
-    console.log('driverCancelTripRequests------', err)
+    console.log('❌❌❌❌❌❌❌❌❌Error driver cancel trip rrequest:', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -1550,6 +1566,8 @@ exports.access_update_trip = async (req , res) => {
 
   
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error access update trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1682,6 +1700,8 @@ exports.access_edit_trip = async (req, res) => {
           }
           
         } catch (e) {
+
+          console.log('❌❌❌❌❌❌❌❌❌Error access edit trip:', e.message);
           // res.send({
           //     code: constant.success_code,
           //     message: "not found",
@@ -1698,6 +1718,8 @@ exports.access_edit_trip = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error access edit trip', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1728,6 +1750,8 @@ exports.delete_trip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error delete trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,

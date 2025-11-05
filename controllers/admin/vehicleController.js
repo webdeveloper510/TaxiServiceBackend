@@ -46,6 +46,8 @@ exports.get_vehicle_types = async (req, res) => {
         })
 
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get vehicle types:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -75,6 +77,8 @@ exports.addCarType  = async (req, res) => {
             result: save_data
         })
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error add car type:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -91,6 +95,8 @@ exports.getCarTypeList = async (req, res) => {
             result: carTypeList
         })
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get car type list:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -143,6 +149,8 @@ exports.add_vehicle = async (req, res) => {
                 })
             }
         } catch (err) {
+
+            console.log('❌❌❌❌❌❌❌❌❌Error add vehicle:', err.message);
             res.send({
                 code: constant.error_code,
                 message: err.message
@@ -210,6 +218,8 @@ exports.adminAddVehicle = async (req, res) => {
             }
             
         } catch (err) {
+
+            console.log('❌❌❌❌❌❌❌❌❌Error admin add vehicle:', err.message);
             res.send({
                 code: constant.error_code,
                 message: err.message
@@ -247,6 +257,8 @@ exports.get_vehicles = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get vehicle:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -290,6 +302,8 @@ exports.get_vehicles_by_driverid = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get vehicles by driver id:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -327,6 +341,8 @@ exports.get_vehicles_with_type = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get vehicles with type:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -352,6 +368,8 @@ exports.get_vehicle_type = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get vehocle type:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -375,6 +393,8 @@ exports.get_vehicle_detail = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get vehicle details:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -428,6 +448,8 @@ exports.edit_vehicle = async (req, res) => {
                 })
             }
         } catch (err) {
+
+            console.log('❌❌❌❌❌❌❌❌❌Error edit vehicle:', err.message);
             res.send({
                 code: constant.error_code,
                 message: err.message
@@ -467,6 +489,8 @@ exports.delete_vehicle = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error delete vehicle:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -513,6 +537,8 @@ exports.adminDeleteVehicle = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error admin delete vehicle:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -622,6 +648,8 @@ exports.blockUser = async (req, res) => {
                             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error block user:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -676,6 +704,8 @@ exports.adminGetAllVehicle = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error admin get all al vehicle:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message

@@ -281,6 +281,8 @@ exports.add_sub_admin = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ add subadmin ~ err:", err.message );
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -367,6 +369,8 @@ exports.add_admin = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ admin add ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -395,6 +399,8 @@ exports.admin_list = async (req, res) => {
       data: admin_list,
     });
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ admin list ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -425,6 +431,8 @@ exports.get_admin_details = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ admin get details ~ err:", err.message );
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -482,6 +490,8 @@ exports.update_admin_details = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ admin update details~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -513,6 +523,7 @@ exports.delete_admin = async (req, res) => {
       });
     }
   } catch (err) {
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ admin delete ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -591,6 +602,8 @@ exports.get_sub_admins = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ get subadmins ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -682,6 +695,8 @@ exports.get_sub_admin_detail = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ get subadmin details ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -814,6 +829,8 @@ exports.edit_sub_admin = async (req, res) => {
       }
     });
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ edit sub admin ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -885,6 +902,8 @@ exports.assignSpecialPlan = async (req, res) => {
     
     
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ assign special plan ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -950,6 +969,8 @@ exports.editHotel = async (req, res) => {
     
 
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ edit hotel ~ err:", err.message );
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -1089,6 +1110,8 @@ exports.hotelListAdmin = async (req, res) => {
         });
       }
     } catch (err) {
+
+      console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ hotel list admin ~ err:", err.message );
       res.send({
         code: constant.error_code,
         message: err.message,
@@ -1139,6 +1162,8 @@ exports.delete_sub_admin = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ delete sub admin ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1186,6 +1211,8 @@ exports.restoreSubAdmin = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ restoore sub admin ~ err:", err.message );
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -1302,6 +1329,8 @@ exports.search_company = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ search compnay ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2100,6 +2129,8 @@ exports.companyList = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ compnay list ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2294,6 +2325,8 @@ exports.companyListByRevenue = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ company list by reveue ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2482,6 +2515,8 @@ exports.driverListByRevenue = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ driver list by reveue ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2865,6 +2900,8 @@ exports.tipListByRevenue = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ trip list by reveue ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -3033,6 +3070,8 @@ exports.companyTripListRevenue = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ company trip list by reveue ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -3169,6 +3208,8 @@ exports.companyHotelList = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ company hotle list ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -3263,6 +3304,8 @@ exports.access_search_company = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ access search compnay ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -3463,6 +3506,8 @@ exports.send_request_trip = async (req, res) => {
       }
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ send request trip ~ err:", err.message );
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -3494,6 +3539,8 @@ exports.favoriteDriver = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ faverate driver ~ err:", err.message );
     return res.send({
       code: constant.error_code,
       message: err.message,
@@ -3614,6 +3661,8 @@ exports.update_account_access = async (req, res) => {
                       });
     }
   } catch (error) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ update account access ~ err:", error.message );
     return res.send({
                       code: constant.error_code,
                       message: error.message,
@@ -3750,6 +3799,8 @@ exports.updatePartnerAccountAccess = async (req, res) => {
                       });
     }
   } catch (error) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ update partner account access ~ err:", error.message );
     return res.send({
                       code: constant.error_code,
                       message: error.message,
@@ -3799,6 +3850,8 @@ exports.get_driver_list = async (req, res) => {
       // data: req.user,
     });
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ driver  list  ~ err:", err.message );
     return res.send({
       code: constant.error_code,
       message: err.message,
@@ -3856,6 +3909,8 @@ exports.changeLocale = async (req , res) => {
     });
 
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ change local ~ err:", err.message );
     return res.send({
       code: constant.error_code,
       message: err.message,
@@ -3916,6 +3971,8 @@ exports.getPartnerDriverList = async (req, res) => {
     }
     
   } catch (err) {
+
+    console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ partner driver list ~ err:", err.message );
     return res.send({
       code: constant.error_code,
       message: err.message,

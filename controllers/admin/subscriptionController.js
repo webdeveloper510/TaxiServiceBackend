@@ -38,7 +38,7 @@ exports.createTax = async (req, res) => {
     
     } catch (error) {
 
-        console.error('Error fetching subscription products:', error.message);
+        console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ create tax ~ err:", error.message );
         
 
         return  res.send({
@@ -108,7 +108,7 @@ exports.getSubscriptionProductsFromStripe = async (req, res) => {
 
     } catch (error) {
 
-        console.error('Error fetching subscription products:', error.message);
+        console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ get subscriptionproducts from stripe ~ err:", error.message );
         
 
         return  res.send({
@@ -161,7 +161,7 @@ exports.getProducts = async (req, res) => {
                         });
     } catch (error) {
 
-        console.error('Error fetching subscription products:', error.message);
+        console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ getProducts ~ err:", error.message );
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -187,7 +187,7 @@ exports.updateProducts = async (req, res) => {
         });
     } catch (error) {
 
-        console.error('Error fetching subscription products:', error.message);
+        console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ update products ~ err:", error.message );
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -231,7 +231,7 @@ exports.createPaymentIntent = async (req, res) => {
         
     } catch (error) {
 
-        console.error('Error createPaymentIntent error:', error.message);
+        console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ create payment intent ~ err:", error.message );
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -255,7 +255,7 @@ exports.createSetupIntent = async (req, res) => {
                             clientSecret: setupIntent.client_secret,
                         });
       } catch (error) {
-        console.error('Error creating setup intent:', error.message);
+        console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ create setup intent ~ err:", error.message );
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -331,7 +331,7 @@ exports.createIdealCheckoutSession = async (req, res) => {
 
     } catch (error) {
 
-        console.error('Error createPaymentIntent error:', error.message);
+        console.log( "❌❌❌❌❌❌❌❌❌🚀 ~ create Ideal checkout session ~ err:", error.message );
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -396,7 +396,7 @@ exports.smsBuyCreateIdealCheckoutSession = async (req, res) => {
         });
     } catch (error) {
 
-        console.error('Error smsBuyCreateIdealCheckoutSession error:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error smsBuyCreateIdealCheckoutSession error:', error.message);
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -486,7 +486,7 @@ exports.smsPaymentValidateSession = async (req, res) => {
         }
     } catch (error) {
 
-        console.error('Error smsPaymentValidateSession error:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error smsPaymentValidateSession error:', error.message);
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -534,7 +534,7 @@ const getSmsPaymentInvoice = async (checkoutSessionId) => {
             await SMS_RECHARGE_MODEL.findOneAndUpdate({checkoutSessionId :checkoutSessionId } , updatedData , option);
         }
     } catch (error) {
-        console.error('Error getSmsPaymentInvoice error:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error getSmsPaymentInvoice error:', error.message);
     }
     
 }
@@ -585,7 +585,7 @@ exports.smsRecharges = async (req, res) => {
 
     } catch (error) {
 
-        console.error('Error smsBuyCreateIdealCheckoutSession error:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error sms recharges error:', error.message);
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -637,7 +637,7 @@ exports.smsTransactionList = async (req, res) => {
         }
     } catch (error) {
 
-        console.error('Error smsTransactionList error:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error smsTransactionList error:', error.message);
         return  res.send({
                     code: constant.error_code,
                     message: error.message,
@@ -771,7 +771,7 @@ exports.createSubscription = async (req, res) => {
         }
       
       } catch (error) {
-        console.error('Error creating subscription:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error creating subscription:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -786,7 +786,7 @@ const refreshDriverCacheAndNotify = async (io , driverId) => {
         const driverDetails = await updateDriverMapCache(driverId);
         await broadcastDriverLocation(io , driverId , driverDetails)
     } catch (error) {
-        console.error('Error updateDriverSusbcriptionRedis in subscription controller:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error create subscription in subscription controller:', error.message);
         
       }
 }
@@ -832,7 +832,7 @@ exports.cancelSubscription = async (req, res) => {
         }
       
       } catch (error) {
-        console.error('Error creating subscription:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error cancel subscription:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -860,7 +860,7 @@ exports.getMyPaidPlans = async (req, res) => {
                             });
         }
     } catch (error) {
-        console.error('Error creating subscription:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error get my paid plans:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -903,7 +903,7 @@ exports.userOnboardOnStripe = async (req, res) => {
             
         
     } catch (error) {
-        console.error('Error creating subscription:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error cuser onboardOn stripe:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -968,7 +968,7 @@ exports.getConnectedAccountDetails = async (req, res) => {
         
 
     } catch (error) {
-        console.error('Error creating subscription:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error getConnectedAccountDetails:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,

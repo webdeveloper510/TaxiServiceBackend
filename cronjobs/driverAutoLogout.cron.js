@@ -47,6 +47,7 @@ const autoLogout = async (io) => {
         
 
     } catch (error) {
+        console.log('❌❌❌❌❌❌❌❌❌Error auto logout:', error.message);
         console.log("🚀 ~ logout driver 3 hour ~ error:", error);
     }
 }

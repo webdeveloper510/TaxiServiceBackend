@@ -179,7 +179,7 @@ exports.add_driver = async (req, res) => {
                       });
     }
   } catch (err) {
-    console.log("🚀 ~ driverUpload ~ err:", err);
+    console.log("❌❌❌❌❌❌❌❌❌🚀 ~ driverUpload ~ err:", err.message);
     return res.send({
                     code: constant.error_code,
                     message: err.message,
@@ -433,7 +433,7 @@ exports.adminAddDriver = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("🚀 ~ driverUpload ~ err:", err);
+    console.log("❌❌❌❌❌❌❌❌❌🚀 ~ admin add driver ~ err:", err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -481,6 +481,7 @@ exports.remove_driver = async (req, res) => {
       
     }
   } catch (err) {
+    console.log("❌❌❌❌❌❌❌❌❌-----------remove driver" , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -539,6 +540,7 @@ exports.adminDeleteDriver = async (req, res) => {
       
     }
   } catch (err) {
+    console.log("❌❌❌❌❌❌❌❌❌-----------admin delete driver" , err.message)
     res.send({
               code: constant.error_code,
               message: err.message,
@@ -619,6 +621,7 @@ exports.get_driver_detail = async (req, res) => {
     //     });
     // }
   } catch (err) {
+    console.log("❌❌❌❌❌❌❌❌❌-----------get driver details" , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -713,7 +716,8 @@ exports.get_drivers = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("🚀 ~ exports.get_drivers= ~ err:", err);
+
+    console.log("❌❌❌❌❌❌❌❌❌🚀 ~ exports.get_drivers= ~ err:", err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -788,7 +792,7 @@ exports.get_drivers_list = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("🚀 ~ exports.get_drivers= ~ err:", err);
+    console.log("❌❌❌❌❌❌❌❌❌🚀 ~ exports.get driver list= ~ err:", err.message);
 
     let api_end_time = new Date();
 
@@ -1025,6 +1029,7 @@ exports.get_drivers_super = async (req, res) => {
       });
     }
   } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌  get driver super', err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1064,6 +1069,7 @@ exports.get_deleted_drivers_super = async (req, res) => {
       });
     }
   } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌  get deleted driver super', err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1243,7 +1249,7 @@ exports.update_driver = async (req, res) => {
         });
       }
     } catch (err) {
-      console.log('update driver error --------------' , err)
+      console.log('❌❌❌❌❌❌❌❌❌ update driver error --------------' , err.message)
       res.send({
         code: constant.error_code,
         message: err.message,
@@ -1291,6 +1297,7 @@ exports.restoreDriver = async (req, res) => {
                       });
     }
   } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌ restore driver error --------------' , err.message)
     return res.send({
                     code: constant.error_code,
                     message: err.message,
@@ -1323,6 +1330,9 @@ exports.updateLocation = async (req, res) => {
       });
     }
   } catch (err) {
+    
+    console.log('❌❌❌❌❌❌❌❌❌ update location error --------------' , err.message)
+
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1353,6 +1363,7 @@ exports.updateVerification = async (req, res) => {
                       message: res.__('updateVerification.success.verificationUpdated'),
                     });
   } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌ update verification error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1382,6 +1393,8 @@ exports.rejectVerification = async (req, res) => {
       message: res.__('updateVerification.success.verificationRejected'),
     });
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ reject verification error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1570,7 +1583,7 @@ exports.get_active_drivers = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("🚀 ~ exports.get_active_drivers= ~ err:", err);
+    console.log('❌❌❌❌❌❌❌❌❌ get active drivers error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1675,6 +1688,8 @@ exports.logout = async (req, res) => {
       message: res.__('logout.success.logout'),
     });
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ logout error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1818,6 +1833,7 @@ exports.convertIntoDriver = async (req, res) => {
       }
     } catch (err) {
       console.log("🚀 ~ driverUpload ~ err:", err);
+      console.log('❌❌❌❌❌❌❌❌❌ convert into driver error --------------' , err.message)
       res.send({
         code: constant.error_code,
         message: err.message,
@@ -1909,7 +1925,7 @@ exports.switchToDriver = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("🚀 ~ driverUpload ~ err:", err);
+    console.log('❌❌❌❌❌❌❌❌❌ switch to driver error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1982,7 +1998,7 @@ exports.switchToCompany = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("🚀 ~ driverUpload ~ err:", err);
+    console.log('❌❌❌❌❌❌❌❌❌ switch to compnay error --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2085,7 +2101,7 @@ exports.switchDriverToPartnerCompany = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("🚀 ~ driverUpload ~ err:", err);
+    console.log('❌❌❌❌❌❌❌❌❌ switch to partner --------------' , err.message)
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2116,7 +2132,7 @@ exports.deleteDriver = async (req, res) => {
                     });
    
   } catch (err) {
-    console.log("🚀 ~ driverUpload ~ err:", err);
+    console.log('❌❌❌❌❌❌❌❌❌ dlete driver error --------------' , err.message)
     return res.send({
                       code: constant.error_code,
                       message: err.message,

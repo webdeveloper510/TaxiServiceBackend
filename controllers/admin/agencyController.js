@@ -20,6 +20,7 @@ exports.add_agency = async (req, res) => {
             })
         }
     } catch (err) {
+         console.log('❌❌❌❌❌❌❌❌❌  add agency', err.message)
         res.send({
             code: constant.error_code,
             message: err.message

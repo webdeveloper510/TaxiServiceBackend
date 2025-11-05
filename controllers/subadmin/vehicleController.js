@@ -45,6 +45,8 @@ exports.get_vehicle_types = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get vehicle types:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -80,6 +82,8 @@ exports.add_vehicle = async (req, res) => {
                 })
             }
         } catch (err) {
+
+            console.log('❌❌❌❌❌❌❌❌❌Error add vehicle:', err.message);
             res.send({
                 code: constant.error_code,
                 message: err.message
@@ -105,6 +109,8 @@ exports.get_vehicles = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get vehicles:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -128,6 +134,8 @@ exports.get_vehicle_detail = async (req, res) => {
             }) 
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get vehicle details:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -162,6 +170,8 @@ exports.edit_vehicle = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error edit vehicle:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -191,6 +201,8 @@ exports.delete_vehicle = async(req,res)=>{
             })
         }
     }catch(err){
+
+        console.log('❌❌❌❌❌❌❌❌❌Error delete vehicle:', err.message);
         res.send({
             code:constant.error_code,
             message:err.message

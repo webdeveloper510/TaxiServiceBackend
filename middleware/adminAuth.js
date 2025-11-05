@@ -24,6 +24,7 @@ const adminAuthMiddleware = async (req, res, next) => {
     }
     
   } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌Error admin auth middleware:', err.message);
     return res.send({
       status: constant.error_code,
       Message: "You do not have the necessary permissions to perform this action.",

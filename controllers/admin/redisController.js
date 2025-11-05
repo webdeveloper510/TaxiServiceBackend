@@ -27,6 +27,7 @@ exports.checkRedisMemory = async (req, res) => {
         });
 
     } catch (err) {
+      console.log( "❌❌❌❌❌❌❌❌❌🚀 ~redis check memory ~ err:", err.message );
         res.send({
           code: CONSTANT.error_code,
           message: err.message,

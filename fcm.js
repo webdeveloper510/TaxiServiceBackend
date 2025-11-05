@@ -43,8 +43,11 @@ async function run() {
       )
       .then((response) => {})
       .catch((err) => {
+        console.log('❌❌❌❌❌❌❌❌❌-----fcm.js')
         throw err;
       });
-  } catch (error) {}
+  } catch (error) {
+    console.log('❌❌❌❌❌❌❌❌❌-----fcm.js')
+  }
 }
 run();

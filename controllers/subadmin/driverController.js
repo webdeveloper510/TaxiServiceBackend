@@ -79,6 +79,8 @@ exports.add_driver = async (req, res) => {
         });
       }
     } catch (err) {
+
+      console.log('❌❌❌❌❌❌❌❌❌Error add driver:', err.message);
       res.send({
         code: constant.error_code,
         message: err.message,
@@ -109,6 +111,8 @@ exports.remove_driver = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error remove driver:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -230,6 +234,8 @@ exports.get_driver_detail = async (req, res) => {
     //     });
     // }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get driver details:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -258,6 +264,8 @@ exports.get_drivers = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get drivers:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -304,6 +312,8 @@ exports.update_driver = async (req, res) => {
                         });
       }
     } catch (err) {
+
+      console.log('❌❌❌❌❌❌❌❌❌Error update drivers:', err.message);
       return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -343,6 +353,8 @@ exports.changeDriverAvailability = async (req, res) => {
                           result: data,
                         });
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error change driver availability:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -389,6 +401,8 @@ exports.changeDriverState = async (req, res) => {
                     });
 
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error change driverState:', err.message);
     return res.send({ code: constant.error_code, message: err.message });
   }
 };
@@ -440,6 +454,8 @@ exports.reset_password = async (req, res) => {
       }
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error reset password:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -631,6 +647,8 @@ exports.get_trips_for_driver = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get trips for drivers:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -799,6 +817,8 @@ exports.get_trips_for_drivers = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get trip for drive:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1002,6 +1022,8 @@ exports.getAllTripsForDrivers = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get all trips for Driversss:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1044,7 +1066,7 @@ exports.getTripsCountForDrivers = async (req, res) => {
                     });
 
   } catch (err) {
-    console.log('getTripsCountForDrivers--~~')
+    console.log('❌❌❌❌❌❌❌❌❌Error get trips count for drivers:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1075,7 +1097,7 @@ exports.getUnderTripCancelledTripsCountForDrivers = async (req, res) => {
                     });
 
   } catch (err) {
-    console.log('getTripsCountForDrivers--~~')
+    console.log('❌❌❌❌❌❌❌❌❌Error get underCancelledTrip dicision:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1124,6 +1146,8 @@ exports.login = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error login:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1163,6 +1187,8 @@ exports.verify_otp = async (req, res) => {
       }
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error verify otp:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1224,6 +1250,8 @@ exports.get_reports = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get reports:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1285,6 +1313,8 @@ exports.company_access_list = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error company access list:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1325,6 +1355,9 @@ exports.favoriteDriver = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error fave driverr:', err.message);
+
     return res.send({
       code: constant.error_code,
       message: err.message,
@@ -1395,6 +1428,8 @@ exports.getDriverList = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get driverss list:', err.message);
     console.log("🚀 ~ exports.get_driver= ~ err:", err);
 
     return res.send({

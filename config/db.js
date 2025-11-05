@@ -17,5 +17,6 @@ mongoose
         console.info('Connected to db')
     })
     .catch((e) => {
-        console.log('Unable to connect to the db', e)
+        
+        console.log('❌❌❌❌❌❌❌❌❌  Unable to connect to the db', e)
     })

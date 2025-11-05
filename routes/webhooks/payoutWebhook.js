@@ -22,6 +22,7 @@ console.log('webhook triggered payout_webhook----------------')
             console.log("payout webhook received successfully----" , event.type);
             
           } catch (err) {
+            console.log('❌❌❌❌❌❌❌❌❌Error payout webhook event:', err.message);
             console.log(`payout_webhook Error: ${err.message}`);
 
 
@@ -101,6 +102,8 @@ console.log('webhook triggered payout_webhook----------------')
           return res.status(200).send({ received: true  , message: `payout_webhook received successfully`, istTime:istTime});
           logEntry.save();
         } catch (error) {
+
+          console.log('❌❌❌❌❌❌❌❌❌Error webhok handler add trip link:', err.message);
           console.error("Error in webhook handler payout_webhook():", error.message);
           let logs_data = {
                             api_name: 'payout_webhook error',

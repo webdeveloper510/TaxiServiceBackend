@@ -69,7 +69,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
       
     }
   } catch (err) {
-    console.log("🚀 ~ tripIsBooked ~ err:", err);
+    console.log('❌❌❌❌❌❌❌❌❌Error tripIsbooked:', err.message);
   }
 };
 
@@ -185,6 +185,8 @@ exports.add_trip = async (req, res) => {
                       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error addtrip:', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -313,6 +315,8 @@ exports.access_add_trip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error access add trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -413,6 +417,8 @@ exports.add_trip_link = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error add trip link:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -460,6 +466,8 @@ exports.edit_trip_link = async (req, res) => {
     
     
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error edit trip link:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -692,6 +700,8 @@ exports.get_trip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -957,6 +967,8 @@ exports.companyGetTrip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error compnay get trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1116,6 +1128,8 @@ exports.driverGetTrip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error driver get trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1277,6 +1291,8 @@ exports.HotelGetTrip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error hotel get trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1438,6 +1454,8 @@ exports.get_access_trip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get access trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1594,6 +1612,8 @@ exports.get_all_access_trip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get all access trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1681,6 +1701,8 @@ exports.get_trip_for_hotel = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get trip for hotel:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1800,6 +1822,8 @@ exports.get_recent_trip = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get recent trip:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -1961,6 +1985,8 @@ exports.get_recent_trip_super = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get recent trip super:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2042,6 +2068,8 @@ exports.get_trip_by_company = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get trip by compnay:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2354,6 +2382,8 @@ exports.alocate_driver = async (req, res) => {
       }
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌allocate driver erro;:', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -2571,6 +2601,8 @@ exports.access_alocate_driver = async (req, res) => {
       }
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error access allocate driver:', err.message);
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -2716,6 +2748,8 @@ exports.get_trip_detail = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get trip details:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2855,6 +2889,8 @@ exports.access_get_trip_detail = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error access get trip details:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -2886,6 +2922,8 @@ exports.getDistanceAndTime = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get distance and time:', err.message);
     return res.send({
       code: constant.error_code,
       message: err.message,
@@ -3089,6 +3127,9 @@ exports.calculatePrice = async (req, res) => {
       });
     }
   } catch (err) {
+
+
+    console.log('❌❌❌❌❌❌❌❌❌Error calculate price:', err.message);
     return res.send({
       code: constant.error_code,
       message: err.message,
@@ -3168,6 +3209,8 @@ exports.get_counts_dashboard = async (req, res) => {
       },
     });
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get counts dahsboard:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -3493,6 +3536,8 @@ exports.add_trip1 = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error add trip1:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,
@@ -3516,6 +3561,8 @@ exports.check_company_id = async (req, res) => {
       });
     }
   } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error check comnay id:', err.message);
     res.send({
       code: constant.error_code,
       message: err.message,

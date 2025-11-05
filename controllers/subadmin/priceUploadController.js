@@ -190,6 +190,8 @@ exports.priceUpload = async (req, res) => {
         });
         
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error price upload:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -236,7 +238,7 @@ exports.getUploadedPrice = async (req, res) => {
             
         });
     } catch (error) {
-        console.error('Error getUploadedPrice:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error get uplaod price:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -257,6 +259,8 @@ exports.deleteUploadedPrice = async (req, res) => {
             
         });
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error delete upload price:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -279,6 +283,8 @@ exports.disabledUploadedPrices = async (req, res) => {
             
         });
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error diabaled uploaded prices:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -298,7 +304,7 @@ exports.getAllUploadedPrice = async (req, res) => {
                             allPriceList: allPriceList,
                         });
     } catch (error) {
-        console.error('Error getUploadedPrice:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error get all uploaded pricesss:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -320,7 +326,8 @@ exports.getAllUploadedPriceForHotel = async (req, res) => {
                             allPriceList: allPriceList,
                         });
     } catch (error) {
-        console.error('Error getUploadedPrice:', error.message);
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get uploaded price for hotel:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -341,7 +348,7 @@ exports.getAccessAllUploadedPrice = async (req, res) => {
                             allPriceList: allPriceList,
                         });
     } catch (error) {
-        console.error('Error getUploadedPrice:', error.message);
+       console.log('❌❌❌❌❌❌❌❌❌Error get access al uploadd price:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -407,7 +414,7 @@ exports.upateUploadedPrice = async (req, res) => {
         }
         
     } catch (error) {
-        console.error('Error getUploadedPrice:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error updateUploadedPrice:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,
@@ -455,7 +462,7 @@ exports.updateAllPriceVisibility = async (req, res) => {
         
         
     } catch (error) {
-        console.error('Error getUploadedPrice:', error.message);
+        console.log('❌❌❌❌❌❌❌❌❌Error update all pric visibility:', error.message);
         return  res.send({
                             code: constant.error_code,
                             message: error.message,

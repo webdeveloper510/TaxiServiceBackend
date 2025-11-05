@@ -45,6 +45,8 @@ exports.add_sub_admin = async (req, res) => {
         }
 
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error add sub admin:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -69,6 +71,8 @@ exports.get_sub_admins = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get subadmins:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -93,6 +97,8 @@ exports.get_sub_admin_detail = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error get subadmin details', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -127,6 +133,8 @@ exports.edit_sub_admin = async (req, res) => {
             })
         }
     } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error edit subadmin details:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message
@@ -159,6 +167,8 @@ exports.delete_sub_admin = async(req,res)=>{
         }
 
     }catch(err){
+        
+        console.log('❌❌❌❌❌❌❌❌❌Error delete sub admin:', err.message);
         res.send({
             code:constant.error_code,
             message:err.message
