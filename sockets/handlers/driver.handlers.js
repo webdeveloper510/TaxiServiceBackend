@@ -568,7 +568,9 @@ function registerDriverHandlers(io, socket) {
 
                 // Mark offline after grace period
                 console.log('CONSTANT.DRIVER_AUTO_LOGOUT-------' , CONSTANT.DRIVER_AUTO_LOGOUT)
-                setTimeout(() =>    { 
+
+                // Start new 2-minute offline timer
+                const timer = setTimeout(() =>    { 
                                         OfflineDriver(driverBySocketId , io); 
                                         disconnectTimers.delete(driverBySocketId._id.toString()); 
                                     }, 

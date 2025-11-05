@@ -702,6 +702,136 @@ exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) =
   }
 }
 
+// When driver raise the trip cancellatio request after accpeting the trip
+exports.emitTripCancellationRequestByDriver = async(tripDetails , driverDetails , currentSocketId , socket) => {
+ 
+  try {
+    console.log('cancel request by driver------------------')
+    let user = await user_model.findById(tripDetails?.created_by_company_id);
+    const companyAgencyData = await AGENCY_MODEL.findOne({user_id: tripDetails.created_by_company_id})
+    let driver_name = driverDetails.first_name + " " + driverDetails.last_name;
+
+    let socketList = [];
+    let deviceTokenList = [];
+
+    // If trip company owner is not cancelling the trip from his driver
+    if (currentSocketId != user?.socketId) {
+
+      if (user?.socketId) { socketList.push({socketId: user?.socketId , platform: constant.PLATFORM.MOBILE, email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+      if (user?.webSocketId) { socketList.push({webSocketId: user?.webSocketId , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale}); }
+      if (user?.deviceToken) { deviceTokenList.push({ deviceToken: user?.deviceToken , platform: constant.PLATFORM.MOBILE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale})}
+      if (user?.webDeviceToken) { deviceTokenList.push({ webDeviceToken: user?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale })}
+    }
+
+    // get the drivers (who have access) of  partners and account access list 
+    const driverList = await driver_model.find({
+                                                  $and: [
+                                                    {
+                                                      socketId: { $ne: currentSocketId }, // 👈 Exclude this driver who get the trip so this driver will not be notified
+                                                      status: true,
+                                                    },
+                                                    {
+                                                      $or: [
+                                                        {
+                                                          parnter_account_access: {
+                                                            $elemMatch: { company_id: user._id },
+                                                          },
+                                                        },
+                                                        {
+                                                          company_account_access: {
+                                                            $elemMatch: { company_id: user._id },
+                                                          },
+                                                        },
+                                                      ],
+                                                    },
+                                                  ],
+                                                });
+
+    if (driverList) {
+
+      for (let driver of driverList) {
+          if (driver?.socketId) { socketList.push({ socketId : driver?.socketId , platform: constant.PLATFORM.MOBILE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale } ); }
+          if (driver?.webSocketId) { socketList.push({webSocketId :driver?.webSocketId , platform: constant.PLATFORM.WEBSITE ,email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale }); }
+          if (driver?.deviceToken) { deviceTokenList.push({ deviceToken :driver?.deviceToken , platform: constant.PLATFORM.MOBILE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
+          if (driver?.webDeviceToken) { deviceTokenList.push( { webDeviceToken : driver?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: driver?.email , app_locale: driver?.app_locale , web_locale: driver?.web_locale })}
+        }
+    }
+
+    // emit the socket for notifing---- driver canceled the trip
+    if (socketList) {
+      for (let socketData of socketList) {
+        if (socketData?.platform === constant.PLATFORM.MOBILE && socketData?.socketId ) {
+
+          let socketId = socketData?.socketId;
+          let targetLocale = socketData?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "editTrip.socket.tripCancellationRequestByDriver", locale: targetLocale }, { driver_name: driver_name  , trip_id: tripDetails?.trip_id});
+          socket.to(socketId).emit("tripCancellationRequestByDriver", {
+                                                              trip: tripDetails,
+                                                              driver: driverDetails,
+                                                              message: message,
+                                                            },
+                                  );
+          
+        }
+
+        if (socketData?.platform === constant.PLATFORM.WEBSITE && socketData?.webSocketId ) {
+
+          let webSocketId = socketData?.webSocketId;
+          let targetLocale = socketData?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "editTrip.socket.tripCancellationRequestByDriver", locale: targetLocale }, { driver_name: driver_name  , trip_id: tripDetails.trip_id});
+          socket.to(webSocketId).emit("tripCancellationRequestByDriver", {
+                                                              trip: tripDetails,
+                                                              driver: driverDetails,
+                                                              message: message,
+                                                            },
+                                  );
+          
+        }
+      }
+    }
+
+    // send the push notification
+    if (deviceTokenList) {
+      
+      for (let tokenData of deviceTokenList) {
+
+        if (tokenData?.platform === constant.PLATFORM.MOBILE && tokenData?.deviceToken ) {
+          
+          let tokenValue = tokenData?.deviceToken;
+          let targetLocale = tokenData?.app_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "editTrip.notification.tripCancellationRequestByDriverMessage", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetails.trip_id });
+
+          let title = i18n.__({ phrase: "editTrip.notification.tripCancellationRequestByDriverTitle", locale: targetLocale }, { trip_id: tripDetails.trip_id });
+          this.sendNotification(
+                                  tokenValue,
+                                  message,
+                                  title,
+                                  driverDetails 
+                                );
+        }
+
+        if (tokenData?.platform === constant.PLATFORM.WEBSITE && tokenData?.webDeviceToken ) {
+          
+          let tokenValue = tokenData?.webDeviceToken;
+          let targetLocale = tokenData?.web_locale || process.env.DEFAULT_LANGUAGE;
+          let message = i18n.__({ phrase: "editTrip.notification.tripCancellationRequestByDriverMessage", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetails.trip_id });
+
+          let title = i18n.__({ phrase: "editTrip.notification.tripCancellationRequestByDriverTitle", locale: targetLocale }, { trip_id: tripDetails.trip_id });
+          this.sendNotification(
+                                  tokenValue,
+                                  message,
+                                  title,
+                                  driverDetails 
+                                );
+        }
+      }
+    }
+
+  } catch (error) {
+    console.log('❌❌❌❌❌❌❌❌❌emitTripCancellationRequestByDriver-------' , error)
+  }
+}
+
 exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentSocketId , socket) => {
  
   try {

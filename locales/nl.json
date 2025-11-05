@@ -206,7 +206,8 @@
       "tripRetrivedByCompany": "Uw ritverzoek is opgehaald door het bedrijf.",
       "tripRetrivedByCompanyMessage": "Uw ritaanvraag is opgehaald door het bedrijf ({{ company_name }}).",
       "tripAcceptedByDriver": "Rit succesvol geaccepteerd",
-      "tripCancelledByDriver": "De chauffeur {{driver_name}} heeft de rit geannuleerd."
+      "tripCancelledByDriver": "De chauffeur {{driver_name}} heeft de rit geannuleerd.",
+      "tripCancellationRequestByDriver": "Bestuurder {{driver_name}} heeft een annuleringsverzoek ingediend voor rit {{TRIP_ID}}."
     },
     "notification": {
       "tripRetrievedByCompanyMessage": "De rit-ID ({{trip_id}}) is door het bedrijf ingetrokken",
@@ -214,6 +215,8 @@
       "tripNotAcceptedByDriverMessage": "Rit ({{trip_id}}) is niet geaccepteerd door de chauffeur ({{driver_name}})",
       "tripNotAcceptedByDriverTitle": "Rit niet geaccepteerd #: {{trip_id}}",
       "tripAcceptedByDriverMessage": "Rit (ID: {{trip_id}}) is succesvol geaccepteerd door de chauffeur ({{driver_name}}).",
+      "tripCancellationRequestByDriverTitle": "Verzoek tot annulering van rit #: {{trip_id}}",
+      "tripCancellationRequestByDriverMessage": "Bestuurder {{driver_name}} heeft een annuleringsverzoek ingediend voor rit {{TRIP_ID}}.",
       "tripAcceptedByDriverTitle": "Rit geaccepteerd #: {{trip_id}}",
       "tripCancelledByDriverMessage": "De rit is geannuleerd door chauffeur ( {{driver_name}} ) en het rit-ID is {{trip_id}}",
       "tripCancelledByDriverTitle": "Rit geannuleerd door chauffeur #: {{trip_id}}",

@@ -17,7 +17,8 @@ const {
   sendBookingUpdateDateTimeEmail , 
   sendTripUpdateToCustomerViaSMS ,
   sendBookingCancelledEmail ,
-  getDistanceAndDuration
+  getDistanceAndDuration , 
+  emitTripCancellationRequestByDriver
 } = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
@@ -797,7 +798,9 @@ exports.driverCancelTrip = async (req, res) => {
     // }
     
     partnerAccountRefreshTrip(tripInfo.created_by_company_id , res.__('driverCancelTripReason.socket.tripChangedRefresh'), req.io);
-      
+    
+    // const driverDetail = await DRIVER.findById(req.userId);
+    // emitTripCancellationRequestByDriver(tripInfo , driverDetail , driverDetail.socketId , req.io);
     return res.send({
       code: constant.success_code,
       message: res.__('driverCancelTripReason.success.tripCancellationRequestSubmitted')

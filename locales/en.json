@@ -206,7 +206,8 @@
             "tripRetrivedByCompany": "Your trip request has been retrieved by the company.",
             "tripRetrivedByCompanyMessage": "Your trip request has been retrieved by the company , ( {{ company_name }}).",
             "tripAcceptedByDriver": "Trip accepted successfully",
-            "tripCancelledByDriver": "Driver {{driver_name}} has canceled the trip"
+            "tripCancelledByDriver": "Driver {{driver_name}} has canceled the trip",
+            "tripCancellationRequestByDriver": "Driver {{driver_name}} has raised a cancellation request for trip {{TRIP_ID}}."
         },
         "notification": {
             "tripRetrievedByCompanyMessage": "Trip ({{trip_id}}) has been retrieved by the company.",
@@ -214,6 +215,8 @@
             "tripNotAcceptedByDriverMessage": "Trip ( {{trip_id}} ) didn't accepted by the driver ( {{driver_name}} )",
             "tripNotAcceptedByDriverTitle": "Trip Not Accepted #:  {{trip_id}}",
             "tripAcceptedByDriverMessage": "Trip (ID: {{trip_id}}) has been successfully accepted by the driver ({{driver_name}}). ",
+            "tripCancellationRequestByDriverTitle": "Trip Cancellation Request #:  {{trip_id}}",
+            "tripCancellationRequestByDriverMessage": "Driver {{driver_name}} has raised a cancellation request for trip {{TRIP_ID}}.",
             "tripAcceptedByDriverTitle": "Trip Accepted #:  {{trip_id}}",
             "tripCancelledByDriverMessage": "The trip has been canceled by driver ( {{driver_name}} ) and trip ID is {{trip_id}}",
             "tripCancelledByDriverTitle": "Trip Canceled by Driver #:  {{trip_id}}",
