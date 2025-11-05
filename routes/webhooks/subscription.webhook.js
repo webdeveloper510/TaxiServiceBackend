@@ -28,6 +28,7 @@ module.exports = async function subscription(req, res) {
        
         } catch (err) {
 
+            console.log('❌❌❌❌❌❌❌❌❌Error subscription:', err.message);
             let logs_data = { 
                                 api_name: 'subscription_webhook', 
                                 payload: JSON.stringify(req.body),
@@ -78,6 +79,7 @@ module.exports = async function subscription(req, res) {
         return res.status(200).send({ received: true  , message: `Webhook received successfully for subscription webhook`, istTime:istTime});
     
      } catch (error) {
+        console.log('❌❌❌❌❌❌❌❌❌Error subscription_webhook erro:', error.message);
         console.log(" subscription webhook:", error.message);
         let logs_data = {
                             api_name: 'subscription_webhook error',
@@ -125,6 +127,7 @@ const oneTimePayment = async (invoice) => {
             console.log("⚠️ No matching Checkout Session found.");
         }
     } catch (error) {
+        console.log('❌❌❌❌❌❌❌❌❌Error onetime payment erro:', error.message);
         console.log(" oneTimePayment webhook:", error.message);
     }
 }
@@ -181,6 +184,8 @@ const susbcriptionCreate = async (invoice , req , event) => {
             await sendEmailSubscribeSubcription(subscriptionId);
         }
     } catch (error) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error subscription_we erro:', error.message);
         console.log(" subscription webhook:", error.message);
     }
 
@@ -259,6 +264,7 @@ const idealPaymentSubscription = async (req , invoice , paymentMethodType) => {
 
         return true;
     } catch (error) {
+        console.log('❌❌❌❌❌❌❌❌❌Error ideal payment susbcription erro:', error.message);
         console.error("Error in webhook handler idealPaymentSubscription ():", error.message);
         let logs_data = {
                           api_name: 'subscription_webhook ideal payment',
@@ -332,6 +338,8 @@ const subscriptionCycle = async (invoice , event) => {
         logEntry.save();
 
     } catch (error) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error subscription_ cycle erro:', error.message);
         console.log(" subscriptionCycle webhook:", error.message);
     }
 }
@@ -405,7 +413,9 @@ const handleInvoicePaymentFailure = async (invoice , req) => {
                 break;
         }
     } catch (error) {
-        console.error("Error in webhook handler handleInvoicePaymentFailure():", error.message);
+
+        console.log('❌❌❌❌❌❌❌❌❌Error subscription invoice payment failure erro:', error.message);
+        
         let logs_data = {
                         api_name: 'subscription_webhook',
                         payload: JSON.stringify(req.body),

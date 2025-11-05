@@ -84,6 +84,8 @@ exports.createConnectedAccount = async (email ) =>{
     console.log('account.id------' , JSON.stringify(account))
     return account.id;
   } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error create connect account:', error.message);
       console.error('Error creating connected account:', error);
       throw error;
   }
@@ -115,8 +117,10 @@ exports.attachBankAccount = async (connectedAccountId, accountTokenId) => {
       // console.log('Bank Account Attached:', externalAccount);
       // return externalAccount.id;
   } catch (error) {
-      console.error('Error attaching bank account :', error);
-      throw error;
+
+    console.log('❌❌❌❌❌❌❌❌❌Error attach banka ccount:', error.message);
+      
+    throw error;
   }
 }
 
@@ -142,6 +146,7 @@ exports.createCustomAccount = async (email) => {
     console.log('account.id------' , JSON.stringify(account))
     return account.id;
   } catch (error) {
+    console.log('❌❌❌❌❌❌❌❌❌Error create custom account:', error.message);
       console.error("Error creating account:", error);
       throw error;
   }
@@ -160,6 +165,7 @@ exports.stripeOnboardingAccountLink = async (accountId , user_id) => {
       console.log("Onboarding Link:", accountLink.url);
       return accountLink.url;
   } catch (error) {
+    console.log('❌❌❌❌❌❌❌❌❌Error stripe onboarding link:', error.message);
       console.error("Error creating account link:", error);
   }
 };
@@ -172,7 +178,8 @@ exports.getConnectedAccountDetails = async (accountId) => {
     console.log("Account Details:", account);
     return account;
   } catch (error) {
-      console.error("Error creating account link:", error);
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get connected account details:', error.message);
   }
 };
 
@@ -224,7 +231,7 @@ exports.updateBankAccount = async (connectedAccountId, newBankDetails) => {
       return externalAccount.id;
 
   } catch (error) {
-      console.error('Error updating bank account:', error.message);
+      console.log('❌❌❌❌❌❌❌❌❌Error updating bank account:', error.message);
       throw new Error(`Failed to update bank account: ${error.message}`);
   }
 }
@@ -244,6 +251,8 @@ exports.sendPayout = async (amount, connectedAccountId) => {
       console.log('Payout Successful:', payout);
       return payout;
   } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error sendPayout:', error.message);
       console.error('Error sending payout:', error);
       throw error;
   }
@@ -265,7 +274,8 @@ exports.sendSms = async (data) => {
    
     return message
   } catch (error) {
-    console.log('sendSms -----error-------' , error)
+    console.log('❌❌❌❌❌❌❌❌❌Error send sms:', error.message);
+   
   }
 };
 
@@ -698,6 +708,8 @@ exports.emitTripNotAcceptedByDriver = async (socket , tripDetail , driverInfo) =
       }
 
   } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error send emit trip not accepted by driver error:', error.message);
   console.log('emitTripNotAcceptedByDriver-------' , error)
   }
 }
@@ -828,7 +840,9 @@ exports.emitTripCancellationRequestByDriver = async(tripDetails , driverDetails 
     }
 
   } catch (error) {
-    console.log('❌❌❌❌❌❌❌❌❌emitTripCancellationRequestByDriver-------' , error)
+
+    console.log('❌❌❌❌❌❌❌❌❌Error  emit trip cancellation request by driver:', error.message);
+    
   }
 }
 
@@ -957,7 +971,8 @@ exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentS
     }
 
   } catch (error) {
-    console.log('emitTripCancelledByDriver-------' , error)
+
+    console.log('❌❌❌❌❌❌❌❌❌Error emitTripCancelledByDriver:', error.message);
   }
 }
 
@@ -1110,7 +1125,8 @@ exports.emitTripRetrivedByCompany = async(tripDetails , driverDetails , currentS
     }
 
   } catch (error) {
-    console.log('emitTripCancelledByDriver-------' , error)
+    console.log('❌❌❌❌❌❌❌❌❌Error emitTripretrivedBy company:', error.message);
+
   }
 }
 
@@ -1242,7 +1258,8 @@ exports.emitTripAcceptedByDriver = async(tripDetail , driverDetails , currentSoc
       }
 
   } catch (error) {
-  console.log('emitTripAcceptedByDriver-------' , error)
+
+    console.log('❌❌❌❌❌❌❌❌❌Error emitTripAcceptedBydriver:', error.message);
   }
 }
 
@@ -1376,7 +1393,8 @@ exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDeta
       }
 
   } catch (error) {
-  console.log('emitTripAcceptedByDriver-------' , error)
+
+    console.log('❌❌❌❌❌❌❌❌❌Error emitTripassigned to self:', error.message);
   }
 }
 
@@ -1512,7 +1530,8 @@ exports.emitNewTripAddedByCustomer = async(tripDetail , socket) => {
       }
 
   } catch (error) {
-  console.log('emitTripAcceptedByDriver-------' , error)
+
+    console.log('❌❌❌❌❌❌❌❌❌Error emitNew trip added by customer:', error.message);
   }
 }
 
@@ -1562,6 +1581,7 @@ exports.sendNotification = async (to, message, title, data = {notificationType: 
 
     return response;
   } catch (error) {
+    console.log('❌❌❌❌❌❌❌❌❌Error esend notification:', error.message);
     if (error.code == "messaging/registration-token-not-registered") {
       await driver_model.updateOne(
         { deviceToken: device_token }, // Find the user device token
@@ -1606,6 +1626,8 @@ exports.getCityAndCountry = async (address) => {
     return { city, country };
 
   } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get city and country:', error.message);
     console.error('Error fetching location:', error.message);
     return { city: null, country: null };
   }
@@ -2147,6 +2169,8 @@ exports.canDriverOperate = async (driverId) => {
         }
       }
   } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error can driver operate:', error.message);
     console.error("Error can driver operate:", error);
     // throw error;
     return {
@@ -2576,7 +2600,8 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
 
     return trips
   } catch (error) {
-    console.error("Error getPendingPayoutTripsBeforeWeek:", error);
+
+    console.log('❌❌❌❌❌❌❌❌❌Error getPendingPayoutTripsBeforeWeek:', error.message);
     throw error;
   }
 }
@@ -2637,7 +2662,8 @@ exports.dateFilter = async ( postData ) => {
 
     return dateQuery;
   } catch (error) {
-    console.error("Error in date filter:", error.message);
+
+    console.log('❌❌❌❌❌❌❌❌❌Error date filter:', error.message);
     throw error;
   }
 }
@@ -2662,7 +2688,7 @@ exports.checkPayouts = async (connectedAccountId) => {
     return payouts?.data;
   } catch (error) {
 
-    console.error("Error checkPayouts status:",  error.message);
+    console.log('❌❌❌❌❌❌❌❌❌Error checkPayouts status:', error.message);
     throw error;
   }
 }
@@ -2691,8 +2717,7 @@ exports.notifyInsufficientBalance = async () => {
     return emailSent
     
   } catch (error) {
-
-    console.error("Error notifyInsufficientBalance:",  error.message);
+    console.log('❌❌❌❌❌❌❌❌❌Error notifyInsufficientBalance:', error.message);
     throw error;
   }
 }
@@ -2733,8 +2758,7 @@ exports.sendAccountDeactivationEmail = async (userInfo) => {
     return emailSent
     
   } catch (error) {
-
-    console.error("Error sending account deactivation email:",  error.message);
+    console.log('❌❌❌❌❌❌❌❌❌Error sending account deactivation email:', error.message);
     throw error;
   }
 }
@@ -2773,8 +2797,7 @@ exports.sendAccountReactivationEmail = async (userInfo) => {
     return emailSent
     
   } catch (error) {
-
-    console.error("Error sending account reactivation:",  error.message);
+    console.log('❌❌❌❌❌❌❌❌❌Error sending account reactivation:', error.message);
     throw error;
   }
 }
@@ -2980,8 +3003,7 @@ exports.transferTripToCompanyAccount = async (userInfo , io) => {
 
     return "done"
   } catch (error) {
-
-    console.error("Error transferTripToCompanyAccount:",  error.message);
+    console.log('❌❌❌❌❌❌❌❌❌Error transferTripToCompanyAccount:', error.message);
     throw error;
   }
 }
@@ -3063,8 +3085,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     return emailSent
 
   } catch (error) {
-
-    console.error("Error sendBookingConfirmationEmail:",  error.message);
+    console.log('❌❌❌❌❌❌❌❌❌Error sendBookingConfirmationEmail:', error.message);
     throw error;
   }
 }
@@ -3181,8 +3202,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
     return emailSent
 
   } catch (error) {
-
-    console.error("Error sendBookingCancelledEmail:",  error.message);
+    console.log('❌❌❌❌❌❌❌❌❌Error sendBookingCancelledEmail:', error.message);
     throw error;
   }
 }
@@ -3240,8 +3260,7 @@ exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
       }
     }
   } catch (error) {
-
-    console.error("Error sendTripUpdateToCustomerViaSMS:",  error.message);
+    console.log('❌❌❌❌❌❌❌❌❌Error sendTripUpdateToCustomerViaSMS:', error.message);
     throw error;
   }
 }
@@ -3334,8 +3353,7 @@ exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => {
     return emailSent
 
   } catch (error) {
-
-    console.error("Error sendBookingUpdateDriverAllocationEmail:",  error.message);
+    console.log('❌❌❌❌❌❌❌❌❌Error sendBookingUpdateDriverAllocationEmail:', error.message);
     throw error;
   }
 }
@@ -3436,7 +3454,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
 
   } catch (error) {
 
-    console.error("Error sendBookingUpdateDateTimeEmail:",  error.message);
+    console.log("❌❌❌❌❌❌❌❌❌Error sendBookingUpdateDateTimeEmail:",  error.message);
     throw error;
   }
 }
@@ -3541,7 +3559,7 @@ exports.informCustomerDriverOnTheWay = async (tripDetail) => {
 
   } catch (error) {
 
-    console.error("Error informCustomerDriverOnTheWay:",  error.message);
+    console.log("❌❌❌❌❌❌❌❌❌Error informCustomerDriverOnTheWay:",  error.message);
     throw error;
   }
 }
@@ -3574,7 +3592,7 @@ exports.notifyLowSmsBalance = async (userDetails) => {
     return emailSent
   } catch (error) {
 
-    console.error("Error notifyLowSmsBalance:",  error.message);
+    console.log("❌❌❌❌❌❌❌❌❌Error notifyLowSmsBalance:",  error.message);
     throw error;
   }
 }
@@ -3593,7 +3611,7 @@ exports.getLatLng = async (location) => {
 
   } catch (error) {
 
-    console.error("Error getLatLng:",  error.message);
+    console.log("❌❌❌❌❌❌❌❌❌Error getLatLng:",  error.message);
     throw error;
   }
 }
@@ -3615,7 +3633,7 @@ exports.getDistanceAndDuration = async (origin, destination) => {
       return element;
   } catch (error) {
 
-    console.error("Error getDistanceAndDuration:",  error.message);
+    console.log("❌❌❌❌❌❌❌❌❌Error getDistanceAndDuration:",  error.message);
     throw error;
   }
 }

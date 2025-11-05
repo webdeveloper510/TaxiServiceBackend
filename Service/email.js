@@ -76,7 +76,8 @@ async function sendEmail(to, subject, templateName, data, language = "nl" ,attac
        
         return info
     } catch (error) {
-        console.error("Error sending email:", error);
+        console.log('❌❌❌❌❌❌❌❌❌Error send emailerro:', error.message);
+        
     }
 }
 
