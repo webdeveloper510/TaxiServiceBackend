@@ -17,8 +17,7 @@ const {
   sendBookingUpdateDateTimeEmail , 
   sendTripUpdateToCustomerViaSMS ,
   sendBookingCancelledEmail ,
-  getDistanceAndDuration , 
-  emitTripCancellationRequestByDriver
+  getDistanceAndDuration 
 } = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
@@ -799,8 +798,7 @@ exports.driverCancelTrip = async (req, res) => {
     
     partnerAccountRefreshTrip(tripInfo.created_by_company_id , res.__('driverCancelTripReason.socket.tripChangedRefresh'), req.io);
     
-    // const driverDetail = await DRIVER.findById(req.userId);
-    // emitTripCancellationRequestByDriver(tripInfo , driverDetail , driverDetail.socketId , req.io);
+  
     return res.send({
       code: constant.success_code,
       message: res.__('driverCancelTripReason.success.tripCancellationRequestSubmitted')
@@ -900,7 +898,7 @@ exports.driverCancelTripDecision = async (req, res) => {
     // update driver prfile cache
     let driverId = tripDetails?.driver_name
     const driverDetails = await updateDriverMapCache(driverId); 
-    console.log('driverDetails-----' , driverDetails)
+    
     await broadcastDriverLocation(req.io , driverId , driverDetails)
 
     //------------- end check if any trip is under progress then update his map chache profile accordingly
@@ -933,6 +931,7 @@ exports.driverCancelTripDecision = async (req, res) => {
       
 
       
+
       if (driver_data?.socketId) {
        
         req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
@@ -1147,6 +1146,7 @@ exports.driverCancelTripDecision = async (req, res) => {
                     });
     
   } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌')
     return res.send({
                       code: constant.error_code,
                       message: err.message,
