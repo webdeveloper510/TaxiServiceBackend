@@ -62,7 +62,8 @@ exports.getPendingPayoutTripsBeforeWeek = async () => {
 
     return trips
   } catch (error) {
-    console.log("Error getPendingPayoutTripsBeforeWeek:", error);
+    console.log("❌❌❌❌❌❌❌❌❌Error getPendingPayoutTripsBeforeWeek:",  error.message);
+    
     // throw error;
   }
 }
@@ -89,7 +90,8 @@ exports.transferToConnectedAccount = async (amount, connectedAccountId , tripId)
     console.log("Transfer Successful:---------", transfer);
     return transfer;
   } catch (error) {
-    console.error("Error Transfer balance:", error.message);
+    console.log("❌❌❌❌❌❌❌❌❌Error transfer to connect account:",  error.message);
+    
     throw error;
   }
 }
@@ -124,7 +126,8 @@ exports.createConnectedPayout = async (amountEur, connectedAccountId, tripId) =>
       console.log('Payout Successful:', payout);
       return payout;
   } catch (error) {
-      console.error('Error sending payout:', error);
+    console.log("❌❌❌❌❌❌❌❌❌Error create connected payout:",  error.message);
+     ;
       throw error;
   }
 }
@@ -229,7 +232,9 @@ exports.runPayoutsBatch  = async () => {
           console.log('Payout initiated',  payout);
       }
   } catch (e) {
-    console.log('runPayoutsBatch failed', { err: e.message, stack: e.stack });
+
+    console.log("❌❌❌❌❌❌❌❌❌Error runPayoutsBatch:",  { err: e.message, stack: e.stack });
+   
   }
 }
 

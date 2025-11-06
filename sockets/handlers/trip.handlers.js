@@ -23,7 +23,8 @@ function registerTripHandlers(io, socket) {
             const driverById = await DRIVER_MODEL.findById(driverId);
             emitTripRetrivedByCompany(trip_details, driverById, socket.id, io);
         } catch (err) {
-        console.log("companyCancelledTrip err:", err);
+            console.log("❌❌❌❌❌❌❌❌❌Error compnay cancelled trip:",  err.message);
+        
         }
     });
 
@@ -57,7 +58,7 @@ function registerTripHandlers(io, socket) {
                 }
 
             } catch (error) {
-                console.log("cancelDriverTrip error:", error);
+                console.log("❌❌❌❌❌❌❌❌❌Error cancelDriverTrip:",  error.message);
                 return socket.emit("driverNotification", { code: 200, message: "There is some error" });
             }
         }, 300);
@@ -96,7 +97,7 @@ function registerTripHandlers(io, socket) {
 
             emitTripAcceptedByDriver(update_trip, driverBySocketId, socket.id, io);
         } catch (error) {
-            console.log("acceptDriverTrip error:", error);
+            console.log("❌❌❌❌❌❌❌❌❌Error acceptDriverTrip:",  error.message);
             return socket.emit("driverNotification", { code: 200, message: "There was an error" });
         }
     });
@@ -123,7 +124,7 @@ function registerTripHandlers(io, socket) {
                 socket.emit("driverNotification", { code: 200, message: "Trip active successfully" });
             }
         } catch (error) {
-            console.log("activeDriverTrip error:", error);
+            console.log("❌❌❌❌❌❌❌❌❌Error activeDriverTrip:",  error.message);
             return socket.emit("driverNotification", { code: 200, message: "There was an error" });
         }
     });
@@ -147,7 +148,7 @@ function registerTripHandlers(io, socket) {
                         });
     
             } catch (err) {
-                console.log('getSingleTripInfo error ~:-- ' , err.message)
+                console.log("❌❌❌❌❌❌❌❌❌Error getSingleTripInfo:",  err.message);
                 ack({
                     code: CONSTANT.error_code,
                     message: err.message,

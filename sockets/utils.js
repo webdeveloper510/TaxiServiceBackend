@@ -37,6 +37,7 @@ async function OfflineDriver(driverInfo , io) {
     console.info(`✅ Driver ${updatedDriver._id} marked offline at ${new Date().toISOString()}`);
     
   } catch (err) {
+   
     console.error("❌ OfflineDriver error:", err.message, {
                                                             driverId: driverInfo._id,
                                                             stack: err.stack,

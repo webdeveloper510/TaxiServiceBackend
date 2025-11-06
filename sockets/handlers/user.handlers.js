@@ -63,7 +63,7 @@ function registerUserHandlers(io, socket) {
                 }
             }
         } catch (err) {
-            console.log("addWebUser err:", err);
+            console.log("❌❌❌❌❌❌❌❌❌Error addWebUser:",  err.message);
         }
     });
 
@@ -123,7 +123,7 @@ function registerUserHandlers(io, socket) {
                 
             }
         } catch (err) {
-        console.log("addUser err:", err);
+            console.log("❌❌❌❌❌❌❌❌❌Error addUser:",  err.message);
         }
     });
 
@@ -145,7 +145,8 @@ function registerUserHandlers(io, socket) {
                         });
     
             } catch (err) {
-                ack({
+                console.log("❌❌❌❌❌❌❌❌❌Error get single compnay info:",  err.message);
+               return  ack({
                   code: CONSTANT.error_code,
                   message: err.message,
                 })
@@ -172,7 +173,7 @@ function registerUserHandlers(io, socket) {
                 try {
                     details = driverData.details ? JSON.parse(driverData.details) : null;
                 } catch (err) {
-                    console.warn(`Invalid JSON for driver ${driverId}:`, err.message);
+                    console.log(`❌❌❌❌❌❌❌❌❌Error Invalid JSON for driver ${driverId}:`,  err.message);
                 }
 
 
@@ -195,7 +196,7 @@ function registerUserHandlers(io, socket) {
            
            
         } catch (error) {
-            console.error("❌ Error in company:subscribe:", error);
+            console.log(`❌❌❌❌❌❌❌❌❌Error in company:subscribe:`,  error.message);
         }
 
     })
@@ -208,7 +209,7 @@ function registerUserHandlers(io, socket) {
             socket.leave(key);
             console.log(`🏢 trip Driver  ${driverId} update unsubscribed`);
         } catch (error) {
-            console.error("❌ Error in company:subscribe:", error);
+            console.error("❌ Error in company:subscribe:", error.message);
         }
     })     
 
@@ -232,7 +233,7 @@ function registerUserHandlers(io, socket) {
            
            
         } catch (error) {
-            console.error("❌ Error in company:subscribe:", error);
+            console.error("❌ Error in company:subscribe:", error.message);
         }
 
     })
@@ -258,7 +259,7 @@ function registerUserHandlers(io, socket) {
            
            
         } catch (error) {
-            console.error("❌ Error in company:subscribe:", error);
+            console.error("❌ Error in company:web:subscribe:", error.message);
         }
 
     })
@@ -276,7 +277,7 @@ function registerUserHandlers(io, socket) {
             console.log(`⚠️ Heartbeat received for company but no active subscription for ${key}`);
             }
         } catch (error) {
-            console.error("❌ Error in company:heartbeat:", error);
+            console.error("❌ Error in company:app:heartbeat:", error.message);
         }
     });
 
@@ -293,7 +294,7 @@ function registerUserHandlers(io, socket) {
             console.log(`⚠️ Heartbeat received for company web but no active subscription for ${key}`);
             }
         } catch (error) {
-            console.error("❌ Error in company:heartbeat:", error);
+            console.error("❌ Error in company:web:heartbeat:", error.message);
         }
     });
 
@@ -306,7 +307,7 @@ function registerUserHandlers(io, socket) {
             socket.leave(key);
             console.log(`🏢 Company ${companyId} unsubscribed`);
         } catch (error) {
-            console.error("❌ Error in company:subscribe:", error);
+            console.error("❌ Error in company:web:subscribe:", error.message);
         }
     });
 
@@ -319,7 +320,7 @@ function registerUserHandlers(io, socket) {
             socket.leave(key);
             console.log(`🏢 Company web ${companyId} unsubscribed`);
         } catch (error) {
-            console.error("❌ Error in web company:unsubscribe:", error);
+            console.error("❌ Error in web company:app:unsubscribe:", error.message);
         }
     });
 }

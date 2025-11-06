@@ -152,7 +152,9 @@ exports.sendPreTripNotifications =  async () => {
                                         }
                                       );
     } catch (error) {
-    console.log("Error sendPreTripNotifications--cron:", error);
+    
+        console.log("❌❌❌❌❌❌❌❌❌Error runPayoutsBatch:",  error.message);
+    
     // throw error;
   }
 }

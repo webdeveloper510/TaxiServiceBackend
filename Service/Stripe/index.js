@@ -54,7 +54,9 @@ exports.initiateStripePayment = async (trip, amount , req) => {
     );
     return paymentIntent;
   } catch (error) {
-    console.error("Error initiating payment:", error);
+   
+    console.log("❌❌❌❌❌❌❌❌❌Error initia stripe payment:",  error.message);
+   
     throw error;
   }
 };
@@ -82,6 +84,7 @@ exports.checkPaymentStatus = async (paymentIntentId) => {
     //   return { success: false, message: 'Payment not completed', status: paymentStatus };
     // }
   } catch (error) {
+    console.log("❌❌❌❌❌❌❌❌❌Error cheeck payment status:",  error.message);
     throw error;
   }
 };

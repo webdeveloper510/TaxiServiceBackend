@@ -237,7 +237,9 @@ async function broadcastDriverLocation(io, driverId, details) {
         //     }
         // }
     } catch (err) {
-        console.error("❌ Error in broadcastDriverLocation:", err);
+      
+      console.log("❌❌❌❌❌❌❌❌❌Error broadcastDriverLocation:",  err.message);
+       
     }
   
 }
@@ -279,7 +281,8 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
     // await redis.expire(key, 10800); // 3 hours expiration 10800
 
   } catch (err) {
-        console.error("❌ Error in updateDriverLocationInRedis:", err);
+
+        console.error("❌ Error in updateDriverLocationInRedis:", err.message);
     } 
 }
 
@@ -307,7 +310,7 @@ async function broadcastForTripDriverLocation (io , driverId  , lng , lat  , det
 
     // console.log('driver send updates for trips--------' , details.email)
   } catch (err) {
-      console.error("❌ Error in broadcastForTripDriverLocation:", err);
+      console.error("❌ Error in broadcastForTripDriverLocation:", err.message);
   }
 }
 
@@ -401,7 +404,7 @@ async function getDriversInBounds(bounds, id, socket) {
             return driversToSend
         }
     } catch (error) {
-        console.error("❌ Error in getDriversInBounds:", error);
+        console.error("❌ Error in getDriversInBounds:", error.message);
     }
 }
 
@@ -542,7 +545,7 @@ async function removeDriverForSubscribedClients(driverInfo, io) {
 
     
   } catch (err) {
-    console.error(`❌ Error removing driver ${driverInfo?._id}:`, err);
+    console.error(`❌ Error removing driver ${driverInfo?._id}:`, err.message);
   }
 }
 
@@ -570,7 +573,7 @@ async function updateDriverMapCache (driverId) {
 
     return getDriverDetails;
   } catch (err) {
-    console.error(`❌ Error updateDriverMapCache  ${driverId}:`, err);
+    console.error(`❌ Error updateDriverMapCache  ${driverId}:`, err.message);
   }
   
 }

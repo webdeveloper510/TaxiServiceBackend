@@ -10,7 +10,8 @@ function attachAuthMiddleware(socket, next) {
     socket.user = decoded; // attach if needed in handlers
     return next();
   } catch (e) {
-    console.log("Socket auth failed:", e.message);
+    console.log("❌❌❌❌❌❌❌❌❌Error auth failed:",  e.message);
+   
     // You can choose to block or allow and handle in events
     return next();
   }

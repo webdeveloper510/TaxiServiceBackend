@@ -21,7 +21,8 @@ function registerCompanyHandlers(io, socket, redis) {
 
       console.log(`Socket ${socket.id} subscribed for company ${companyId}`);
     } catch (err) {
-      console.error("subscribeBounds error:", err);
+      console.log("❌❌❌❌❌❌❌❌❌Error subscribeBounds:",  err.message);
+      
     }
   });
 
@@ -35,7 +36,8 @@ function registerCompanyHandlers(io, socket, redis) {
       parsed.lastSeenAt = Date.now();
       await redis.set(key, JSON.stringify(parsed), "EX", 300); // refresh TTL
     } catch (err) {
-      console.error("subHeartbeat error:", err);
+      console.log("❌❌❌❌❌❌❌❌❌Error subheartbeat:",  err.message);
+     
     }
   });
 
@@ -47,7 +49,8 @@ function registerCompanyHandlers(io, socket, redis) {
       socket.leave(`company:${socket.id}`);
       console.log("unsubscribed socket", socket.id);
     } catch (err) {
-      console.error("unsubscribeBounds error:", err);
+      console.log("❌❌❌❌❌❌❌❌❌Error unsubscribe bounds error:",  err.message);
+      
     }
   });
 

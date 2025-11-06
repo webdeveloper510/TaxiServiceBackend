@@ -62,7 +62,7 @@ function registerDriverHandlers(io, socket) {
                             );
             }
         } catch (err) {
-            console.log("addWebNewDriver err:", err);
+            console.log(`❌❌❌❌❌❌❌❌❌Error addWebNewDriver:`,  err.message);
         }
     });
 
@@ -131,7 +131,7 @@ function registerDriverHandlers(io, socket) {
                             );
             }
         } catch (err) {
-        console.log("addNewDriver err:", err);
+            console.log(`❌❌❌❌❌❌❌❌❌Error addNewDriver:`,  err.message);
         }
     });
 
@@ -230,7 +230,7 @@ function registerDriverHandlers(io, socket) {
             //         );
             
         } catch (error) {
-            console.log("updateDriverLocation error:", error);
+            console.log(`❌❌❌❌❌❌❌❌❌Error updateDriverLocation:`,  error.message);
         }
     });
 
@@ -256,7 +256,7 @@ function registerDriverHandlers(io, socket) {
                     })
             
         } catch (error) {
-            console.error("❌ Error in driver:subscribe:", error);
+            console.log(`❌❌❌❌❌❌❌❌❌Error driver:app:subscribe:`,  error.message);
         }
     })
 
@@ -279,7 +279,7 @@ function registerDriverHandlers(io, socket) {
                     })
             
         } catch (error) {
-            console.error("❌ Error in driver web:subscribe:", error);
+            console.log(`❌❌❌❌❌❌❌❌❌Error driver web:subscribe:`,  error.message);
         }
         
     })
@@ -297,7 +297,7 @@ function registerDriverHandlers(io, socket) {
             console.log(`⚠️ Heartbeat received for driver but no active subscription for ${key}`);
             }
         } catch (error) {
-            console.error("❌ Error in company:heartbeat:", error);
+            console.error("❌ Error in company:heartbeat:", error.message);
         }
     });
 
@@ -314,7 +314,7 @@ function registerDriverHandlers(io, socket) {
             console.log(`⚠️ Heartbeat received for web driver but no active subscription for ${key}`);
             }
         } catch (error) {
-            console.error("❌ Error in driver web :heartbeat:", error);
+            console.error("❌ Error in driver web :heartbeat:", error.message);
         }
     });
 
@@ -343,7 +343,7 @@ function registerDriverHandlers(io, socket) {
 
             console.log(`🏢 Driver web ${driverId} unsubscribed`);
         } catch (error) {
-            console.error("❌ Error in driverId web :subscribe:", error);
+            console.error("❌ Error in driverId web :subscribe:", error.message);
         }
     
     });
@@ -367,7 +367,8 @@ function registerDriverHandlers(io, socket) {
                     });
 
         } catch (err) {
-            ack({
+            console.log(`❌❌❌❌❌❌❌❌❌Error single driver info:`,  err.message);
+            return ack({
                 code: CONSTANT.error_code,
                 message: err.message,
             })
@@ -425,8 +426,8 @@ function registerDriverHandlers(io, socket) {
 
         } catch (err) {
             
-
-            ack({
+            console.log(`❌❌❌❌❌❌❌❌❌Error chamge driver availablity:`,  err.message);
+            return ack({
               code: CONSTANT.error_code,
               message: err.message,
             })
@@ -479,8 +480,8 @@ function registerDriverHandlers(io, socket) {
 
         } catch (err) {
             
-
-            ack({
+            console.log(`❌❌❌❌❌❌❌❌❌Error register driver handler:`,  err.message);
+            return ack({
               code: CONSTANT.error_code,
               message: err.message,
             })
@@ -533,7 +534,8 @@ function registerDriverHandlers(io, socket) {
                     });
 
         } catch (err) {
-            ack({
+            console.log(`❌❌❌❌❌❌❌❌❌Error driver online restored:`,  err.message);
+            return ack({
                 code: CONSTANT.error_code,
                 message: err.message,
             })
@@ -581,7 +583,7 @@ function registerDriverHandlers(io, socket) {
             }
         }, 3000);
         } catch (error) {
-            console.log("socket.disconnect error:", error);
+            console.log(`❌❌❌❌❌❌❌❌❌Error disconnect function:`,  error.message);
         }
     });
 
