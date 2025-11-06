@@ -101,7 +101,8 @@
       "driverBlocked": "De bestuurder is geblokkeerd door de administratie.",
       "unableToAssignDriver": "Er is een fout opgetreden bij het toewijzen van de bestuurder. Probeer het later opnieuw.",
       "noneAvailable": "Er zijn momenteel geen bestuurders beschikbaar voor toewijzing.",
-      "unbaleToUpdate": "Er is een fout opgetreden bij het bijwerken van de bestuurder. Probeer het later opnieuw."
+      "unbaleToUpdate": "Er is een fout opgetreden bij het bijwerken van de bestuurder. Probeer het later opnieuw.",
+      "cannotBlockDriverDuringActiveTrip":"De chauffeur is momenteel bezig met een actieve rit en kan op dit moment niet worden geblokkeerd."
     },
     "success": {
       "driverListRetrieved": "Bestuurderslijst succesvol opgehaald.",

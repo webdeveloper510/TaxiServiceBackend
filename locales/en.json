@@ -101,7 +101,8 @@
             "driverBlocked": "The driver has been blocked by administration.",
             "unableToAssignDriver": "An error occurred while assigning the driver. Please try again later.",
             "noneAvailable": "No drivers are currently available for assignment.",
-            "unbaleToUpdate": "An error occurred while updating the driver. Please try again later."
+            "unbaleToUpdate": "An error occurred while updating the driver. Please try again later.",
+            "cannotBlockDriverDuringActiveTrip":"The driver is currently on an active trip and cannot be blocked at this time."
         },
         "success": {
             "driverListRetrieved": "Driver list has been successfully fetched.",

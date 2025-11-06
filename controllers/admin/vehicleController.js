@@ -576,6 +576,15 @@ exports.blockUser = async (req, res) => {
             userInfo = await USER.findOneAndUpdate(criteria, updateData, option).lean();
         } else if (role == constant.ROLES.DRIVER) {
 
+            const driverInfo = await driver_model.findOne(criteria);
+
+            // If driver is on trip then admin can't block the driver
+            if (driverInfo?.currentTripId !== null) {
+                return res.send({
+                                code: constant.error_code,
+                                message: res.__("getDrivers.error.cannotBlockDriverDuringActiveTrip")
+                            })
+            }
             userInfo = await driver_model.findOneAndUpdate(criteria, updateData, option).lean();
 
             // update driver profile cache

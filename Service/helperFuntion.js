@@ -2358,23 +2358,39 @@ exports.getUserCurrentActivePayedPlan = async (userInfo) => {
 
 exports.terminateSubscriptionForBlockedDriver = async (userinfo) => {
 
-  const currentActivePlan = await this.getUserCurrentActivePayedPlan(userinfo);
+  try {
 
-  if (currentActivePlan) {
-    const subscriptionId = currentActivePlan?.subscriptionId;
-    const canceledSubscription = await stripe.subscriptions.cancel(currentActivePlan?.subscriptionId);
+  
+    const currentActivePlan = await this.getUserCurrentActivePayedPlan(userinfo);
 
-    let option = { new: true };
-    let updatedData = {
-        active: constant.SUBSCRIPTION_STATUS.INACTIVE,
-        cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.DRIVER_BLOACKED_BY_ADMIN
-    }
     
-    await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+    if (currentActivePlan) {
+      const subscriptionId = currentActivePlan?.subscriptionId;
 
-    await this.informUserSubscriptionCanceledDueToBlock(subscriptionId)
+      const stripeSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+      
+      if (stripeSubscription.status !== 'canceled') {
+
+        const canceledSubscription = await stripe.subscriptions.cancel(subscriptionId);
+      }
+      
+
+      let option = { new: true };
+      let updatedData = {
+          active: constant.SUBSCRIPTION_STATUS.INACTIVE,
+          cancelReason: constant.SUBSCRIPTION_CANCEL_REASON.DRIVER_BLOACKED_BY_ADMIN
+      }
+      
+      await SUBSCRIPTION_MODEL.findOneAndUpdate({subscriptionId: subscriptionId} , updatedData , option);
+
+      await this.informUserSubscriptionCanceledDueToBlock(subscriptionId)
+    }
+    console.log('currentActivePlan---------' , currentActivePlan)
+  } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error terminateSubscriptionForBlockedDriver:', error.message);
+    throw error;
   }
-  console.log('currentActivePlan---------' , currentActivePlan)
 }
 
 exports.informUserSubscriptionCanceledDueToBlock = async (subsctiptionId) => {
