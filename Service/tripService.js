@@ -26,7 +26,14 @@ exports.sendPreTripNotifications =  async () => {
                                                 pickup_date_time: {$gte: (startDateTime), $lte: endDateTime },
                                                 // pickup_date_time: { $gte: thirteenMinutesBefore },
                                                 fifteenMinuteNotification: false,
-                                                driver_name: { $ne: null }
+                                                driver_name: { $ne: null },
+                                                trip_status: { $nin:    [
+                                                                            CONSTANT.TRIP_STATUS.COMPLETED, 
+                                                                            CONSTANT.TRIP_STATUS.CANCELED,
+                                                                            CONSTANT.TRIP_STATUS.PENDING,
+                                                                            CONSTANT.TRIP_STATUS.NO_SHOW,
+                                                                            
+                                                                        ] } 
                                             })
                                             .populate([
                                                         { path: "driver_name" }, 
