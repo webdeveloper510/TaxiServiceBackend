@@ -1195,6 +1195,7 @@ exports.customerCancelTrip = async (req , res) => {
     
     // check if user can cancel the trip before start the trip with given cancellation time
     const {isAllowed , minutesLeft} = await canCustomerCancelTrip(tripInfo , user?.settings?.online_cancellation_time);
+    console.log({isAllowed , minutesLeft})
     if (!isAllowed) {
       return res.send({
                         code: constant.error_code,

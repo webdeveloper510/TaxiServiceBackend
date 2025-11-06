@@ -3662,7 +3662,7 @@ exports.canCustomerCancelTrip = (tripDetails, cancelWindowMinutes = CONSTANT.CUS
   const required = cancelWindowMinutes;
 
   return {
-    allowed: minutesLeft >= required,             
+    isAllowed: minutesLeft >= required,             
     minutesLeft
   };
 }
