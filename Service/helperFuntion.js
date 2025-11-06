@@ -3654,6 +3654,19 @@ exports.getDistanceAndDuration = async (origin, destination) => {
   }
 }
 
+//  2 minutes will be applied for customer cancel timing if no value find in company settings 
+exports.canCustomerCancelTrip = (tripDetails, cancelWindowMinutes = CONSTANT.CUSTOMER_CANCEL_TIMING_TRIP, now = new Date()) => {
+  const start = new Date(tripDetails?.pickup_date_time);              // Mongo stores UTC; Date compares in UTC internally
+  const msLeft = start.getTime() - now.getTime(); // positive if in future
+  const minutesLeft = Math.floor(msLeft / 60000);
+  const required = cancelWindowMinutes;
+
+  return {
+    allowed: minutesLeft >= required,             
+    minutesLeft
+  };
+}
+
 exports.generateInvoiceReceipt = async (stripeCustomerId , tripDetail , isInvoiceForCompany = true) => {
 
   

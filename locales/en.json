@@ -343,7 +343,9 @@
     "customerCancelTrip": {
         "error": {
             "invalidTrip": "This trip is not valid or no longer available.",
-            "tripAlreadyCancelledByUser": "This trip has already been cancelled by the user."
+            "tripAlreadyCancelledByUser": "This trip has already been cancelled by the user.",
+            "customerTripCancelNotAllowed": "You can no longer cancel this trip as it’s scheduled to start soon. Cancellations are only allowed up to {{online_cancellation_time}} hours before the trip start time."
+
         },
         "socket": {
             "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",

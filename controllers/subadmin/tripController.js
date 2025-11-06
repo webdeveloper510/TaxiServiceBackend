@@ -18,7 +18,8 @@ const {
   sendTripUpdateToCustomerViaSMS ,
   sendBookingCancelledEmail ,
   getDistanceAndDuration , 
-  emitTripCancellationRequestByDriver
+  emitTripCancellationRequestByDriver,
+  canCustomerCancelTrip
 } = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
@@ -1176,17 +1177,28 @@ exports.customerCancelTrip = async (req , res) => {
     let criteria = { _id: data.id };
     let tripInfo = await TRIP.findOne(criteria);
 
-    if (!criteria) {
+    if (!tripInfo) {
       return res.send({
                       code: constant.error_code,
                       message: res.__('customerCancelTrip.error.invalidTrip'),
                     });
     }
 
-    if (criteria?.trip_status == constant.TRIP_STATUS.CANCELED) {
+    if (tripInfo?.trip_status == constant.TRIP_STATUS.CANCELED) {
       return res.send({
                         code: constant.error_code,
                         message: res.__('customerCancelTrip.error.tripAlreadyCancelledByUser'),
+                      });
+    }
+
+    let user = await USER.findById(tripInfo?.created_by_company_id);
+    
+    // check if user can cancel the trip before start the trip with given cancellation time
+    const {isAllowed , minutesLeft} = await canCustomerCancelTrip(tripInfo , user?.settings?.online_cancellation_time);
+    if (!isAllowed) {
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('customerCancelTrip.error.customerTripCancelNotAllowed'),
                       });
     }
 
@@ -1201,7 +1213,7 @@ exports.customerCancelTrip = async (req , res) => {
    
     // const driverById = await DRIVER.findOne({ _id: tripInfo?.driver_name });
     const customerName = tripInfo?.customerDetails?.name;
-    let user = await USER.findById(tripInfo?.created_by_company_id);
+    
     const companyAgencyData = await AGENCY.findOne({user_id: tripInfo.created_by_company_id});
     partnerAccountRefreshTrip(tripInfo?.created_by_company_id , res.__('addTrip.socket.tripCreatedRefresh'),  req.io);
 

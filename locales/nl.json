@@ -343,7 +343,9 @@
   "customerCancelTrip": {
     "error": {
       "invalidTrip": "Deze rit is ongeldig of niet langer beschikbaar.",
-      "tripAlreadyCancelledByUser": "Deze rit is al geannuleerd door de gebruiker."
+      "tripAlreadyCancelledByUser": "Deze rit is al geannuleerd door de gebruiker.",
+      "customerTripCancelNotAllowed": "U kunt deze rit niet meer annuleren, omdat deze binnenkort van start gaat. Annuleringen zijn alleen toegestaan tot {{online_cancellation_time}} uur vóór de geplande vertrektijd."
+
     },
     "socket": {
       "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",

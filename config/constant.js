@@ -13,7 +13,8 @@ module.exports={
     DB_SAVE_MS : 15_000,         // ✅ minimum time between DB saves
     JITTER_METERS: 5,            // ignore tiny GPS jitte
     MIN_EMIT_INTERVAL_MS : 4_000,  // ✅ minimum time between frontend emits
-    DRIVER_AUTO_LOGOUT: 120_000 , // 120_000 = 2 * 60 * 1000 = 120 seconds 
+    DRIVER_AUTO_LOGOUT: 120_000 , // 120_000 = 2 * 60 * 1000 = 120 seconds
+    CUSTOMER_CANCEL_TIMING_TRIP: 120, //  2 minutes will be applied if no value find in company settings 
     ADMIN_SETTINGS_SEED: [
         { 
             key: 'commision', 
