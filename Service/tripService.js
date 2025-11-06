@@ -18,7 +18,7 @@ exports.sendPreTripNotifications =  async () => {
         let fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
         let thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
 
-        const { startDateTime, endDateTime  , currentDateTime} = await this.get20thMinuteRangeUTC();
+        const { startDateTime, endDateTime  , currentDateTime , preNotificationTime} = await this.get20thMinuteRangeUTC();
         // fifteenMinutesBefore = new Date(endDateTime);
         // thirteenMinutesBefore = new Date(startDateTime);
 
@@ -43,9 +43,9 @@ exports.sendPreTripNotifications =  async () => {
             if (trip?.driver_name?.deviceToken) {
                 
                 let targetLocale = trip?.driver_name?.app_locale || process.env.DEFAULT_LANGUAGE;
-                let driverNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+                let driverNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `${preNotificationTime} minutes`});
     
-                let driverNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+                let driverNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `${preNotificationTime} minutes`});
                 sendNotification( trip?.driver_name?.deviceToken, driverNotificationMessage, driverNotificationTitle, trip )
             }
 
@@ -53,9 +53,9 @@ exports.sendPreTripNotifications =  async () => {
             if (trip?.driver_name?.webDeviceToken) {
                     
                 let targetLocale = trip?.driver_name?.web_locale || process.env.DEFAULT_LANGUAGE;
-                let driverNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+                let driverNotificationMessage = i18n.__({ phrase: "editTrip.notification.driverPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `${preNotificationTime} minutes`});
         
-                let driverNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+                let driverNotificationTitle = i18n.__({ phrase: "editTrip.notification.driverPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `${preNotificationTime} minutes`});
                 sendNotification( trip?.driver_name?.webDeviceToken, driverNotificationMessage, driverNotificationTitle, trip )
             }
             
@@ -63,9 +63,9 @@ exports.sendPreTripNotifications =  async () => {
             if (trip.created_by_company_id?.deviceToken) {
                 
                 let targetLocale = trip?.created_by_company_id?.app_locale || process.env.DEFAULT_LANGUAGE;
-                let companyNotificationMessage = i18n.__({ phrase: "editTrip.notification.companyPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+                let companyNotificationMessage = i18n.__({ phrase: "editTrip.notification.companyPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `${preNotificationTime} minutes`});
         
-                let companyNotificationTitle = i18n.__({ phrase: "editTrip.notification.companyPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+                let companyNotificationTitle = i18n.__({ phrase: "editTrip.notification.companyPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `${preNotificationTime} minutes`});
         
                 sendNotification( trip.created_by_company_id?.deviceToken, companyNotificationMessage, companyNotificationTitle, trip )
             }
@@ -74,9 +74,9 @@ exports.sendPreTripNotifications =  async () => {
             if (trip.created_by_company_id?.webDeviceToken) {
                 
                 let targetLocale = trip?.created_by_company_id?.web_locale || process.env.DEFAULT_LANGUAGE;
-                let companyNotificationMessage = i18n.__({ phrase: "editTrip.notification.companyPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+                let companyNotificationMessage = i18n.__({ phrase: "editTrip.notification.companyPreNotificationMessage", locale: targetLocale }, { trip_id: trip.trip_id  , time: `${preNotificationTime} minutes`});
         
-                let companyNotificationTitle = i18n.__({ phrase: "editTrip.notification.companyPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `20 minutes`});
+                let companyNotificationTitle = i18n.__({ phrase: "editTrip.notification.companyPreNotificationTitle", locale: targetLocale }, { trip_id: trip.trip_id  , time: `${preNotificationTime} minutes`});
         
                 sendNotification( trip.created_by_company_id?.webDeviceToken, companyNotificationMessage, companyNotificationTitle, trip )
             }
@@ -195,5 +195,5 @@ exports.get20thMinuteRangeUTC = async () => {
                       
   endDateTime = endDateTime.toISOString();
   
-  return { startDateTime, endDateTime , currentDateTime};
+  return { startDateTime, endDateTime , currentDateTime , preNotificationTime};
 };
