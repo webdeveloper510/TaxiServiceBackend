@@ -248,7 +248,7 @@ function registerDriverHandlers(io, socket) {
             console.log(`🏢 Company ${driverId} subscribed`, bounds);
 
             const driverList = await getDriversInBounds(bounds , driverId , socket)
-
+            console.log("driverList--------" , driverList)
             return ack({
                         code: CONSTANT.success_code,
                         message: 'driver subscribed successfully',

@@ -1599,7 +1599,7 @@ exports.logout = async (req, res) => {
     //   { is_login: false },
     //   { new: true }
     // );
-
+    const isAppUser = data?.platform == constant.PLATFORM.MOBILE;
     let driverInfo = await DRIVER.findOne({ _id: data.driverId });
     let user_info = await USER.findOne({ _id: data.driverId });
 
@@ -1624,8 +1624,11 @@ exports.logout = async (req, res) => {
                                                   {
                                                     $set: { 
                                                             is_login: false, 
-                                                            deviceToken: null, // driver will not recieve any notification in his device
-                                                            webDeviceToken: null,
+                                                            ...(isAppUser
+                                                                ? { deviceToken: null }       // if from mobile app
+                                                                : { webDeviceToken: null }    // if user from website
+                                                              )   
+                                                            ,
                                                             status: isTripUnderCancellationReview ? true : false // driver will be offline
                                                             },
                                                   }
@@ -1639,7 +1642,12 @@ exports.logout = async (req, res) => {
         let companyUpdate = await USER.updateOne(
                                                   { _id: driverInfo?.driver_company_id },
                                                   {
-                                                    $set: { deviceToken: null   , webDeviceToken: null,},
+                                                    $set: {
+                                                            ...(isAppUser
+                                                              ? { deviceToken: null }      // if from mobile app
+                                                              : { webDeviceToken: null }   // if from web
+                                                            )
+                                                          },
                                                   }
                                                 );
       }
@@ -1648,7 +1656,12 @@ exports.logout = async (req, res) => {
       let companyUpdate = await USER.updateOne(
                                                 { _id: data.driverId },
                                                 {
-                                                  $set: { deviceToken: null  , webDeviceToken: null,},
+                                                  $set:   {
+                                                            ...(isAppUser
+                                                              ? { deviceToken: null }      // if from mobile app
+                                                              : { webDeviceToken: null }   // if from web
+                                                            )
+                                                          },
                                                 }
                                               );
 
@@ -1671,8 +1684,10 @@ exports.logout = async (req, res) => {
                                                     {
                                                       $set: { 
                                                               is_login: false, 
-                                                              deviceToken: null, // driver will not recieve any notification in his device,
-                                                              webDeviceToken: null,
+                                                              ...(isAppUser
+                                                                    ? { deviceToken: null }      // if from mobile app
+                                                                    : { webDeviceToken: null }   // if from web
+                                                                  ),
                                                               status: isTripUnderCancellationReview ? true : false // driver will be offline
                                                             },
                                                     }

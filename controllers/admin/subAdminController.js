@@ -2156,6 +2156,7 @@ exports.companyListByRevenue = async (req, res) => {
     
     // Match criteria for filtering users
     
+    // if comiison is 0 and trip will completed then we willl assume like company already get paid
     const matchCriteria = {
       $and: [
         { role: constant.ROLES.COMPANY },
@@ -2163,7 +2164,11 @@ exports.companyListByRevenue = async (req, res) => {
           "trip_data": {
             $elemMatch: {
               trip_status: constant.TRIP_STATUS.COMPLETED,
-              is_company_paid: isCompanyPaid,
+              // is_company_paid: isCompanyPaid,
+              ...(isCompanyPaid
+                                ? { $or: [{ is_company_paid: true }, { "commission.commission_value": 0 }] }
+                                : { $and: [{ is_company_paid: false }, { "commission.commission_value": { $gt: 0 } }] }
+                  ),
               ...(dateQuery?.pickup_date_time ? dateQuery : {})
             }
           }
@@ -2205,6 +2210,32 @@ exports.companyListByRevenue = async (req, res) => {
     const totalDocuments = totalCount[0]?.total || 0;
     const totalPages = Math.ceil(totalDocuments / limit);
 
+    // ---------- Paid condition for $addFields filter (aggregation syntax) ----------
+    // This must mirror the JS logic above but with $$trip variable.
+    let paidFilterCondAgg = null;
+    if (isCompanyPaid === true) {
+      paidFilterCondAgg = {
+        $or: [
+          { $eq: ["$$trip.is_company_paid", true] },
+          { $eq: ["$$trip.commission.commission_value", 0] }
+        ]
+      };
+    } else if (isCompanyPaid === false) {
+      paidFilterCondAgg = {
+        $and: [
+          { $eq: ["$$trip.is_company_paid", false] },
+          { $gt: ["$$trip.commission.commission_value", 0] }
+        ]
+      };
+    }
+
+    // cond for $filter: always require COMPLETED, optionally also paid/unpaid condition
+    const baseCompletedCond = { $eq: ["$$trip.trip_status", constant.TRIP_STATUS.COMPLETED] };
+    const fullTripFilterCond =
+      paidFilterCondAgg
+        ? { $and: [baseCompletedCond, paidFilterCondAgg] }
+        : baseCompletedCond; // if isCompanyPaid == null, just completed trips
+
     // Paginated data with total_paid_trip_amount
     const searchUser = await USER.aggregate([
       {
@@ -2241,12 +2272,13 @@ exports.companyListByRevenue = async (req, res) => {
                   $filter: {
                     input: "$trip_data",
                     as: "trip",
-                    cond: {
-                      $and: [
-                        { $eq: ["$$trip.trip_status", constant.TRIP_STATUS.COMPLETED] },
-                        { $eq: ["$$trip.is_company_paid", isCompanyPaid] }
-                      ]
-                    }
+                    cond:fullTripFilterCond
+                    // cond: {
+                    //   $and: [
+                    //     { $eq: ["$$trip.trip_status", constant.TRIP_STATUS.COMPLETED] },
+                    //     { $eq: ["$$trip.is_company_paid", isCompanyPaid] }
+                    //   ]
+                    // }
                   }
                 },
                 as: "trip",
@@ -2307,6 +2339,7 @@ exports.companyListByRevenue = async (req, res) => {
       { $skip: skip },
       { $limit: limit }
     ]);
+
     if (!searchUser) {
       res.send({
         code: constant.error_code,
