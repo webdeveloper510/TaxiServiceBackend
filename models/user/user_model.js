@@ -80,7 +80,7 @@ const user = new Schema(
     },
     profile_image: {
       type: String,
-      default: "",
+      default: "https://taxiprojectfiles.s3.us-east-1.amazonaws.com/taxibooking/item-1762659838004-863566428",
     },
     role: {
       type: String,
