@@ -38,14 +38,40 @@ async function broadcastDriverLocation(io, driverId, details) {
 
         if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
         
-        if (!(await canShowOnMap(details))) return true; // check if it is eligible or not to show on the map
+        // Read last known lat/lng and previously visible rooms in one shot
+        const [lat, lng, visibleRoomsJson] = await redis.hmget( driverKey, "lat", "lng", "visibleRooms" );
 
-        
+        if (!lat || !lng) return;
 
-        const [lat, lng] = await redis.hmget(driverKey, "lat", "lng");
+        // const [lat, lng] = await redis.hmget(driverKey, "lat", "lng");
         const point = { lat: parseFloat(lat), lng: parseFloat(lng) };
 
-        // all 4 index sets
+        let prevVisibleRooms = [];
+
+        if (visibleRoomsJson) {
+          try {
+            prevVisibleRooms = JSON.parse(visibleRoomsJson);
+            if (!Array.isArray(prevVisibleRooms)) prevVisibleRooms = [];
+          } catch {
+            prevVisibleRooms = [];
+          }
+        }
+
+        // If driver is no longer allowed to be shown → remove from all previous rooms
+        if (!(await canShowOnMap(details))) { // check if it is eligible or not to show on the map
+
+          if (prevVisibleRooms.length) {
+            for (const room of prevVisibleRooms) {
+              // io.to(room).emit("driver::app:outOfBounds", { driverId });
+              console.log('removed---driver---------' , details?.email)
+              io.to(room).emit("driver:removed", details);
+            }
+            await redis.hset(driverKey, { visibleRooms: JSON.stringify([]) });
+          }
+          return;
+        }
+
+        // all 4 index sets (Collect all bounds keys from all index sets ) ---
         const indexSets = [
           "bounds:index:app:company",
           "bounds:index:web:company",
@@ -74,7 +100,17 @@ async function broadcastDriverLocation(io, driverId, details) {
 
 
         // Nothing to do if no bounds
-        if (!boundsKeys.length) return;
+        if (!boundsKeys.length) {
+          // No active bounds at all → if driver was previously visible, mark them as gone
+          if (prevVisibleRooms.length) {
+            for (const room of prevVisibleRooms) {
+              // io.to(room).emit("driver::app:outOfBounds", { driverId });
+              io.to(room).emit("driver:removed", details);
+            }
+            await redis.hset(driverKey, { visibleRooms: JSON.stringify([]) });
+          }
+          return;
+        }
 
 
         // ✅ Batch fetch all bounds at once
@@ -109,6 +145,22 @@ async function broadcastDriverLocation(io, driverId, details) {
         );
         
 
+        // --- 4) Diff with previous visibleRooms ---
+        const prevSet = new Set(prevVisibleRooms);
+        const newSet = new Set(matchedRooms);
+
+        const roomsToAdd = [];
+        const roomsToRemove = [];
+
+        for (const room of matchedRooms) {
+          if (!prevSet.has(room)) roomsToAdd.push(room);
+        }
+
+        for (const room of prevVisibleRooms) {
+          if (!newSet.has(room)) roomsToRemove.push(room);
+        }
+
+        // --- 5) Emit "inBounds" for newly entered rooms ---
         // 4️⃣ Emit updates
         if (matchedRooms.length) {
           const payload = {
@@ -123,119 +175,33 @@ async function broadcastDriverLocation(io, driverId, details) {
             io.to(room).emit("driver::app:inBounds", payload);
           }
 
-          console.log(
-            // `📡 Broadcasted to ${matchedRooms.length} rooms for driver ${details.email}`
-          );
+          console.log(`📡 Broadcasted to ${matchedRooms.length} rooms for driver ${details.email}`);
         }
 
-        // for (let index = 0; index < indexResults.length; index++) {
 
-        //   const [err, keys] = indexResults[index];
-        //   if (err || !keys || !keys.length) continue;        
+        // --- 6) Emit "outOfBounds" for rooms that lost this driver ---
+        if (roomsToRemove.length) {
+          for (const room of roomsToRemove) {
+            console.log('removed---driver- end--------' , details?.email)
+            io.to(room).emit("driver:removed", details);
+            // io.to(room).emit("driver::app:outOfBounds", { driverId });
+          }
+        }
 
-        //   // 2️⃣ Batch MGET for all keys of this index set
-        //   const mgetPipeline = redis.pipeline();
-        //   keys.forEach((k) => mgetPipeline.get(k));
-        //   const mgetResults = await mgetPipeline.exec();
+        // --- 7) Persist the new visibleRooms set ---
+        if (roomsToAdd.length || roomsToRemove.length) {
+          await redis.hset(driverKey, {
+            visibleRooms: JSON.stringify(matchedRooms),
+            lastUpdate: Date.now(),
+          });
+        }
 
-        //   // 3️⃣ Process all valid results together
-        //   const insideRooms = [];
-
-        //   for (let i = 0; i < keys.length; i++) {
-        //     const key = keys[i];
-        //     const [err2, boundsStr] = mgetResults[i];
-
-        //     if (err2 || !boundsStr) {
-        //       await redis.srem(indexSets[index], key); // cleanup invalid key
-        //       continue;
-        //     }
-
-        //     // Fast JSON parsing
-        //     let bounds;
-        //     try {
-        //       bounds = JSON.parse(boundsStr);
-        //     } catch {
-        //       await redis.srem(indexSets[index], key);
-        //       continue;
-        //     }
-
-        //     // ✅ Only push rooms that match
-        //     if (isInsideBounds(point, bounds)) insideRooms.push(key);
-        //   }
-
-        //   // 4️⃣ Emit all matched sockets in one batch (non-blocking)
-        //   if (insideRooms.length) {
-        //     for (const room of insideRooms) {
-        //       io.to(room).emit("driver::app:inBounds", {
-        //                                                   driverId: String(driverId),
-        //                                                   lat,
-        //                                                   lng,
-        //                                                   details,
-        //                                                   lastUpdate: Date.now(),
-        //                                                 }
-        //                       );
-        //     }
-        //     console.log(`📡 Sent ${insideRooms.length} updates from ${indexSets[index]} for`, details.email);
-        //   }
-        // }
+        
+        
+        
+        // -------------------------------------------
 
 
-        // -------------------------------------------------------------------------------------------------------------------
-
-        // for (const indexKey of indexSets) {
-        //   const keyValue = await redis.smembers(indexKey);
-          
-        //   if (!keyValue.length) continue;
-
-        //   const values = await redis.mget(keyValue);
-         
-        //   for (let i = 0; i < keyValue.length; i++) {
-
-        //     const sokcetRoom = keyValue[i];
-        //     const boundsStr = values[i];
-        //     const parseBounds = JSON.parse(boundsStr);
-            
-
-        //     if (isInsideBounds(point, parseBounds)) {
-
-        //       io.to(sokcetRoom).emit("driver::app:inBounds",  {
-        //                                                         driverId: String(driverId),
-        //                                                         lat,
-        //                                                         lng,
-        //                                                         details,
-        //                                                         lastUpdate: Date.now(),
-        //                                                       }
-        //                                               );
-        //       console.log('sent single driver--------' , details.email)
-        //     }
-        //   }
-        // }
-
-        // ----------------------------------------------------------------------------------------------------------------------------
-      
-        //  const keys = await redis.keys("bounds:*:*");
-        // for (const key of keys) {
-        //     if (key.startsWith("bounds:index:")) continue;
-        //     const [, clientType, id] = key.split(":"); // bounds:app:123 or bounds:web:123
-        //     const boundsStr = await redis.get(key);
-        //     if (!boundsStr) continue;
-
-        //     const bounds = JSON.parse(boundsStr);
-        //     const point = { lat: parseFloat(lat), lng: parseFloat(lng) };
-
-        //     if (isInsideBounds(point, bounds)) {
-              
-        //       io.to(`bounds:${clientType}:${id}`).emit("driver::app:inBounds",    {
-        //                                                                               driverId: String(driverId),
-        //                                                                               lat,
-        //                                                                               lng,
-        //                                                                               details,
-        //                                                                               lastUpdate: Date.now(),
-        //                                                                           }
-        //                                               );
-        //       console.log('sent single driver--------' , details.email)
-        //     }
-        // }
     } catch (err) {
       
       console.log("❌❌❌❌❌❌❌❌❌Error broadcastDriverLocation:",  err.message);
@@ -243,6 +209,222 @@ async function broadcastDriverLocation(io, driverId, details) {
     }
   
 }
+
+
+/** notifies all subscribed rooms whose saved bounds include this driver lat/lng */
+// async function broadcastDriverLocation(io, driverId, details) {
+//     try {
+
+//         driverId = String(driverId);
+//         const driverKey = `driver:${driverId}`;
+
+//         if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
+        
+//         if (!(await canShowOnMap(details))) return true; // check if it is eligible or not to show on the map
+
+        
+
+//         const [lat, lng] = await redis.hmget(driverKey, "lat", "lng");
+//         const point = { lat: parseFloat(lat), lng: parseFloat(lng) };
+
+//         // all 4 index sets
+//         const indexSets = [
+//           "bounds:index:app:company",
+//           "bounds:index:web:company",
+//           "bounds:index:app:driver",
+//           "bounds:index:web:driver",
+//         ];
+
+//         // ✅ Fetch all index members in one pipeline
+//         const indexPipeline = redis.pipeline();
+//         indexSets.forEach(k => indexPipeline.smembers(k));
+//         const indexResults = await indexPipeline.exec();
+
+
+//         // ✅ Second pipeline for all GETs combined
+//         const boundsKeys = [];
+//         const indexMap = {};
+
+//         for (let i = 0; i < indexResults.length; i++) {
+          
+//           const [err, keys] = indexResults[i];
+//           if (err || !keys?.length) continue;
+
+//           indexMap[indexSets[i]] = keys;
+//           boundsKeys.push(...keys);
+//         }
+
+
+//         // Nothing to do if no bounds
+//         if (!boundsKeys.length) return;
+
+
+//         // ✅ Batch fetch all bounds at once
+//         const boundsPipeline = redis.pipeline();
+//         boundsKeys.forEach(k => boundsPipeline.get(k));
+//         const boundsResults = await boundsPipeline.exec();
+
+//         const boundsMap = new Map();
+
+
+//         for (let i = 0; i < boundsKeys.length; i++) {
+//           const [err, data] = boundsResults[i];
+//           if (err || !data) continue;
+
+//           try {
+//             boundsMap.set(boundsKeys[i], JSON.parse(data));
+//           } catch {
+//             const indexKey = Object.keys(indexMap).find(k =>
+//               indexMap[k].includes(boundsKeys[i])
+//             );
+//             if (indexKey) await redis.srem(indexKey, boundsKeys[i]);
+//           }
+//         }
+
+//         // 3️⃣ Parallel bounds checking
+//         const matchedRooms = [];
+
+//         await Promise.all(
+//           Array.from(boundsMap.entries()).map(async ([roomKey, bounds]) => {
+//             if (isInsideBounds(point, bounds)) matchedRooms.push(roomKey);
+//           })
+//         );
+        
+
+//         // 4️⃣ Emit updates
+//         if (matchedRooms.length) {
+//           const payload = {
+//             driverId: String(driverId),
+//             lat,
+//             lng,
+//             details,
+//             lastUpdate: Date.now(),
+//           };
+
+//           for (const room of matchedRooms) {
+//             io.to(room).emit("driver::app:inBounds", payload);
+//           }
+
+//           console.log(
+//             // `📡 Broadcasted to ${matchedRooms.length} rooms for driver ${details.email}`
+//           );
+//         }
+
+//         // for (let index = 0; index < indexResults.length; index++) {
+
+//         //   const [err, keys] = indexResults[index];
+//         //   if (err || !keys || !keys.length) continue;        
+
+//         //   // 2️⃣ Batch MGET for all keys of this index set
+//         //   const mgetPipeline = redis.pipeline();
+//         //   keys.forEach((k) => mgetPipeline.get(k));
+//         //   const mgetResults = await mgetPipeline.exec();
+
+//         //   // 3️⃣ Process all valid results together
+//         //   const insideRooms = [];
+
+//         //   for (let i = 0; i < keys.length; i++) {
+//         //     const key = keys[i];
+//         //     const [err2, boundsStr] = mgetResults[i];
+
+//         //     if (err2 || !boundsStr) {
+//         //       await redis.srem(indexSets[index], key); // cleanup invalid key
+//         //       continue;
+//         //     }
+
+//         //     // Fast JSON parsing
+//         //     let bounds;
+//         //     try {
+//         //       bounds = JSON.parse(boundsStr);
+//         //     } catch {
+//         //       await redis.srem(indexSets[index], key);
+//         //       continue;
+//         //     }
+
+//         //     // ✅ Only push rooms that match
+//         //     if (isInsideBounds(point, bounds)) insideRooms.push(key);
+//         //   }
+
+//         //   // 4️⃣ Emit all matched sockets in one batch (non-blocking)
+//         //   if (insideRooms.length) {
+//         //     for (const room of insideRooms) {
+//         //       io.to(room).emit("driver::app:inBounds", {
+//         //                                                   driverId: String(driverId),
+//         //                                                   lat,
+//         //                                                   lng,
+//         //                                                   details,
+//         //                                                   lastUpdate: Date.now(),
+//         //                                                 }
+//         //                       );
+//         //     }
+//         //     console.log(`📡 Sent ${insideRooms.length} updates from ${indexSets[index]} for`, details.email);
+//         //   }
+//         // }
+
+
+//         // -------------------------------------------------------------------------------------------------------------------
+
+//         // for (const indexKey of indexSets) {
+//         //   const keyValue = await redis.smembers(indexKey);
+          
+//         //   if (!keyValue.length) continue;
+
+//         //   const values = await redis.mget(keyValue);
+         
+//         //   for (let i = 0; i < keyValue.length; i++) {
+
+//         //     const sokcetRoom = keyValue[i];
+//         //     const boundsStr = values[i];
+//         //     const parseBounds = JSON.parse(boundsStr);
+            
+
+//         //     if (isInsideBounds(point, parseBounds)) {
+
+//         //       io.to(sokcetRoom).emit("driver::app:inBounds",  {
+//         //                                                         driverId: String(driverId),
+//         //                                                         lat,
+//         //                                                         lng,
+//         //                                                         details,
+//         //                                                         lastUpdate: Date.now(),
+//         //                                                       }
+//         //                                               );
+//         //       console.log('sent single driver--------' , details.email)
+//         //     }
+//         //   }
+//         // }
+
+//         // ----------------------------------------------------------------------------------------------------------------------------
+      
+//         //  const keys = await redis.keys("bounds:*:*");
+//         // for (const key of keys) {
+//         //     if (key.startsWith("bounds:index:")) continue;
+//         //     const [, clientType, id] = key.split(":"); // bounds:app:123 or bounds:web:123
+//         //     const boundsStr = await redis.get(key);
+//         //     if (!boundsStr) continue;
+
+//         //     const bounds = JSON.parse(boundsStr);
+//         //     const point = { lat: parseFloat(lat), lng: parseFloat(lng) };
+
+//         //     if (isInsideBounds(point, bounds)) {
+              
+//         //       io.to(`bounds:${clientType}:${id}`).emit("driver::app:inBounds",    {
+//         //                                                                               driverId: String(driverId),
+//         //                                                                               lat,
+//         //                                                                               lng,
+//         //                                                                               details,
+//         //                                                                               lastUpdate: Date.now(),
+//         //                                                                           }
+//         //                                               );
+//         //       console.log('sent single driver--------' , details.email)
+//         //     }
+//         // }
+//     } catch (err) {
+      
+//       console.log("❌❌❌❌❌❌❌❌❌Error broadcastDriverLocation:",  err.message);
+       
+//     }
+  
+// }
 
 /** stores driver position in Redis (GEO + HASH) and broadcasts */
 async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, details) {
@@ -557,7 +739,7 @@ async function updateDriverMapCache (driverId) {
     const getDriverDetails = await activeDriverInfo(driverId);
 
     await redis.set(key, JSON.stringify(getDriverDetails));
-    console.log('Cache updated:', key);
+    // console.log('Cache updated:', key);
 
     const driverKey = `driver:${driverId}`;
 
@@ -566,7 +748,7 @@ async function updateDriverMapCache (driverId) {
     if (isDriverExistInCache) {
       // Update only the 'details' field
       await redis.hset(driverKey, 'details', JSON.stringify(getDriverDetails));
-      console.log('cache details update for the exist driver----------')
+      // console.log('cache details update for the exist driver----------')
     } else {
       console.log('no driver already found for redis --------------------')
     }
