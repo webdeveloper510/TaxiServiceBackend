@@ -6,9 +6,9 @@ const AGENCY_MODEL = require("../models/user/agency_model.js");;
 const CONSTANT = require("../config/constant.js");
 const SETTING_MODEL = require('../models/user/setting_model')
 const i18n = require('../i18n');
-const {  sendNotification } = require("./helperFuntion");
+const {  sendNotification  , sendBookingUpdateDateTimeEmail , sendTripUpdateToCustomerViaSMS} = require("./helperFuntion");
 
-exports.sendPreTripNotifications =  async () => {
+exports.sendDriverPreTripNotifications =  async () => {
 
     try {
         const currentDate = new Date();
@@ -18,7 +18,18 @@ exports.sendPreTripNotifications =  async () => {
         let fifteenMinutesBefore = new Date(currentDate.getTime() + 15 * 60000); // Add 15 minutes in milliseconds  console.log("🚀 ~ checkTripsAndSendNotifications ~ fifteenMinutesBefore:", fifteenMinutesBefore)
         let thirteenMinutesBefore = new Date(currentDate.getTime() + 13 * 60000);
 
-        const { startDateTime, endDateTime  , currentDateTime , preNotificationTime} = await this.get20thMinuteRangeUTC();
+        const adminPrepreNotificationTime = await SETTING_MODEL.findOne({key: CONSTANT.ADMIN_SETTINGS.PRE_NOTIFICATION_TIME});
+
+        let preNotificationTime = 15; // sensible default
+
+        if ( adminPrepreNotificationTime && adminPrepreNotificationTime.value !== undefined ) {
+            const parsed = parseInt(parseFloat(adminPrepreNotificationTime.value));
+            if (!isNaN(parsed)) {
+                preNotificationTime = parsed;
+            }
+        }
+
+        const { startDateTime, endDateTime  , currentDateTime} = await this.computePreNotificationTimeWindow(preNotificationTime);
         // fifteenMinutesBefore = new Date(endDateTime);
         // thirteenMinutesBefore = new Date(startDateTime);
 
@@ -160,17 +171,76 @@ exports.sendPreTripNotifications =  async () => {
                                       );
     } catch (error) {
     
-        console.log("❌❌❌❌❌❌❌❌❌Error runPayoutsBatch:",  error.message);
+        console.log("❌❌❌❌❌❌❌❌❌Error sendDriverPreTripNotifications:",  error.message);
     
     // throw error;
   }
 }
 
-exports.get20thMinuteRangeUTC = async () => {
 
-  const adminPrepreNotificationTime = await SETTING_MODEL.findOne({key: CONSTANT.ADMIN_SETTINGS.PRE_NOTIFICATION_TIME});
+exports.sendCustomerPreTripNotifications =  async () => {
 
-  const preNotificationTime = parseInt(parseFloat(adminPrepreNotificationTime.value))
+    try {
+
+        const preNotificationTime = CONSTANT.CUSTOMER_PRE_TRIP_NOTIFICATION_TIME; // fixed 10 minutes for customer
+        const { startDateTime, endDateTime } = await exports.computePreNotificationTimeWindow(preNotificationTime);
+    
+        
+        // Fetch trips: in window, valid email, not already notified
+        const trips = await TRIP_MODEL.find({
+                                                pickup_date_time: { $gte: startDateTime, $lte: endDateTime },
+                                                trip_status: {
+                                                    $nin: [
+                                                    CONSTANT.TRIP_STATUS.COMPLETED,
+                                                    CONSTANT.TRIP_STATUS.CANCELED,
+                                                    CONSTANT.TRIP_STATUS.NO_SHOW,
+                                                    ],
+                                                },
+                                                "customerDetails.email": { $nin: [null, ""] },
+                                                customerPreNotificationSent: { $ne: true },
+                                            }).populate([
+                                                            { path: "created_by_company_id", select: "name email settings app_locale web_locale" },
+                                                        ]);
+
+        const ids = [];
+
+        for (let trip of trips) {
+
+            const customer = trip.customerDetails || {};
+            const customerEmail = customer.email;
+            
+            if (!customerEmail) continue;
+            
+            const targetLocale = process.env.DEFAULT_LANGUAGE || "en";
+
+            sendBookingUpdateDateTimeEmail(trip);
+
+            if (trip.created_by_company_id?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
+                sendTripUpdateToCustomerViaSMS(trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
+            }
+            ids.push(trip._id);
+        }
+
+        if (ids.length) {
+            await TRIP_MODEL.updateMany(
+                                            { _id: { $in: ids } },
+                                            {
+                                            $set: {
+                                                customerPreNotificationSent: true,
+                                            },
+                                            }
+                                        );
+        }
+    } catch (error) {
+    
+        console.log("❌❌❌❌❌❌❌❌❌Error sendCustomerPreTripNotifications:",  error.message);
+    
+        // throw error;
+    }
+}
+
+exports.computePreNotificationTimeWindow = async (preNotificationTime = 20) => {
+
   let currentTime = new Date();
 
   let currentDateTime = new Date();

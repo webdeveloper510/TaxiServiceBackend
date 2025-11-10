@@ -15,6 +15,7 @@ module.exports={
     MIN_EMIT_INTERVAL_MS : 4_000,  // ✅ minimum time between frontend emits
     DRIVER_AUTO_LOGOUT: 120_000 , // 120_000 = 2 * 60 * 1000 = 120 seconds
     CUSTOMER_CANCEL_TIMING_TRIP: 120, //  2 minutes will be applied if no value find in company settings 
+    CUSTOMER_PRE_TRIP_NOTIFICATION_TIME: 10, // cutsomer will get notification 10 minutes before the trip start time
     ADMIN_SETTINGS_SEED: [
         { 
             key: 'commision', 

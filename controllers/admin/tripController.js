@@ -359,7 +359,7 @@ exports.add_trip_link = async (req, res) => {
 
     let origin = `${ data.trip_from.lat},${data.trip_from.log}`;
     let destination = `${data.trip_to.lat},${data.trip_to.log}`;
-    let distanceInfo = await getDistanceAndDuration(origin , destination)
+    let distanceInfo = await getDistanceAndDuration(origin , destination);
     data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
 
   //  res.send({

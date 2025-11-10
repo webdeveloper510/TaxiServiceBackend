@@ -195,7 +195,10 @@ const trip = new Schema({
             },
             hotelRoomNumber: {
                 type:String,
-            }
+            },
+            language: {
+                type:String,
+            },
         }
     },
     created_by:{
@@ -414,6 +417,12 @@ const trip = new Schema({
         type: Boolean,
         default: false,
     },
+
+    customerPreNotificationSent: {
+        type: Boolean,
+        default: false,
+    },
+
     hosted_invoice_url:{
         type:String,
         default: ""

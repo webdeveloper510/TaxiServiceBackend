@@ -3272,6 +3272,7 @@ exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
        
         if (companyDetail.sms_balance < process.env.MINIMUM_SMS_BALANCE_ALERT) { // send an alert email when company sms balance will less than minimum balance
           this.notifyLowSmsBalance(tripDetail)
+          console.log(`⚠️⚠️⚠️⚠️⚠️ Low SMS Balance Alert sent to company ID: ${companyDetail?.email}`);
         }
       }
     }

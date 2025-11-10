@@ -583,11 +583,11 @@ exports.edit_trip = async (req, res) => {
       // When driver will go to for pick the customer (On the way) then customer will be notify
       if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
 
-        sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
+        // sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
         const companyDetail = await USER.findById(data?.created_by_company_id);
         if (companyDetail?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
           
-          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
+          // sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
         }
 
         // Store the driver status and trip id into driver profile to track on which trip driver working currently
