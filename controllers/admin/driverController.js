@@ -1599,10 +1599,10 @@ exports.logout = async (req, res) => {
     //   { is_login: false },
     //   { new: true }
     // );
-    const isAppUser = data?.platform == constant.PLATFORM.MOBILE;
+    const isAppUser = req.headers.platform == constant.PLATFORM.MOBILE;
     let driverInfo = await DRIVER.findOne({ _id: data.driverId });
     let user_info = await USER.findOne({ _id: data.driverId });
-
+    
     if (driverInfo) {
 
       const canDriverLogout = await this.canLogout(data.driverId);
