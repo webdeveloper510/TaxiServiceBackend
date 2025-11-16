@@ -25,6 +25,7 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const i18n = require('./i18n');
 const { startAllCrons } = require("./cronjobs");
 const { initSocket } = require("./sockets");
+const cleanupOrphanDrivers = require("./utils/cleanupOrphanDrivers.js")
 // view engine setup
 
 
@@ -128,34 +129,21 @@ httpServer.listen(PORT, async() => {
   }
 );
 
+/**
+ * 🔥 RUN CODE AFTER MONGO DB IS CONNECTED
+ */
+mongoose.connection.once('open', async () => {
+  console.log("📡 MongoDB connected (once)");
+
+  await cleanupOrphanDrivers(io);   // <--- Your custom function with socket
+
+  console.log("✅ postDbInit() finished running.");
+});
+
 
 app.use(function (req, res, next) {
   next(createError(404));
 });
 
-
-
-
-// async function logoutDriverAfterThreeHour() {
-//   try {
-//     const now = new Date();
-//     const threeHoursBefore = new Date(now.getTime() - 3 * 60 * 60 * 1000);
-//     let user = await driver_model.updateMany(
-//       { is_login: true, lastUsedToken: { $lte: threeHoursBefore } },
-//       { $set: { is_login: false } }
-//     );
-//   } catch (error) {
-//     console.log("🚀 ~ logout driver 3 hour ~ error:", error);
-//   }
-// }
-
-
-
-
-// Schedule the task using cron for every minute
-// cron.schedule("* * * * *", () => {
-  
-//   // logoutDriverAfterThreeHour()
-// });
 
 module.exports = app;
