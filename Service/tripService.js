@@ -182,10 +182,11 @@ exports.sendCustomerPreTripNotifications =  async () => {
 
     try {
 
+        
         const preNotificationTime = CONSTANT.CUSTOMER_PRE_TRIP_NOTIFICATION_TIME; // fixed 10 minutes for customer
         const { startDateTime, endDateTime } = await exports.computePreNotificationTimeWindow(preNotificationTime);
     
-        
+        console.log("🚀 ~ sendCustomerPreTripNotifications ~ Running customer pre trip notification cron job" , new Date() , { startDateTime, endDateTime });
         // Fetch trips: in window, valid email, not already notified
         const trips = await TRIP_MODEL.find({
                                                 pickup_date_time: { $gte: startDateTime, $lte: endDateTime },
@@ -216,7 +217,7 @@ exports.sendCustomerPreTripNotifications =  async () => {
             sendBookingUpdateDateTimeEmail(trip);
 
             if (trip.created_by_company_id?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
-                sendTripUpdateToCustomerViaSMS(trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
+                sendTripUpdateToCustomerViaSMS(trip , CONSTANT.SMS_EVENTS.DRIVER_ON_THE_WAY);
             }
             ids.push(trip._id);
         }
