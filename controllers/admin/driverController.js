@@ -1242,6 +1242,8 @@ exports.update_driver = async (req, res) => {
           successMessage = res.__('updateDriver.success.driverAccountUpdated');
         }
 
+        updateDriverMapCache(driverId);   // update driver profile cache
+
         res.send({
           code: constant.success_code,
           message: successMessage,

@@ -471,11 +471,14 @@ exports.delete_vehicle = async (req, res) => {
         
         let option = { new: true }
         let deleteOption = await VEHICLE.findOneAndUpdate(criteria, newValue, option)
-        if(req.user.defaultVehicle.toString() == req.params.id)
+        if(req.user?.defaultVehicle?.toString() == req.params.id)
         {
             const driverInfo = await driver_model.findById(req.user._id);
             driverInfo.defaultVehicle = null;
-            await driverInfo.save()
+            await driverInfo.save();
+            const driverId = driverInfo._id;
+            updateDriverMapCache(driverId);   // update driver profile cache
+            removeDriverForSubscribedClients(driverInfo , req.io)
         }
         if (!deleteOption) {
             res.send({

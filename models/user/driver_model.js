@@ -175,7 +175,7 @@ const driver = new Schema(
     driver_state: { // check if driver is online , oflline  , on the way for trip , on the active trip
       type: String,
       enum: DRIVER_STATE_TYPE_ENUM,
-      default: CONSTANT.DRIVER_STATE.NOT_AVAILABLE
+      default: CONSTANT.DRIVER_STATE.AVAILABLE
     },
     currentTripId: {
       type: mongoose.Schema.Types.ObjectId,
