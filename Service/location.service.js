@@ -6,7 +6,7 @@ const CONSTANT = require('../config/constant');
 
 /** returns boolean: whether this driver should be visible on map */
 async function canShowOnMap(details) {
-  console.log("details?.defaultVehicle---" , details)
+  // console.log("details?.defaultVehicle---" ,details?.email , 'vehicle', details?.defaultVehicle)
   console.log({
     email: details?.email,
     status: details?.status , 
@@ -15,7 +15,7 @@ async function canShowOnMap(details) {
     isDocUploaded: details?.isDocUploaded , 
     is_deleted: details?.is_deleted ,
     is_blocked :details?.is_blocked ,
-    defaultVehicle: details?.defaultVehicle !== null ? true : false ,
+    defaultVehicle: details?.defaultVehicle != null ? true : false ,
     last: (details?.is_special_plan_active || (details?.subscriptionData?.length ?? 0) > 0) , 
   })
   return !!(
@@ -25,7 +25,7 @@ async function canShowOnMap(details) {
     details?.isDocUploaded &&
     !details?.is_deleted &&
     !details?.is_blocked &&
-    details?.defaultVehicle !== null &&
+    details?.defaultVehicle != null &&
     (details?.is_special_plan_active || (details?.subscriptionData?.length ?? 0) > 0)
   );
 }
