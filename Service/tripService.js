@@ -184,9 +184,9 @@ exports.sendCustomerPreTripNotifications =  async () => {
 
         
         const preNotificationTime = CONSTANT.CUSTOMER_PRE_TRIP_NOTIFICATION_TIME; // fixed 10 minutes for customer
-        // const { startDateTime, endDateTime } = await exports.computePreNotificationTimeWindow(preNotificationTime);
+        const { startDateTime, endDateTime } = await exports.computePreNotificationTimeWindow(preNotificationTime);
     
-        console.log("🚀 ~ sendCustomerPreTripNotifications ~ Running customer pre trip notification cron job" , new Date() , { startDateTime, endDateTime });
+        // console.log("🚀 ~ sendCustomerPreTripNotifications ~ Running customer pre trip notification cron job" , new Date() , { startDateTime, endDateTime });
         // Fetch trips: in window, valid email, not already notified
         const trips = await TRIP_MODEL.find({
                                                 pickup_date_time: { $gte: startDateTime, $lte: endDateTime },
@@ -259,6 +259,7 @@ exports.computePreNotificationTimeWindow = async (preNotificationTime = 20) => {
   startDateTime.setUTCMinutes(futureTime.getUTCMinutes());
   startDateTime.setUTCSeconds(0); // Start at the 0th second
   startDateTime.setUTCMilliseconds(0); // Start at the 0th millisecond
+
 
   startDateTime = startDateTime.toISOString();
 
