@@ -80,6 +80,7 @@ module.exports={
         UNVERIFIED: 'Unverified', 
         REGISTERED : 'Registered',
         DELETED : 'Deleted',
+        BLOCKED: 'Blocked'
     },
 
     DRIVER_OFFLINE_ONLINE_STATUS: { // admin dashboard status

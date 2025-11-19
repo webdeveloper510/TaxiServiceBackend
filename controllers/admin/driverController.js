@@ -892,6 +892,10 @@ exports.get_drivers_super = async (req, res) => {
     if (selectedType === constant.DRIVER_STATUS.VERIFIED) {
       query.isVerified = true;
       query.isDocUploaded = true;
+    }else if (selectedType === constant.DRIVER_STATUS.BLOCKED) {
+      query.isVerified = true;
+      query.isDocUploaded = true;
+      query.is_blocked = true;
     } else if (selectedType === constant.DRIVER_STATUS.UNVERIFIED) {
       query.isVerified = false;
       query.isDocUploaded = true;
@@ -1018,9 +1022,9 @@ exports.get_drivers_super = async (req, res) => {
       res.send({
         code: constant.success_code,
         message: res.__('getDrivers.success.driverListRetrieved'),
-        query:query,
-        result: drivers,
-        totalCount: totalCount
+        // query:query,
+        totalCount: totalCount,
+        result: drivers
       });
     } else {
       res.send({
