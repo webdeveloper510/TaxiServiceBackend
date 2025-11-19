@@ -25,6 +25,7 @@ const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 const i18n = require('../../i18n');
 const { updateDriverMapCache , broadcastDriverLocation} = require("../../Service/location.service")
+const { exactMinutes } = require("../../utils/timeDiff.js")
 
 
 exports.add_trip = async (req, res) => {
@@ -511,7 +512,6 @@ exports.edit_trip = async (req, res) => {
     let data = req.body;
     let criteria = { _id: req.params.id };
     let trip_data = await TRIP.findOne(criteria);
-
     let option = { new: true };
     data.status = true;
 
@@ -579,16 +579,25 @@ exports.edit_trip = async (req, res) => {
     } else {
 
       let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
-
+      
       // When driver will go to for pick the customer (On the way) then customer will be notify
       if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
-
-        // sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
-        const companyDetail = await USER.findById(data?.created_by_company_id);
-        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
+        
+        const timeDiffInMinutes = await exactMinutes( new Date()  , update_trip.pickup_date_time);
+        
+        // If customer booked the trip with in 10 minutes from current time and notification is not sent him already then he will get notified otherwise he will notified with cronjo prenotification before 10 minutes starting of the trips
+        if (timeDiffInMinutes < constant.CUSTOMER_PRE_TRIP_NOTIFICATION_TIME && !update_trip.customerPreNotificationSent) {
           
-          // sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
+          sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
+          const companyDetail = await USER.findById(update_trip.created_by_company_id);
+          
+          if (companyDetail?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
+            
+            sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
+            await TRIP.findOneAndUpdate( { _id:  update_trip._id}, { $set: {  customerPreNotificationSent: true, }, }  , { new: true });
+          }
         }
+        
 
         // Store the driver status and trip id into driver profile to track on which trip driver working currently
         await DRIVER.findOneAndUpdate({_id: update_trip?.driver_name}, { status: true , driver_state: constant.DRIVER_STATE.ON_THE_WAY , currentTripId: trip_data?._id}, option);

@@ -184,9 +184,9 @@ exports.sendCustomerPreTripNotifications =  async () => {
 
         
         const preNotificationTime = CONSTANT.CUSTOMER_PRE_TRIP_NOTIFICATION_TIME; // fixed 10 minutes for customer
-        const { startDateTime, endDateTime } = await exports.computePreNotificationTimeWindow(preNotificationTime);
+        // const { startDateTime, endDateTime } = await exports.computePreNotificationTimeWindow(preNotificationTime);
     
-        // console.log("🚀 ~ sendCustomerPreTripNotifications ~ Running customer pre trip notification cron job" , new Date() , { startDateTime, endDateTime });
+        console.log("🚀 ~ sendCustomerPreTripNotifications ~ Running customer pre trip notification cron job" , new Date() , { startDateTime, endDateTime });
         // Fetch trips: in window, valid email, not already notified
         const trips = await TRIP_MODEL.find({
                                                 pickup_date_time: { $gte: startDateTime, $lte: endDateTime },
@@ -199,9 +199,7 @@ exports.sendCustomerPreTripNotifications =  async () => {
                                                 },
                                                 "customerDetails.email": { $nin: [null, ""] },
                                                 customerPreNotificationSent: { $ne: true },
-                                            }).populate([
-                                                            { path: "created_by_company_id", select: "name email settings app_locale web_locale" },
-                                                        ]);
+                                            });
 
         const ids = [];
 
@@ -213,10 +211,10 @@ exports.sendCustomerPreTripNotifications =  async () => {
             if (!customerEmail) continue;
             
             const targetLocale = process.env.DEFAULT_LANGUAGE || "en";
-
+            const createdByCompany = await USER_MODEL.findById(trip.created_by_company_id)
             sendBookingUpdateDateTimeEmail(trip);
 
-            if (trip.created_by_company_id?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
+            if (createdByCompany?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
                 sendTripUpdateToCustomerViaSMS(trip , CONSTANT.SMS_EVENTS.DRIVER_ON_THE_WAY);
             }
             ids.push(trip._id);
