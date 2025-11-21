@@ -82,9 +82,25 @@ exports.priceUpload = async (req, res) => {
             }
 
             // ✅ ZIP code validator for NL
+            // Accepts: 1012AB, 1012 AB
+            // const isValidNetherlandsZipcode = (zip) => {
+            //     const zipRegex = /^[1-9][0-9]{3}\s?[A-Z]{2}$/;
+            //     return zipRegex.test(zip?.toString().toUpperCase().trim());
+            // };
+
+            // Accepts: 1012, 1012AB, 1012 AB
             const isValidNetherlandsZipcode = (zip) => {
-                const zipRegex = /^[1-9][0-9]{3}\s?[A-Z]{2}$/;
-                return zipRegex.test(zip?.toString().toUpperCase().trim());
+                if (!zip) return false;
+
+                const cleaned = zip.toString().toUpperCase().trim();
+
+                // 4-digit only (area code) e.g. 1012
+                const fourDigit = /^[1-9][0-9]{3}$/.test(cleaned);
+
+                // Full 6-character postcode e.g. 1012AB or 1012 AB
+                const fullPostcode = /^[1-9][0-9]{3}\s?[A-Z]{2}$/.test(cleaned);
+
+                return fourDigit || fullPostcode;
             };
 
             // Validate each row for empty values
@@ -128,7 +144,7 @@ exports.priceUpload = async (req, res) => {
                 if ( req.body.upload_price_type === constant.UPLOADED_PRICE_TYPE.ZIP_CODE ) {
                     const departureZip = row["Departure Zipcode"]?.toString().toUpperCase().trim();
                     const arrivalZip = row["Arrival Zipcode"]?.toString().toUpperCase().trim();
-
+                    console.log('departureZip-------' , departureZip)
                     if (!isValidNetherlandsZipcode(departureZip)) {
                     return res.send({
                         code: constant.error_code,
