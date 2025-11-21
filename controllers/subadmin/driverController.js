@@ -911,6 +911,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
           // userData: 1,
           customer_phone: "$userData.p_number",
           company_phone:{ $arrayElemAt: ["$companyData.phone", 0] },
+          company_country_code:{ $arrayElemAt: ["$companyData.countryCode", 0] },
           trip_from: 1,
           trip_to: 1,
           is_paid: 1,
@@ -933,6 +934,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
           company_name: "$userData.company_name",
           user_company_name: "$userData.company_name",
           user_company_phone: "$userData.phone",
+          
           hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
           driver_name: {
             $concat: [
