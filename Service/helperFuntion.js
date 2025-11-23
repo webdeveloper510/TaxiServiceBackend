@@ -1255,7 +1255,7 @@ exports.emitTripAcceptedByDriver = async(tripDetail , driverDetails , currentSoc
       }
 
       if (tripDetail?.customerDetails?.email) {
-        this.sendBookingUpdateDriverAllocationEmail(tripDetail)
+        // this.sendBookingUpdateDriverAllocationEmail(tripDetail)
       }
 
   } catch (error) {

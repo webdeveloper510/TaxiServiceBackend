@@ -16,6 +16,15 @@ module.exports={
     DRIVER_AUTO_LOGOUT: 120_000 , // 120_000 = 2 * 60 * 1000 = 120 seconds
     CUSTOMER_CANCEL_TIMING_TRIP: 120, //  2 minutes will be applied if no value find in company settings 
     CUSTOMER_PRE_TRIP_NOTIFICATION_TIME: 10, // cutsomer will get notification 10 minutes before the trip start time
+    TRIP_HISTORY_ENUM_STATUS: {
+        ASSIGN:"ASSIGN",
+        REASSIGN:"REASSIGN",
+        RETRIEVE:"RETRIEVE",
+        CANCEL:"CANCEL", // finally trip has been cancelled and no more will be used 
+        DRIVER_CANCEL_REQUEST:"DRIVER_CANCEL_REQUEST",
+        CANCEL_APPROVED:"CANCEL_APPROVED", // regarding the cancel request
+        CANCEL_REJECTED:"CANCEL_REJECTED", // regarding the cancel request
+    },
     ADMIN_SETTINGS_SEED: [
         { 
             key: 'commision', 

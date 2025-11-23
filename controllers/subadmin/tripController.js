@@ -2,6 +2,7 @@ const DRIVER = require("../../models/user/driver_model");
 const USER = require("../../models/user/user_model");
 const TRIP = require("../../models/user/trip_model");
 const TRIP_CANCELLATION_REQUEST = require("../../models/user/trip_cancellation_requests_model");
+const TRIP_ASSIGNMENT_HISTORY = require("../../models/user/trip_assignment_history");
 const multer = require("multer");
 const path = require("path");
 const constant = require("../../config/constant");
@@ -696,6 +697,17 @@ exports.edit_trip = async (req, res) => {
       // When company wants to cancel or delete the trip then customer will be notify
       if (data?.trip_status == constant.TRIP_STATUS.CANCELED && update_trip?.customerDetails?.email) {
         sendBookingCancelledEmail(update_trip)
+        await TRIP_ASSIGNMENT_HISTORY.create({
+                                              trip_id: update_trip._id,
+                                              from_driver: null,                  // could be null
+                                              to_driver: null,
+                                              action: constant.TRIP_HISTORY_ENUM_STATUS.CANCEL,
+                                              action_by_role:req.companyPartnerAccess ? constant.ROLES.DRIVER : constant.TRIP_CANCELLED_BY_ROLE.COMPANY,
+                                              action_by: req.companyPartnerAccess ? req.CompanyPartnerDriverId : req.userId,
+                                              action_by_ref: req.companyPartnerAccess ? 'driver' : 'user',
+                                              reason:data?.cancellation_reason ?? "",
+                                              notify_customer: false,       // for audit
+                                          });
       }
 
       // refresh trip functionality for the drivers who have account access as partner
@@ -815,7 +827,23 @@ exports.driverCancelTrip = async (req, res) => {
       cancellation_reason: req.body.cancellation_reason,
     }
     
-    let update_trip = await TRIP.findOneAndUpdate(criteria, updateData); 
+    await Promise.all([
+      await TRIP.findOneAndUpdate(criteria, updateData),
+      // create trip history when driver will create cancellation request
+      await TRIP_ASSIGNMENT_HISTORY.create({
+                                              trip_id: tripInfo._id,
+                                              from_driver: tripInfo.driver_name,                  // could be null
+                                              to_driver: null,
+                                              action: constant.TRIP_HISTORY_ENUM_STATUS.DRIVER_CANCEL_REQUEST,
+                                              action_by_role: constant.ROLES.DRIVER,
+                                              action_by: tripInfo.driver_name,
+                                              action_by_ref: "driver",
+                                              reason:req.body.cancellation_reason,
+                                              notify_customer: false,       // for audit
+                                          })
+    ])
+    
+     
     // let updateDriverData = {}
     // if (update_trip.trip_status == constant.TRIP_STATUS.REACHED) {
     //   await DRIVER.findOneAndUpdate({_id: tripInfo?.driver_name}, {status: true , is_available: false , is_in_ride: true}, option); 
@@ -903,6 +931,25 @@ exports.driverCancelTripDecision = async (req, res) => {
       await DRIVER.findOneAndUpdate({_id: tripDetails?.driver_name}, { $set:{is_available: true}});
     }
 
+    // create trip history
+    await TRIP_ASSIGNMENT_HISTORY.create({
+                                              trip_id: tripDetails._id,
+                                              from_driver: tripDetails.driver_name,                  // could be null
+                                              to_driver: null,
+                                              action: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_HISTORY_ENUM_STATUS.CANCEL_APPROVED :constant.TRIP_HISTORY_ENUM_STATUS.CANCEL_REJECTED,
+                                              action_by_role: req.user?.role === constant.ROLES.ADMIN
+                                                            ? constant.ROLES.SUPER_ADMIN
+                                                            : req.user?.role === constant.ROLES.SUPER_ADMIN
+                                                            ? constant.ROLES.SUPER_ADMIN
+                                                            : req.user?.role === constant.ROLES.COMPANY
+                                                            ? constant.ROLES.COMPANY
+                                                            : req.user?.role,
+                                              action_by: req.companyPartnerAccess ? req.CompanyPartnerDriverId : req.user?._id,
+                                              action_by_ref: req.companyPartnerAccess ? "driver" : "user",
+                                              reason: isNoShow ? constant.TRIP_STATUS.NO_SHOW : "",
+                                              notify_customer: false,       // for audit
+                                          })
+
     await TRIP.findOneAndUpdate(criteria , tripUpdateData);
 
     //------------- start check if any trip is under progress then update his map chache profile accordingly
@@ -918,7 +965,7 @@ exports.driverCancelTripDecision = async (req, res) => {
                               : constant.DRIVER_STATE.AVAILABLE;
 
     const isAvailable = driverState === constant.DRIVER_STATE.AVAILABLE ? true : false; 
-    console.log('check approved---------' , {is_available: isAvailable , driver_state: driverState})
+    // console.log('check approved---------' , {is_available: isAvailable , driver_state: driverState})
     await DRIVER.findOneAndUpdate({_id: tripDetails?.driver_name}, {is_available: isAvailable , driver_state: driverState , currentTripId: driverState == constant.DRIVER_STATE.AVAILABLE ? null : tripDetails?._id}); // set driver as not available
 
     // update driver prfile cache
@@ -955,9 +1002,6 @@ exports.driverCancelTripDecision = async (req, res) => {
 
       const isDriverHasAccess = await isDriverHasCompanyAccess(driver_data , tripDetails.created_by_company_id)
       
-
-      
-
       if (driver_data?.socketId) {
        
         req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
@@ -1160,8 +1204,8 @@ exports.driverCancelTripDecision = async (req, res) => {
       }
     }
 
-    // notify the customer that his trip has been cancelled
-    if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED && tripDetails?.customerDetails?.email) {
+    // notify the customer that his trip has been cancelled as no show
+    if (tripDecisionStatus == constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED && tripDetails?.customerDetails?.email && isNoShow) {
       sendBookingCancelledEmail(tripDetails)
     }
 
@@ -1713,12 +1757,7 @@ exports.access_edit_trip = async (req, res) => {
 
             let title = i18n.__({ phrase: "editTrip.notification.tripRetrievedByCompanyTitle", locale: targetLocale });
 
-            const response = await sendNotification(
-                                                    device_token,
-                                                    message,
-                                                    title,
-                                                    trip_data
-                                                  );
+            const response = await sendNotification( device_token, message, title, trip_data );
           }
           
         } catch (e) {
@@ -1733,6 +1772,24 @@ exports.access_edit_trip = async (req, res) => {
       }
 
       partnerAccountRefreshTrip(update_trip.created_by_company_id , res.__('editTrip.socket.tripChangedRefresh'), req.io);
+
+      if (data?.trip_status == constant.TRIP_STATUS.CANCELED) {
+
+        if ( update_trip?.customerDetails?.email) {
+          sendBookingCancelledEmail(update_trip)
+        }
+        await TRIP_ASSIGNMENT_HISTORY.create({
+                                              trip_id: trip_data._id,
+                                              from_driver: null,                  // could be null
+                                              to_driver: null,
+                                              action: constant.TRIP_HISTORY_ENUM_STATUS.CANCEL,
+                                              action_by_role: constant.ROLES.DRIVER ,
+                                              action_by: req.params.company_id,
+                                              action_by_ref:  'driver',
+                                              reason:data?.cancellation_reason ?? "",
+                                              notify_customer: false,       // for audit
+                                          });
+      }
       return res.send({
                         code: constant.success_code,
                         message: res.__('editTrip.success.tripUpdated'),

@@ -8,6 +8,7 @@ const { getNextSequenceValue } = require("../../models/user/trip_counter_model")
 var FARES = require("../../models/user/fare_model");
 const TRIP = require("../../models/user/trip_model");
 const PRICE_MODEL = require("../../models/user/price_model");
+const TRIP_ASSIGNMENT_HISTORY = require("../../models/user/trip_assignment_history");
 const SETTING_MODEL = require("../../models/user/setting_model");
 const multer = require("multer");
 const path = require("path");

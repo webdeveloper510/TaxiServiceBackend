@@ -18,6 +18,7 @@ async function canShowOnMap(details) {
   //   defaultVehicle: details?.defaultVehicle != null ? true : false ,
   //   last: (details?.is_special_plan_active || (details?.subscriptionData?.length ?? 0) > 0) , 
   // })
+  
   return !!(
     details?.status &&
     details?.is_login &&
