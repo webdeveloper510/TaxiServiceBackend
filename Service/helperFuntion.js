@@ -21,7 +21,7 @@ const emailConstant = require("../config/emailConstant");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const IBAN = require('iban');
 const sendEmail = require("./email");
-
+const {getCityByPostcode} = require("../utils/getCityAndCountryByZipcode.js")
 // Initialize Twilio client
 const client = twilio(process.env.ACCOUNT_SID, process.env.AUTH_TOKEN);
 
@@ -3033,7 +3033,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     const companyAgencyDetails = await AGENCY_MODEL.findOne({ user_id: tripDetail?.created_by_company_id });
     let email = tripDetail?.customerDetails?.email;
    
-    let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`: '';
+    let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode} ${tripDetail?.customerDetails?.phone}`: '';
 
     const subject = `Your order confirmation # ${tripDetail?.trip_id}`;
 
@@ -3061,7 +3061,8 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
 
-
+    const {city , country } = await getCityByPostcode(companyAgencyDetails?.post_code);
+    
     let bookingData = {
       trip_id: tripDetail?.trip_id,
       customerName: tripDetail?.customerDetails?.name,
@@ -3083,14 +3084,21 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
       luggage: tripDetail?.customerDetails?.luggage,
       driverRemark: tripDetail?.comment,
       companyName: companyAgencyDetails?.company_name,
+      companyStreet: `${companyAgencyDetails?.land } ${companyAgencyDetails.house_number}` ,
+      companyCity: city || "",
+      companyCountry: companyAgencyDetails?.country || country,
+      companyPostcode: companyAgencyDetails?.post_code,
+      companyKvK: "",
+      companyVat: "",
+      companyWebsite: companyAgencyDetails?.website,
       companyEmail: companyDetails?.email,
-      companyPhone: `${companyDetails?.countryCode}-${companyDetails?.phone}`,
+      companyPhone: `${companyDetails?.countryCode} ${companyDetails?.phone}`,
       companyLogoUrl: companyDetails?.logo,
       companyAddress: companyAgencyDetails?.house_number+" "+ companyAgencyDetails?.land,
       trackUrl: bookingTrackLink
     }
   
-    // console.log('bookingData--------' , bookingData)
+    console.log('bookingData--------' , bookingData)
     const emailSent = await sendEmail(
                                         email, // Receiver email
                                         subject, // Subject
@@ -3152,7 +3160,7 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
     let email = tripDetail?.customerDetails?.email;
    
     const subject = `Your ride has been canceled # ${tripDetail?.trip_id}`;
-    let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`: '';
+    let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode} ${tripDetail?.customerDetails?.phone}`: '';
 
 
     const dateString = tripDetail?.pickup_date_time;
@@ -3181,6 +3189,8 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
     const bookingTrackLink = `${process.env.BASEURL}/booking-details/${tripDetail?._id}/${tripDetail?.created_by_company_id}`
     
+    const {city , country } = await getCityByPostcode(companyAgencyDetails?.post_code);
+    
     let bookingData = {
       trip_id: tripDetail?.trip_id,
       customerName: tripDetail?.customerDetails?.name,
@@ -3199,8 +3209,15 @@ exports.sendBookingCancelledEmail = async (tripDetail) => {
       flightNo: tripDetail?.customerDetails?.flightNumber,
       driverRemark: tripDetail?.comment,
       companyName: companyAgencyDetails?.company_name,
+      companyStreet: `${companyAgencyDetails?.land } ${companyAgencyDetails.house_number}` ,
+      companyCity: city || "",
+      companyCountry: companyAgencyDetails?.country || country,
+      companyPostcode: companyAgencyDetails?.post_code,
+      companyKvK: "",
+      companyVat: "",
+      companyWebsite: companyAgencyDetails?.website,
       companyEmail: companyDetails?.email,
-      companyPhone: `${companyDetails?.countryCode}-${companyDetails?.phone}`,
+      companyPhone: `${companyDetails?.countryCode} ${companyDetails?.phone}`,
       companyLogoUrl: companyDetails?.logo,
       companyAddress: companyAgencyDetails?.house_number+" "+ companyAgencyDetails?.land,
       trackUrl: bookingTrackLink
@@ -3298,7 +3315,7 @@ exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => {
     subject = `Driver Confirmed for Your Booking: # ${tripDetail?.trip_id}`;
     
     
-   let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`: '';
+   let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode} ${tripDetail?.customerDetails?.phone}`: '';
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
@@ -3332,7 +3349,8 @@ exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => {
    
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
-
+    const {city , country } = await getCityByPostcode(companyAgencyDetails?.post_code);
+    
     let bookingData = {
       trip_id: tripDetail?.trip_id,
       customerName: tripDetail?.customerDetails?.name,
@@ -3352,8 +3370,15 @@ exports.sendBookingUpdateDriverAllocationEmail = async (tripDetail) => {
       driverRemark: tripDetail?.comment,
       driverName:driverName,
       companyName: companyAgencyDetails?.company_name,
+      companyStreet: `${companyAgencyDetails?.land } ${companyAgencyDetails.house_number}` ,
+      companyCity: city || "",
+      companyCountry: companyAgencyDetails?.country || country,
+      companyPostcode: companyAgencyDetails?.post_code,
+      companyKvK: "",
+      companyVat: "",
+      companyWebsite: companyAgencyDetails?.website,
       companyEmail: companyDetails?.email,
-      companyPhone: `${companyDetails?.countryCode}-${companyDetails?.phone}`,
+      companyPhone: `${companyDetails?.countryCode} ${companyDetails?.phone}`,
       companyLogoUrl: companyDetails?.logo,
       companyAddress: companyAgencyDetails?.house_number+" "+ companyAgencyDetails?.land,
       
@@ -3394,7 +3419,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
       subject = `Trip Rescheduled – Please Review New Details: # ${tripDetail?.trip_id}`;
     }
     
-   let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`: '';
+   let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode} ${tripDetail?.customerDetails?.phone}`: '';
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
@@ -3430,6 +3455,8 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
     const bookingTrackLink = `${process.env.BASEURL}/booking-details/${tripDetail?._id}/${tripDetail?.created_by_company_id}`
     
+    const {city , country } = await getCityByPostcode(companyAgencyDetails?.post_code);
+    
 
     let bookingData = {
       trip_id: tripDetail?.trip_id,
@@ -3452,8 +3479,15 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
       luggage: tripDetail?.customerDetails?.luggage,
       driverRemark: tripDetail?.comment,
       companyName: companyAgencyDetails?.company_name,
+      companyStreet: `${companyAgencyDetails?.land } ${companyAgencyDetails.house_number}` ,
+      companyCity: city || "",
+      companyCountry: companyAgencyDetails?.country || country,
+      companyPostcode: companyAgencyDetails?.post_code,
+      companyKvK: "",
+      companyVat: "",
+      companyWebsite: companyAgencyDetails?.website,
       companyEmail: companyDetails?.email,
-      companyPhone: `${companyDetails?.countryCode}-${companyDetails?.phone}`,
+      companyPhone: `${companyDetails?.countryCode} ${companyDetails?.phone}`,
       companyLogoUrl: companyDetails?.logo,
       companyAddress: companyAgencyDetails?.house_number+" "+ companyAgencyDetails?.land,
       trackUrl: bookingTrackLink,

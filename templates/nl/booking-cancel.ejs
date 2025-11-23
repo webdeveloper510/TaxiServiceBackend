@@ -59,22 +59,17 @@
       color: #444;
     }
     .footer {
-      background-color: #f8f9fa;
-      padding: 20px;
-      font-size: 13px;
-      color: #666;
-      text-align: center;
-      border-top: 1px solid #e0e0e0;
-    }
-    .footer a {
-      color: #007BFF;
-      text-decoration: none;
-    }
-    .footer strong {
-      display: block;
-      margin-top: 5px;
-      color: #333;
-    }
+          margin-top: 25px;
+          text-align: left;        /* LEFT ALIGN */
+          font-size: 14px;
+          color: #000000;
+          padding: 20px;
+          line-height: 1.55;
+      }
+      .footer a {
+          color: #000000;
+          text-decoration: underline;
+      }
   </style>
 </head>
 <body>
@@ -149,10 +144,20 @@
 
     <!-- Footer -->
     <div class="footer">
-      <%= companyName %><br>
-      <%= companyAddress %><br>
-      Telefoon: <%= companyPhone %> · E-mail: <a href="mailto:<%= companyEmail %>"><%= companyEmail %></a>
-    </div>
+            <strong><%= companyName %></strong><br>
+             <%= companyStreet  %>
+            <br>
+            <%= companyPostcode %>  <%= companyCity  %><br>
+             <%= companyCountry  %> 
+            <br><br>
+
+            KVK:  <%= companyKvK  || "-" %> <br> 
+            VAT:  <%= companyVat  || "-" %> <br>
+            Website: <a href="https://<%= companyWebsite %>"><%= companyWebsite %></a><br><br>
+
+            Phone: <%= companyPhone %><br>
+            Email: <%= companyEmail %>
+        </div>
   </div>
 </body>
 </html>

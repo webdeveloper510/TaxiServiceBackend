@@ -20,7 +20,8 @@ module.exports={
         ASSIGN:"ASSIGN",
         REASSIGN:"REASSIGN",
         RETRIEVE:"RETRIEVE",
-        CANCEL:"CANCEL", // finally trip has been cancelled and no more will be used 
+        CANCEL:"CANCEL", // finally trip has been cancelled and no more will be used
+        CUSTOMER_CANCEL:"CUSTOMER_CANCEL",
         DRIVER_CANCEL_REQUEST:"DRIVER_CANCEL_REQUEST",
         CANCEL_APPROVED:"CANCEL_APPROVED", // regarding the cancel request
         CANCEL_REJECTED:"CANCEL_REJECTED", // regarding the cancel request
@@ -58,7 +59,8 @@ module.exports={
         SUPER_ADMIN: 'SUPER_ADMIN',
         HOTEL: 'HOTEL',
         DRIVER: 'DRIVER',
-        ADMIN: 'ADMIN'
+        ADMIN: 'ADMIN',
+        CUSTOMER: 'CUSTOMER'
     },
     OTP_CODE:205 ,
     TRIP_STATUS: {

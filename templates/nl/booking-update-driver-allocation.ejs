@@ -74,6 +74,19 @@
         color: #007bff;
         text-decoration: none;
       }
+
+      .footer-1 {
+          margin-top: 25px;
+          text-align: left;        /* LEFT ALIGN */
+          font-size: 14px;
+          color: #000000;
+          padding: 20px;
+          line-height: 1.55;
+      }
+      .footer-1 a {
+          color: #000000;
+          text-decoration: underline;
+      }
     </style>
   </head>
   <body>
@@ -159,6 +172,22 @@
             Met vriendelijke groet, <br />
             <strong><%= companyName %></strong>
           </p>
+        </div>
+
+        <div class="footer-1">
+            <strong><%= companyName %></strong><br>
+             <%= companyStreet  %>
+            <br>
+            <%= companyPostcode %>  <%= companyCity  %><br>
+             <%= companyCountry  %> 
+            <br><br>
+
+            KVK:  <%= companyKvK  || "-" %> <br> 
+            VAT:  <%= companyVat  || "-" %> <br>
+            Website: <a href="https://<%= companyWebsite %>"><%= companyWebsite %></a><br><br>
+
+            Phone: <%= companyPhone %><br>
+            Email: <%= companyEmail %>
         </div>
       </div>
     </div>

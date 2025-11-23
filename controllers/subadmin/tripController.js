@@ -1265,6 +1265,17 @@ exports.customerCancelTrip = async (req , res) => {
                                                 }}, {new: true});
 
    
+    await TRIP_ASSIGNMENT_HISTORY.create({
+                                                trip_id: tripInfo._id,
+                                                from_driver: tripInfo.driver_name ?? null,                  // could be null
+                                                to_driver: null,
+                                                action: constant.TRIP_HISTORY_ENUM_STATUS.CUSTOMER_CANCEL,
+                                                action_by_role:constant.ROLES.CUSTOMER,
+                                                action_by: null,
+                                                action_by_ref: null,
+                                                reason:"Customer cancel the trip by from his link",
+                                                notify_customer: false,       // for audit
+                                            });
     // const driverById = await DRIVER.findOne({ _id: tripInfo?.driver_name });
     const customerName = tripInfo?.customerDetails?.name;
     
