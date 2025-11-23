@@ -123,7 +123,7 @@ exports.add_vehicle = async (req, res) => {
             }
 
             let data = req.body
-            let checkVehicle = await VEHICLE.findOne({ vehicle_number: data.vehicle_number })
+            let checkVehicle = await VEHICLE.findOne({ vehicle_number: new RegExp(`^${data.vehicle_number}$`, "i") })
             if (checkVehicle) {
                 res.send({
                     code: constant.error_code,
@@ -431,6 +431,17 @@ exports.edit_vehicle = async (req, res) => {
                 })
                 return;
             }
+
+            // check if vehicle number exist or not with another vehicle
+            let checkVehicle = await VEHICLE.findOne({ _id: { $ne: req.params.id } ,vehicle_number: new RegExp(`^${data.vehicle_number}$`, "i") })
+            if (checkVehicle) {
+                res.send({
+                    code: constant.error_code,
+                    message: res.__("getVehicle.error.vehicleNumberAlreadyInUse")
+                })
+                return;
+            }
+
             data.vehicle_photo = vehicle_photo.length != 0 ? vehicle_photo[0] : check_vehicle.vehicle_photo
             data.vehicle_documents = vehicle_documents.length != 0 ? vehicle_documents[0] : check_vehicle.vehicle_documents
 
