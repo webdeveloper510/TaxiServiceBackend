@@ -170,12 +170,36 @@ exports.stripeOnboardingAccountLink = async (accountId , user_id) => {
   }
 };
 
+
+exports.getConnectedAccountKycStatus = async (account) => {
+    const req = account?.requirements || {};
+
+    const currentlyDue = req.currently_due || [];
+    const eventuallyDue = req.eventually_due || [];
+    const errors = req.errors || [];
+    const deadline = req.current_deadline;
+
+    // Only fields ending with .verification.document are ID documents
+    const identityDocumentDue = currentlyDue.filter(f =>
+        f.includes(".verification.document")
+    );
+
+    return {
+        needsIdentityDocument: identityDocumentDue.length > 0,
+        identityFields: identityDocumentDue,
+        errors,
+        deadline,
+        allCurrentlyDue: currentlyDue,
+        allEventuallyDue: eventuallyDue,
+    };
+}
+
 // User onboard's link for stripe after custom account creation
 exports.getConnectedAccountDetails = async (accountId) => {
   try {
 
     const account = await stripe.accounts.retrieve(accountId);
-    console.log("Account Details:", account);
+    // console.log("Account Details:", account);
     return account;
   } catch (error) {
 
@@ -1807,11 +1831,11 @@ exports.sendEmailCancelledSubcription = async (subsctiptionId) => {
   return emailSent
 }
 
-exports.sendEmailMissingInfoStripeOnboarding = async (accountId , missingFields) => {
+exports.sendEmailMissingInfoStripeOnboarding = async (accountId , missingFields = "" ) => {
 
   let userCondition = {connectedAccountId : accountId}
   const userDetail = await user_model.findOne(userCondition);
-  const onboardingLink = await this.stripeOnboardingAccountLink(accountId)
+  const onboardingLink = await this.stripeOnboardingAccountLink(accountId , userDetail._id)
   const subject = `Action Required: Complete Your Stripe Account Setup`;
   let toEmail = userDetail?.email;
   

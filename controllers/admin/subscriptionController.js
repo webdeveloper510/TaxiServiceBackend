@@ -14,6 +14,7 @@ const { getUserActivePaidPlans ,
         createConnectedAccount , 
         sendEmailCancelledSubcription , 
         createCustomAccount , 
+        getConnectedAccountKycStatus,
         stripeOnboardingAccountLink} = require("../../Service/helperFuntion");
 const { updateDriverMapCache , broadcastDriverLocation} = require("../../Service/location.service")
 
@@ -921,7 +922,18 @@ exports.getConnectedAccountDetails = async (req, res) => {
         if (userDetails?.connectedAccountId) {
 
             const connectedAccountDetails = await getConnectedAccountDetails(userDetails?.connectedAccountId);
+            const checkUserKYC = await getConnectedAccountKycStatus(connectedAccountDetails);
+            
+            // If personal information is pending
+            if (checkUserKYC.needsIdentityDocument) {
+                
+                sendEmailMissingInfoStripeOnboarding( userDetails.connectedAccountId, checkUserKYC.identityFields );
 
+                return  res.send({
+                                    code: constant.error_code,
+                                    message: res.__('payment.error.bankAccountVerificationPending'),
+                                });
+            }
             // User account verified
             if (connectedAccountDetails?.charges_enabled &&  
                 connectedAccountDetails?.payouts_enabled &&
@@ -945,6 +957,7 @@ exports.getConnectedAccountDetails = async (req, res) => {
                                     // capabilities_card_payments:connectedAccountDetails?.capabilities?.card_payments,
                                     
                                     message: res.__('payment.success.accountLinkSuccess'),
+                                    connectedAccountDetails
                                 });
             } else {
 

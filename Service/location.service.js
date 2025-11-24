@@ -177,7 +177,7 @@ async function broadcastDriverLocation(io, driverId, details) {
             io.to(room).emit("driver::app:inBounds", payload);
           }
 
-          console.log(`📡 Broadcasted to ${matchedRooms.length} rooms for driver ${details.email}`);
+          console.log(`📡 Broadcasted to ${matchedRooms.length} rooms for driver ${details.email}----` , new Date());
         }
 
 

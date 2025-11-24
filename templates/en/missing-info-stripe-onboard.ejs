@@ -24,15 +24,14 @@
           <tr>
             <td style="padding: 30px; color: #333; font-size: 15px; line-height: 1.6;">
               <p>Hi <strong>
-                  <%= userDetail?.first_name %>
-                    <%= userDetail?.last_name %>
+                  <%= userName %>
                 </strong>,</p>
               <p>We noticed that your <strong>Stripe account setup</strong> is still incomplete. To start receiving
                 payments without interruption, please provide the missing required details.</p>
 
               <h3 style="color: #ff4d4d; font-size: 16px; margin-top: 20px;">Missing Information:</h3>
               <ul style="padding-left: 20px; margin: 10px 0;">
-                <%- formattedFields %>
+                <%- missingFields %>
               </ul>
 
               <p>Please update your details as soon as possible to ensure your account is fully activated.</p>
@@ -45,7 +44,7 @@
                 </a>
               </p>
 
-              <p>If you need help, feel free to contact our support team anytime.</p>
+              <p>If you need help, feel free to contact our <a href="<%= supportEmail%>">support team </a> anytime.</p>
               <p>Best regards, <br><strong>Idispatch Mobility</strong></p>
             </td>
           </tr>
