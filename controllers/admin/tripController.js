@@ -2717,6 +2717,7 @@ exports.get_trip_detail = async (req, res) => {
           passengerCount: 1,
           is_paid: 1,
           comment: 1,
+          hotel_id: 1
         },
       },
     ]);
