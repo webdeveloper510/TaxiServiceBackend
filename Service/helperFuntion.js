@@ -3477,7 +3477,7 @@ exports.sendBookingUpdateDateTimeEmail = async (tripDetail) => {
    
     const pickUpTime = converteddateTimeValues?.finalFormat ? converteddateTimeValues?.finalFormat : tripDetail?.pickup_date_time;
     const TimeZoneId =  converteddateTimeValues?.timeZone ?  converteddateTimeValues?.timeZone : "";
-    const bookingTrackLink = `${process.env.BASEURL}/trip/${tripDetail?.unique_trip_code}`
+    const bookingTrackLink = `${process.env.BASEURL}/ride/${tripDetail?.unique_trip_code}`
     
     const {city , country } = await getCityByPostcode(companyAgencyDetails?.post_code);
     
