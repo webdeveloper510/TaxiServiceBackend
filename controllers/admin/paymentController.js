@@ -655,7 +655,7 @@ exports.adminUpdatePayment = async (req, res) => {
                         "stripe_payment.payment_status" : "Pending",
                         payment_completed_date : null,
                         payment_collcted : constant.PAYMENT_COLLECTION_TYPE.PENDING,
-                        payment_upadted_by_admin: null,
+                        payment_updated_by_admin: null,
                         hosted_invoice_url: ``,
                         invoice_pdf: ``
                       },
@@ -667,7 +667,7 @@ exports.adminUpdatePayment = async (req, res) => {
                         "stripe_payment.payment_status" : "Paid",
                         payment_completed_date : new Date(),
                         payment_collcted : constant.PAYMENT_COLLECTION_TYPE.MANUALLY,
-                        payment_upadted_by_admin: tripInfo?.is_paid ? null : req.userId,
+                        payment_updated_by_admin: tripInfo?.is_paid ? null : req.userId,
                       },
                     };
 

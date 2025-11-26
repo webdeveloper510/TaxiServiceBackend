@@ -1440,3 +1440,88 @@ exports.getDriverList = async (req, res) => {
                     });
   }
 };
+
+exports.getRideWithCompany = async (req, res) => {
+  try {
+
+    const unique_trip_code = req.params.unique_trip_code;
+    const tripExist = await TRIP.findOne({ unique_trip_code: unique_trip_code });
+
+    if (!tripExist) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("getTrip.error.noTripFound"),
+      });
+    }
+    const companyDetails = await USER.findById(tripExist.created_by_company_id).select('first_name last_name email settings')
+    // let companyDetail = await USER.aggregate([
+    //                                           {
+    //                                             $match: {
+    //                                               _id: tripExist.created_by_company_id,
+    //                                             },
+    //                                           },
+    //                                           // {
+    //                                           //   $lookup: {
+    //                                           //     from: "agencies",
+    //                                           //     localField: "_id",
+    //                                           //     foreignField: "user_id",
+    //                                           //     as: "meta",
+    //                                           //   },
+    //                                           // },
+    //                                           {
+    //                                             $project: {
+    //                                               _id: 1,
+    //                                               first_name: 1,
+    //                                               last_name: 1,
+    //                                               email: 1,
+    //                                               user_name: 1 ,
+    //                                               // company_id:1,
+    //                                               // created_by: 1,
+    //                                               // phone: 1,
+    //                                               // countryCode:1,
+    //                                               // profile_image: 1,
+    //                                               // role: 1,
+    //                                               // status: 1,
+    //                                               // logo: 1,
+    //                                               // background_color: 1,
+    //                                               // color:1,
+    //                                               // stored_password:1,
+    //                                               // totalBalance: 1,
+    //                                               settings:1,
+    //                                               // land: { $arrayElemAt: ["$meta.land", 0] },
+    //                                               // post_code: { $arrayElemAt: ["$meta.post_code", 0] },
+    //                                               // house_number: { $arrayElemAt: ["$meta.house_number", 0] },
+    //                                               // description: { $arrayElemAt: ["$meta.description", 0] },
+    //                                               // affiliated_with: { $arrayElemAt: ["$meta.affiliated_with", 0] },
+    //                                               // p_number: { $arrayElemAt: ["$meta.p_number", 0] },
+    //                                               // number_of_cars: { $arrayElemAt: ["$meta.number_of_cars", 0] },
+    //                                               // chamber_of_commerce_number: {
+    //                                               //   $arrayElemAt: ["$meta.chamber_of_commerce_number", 0],
+    //                                               // },
+    //                                               // vat_number: { $arrayElemAt: ["$meta.vat_number", 0] },
+    //                                               // website: { $arrayElemAt: ["$meta.website", 0] },
+    //                                               // tx_quality_mark: { $arrayElemAt: ["$meta.tx_quality_mark", 0] },
+    //                                               // saluation: { $arrayElemAt: ["$meta.saluation", 0] },
+    //                                               // company_name: { $arrayElemAt: ["$meta.company_name", 0] },
+    //                                               // company_id: { $arrayElemAt: ["$meta.company_id", 0] },
+    //                                               // location: { $arrayElemAt: ["$meta.location", 0] },
+    //                                               // hotel_location: { $arrayElemAt: ["$meta.hotel_location", 0] },
+    //                                               // commision: { $arrayElemAt: ["$meta.commision", 0] },
+    //                                             },
+    //                                           },
+    //                                         ]);
+    return res.send({
+      code: constant.success_code,
+      message: unique_trip_code,
+      companyDetails
+    });
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error getRideWithCompany:', err.message);
+
+    return res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}

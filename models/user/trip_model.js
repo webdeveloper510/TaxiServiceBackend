@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { nanoid } = require("nanoid");
 const Schema = mongoose.Schema
 const CONSTANT = require("../../config/constant");
 const PAYMENT_COLLECT_ENUM = Object.values(CONSTANT.PAYMENT_COLLECTION_TYPE);
@@ -11,6 +12,11 @@ const TRIP_COMMISSION_TYPE_ENUM = Object.values(CONSTANT.TRIP_COMMISSION_TYPE);
 const TRIP_CANCELLED_BY_ROLE_ENUM = Object.values(CONSTANT.TRIP_CANCELLED_BY_ROLE);
 
 const trip = new Schema({
+    unique_trip_code: {
+        type: String,
+        unique: true,
+        index: true,
+    },
     driver_name:{
         type:mongoose.Schema.Types.ObjectId,ref:'driver',
         default:null
@@ -44,15 +50,15 @@ const trip = new Schema({
     },
     superAdminPaymentAmount: {
         type: Number,
-        require: true,
+        required: true,
     },
     companyPaymentAmount: {
         type: Number,
-        require: true,
+        required: true,
     },
     driverPaymentAmount: {
         type: Number,
-        require: true,
+        required: true,
     },
     series_id:{
         type:String,
@@ -80,7 +86,7 @@ const trip = new Schema({
     },
     pickup_time:{
         type:Date,
-        default:Date.now()
+        default:Date.now
     },
     navigation_mode:{
         type:String,
@@ -94,7 +100,7 @@ const trip = new Schema({
     },
     drop_time:{
         type:Date,
-        default:Date.now()
+        default:Date.now
     },
     amount:{
         type:Object,
@@ -135,7 +141,7 @@ const trip = new Schema({
     },
     pickup_date_time:{
         type:Date,
-        default:Date.now()
+        default:Date.now
     },
     passenger_detail:{
         type:[
@@ -278,7 +284,7 @@ const trip = new Schema({
         enum: PAYMENT_COLLECT_ENUM,
         default: CONSTANT.PAYMENT_COLLECTION_TYPE.PENDING,
     },
-    payment_upadted_by_admin:{ // only admin can manually update the payment status
+    payment_updated_by_admin:{ // only admin can manually update the payment status
         type:mongoose.Schema.Types.ObjectId,ref:'user', 
         default: null,
     },
@@ -289,6 +295,7 @@ const trip = new Schema({
     },
     currency: {
         type: String,
+        enum: ["eur", "usd", "inr", "gbp"],
         default: `eur`
     },
     charge: {
@@ -462,5 +469,24 @@ const trip = new Schema({
     },
 
 },{timestamps:true})
+
+// AUTO GENERATE UNIQUE 8-CHAR CODE
+trip.pre("save", async function (next) {
+    if (this.unique_trip_code) return next();
+
+    let code;
+    let exists = true;
+
+    while (exists) {
+        code = nanoid(12);
+        exists = await this.constructor.exists({ unique_trip_code: code });
+        if (!exists) {
+            this.unique_trip_code = code;
+            break;
+        }
+    }
+
+    next();
+});
 
 module.exports = mongoose.model('trip',trip)

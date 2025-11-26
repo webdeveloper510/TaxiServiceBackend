@@ -2722,18 +2722,18 @@ exports.get_trip_detail = async (req, res) => {
       },
     ]);
 
-    let distance = (
-      geolib.getDistance(
-        {
-          latitude: getData[0].trip_from.log,
-          longitude: getData[0].trip_from.lat,
-        },
-        {
-          latitude: getData[0].trip_to.log,
-          longitude: getData[0].trip_to.lat,
-        }
-      ) * 0.00062137
-    ).toFixed(2);
+    // let distance = (
+    //   geolib.getDistance(
+    //     {
+    //       latitude: getData[0].trip_from.log,
+    //       longitude: getData[0].trip_from.lat,
+    //     },
+    //     {
+    //       latitude: getData[0].trip_to.log,
+    //       longitude: getData[0].trip_to.lat,
+    //     }
+    //   ) * 0.00062137
+    // ).toFixed(2);
 
     if (!getData[0]) {
       res.send({
