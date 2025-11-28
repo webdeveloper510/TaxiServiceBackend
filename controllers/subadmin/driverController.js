@@ -1445,7 +1445,8 @@ exports.getRideWithCompany = async (req, res) => {
   try {
 
     const unique_trip_code = req.params.unique_trip_code;
-    const tripExist = await TRIP.findOne({ unique_trip_code: unique_trip_code });
+    const tripExist = await TRIP.findOne({ unique_trip_code: unique_trip_code })
+                                .select(' customerDetails , pickup_date_time , passengerCount , price , payment_method_price , child_seat_price , created_by_company_id , pay_option , trip_from  , trip_to , driver_name , car_type_id , car_type , vehicle_type , trip_id , trip_status');
 
     if (!tripExist) {
       return res.send({
@@ -1453,7 +1454,8 @@ exports.getRideWithCompany = async (req, res) => {
         message: res.__("getTrip.error.noTripFound"),
       });
     }
-    const companyDetails = await USER.findById(tripExist.created_by_company_id).select('first_name last_name email settings')
+    const companyDetails = await USER.findById(tripExist.created_by_company_id).select('first_name last_name email settings , countryCode , phone');
+    const driverDetails = await DRIVER.findById(tripExist.driver_name).select('first_name , last_name , countryCode , phone , defaultVehicle , is_in_ride')
     // let companyDetail = await USER.aggregate([
     //                                           {
     //                                             $match: {
@@ -1510,11 +1512,16 @@ exports.getRideWithCompany = async (req, res) => {
     //                                             },
     //                                           },
     //                                         ]);
+    
     return res.send({
       code: constant.success_code,
       message: unique_trip_code,
-      companyDetails
+      driverDetails:driverDetails,
+      trip_detail : tripExist,
+      companyDetails: companyDetails,
     });
+
+
   } catch (err) {
 
     console.log('❌❌❌❌❌❌❌❌❌Error getRideWithCompany:', err.message);
