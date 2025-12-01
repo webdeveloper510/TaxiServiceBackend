@@ -4,13 +4,17 @@ const CONSTANT = require('../config/constant')
 const { updateDriverMapCache , removeDriverForSubscribedClients} = require("../Service/location.service")
 
 exports.driverAutoLogoutCron = (io) =>  {
-  cron.schedule("* * * * *", () => { // every minute
-    
-   autoLogout(io)
+  cron.schedule("* * * * *", async () => { // every minute
+
+   try {
+      await autoLogoutdriverUsers(io);
+    } catch (cronErr) {
+      console.error("❌ driver auto logout Cron Crash Prevented:", cronErr);
+    }
   });
 }
 
-const autoLogout = async (io) => {
+const autoLogoutdriverUsers = async (io) => {
 
    
     try {
@@ -20,32 +24,33 @@ const autoLogout = async (io) => {
 
 
         const driverList = await DRIVER_MODEL.find({
-                                                    is_login: true,
-                                                    lastUsedTokenMobile: { $lte: threeHoursBefore }, // for mobile user
-                                                    driver_state: { $nin: [CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP] }
-                                                });
+                                                        is_login: true,
+                                                        lastUsedTokenMobile: { $lte: threeHoursBefore }, // for mobile user
+                                                        driver_state: { $nin: [CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP] },
+                                                    },
+                                                    { _id: 1, email: 1 }  
+                                                );
         
-        console.log('find autoLogout users----' , driverList.length)
+        console.log('find driver autoLogout users----' , driverList.length)
 
-        if (driverList) {
+        if (!driverList.length) return;
+       
 
-            // Step 2: Update all of them
-            await DRIVER_MODEL.updateMany(
-                                            { _id: { $in: driverList.map(u => u._id) } },
-                                            { $set: { is_login: false } }
-                                        );
+        const driverIds = driverList.map(d => d._id);
+        const updateRes = await DRIVER_MODEL.updateMany(
+                                        { _id: { $in: driverIds } },
+                                        { $set: { is_login: false  , jwtTokenMobile: null} }
+                                    );
 
-            for (let driverInfo of driverList) {
-                console.log('logout email------------' , driverInfo.email)
-                const driverId = driverInfo?._id;
-                const driverDetails = await updateDriverMapCache(driverId);
-                removeDriverForSubscribedClients(driverDetails , io)
-            }
+        console.log(`🔄 Driver Auto Logout Completed → Modified: ${updateRes.modifiedCount}`);
+
+        for (let driverInfo of driverList) {
+            console.log('logout email------------' , driverInfo.email)
+            const driverId = driverInfo?._id;
+            const driverDetails = await updateDriverMapCache(driverId);
+            removeDriverForSubscribedClients(driverDetails , io)
         }
         
-
-        
-
     } catch (error) {
         console.log('❌❌❌❌❌❌❌❌❌Error auto logout:', error.message);
         console.log("🚀 ~ logout driver 3 hour ~ error:", error);
