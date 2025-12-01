@@ -201,7 +201,7 @@ router.put("/assign_special_plan/:id",[verifyToken , adminAuth] ,subAdminControl
 
 // Connected account Api's
 router.get("/user-onboard-on-stripe/:id" , subscriptionController.userOnboardOnStripe); // user will submit all the details to attach the bank account detail to strripe connected account
-router.get("/get-connected-account-details/:id" , subscriptionController.getConnectedAccountDetails);
+router.post("/get-connected-account-details/:id" , subscriptionController.getConnectedAccountDetails);
 
 
 // SMS buy functionality
