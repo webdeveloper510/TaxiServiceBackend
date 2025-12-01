@@ -389,6 +389,8 @@ function registerDriverHandlers(io, socket) {
                     })
             }
 
+            console.log("status---------" , status)
+
             const activeStates = new Set([CONSTANT.DRIVER_STATE.ON_THE_WAY, CONSTANT.DRIVER_STATE.ON_TRIP]);
 
             if (activeStates.has(driver_info?.driver_state) && status == false) {
@@ -414,6 +416,21 @@ function registerDriverHandlers(io, socket) {
                 console.log('adding driver into map---------')
                 // update driver cahce data
                 let getDriverDetails = await updateDriverMapCache(driver_info?._id);
+                
+                if (getDriverDetails?.defaultVehicle == null) {
+                    return ack({
+                                    code: CONSTANT.error_code,
+                                    message: i18n.__({ phrase: "updateDriver.error.cannotGoOnlineWithoutDefaultVehicle", locale: lang }),
+                                })
+                }
+
+                if (!getDriverDetails?.is_special_plan_active &&  !(getDriverDetails?.subscriptionData?.length > 0)) {
+                    return ack({
+                                    code: CONSTANT.error_code,
+                                    message: i18n.__({ phrase: "updateDriver.error.requireSubscriptionForMapVisibility", locale: lang }),
+                                })
+                }
+                console.log('getDriverDetails-----' , getDriverDetails)
                 // update driver live location update
                 updateDriverLocationInRedis(io , redis , driver_info._id , longitude , latitude , getDriverDetails);
             }

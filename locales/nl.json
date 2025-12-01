@@ -102,7 +102,7 @@
       "unableToAssignDriver": "Er is een fout opgetreden bij het toewijzen van de bestuurder. Probeer het later opnieuw.",
       "noneAvailable": "Er zijn momenteel geen bestuurders beschikbaar voor toewijzing.",
       "unbaleToUpdate": "Er is een fout opgetreden bij het bijwerken van de bestuurder. Probeer het later opnieuw.",
-      "cannotBlockDriverDuringActiveTrip":"De chauffeur is momenteel bezig met een actieve rit en kan op dit moment niet worden geblokkeerd."
+      "cannotBlockDriverDuringActiveTrip": "De chauffeur is momenteel bezig met een actieve rit en kan op dit moment niet worden geblokkeerd."
     },
     "success": {
       "driverListRetrieved": "Bestuurderslijst succesvol opgehaald.",
@@ -148,6 +148,8 @@
       "emailExistsWithAnotherAccount": "Dit e-mailadres is gekoppeld aan een ander account. Kies een ander e-mailadres.",
       "phoneExistsWithAnotherAccount": "Dit telefoonnummer is gekoppeld aan een ander account. Kies een ander nummer.",
       "cannotGoOfflineWithActiveTrip": "U kunt niet offline gaan terwijl er een actieve rit bezig is. Voltooi eerst de rit.",
+      "cannotGoOnlineWithoutDefaultVehicle": "Je kunt niet online gaan totdat je een standaardvoertuig hebt toegevoegd. Voeg je standaardvoertuig toe om op de kaart te verschijnen.",
+      "requireSubscriptionForMapVisibility": "Koop een abonnement om uw zichtbaarheid op de kaart te activeren.",
       "invalidState": "ongeldige status gevonden",
       "deniedStatusChangeOnTheWay": "U kunt uw status niet wijzigen terwijl u onderweg bent om een passagier op te halen.",
       "deniedStatusChangeOnTheTrip": "U kunt uw status niet wijzigen terwijl een rit bezig is."
@@ -345,7 +347,6 @@
       "invalidTrip": "Deze rit is ongeldig of niet langer beschikbaar.",
       "tripAlreadyCancelledByUser": "Deze rit is al geannuleerd door de gebruiker.",
       "customerTripCancelNotAllowed": "U kunt deze rit niet meer annuleren, omdat deze binnenkort van start gaat. Annuleringen zijn alleen toegestaan tot {{online_cancellation_time}} uur vóór de geplande vertrektijd."
-
     },
     "socket": {
       "tripChangedRefresh": "De rit is bijgewerkt. Vernieuw om de laatste informatie te laden.",

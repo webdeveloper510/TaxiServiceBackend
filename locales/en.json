@@ -102,7 +102,7 @@
             "unableToAssignDriver": "An error occurred while assigning the driver. Please try again later.",
             "noneAvailable": "No drivers are currently available for assignment.",
             "unbaleToUpdate": "An error occurred while updating the driver. Please try again later.",
-            "cannotBlockDriverDuringActiveTrip":"The driver is currently on an active trip and cannot be blocked at this time."
+            "cannotBlockDriverDuringActiveTrip": "The driver is currently on an active trip and cannot be blocked at this time."
         },
         "success": {
             "driverListRetrieved": "Driver list has been successfully fetched.",
@@ -148,6 +148,8 @@
             "emailExistsWithAnotherAccount": "This email is linked to another account. Please choose a different email.",
             "phoneExistsWithAnotherAccount": "This phone is linked to another account. Please choose a different phone.",
             "cannotGoOfflineWithActiveTrip": "You can't go offline while you have an active trip in progress. Please complete the trip first.",
+            "cannotGoOnlineWithoutDefaultVehicle": "You can't go online until you add your default vehicle. Please add your default vehicle to appear on the map.",
+            "requireSubscriptionForMapVisibility": "Please purchase a subscription plan to enable your visibility on the map.",
             "invalidState": "invalid state found",
             "deniedStatusChangeOnTheWay": "You cannot change your status while you are on the way to pick up a passenger.",
             "deniedStatusChangeOnTheTrip": "You cannot change your status while a trip is in progress."
@@ -345,7 +347,6 @@
             "invalidTrip": "This trip is not valid or no longer available.",
             "tripAlreadyCancelledByUser": "This trip has already been cancelled by the user.",
             "customerTripCancelNotAllowed": "You can no longer cancel this trip as it’s scheduled to start soon. Cancellations are only allowed up to {{online_cancellation_time}} hours before the trip start time."
-
         },
         "socket": {
             "tripChangedRefresh": "The trip has been updated. Kindly refresh to load the latest information.",
