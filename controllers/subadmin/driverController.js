@@ -1455,7 +1455,7 @@ exports.getRideWithCompany = async (req, res) => {
       });
     }
     const companyDetails = await USER.findById(tripExist.created_by_company_id).select('first_name last_name email settings , countryCode , phone');
-    const driverDetails = await DRIVER.findById(tripExist.driver_name).select('first_name , last_name , countryCode , phone , defaultVehicle , is_in_ride')
+    const driverDetails = await DRIVER.findById(tripExist.driver_name).select('first_name , last_name , countryCode , phone , defaultVehicle , is_in_ride , location')
     // let companyDetail = await USER.aggregate([
     //                                           {
     //                                             $match: {
