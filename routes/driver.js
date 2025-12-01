@@ -33,6 +33,6 @@ router.get('/get_under_cancelled_trips_count_for_drivers',[verifyToken],driverCo
 router.get('/company_access_list/',[verifyToken],driverController.company_access_list)
 router.get('/favorite_driver/:id',[verifyToken],driverController.favoriteDriver)
 router.get('/get_driver_list/',[verifyToken],driverController.getDriverList)
-router.get('/trip/:unique_trip_code/company',driverController.getRideWithCompany)
+router.post('/trip/:unique_trip_code/company',driverController.getRideWithCompany)
 
 module.exports = router;
