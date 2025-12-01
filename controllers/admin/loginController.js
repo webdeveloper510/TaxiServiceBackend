@@ -1092,6 +1092,9 @@ exports.send_otp = async (req, res) => {
       ],
     });
     if (!check_email) {
+
+      
+
       let check_driver = await DRIVER.findOne({
         $and: [
           {
@@ -1105,7 +1108,7 @@ exports.send_otp = async (req, res) => {
           },
         ],
       });
-
+      
       if (!check_driver) {
         res.send({
           code: constant.error_code,
@@ -1128,7 +1131,7 @@ exports.send_otp = async (req, res) => {
                                                       { new: true }
                                                     );
 
-      passwordResetOtpEmail(check_email , data.OTP)
+      passwordResetOtpEmail(check_driver , data.OTP)
       
       res.send({
         code: constant.success_code,

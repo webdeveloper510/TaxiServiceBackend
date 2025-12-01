@@ -1953,6 +1953,7 @@ exports.driverDocumentVerifiedEmail = async (driverInfo) => {
 
 exports.passwordResetOtpEmail = async (info , otp) => {
 
+  try {
 
     let subject = `Password Reset Code – iDispatch  Mobility `;
     const data = {
@@ -1972,6 +1973,11 @@ exports.passwordResetOtpEmail = async (info , otp) => {
                                         [] // for attachment
                                       );
     return emailSent
+  } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌ passwordResetOtpEmail error --------------' , err.message)
+  }
+
+    
 }
 
 exports.driverDocumentRejectionEmail = async (driverInfo) => {
