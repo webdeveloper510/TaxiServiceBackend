@@ -42,6 +42,7 @@ app.post('/subscription_webhook', bodyParser.raw({ type: 'application/json' }), 
 const io = initSocket(httpServer);
 
 startAllCrons(io);
+app.disable('x-powered-by')
 app.use(logger("dev"));
 app.use(i18n.init);
 app.use(express.json());
