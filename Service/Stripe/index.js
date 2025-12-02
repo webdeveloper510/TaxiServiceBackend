@@ -19,7 +19,7 @@ exports.initiateStripePayment = async (trip, amount , req) => {
           tax_rates: [process.env.STRIPE_VAT_TAX_ID]
         },
       ],
-      mode: "payment",
+      mode: "payment", // this is one time payment (not a subscription)
       payment_intent_data: {
                                 description: `Commission fee for ride (Trip ID: ${trip.trip_id}) paid by ${req.user.email} (Role: ${req.user.role})`,   // 👈 goes to Payments tab
                             },
