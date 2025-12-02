@@ -2225,12 +2225,17 @@ exports.alocate_driver = async (req, res) => {
                         });
       }
 
+      const totalValue = (check_trip?.superAdminPaymentAmount | 0) + (check_trip?.companyPaymentAmount | 0 );
 
+      if (totalValue > (check_trip?.price | 0)) {
 
-      return res.send({
+        return res.send({
                           code: constant.error_code,
-                          message : check_trip
+                          message : res.__('editTrip.error.commissionValidationError')
                         });
+      }
+
+      
 
       let newValues = {
                         $set: {
@@ -2457,6 +2462,16 @@ exports.access_alocate_driver = async (req, res) => {
         return res.send({
                           code: constant.error_code,
                           message: driverStatus.message ,
+                        });
+      }
+
+      const totalValue = (check_trip?.superAdminPaymentAmount | 0) + (check_trip?.companyPaymentAmount | 0 );
+
+      if (totalValue > (check_trip?.price | 0)) {
+
+        return res.send({
+                          code: constant.error_code,
+                          message : res.__('editTrip.error.commissionValidationError')
                         });
       }
 

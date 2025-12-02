@@ -200,6 +200,7 @@
             "cantEditCanceledReason": "The trip can't be modified as it has been cancelled",
             "cantEditNoShowReason": "Trip modifications is not allowed because the trip was cancelled when the customer was unavailable.",
             "cantAllocateBookedReason": "The trip can't be allocated as the trip is already booked.",
+            "commissionValidationError": "The commission amount cannot exceed the total trip price.",
             "cantAllocateNoShowReason": "Trip can't be allocated because the trip was cancelled when the customer was unavailable.",
             "cantAllocateCanceledReason": "The trip can't be allocated as it has been cancelled",
             "cantAllocateApprovedReason": "The trip can't be allocated as a request has already been sent. Please wait until the driver responds to the previous request. If the driver does not accept, you will be able to send a new request"
