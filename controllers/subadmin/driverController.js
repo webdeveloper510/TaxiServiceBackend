@@ -1454,8 +1454,43 @@ exports.getRideWithCompany = async (req, res) => {
         message: res.__("getTrip.error.noTripFound"),
       });
     }
-    const companyDetails = await USER.findById(tripExist.created_by_company_id).select('first_name last_name email settings , countryCode , phone');
-    const driverDetails = await DRIVER.findById(tripExist.driver_name).select('first_name , last_name , countryCode , phone , defaultVehicle , is_in_ride , location')
+    // const companyDetails = await USER.findById(tripExist.created_by_company_id).select('first_name last_name email settings , countryCode , phone');
+    const companyDetails = await USER.aggregate([
+                                                  {
+                                                    $match: {
+                                                      _id: new mongoose.Types.ObjectId(tripExist.created_by_company_id)
+                                                    }
+                                                  },
+                                                  {
+                                                    $lookup: {
+                                                      from: "agencies",              // collection name
+                                                      localField: "_id",             // user._id
+                                                      foreignField: "user_id",       // agency.user_id
+                                                      as: "agencyData"
+                                                    }
+                                                  },
+                                                  {
+                                                    $unwind: {
+                                                      path: "$agencyData",
+                                                      preserveNullAndEmptyArrays: true      // user may not have agency
+                                                    }
+                                                  },
+                                                  {
+                                                    $project: {
+                                                      first_name: 1,
+                                                      last_name: 1,
+                                                      email: 1,
+                                                      settings: 1,
+                                                      phone: 1,
+                                                      countryCode: 1,
+                                                      company_name: "$agencyData.company_name",   // get company name
+                                                    }
+                                                  }
+                                                ]);
+        const driverDetails = await DRIVER.findById(tripExist.driver_name).select('first_name , last_name , countryCode , phone , defaultVehicle , is_in_ride , location').populate({
+        path: "defaultVehicle",
+        select: "vehicle_number vehicle_type vehicle_model"
+      });
     // let companyDetail = await USER.aggregate([
     //                                           {
     //                                             $match: {

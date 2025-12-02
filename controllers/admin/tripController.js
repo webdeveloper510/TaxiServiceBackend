@@ -2227,6 +2227,11 @@ exports.alocate_driver = async (req, res) => {
 
 
 
+      return res.send({
+                          code: constant.error_code,
+                          message : check_trip
+                        });
+
       let newValues = {
                         $set: {
                           driver_name: driver_full_info._id,
