@@ -85,12 +85,9 @@ router.get( "/get_vehicles_by_driverid/:id", [verifyToken], vehicleController.ge
 router.get( "/get_vehicles_with_type/:vehicle_type", [verifyToken], vehicleController.get_vehicles_with_type );
 router.post("/block_user", [verifyToken ], vehicleController.blockUser);
 router.post("/admin_get_all_vehicle", [verifyToken , adminAuth], vehicleController.adminGetAllVehicle);
+router.put("/vehicle/:id/verification", [verifyToken , adminAuth], vehicleController.vehicleVerificationUpdate);
 
-router.get(
-  "/get_vehicle_type/:vehicle_type",
-  [verifyToken],
-  vehicleController.get_vehicle_type
-);
+router.get( "/get_vehicle_type/:vehicle_type", [verifyToken], vehicleController.get_vehicle_type);
 router.put("/edit_vehicle/:id", [verifyToken], vehicleController.edit_vehicle);
 router.delete("/delete_vehicle/:id",[verifyToken],vehicleController.delete_vehicle);
 router.delete("/admin_delete_vehicle/:id",[verifyToken , adminAuth],vehicleController.adminDeleteVehicle);

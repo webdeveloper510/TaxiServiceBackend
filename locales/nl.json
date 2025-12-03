@@ -592,21 +592,29 @@
     "error": {
       "vehicleNameAlreadyInUse": "Het opgegeven voertuigtype bestaat al.",
       "invalidVehicle": "Het opgegeven voertuig is ongeldig of bestaat niet. Controleer en probeer opnieuw.",
+      "requestNotFoundOrProcessed": "Het verzoek is niet gevonden of is al verwerkt.",
       "invalidVehicleType": "Het opgegeven voertuigtype is ongeldig of bestaat niet. Controleer en probeer opnieuw.",
       "vehicleNumberAlreadyInUse": "Dit voertuignummer is al geregistreerd.",
       "unableToAddVehicle": "Er is een fout opgetreden bij het toevoegen van het voertuig. Probeer het later opnieuw of neem contact op met de ondersteuning.",
       "noVehicleFound": "Geen voertuig gevonden in het systeem.",
       "getVehicleFailed": "Er is een fout opgetreden bij het ophalen van het voertuig. Probeer het later opnieuw.",
       "updateFailed": "Er is een fout opgetreden bij het bijwerken van het voertuig. Probeer het later opnieuw.",
-      "deleteFailed": "Er is een fout opgetreden bij het verwijderen van het voertuig. Probeer het later opnieuw."
+      "deleteFailed": "Er is een fout opgetreden bij het verwijderen van het voertuig. Probeer het later opnieuw.",
+      "uploadVehiclePhotoRequired": "Upload alstublieft de foto van uw voertuig.",
+      "uploadVehicleDocumentFrontRequired": "Upload alstublieft de voorkant van uw voertuigdocument.",
+      "uploadVehicleDocumentBackRequired": "Upload alstublieft de achterkant van uw voertuigdocument.",
+      "invalidVerificationStatus": "De opgegeven verificatiestatus is ongeldig.",
+      "verificationCommentRequired": "Een verificatieopmerking moet worden toegevoegd bij het afkeuren van een voertuig."
     },
     "success": {
       "getVehicleType": "Voertuigtypen succesvol opgehaald.",
       "carTypeAdded": "Voertuigtype succesvol toegevoegd.",
       "vehicleListRetrieved": "Record succesvol opgehaald.",
       "vehicleAdded": "Voertuig succesvol toegevoegd.",
+      "vehicle_submitted_for_approval": "Uw voertuig is met succes ter goedkeuring ingediend",
       "vehicleUpdated": "Voertuig succesvol bijgewerkt.",
-      "vehicleDeleted": "Voertuig succesvol verwijderd."
+      "vehicleDeleted": "Voertuig succesvol verwijderd.",
+      "vehicleVerificationUpdated": "Voertuigverificatie is succesvol bijgewerkt."
     }
   },
   "blockedUser": {

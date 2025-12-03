@@ -261,5 +261,17 @@ module.exports={
                         { max: 20, value: 15 },
                         { max: 60, value: 30 },
                         { max: Infinity, value: 50 },
-                    ]
+                    ],
+    VEHICLE_UPDATE_STATUS : {
+        PENDING: 'PENDING',
+        APPROVED: 'APPROVED',
+        REJECTED: 'REJECTED',
+        REVOKED: 'REVOKED',     // ← NEW
+        NONE: 'NONE',     // ← NEW
+    },
+    // this will explain the request is creating time or updating time
+    VEHICLE_UPDATE_ACTION : {
+        CREATE: 'CREATE',   // first time vehicle
+        UPDATE: 'UPDATE',   // update existing
+    }
 }
