@@ -893,18 +893,18 @@ exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentS
     }
 
     console.log("---------")
-        console.log("")
-        console.log("")
-        console.log("canel trip by driver")
-        console.log("")
+        console.log("---")
+        console.log("----")
+        console.log("---canel trip by driver")
+        console.log("------")
         
-        console.log("tripCancellationRequestDecision: sending to socket:", user?.socketId);
+        console.log("tripCancellationRequestDecision: sending to socket:", user?.socketId , '---');
         console.log("Current sockets on this process:", Array.from(socket.sockets.sockets.keys()));
         
-        console.log("")
-        console.log("")
-        console.log("")
-        console.log("")
+        console.log("------")
+        console.log("------")
+        console.log("------")
+        console.log("------")
         console.log("---------")
     // get the drivers (who have access) of  partners and account access list 
     const driverList = await driver_model.find({
