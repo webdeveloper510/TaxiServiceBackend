@@ -892,6 +892,20 @@ exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentS
       if (user?.webDeviceToken) { deviceTokenList.push({ webDeviceToken: user?.webDeviceToken , platform: constant.PLATFORM.WEBSITE , email: user?.email , app_locale: user?.app_locale , web_locale: user?.web_locale })}
     }
 
+    console.log("---------")
+        console.log("")
+        console.log("")
+        console.log("canel trip by driver")
+        console.log("")
+        
+        console.log("tripCancellationRequestDecision: sending to socket:", user?.socketId);
+        console.log("Current sockets on this process:", Array.from(socket.sockets.sockets.keys()));
+        
+        console.log("")
+        console.log("")
+        console.log("")
+        console.log("")
+        console.log("---------")
     // get the drivers (who have access) of  partners and account access list 
     const driverList = await driver_model.find({
                                                   $and: [
