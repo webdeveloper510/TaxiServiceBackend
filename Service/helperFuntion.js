@@ -898,7 +898,7 @@ exports.emitTripCancelledByDriver = async(tripDetails , driverDetails , currentS
         console.log("---canel trip by driver")
         console.log("------")
         
-        console.log("tripCancellationRequestDecision: sending to socket:", user?.webSocketId , '---');
+        console.log("tripCancellationRequestDecision: sending to socket:", user?.webSocketId , '---' , user.email);
         console.log("Current sockets on this process:", Array.from(socket.sockets.sockets.keys()));
         
         console.log("------")
