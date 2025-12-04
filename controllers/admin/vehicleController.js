@@ -641,7 +641,7 @@ exports.edit_vehicle = async (req, res) => {
                                             AC: data.AC == "true" ? true : false,
                                             seating_capacity: data.seating_capacity,
                                             insurance_renewal_date: data.insurance_renewal_date,
-                                            vehicle_photo: vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg",
+                                            vehicle_photo: vehicle_photo.length != 0 ? vehicle_photo[0] : vehicle.vehicle_photo,
                                             registration_doc_front: registration_doc_front ? registration_doc_front : vehicle.registration_doc_front,
                                             registration_doc_back: registration_doc_back ? registration_doc_back : vehicle.registration_doc_back,
                                             insurance_doc_front: "",
