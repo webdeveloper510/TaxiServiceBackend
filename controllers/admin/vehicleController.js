@@ -225,57 +225,116 @@ exports.adminAddVehicle = async (req, res) => {
         try {
             var vehicle_documents = [];
             var vehicle_photo = [];
+            var registration_doc_front = '';
+            var registration_doc_back = '';
 
             // var imagePortfolioLogo = []
             let file = req.files
-            for (i = 0; i < file.length; i++) {
+            for (let i = 0; i < file.length; i++) {
                 if (file[i].fieldname == 'vehicle_photo') {
                     vehicle_photo.push(file[i].location);
                 } else if (file[i].fieldname == 'vehicle_documents') {
                     vehicle_documents.push(file[i].location);
 
+                } else if (file[i].fieldname == 'registration_doc_front') {
+
+                    registration_doc_front = file[i].location;
+                } else if (file[i].fieldname == 'registration_doc_back') {
+                    registration_doc_back = file[i].location;
                 }
+            }
+
+            const missingField = (!vehicle_photo || vehicle_photo.length === 0)
+                                    ? "getVehicle.error.uploadVehiclePhotoRequired"
+                                    : (!registration_doc_front)
+                                    ? "getVehicle.error.uploadVehicleDocumentFrontRequired"
+                                    : (!registration_doc_back)
+                                        ? "getVehicle.error.uploadVehicleDocumentBackRequired"
+                                        : null;
+
+            if (missingField) {
+                return res.send({
+                                    code: constant.error_code,
+                                    message: res.__(missingField)
+                                });
             }
 
             let data = req.body;
             const driverId = req.params.driverId;
             const driverInfo = await driver_model.findOne({_id: driverId});
 
-            if (driverInfo) {
-                let checkVehicle = await VEHICLE.findOne({ vehicle_number: data.vehicle_number })
-                if (checkVehicle) {
-                    res.send({
-                        code: constant.error_code,
-                        message: res.__("getVehicle.error.vehicleNumberAlreadyInUse")
-                    })
-                    return;
-                }
-
-                data.agency_user_id = driverId;
-                data.created_by = req.userId;
-                data.vehicle_photo = vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
-                data.vehicle_documents = vehicle_documents.length != 0 ? vehicle_documents[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+            if (!driverInfo) {
+                return res.send({
+                                    code: constant.error_code,
+                                    message: res.__("getDrivers.error.noDriverFound")
+                                })
+            }
             
+           let checkVehicle = await VEHICLE.findOne({ vehicle_number: new RegExp(`^${data.vehicle_number}$`, "i") });
 
-                let save_data = await VEHICLE(data).save()
-                if (!save_data) {
-                    res.send({
-                        code: constant.error_code,
-                        message: res.__("getVehicle.error.unableToAddVehicle")
-                    })
-                } else {
-                    res.send({
-                        code: constant.success_code,
-                        message: res.__("getVehicle.success.vehicleAdded"),
-                        result: save_data
-                    })
-                }
-            } else {
+            if (checkVehicle) {
+                return res.send({
+                                    code: constant.error_code,
+                                    message: res.__("getVehicle.error.vehicleNumberAlreadyInUse")
+                                });
+            }
+
+            const requested_data   =   {
+                                        vehicle_number: data.vehicle_number,
+                                        vehicle_type: data.vehicle_type,
+                                        vehicle_model: data.vehicle_model,
+                                        vehicle_make: data.vehicle_make,
+                                        AC: data.AC == "true" ? true : false,
+                                        seating_capacity: data.seating_capacity,
+                                        insurance_renewal_date: data.insurance_renewal_date,
+                                        vehicle_photo: vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg",
+                                        registration_doc_front: registration_doc_front,
+                                        registration_doc_back: registration_doc_back,
+                                        insurance_doc_front: "",
+                                        insurance_doc_back: "",
+                                    };
+
+            let vehicle = await VEHICLE.create({
+                                                agency_user_id: driverId,
+                                                verification_status: constant.VEHICLE_UPDATE_STATUS.APPROVED,
+                                                created_by: req.userId,
+                                                last_admin_status : constant.VEHICLE_UPDATE_STATUS.APPROVED,
+                                                last_admin_comment : "",
+                                                ever_approved: true,
+                                                last_verified_at: new Date(),
+                                                ...requested_data
+                                            });
+
+            const request = await VEHICLE_UPDATE_REQUEST_MODEL.create({
+                                                                        vehicle_id: vehicle._id, // important for first time
+                                                                        driver_id: driverId,
+                                                                        action: constant.VEHICLE_UPDATE_ACTION.CREATE,
+                                                                        status: constant.VEHICLE_UPDATE_STATUS.APPROVED,
+                                                                        requested_data: requested_data,
+                                                                        current_data: {}, // nothing to compare
+                                                                        reviewed_by: req.userId,
+                                                                        reviewed_at: new Date()
+                                                                    });
+
+            // data.agency_user_id = driverId;
+            // data.created_by = req.userId;
+            // data.vehicle_photo = vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+            // data.vehicle_documents = vehicle_documents.length != 0 ? vehicle_documents[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg"
+        
+
+            
+            if (!vehicle) {
                 res.send({
                     code: constant.error_code,
-                    message: res.__("getDrivers.error.noDriverFound")
+                    message: res.__("getVehicle.error.unableToAddVehicle")
+                })
+            } else {
+                res.send({
+                    code: constant.success_code,
+                    message: res.__("getVehicle.success.vehicleAdded"),
                 })
             }
+            
             
         } catch (err) {
 
@@ -439,7 +498,7 @@ exports.get_vehicle_type = async (req, res) => {
 
 exports.get_vehicle_detail = async (req, res) => {
     try {
-        let getData = await VEHICLE.findOne({ _id: req.params.id })
+        let getData = await VEHICLE.findOne({ _id: req.params.id }).populate("pending_request_id")
         if (!getData) {
             res.send({
                 code: constant.error_code,
@@ -465,7 +524,8 @@ exports.get_vehicle_detail = async (req, res) => {
 exports.edit_vehicle = async (req, res) => {
     vehicleUpload(req, res, async (err) => {
         try {
-            let data = req.body
+            let data = req.body;
+            const vehicleId = req.params.id;
             var vehicle_documents = [];
             var vehicle_photo = [];
             var registration_doc_front = '';
@@ -486,13 +546,45 @@ exports.edit_vehicle = async (req, res) => {
                 }
             }
 
-            const missingField = (!vehicle_photo || vehicle_photo.length === 0)
+            
+
+            let vehicle;
+            
+            if (req.user?.role === constant.ROLES.ADMIN || req.user?.role === constant.ROLES.SUPER_ADMIN) {
+
+                vehicle = await VEHICLE.findOne({ _id: vehicleId , is_deleted: false})
+            } else {
+                vehicle = await VEHICLE.findOne({ _id: vehicleId , agency_user_id: req.userId , is_deleted: false})
+            }
+
+            if (!vehicle) {
+                return res.send({
+                    code: constant.error_code,
+                    message: res.__("getVehicle.error.invalidVehicleType")
+                })
+            }
+
+            let missingField = null;
+
+            if (req.user?.role === constant.ROLES.ADMIN || req.user?.role === constant.ROLES.SUPER_ADMIN) {
+
+                missingField = !vehicle?.vehicle_photo 
+                                    ? "getVehicle.error.uploadVehiclePhotoRequired"
+                                    : (!vehicle?.registration_doc_front)
+                                    ? "getVehicle.error.uploadVehicleDocumentFrontRequired"
+                                    : (!vehicle?.registration_doc_back)
+                                        ? "getVehicle.error.uploadVehicleDocumentBackRequired"
+                                        : null;
+            } else {
+
+                missingField = (!vehicle_photo || vehicle_photo.length === 0)
                                     ? "getVehicle.error.uploadVehiclePhotoRequired"
                                     : (!registration_doc_front)
                                     ? "getVehicle.error.uploadVehicleDocumentFrontRequired"
                                     : (!registration_doc_back)
                                         ? "getVehicle.error.uploadVehicleDocumentBackRequired"
                                         : null;
+            }
 
             if (missingField) {
                 return res.send({
@@ -501,21 +593,10 @@ exports.edit_vehicle = async (req, res) => {
                                 });
             }
             
-            let criteria = { _id: req.params.id }
-            let option = { new: true }
-           
-            let vehicle = await VEHICLE.findOne({ _id: req.params.id , agency_user_id: req.userId , is_deleted: false})
             
-            if (!vehicle) {
-                res.send({
-                    code: constant.error_code,
-                    message: res.__("getVehicle.error.invalidVehicleType")
-                })
-                return;
-            }
 
             // check if vehicle number exist or not with another vehicle
-            let checkVehicle = await VEHICLE.findOne({ _id: { $ne: req.params.id } ,vehicle_number: new RegExp(`^${data.vehicle_number}$`, "i") })
+            let checkVehicle = await VEHICLE.findOne({ _id: { $ne: vehicleId } ,vehicle_number: new RegExp(`^${data.vehicle_number}$`, "i") })
             if (checkVehicle) {
                 return res.send({
                     code: constant.error_code,
@@ -553,36 +634,66 @@ exports.edit_vehicle = async (req, res) => {
                                 };
 
             const requested_data    =   {
-                                    vehicle_number: data.vehicle_number,
-                                    vehicle_type: data.vehicle_type,
-                                    vehicle_model: data.vehicle_model,
-                                    vehicle_make: data.vehicle_make,
-                                    AC: data.AC == "true" ? true : false,
-                                    seating_capacity: data.seating_capacity,
-                                    insurance_renewal_date: data.insurance_renewal_date,
-                                    vehicle_photo: vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg",
-                                    registration_doc_front: registration_doc_front,
-                                    registration_doc_back: registration_doc_back,
-                                    insurance_doc_front: "",
-                                    insurance_doc_back: "",   
-                                };
+                                            vehicle_number: data.vehicle_number,
+                                            vehicle_type: data.vehicle_type,
+                                            vehicle_model: data.vehicle_model,
+                                            vehicle_make: data.vehicle_make,
+                                            AC: data.AC == "true" ? true : false,
+                                            seating_capacity: data.seating_capacity,
+                                            insurance_renewal_date: data.insurance_renewal_date,
+                                            vehicle_photo: vehicle_photo.length != 0 ? vehicle_photo[0] : "https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718367/samples/wzvmzalzhjuve5bydabm.jpg",
+                                            registration_doc_front: registration_doc_front ? registration_doc_front : vehicle.registration_doc_front,
+                                            registration_doc_back: registration_doc_back ? registration_doc_back : vehicle.registration_doc_back,
+                                            insurance_doc_front: "",
+                                            insurance_doc_back: "",   
+                                        };
 
             const request = await VEHICLE_UPDATE_REQUEST_MODEL.create({
-                                                                            vehicle_id: vehicle._id, 
-                                                                            driver_id: req.userId,
-                                                                            action: constant.VEHICLE_UPDATE_ACTION.UPDATE,
-                                                                            requested_data: requested_data,
-                                                                            current_data: current_data, 
-                                                                        });
+                                                                        vehicle_id: vehicle._id, 
+                                                                        driver_id: vehicle.agency_user_id,
+                                                                        action: constant.VEHICLE_UPDATE_ACTION.UPDATE,
+                                                                        requested_data: requested_data,
+                                                                        current_data: current_data, 
+                                                                        status: req.user?.role === constant.ROLES.ADMIN || req.user?.role === constant.ROLES.SUPER_ADMIN ? constant.VEHICLE_UPDATE_STATUS.APPROVED : constant.VEHICLE_UPDATE_STATUS.PENDING,
+                                                                        reviewed_by: req.user?.role === constant.ROLES.ADMIN || req.user?.role === constant.ROLES.SUPER_ADMIN ? req.userId : null,
+                                                                        reviewed_at: req.user?.role === constant.ROLES.ADMIN || req.user?.role === constant.ROLES.SUPER_ADMIN ? new Date() : null
+                                                                    });
 
-            vehicle.has_pending_update = true;
-            vehicle.pending_request_id = request._id;
+            // when admin or super admin will edit the vehicle then it will be directly approved. 
+            if (req.user?.role === constant.ROLES.ADMIN || req.user?.role === constant.ROLES.SUPER_ADMIN) {
 
-            // last admin decision is now "pending" again
-            vehicle.last_admin_status = constant.VEHICLE_UPDATE_STATUS.PENDING;
-            vehicle.last_admin_comment = '';
+                Object.assign(vehicle, requested_data);
+                vehicle.has_pending_update = false;
+                vehicle.pending_request_id = null;
+                vehicle.ever_approved    =  true;
+                // last admin decision is now "pending" again
+                vehicle.last_admin_status = constant.VEHICLE_UPDATE_STATUS.APPROVED;
+                vehicle.last_admin_comment = '';
+                vehicle.last_verified_at = new Date();
+                await vehicle.save();
 
-            await vehicle.save();
+                updateDriverMapCache(vehicle.agency_user_id);
+
+                const vehicleInfo = await VEHICLE.find({agency_user_id: vehicle.agency_user_id , verification_status :  constant.VEHICLE_UPDATE_STATUS.APPROVED , is_deleted: false  , pending_request_id: null})
+            
+                // If driver have only one vehicle as Approved then it will be default vehicle for the driver
+                if (vehicleInfo.length == 1) {
+
+                    await driver_model.findOneAndUpdate({_id: vehicleInfo?.agency_user_id} , { defaultVehicle: vehicleId });
+                    updateDriverMapCache(vehicleInfo?.agency_user_id);
+                }
+            } else {
+
+                vehicle.has_pending_update = true;
+                vehicle.pending_request_id = request._id;
+
+                // last admin decision is now "pending" again
+                vehicle.last_admin_status = constant.VEHICLE_UPDATE_STATUS.PENDING;
+                vehicle.last_admin_comment = '';
+                await vehicle.save();
+            }
+
+            
             // data.vehicle_photo = vehicle_photo.length != 0 ? vehicle_photo[0] : vehicle.vehicle_photo
             // data.vehicle_documents = vehicle_documents.length != 0 ? vehicle_documents[0] : vehicle.vehicle_documents
 
@@ -835,8 +946,23 @@ exports.adminGetAllVehicle = async (req, res) => {
                                 message: res.__("getVehicle.error.invalidVerificationStatus")
                             });
         }
-        const query = { is_deleted: false, verification_status: data?.verification_status};
+        const query = { is_deleted: false};
 
+        if (data?.verification_status === constant.VEHICLE_UPDATE_STATUS.APPROVED) {
+
+             // Approved vehicles with no pending update request
+            query.verification_status = constant.VEHICLE_UPDATE_STATUS.APPROVED;
+            query.last_admin_status = { $ne: constant.VEHICLE_UPDATE_STATUS.PENDING };
+
+        } else if (data?.verification_status === constant.VEHICLE_UPDATE_STATUS.PENDING) {
+
+            // Vehicles waiting for admin review
+            query.last_admin_status = constant.VEHICLE_UPDATE_STATUS.PENDING
+        } else if (data?.verification_status === constant.VEHICLE_UPDATE_STATUS.REJECTED) {
+
+            // Vehicles waiting for admin review
+            query.last_admin_status = constant.VEHICLE_UPDATE_STATUS.REJECTED
+        }
         
         if (search.length > 0) {
             query.$or = [
@@ -881,10 +1007,10 @@ exports.adminGetAllVehicle = async (req, res) => {
     } catch (err) {
 
         console.log('❌❌❌❌❌❌❌❌❌Error admin get all al vehicle:', err.message);
-        res.send({
-            code: constant.error_code,
-            message: err.message
-        })
+        return res.send({
+                            code: constant.error_code,
+                            message: err.message
+                        })
     }
 }
 
@@ -907,10 +1033,11 @@ exports.vehicleVerificationUpdate = async (req, res) => {
 
         const vehicleDeail = await VEHICLE.findById(vehicleId).populate("pending_request_id").populate("agency_user_id");
        
-        if (!vehicleDeail || vehicleDeail.verification_status !== constant.VEHICLE_UPDATE_STATUS.PENDING) {
+        if (!vehicleDeail || vehicleDeail?.pending_request_id?.status !== constant.VEHICLE_UPDATE_STATUS.PENDING) {
             return res.send({
                                 code: constant.error_code,
-                                message: res.__("getVehicle.error.requestNotFoundOrProcessed")
+                                message: res.__("getVehicle.error.requestNotFoundOrProcessed"),
+                                
                             });
         }
 
@@ -930,6 +1057,9 @@ exports.vehicleVerificationUpdate = async (req, res) => {
 
             // CREATE Approved
             if (decision === constant.VEHICLE_UPDATE_STATUS.APPROVED) {
+
+                // add all requested data into vehicle
+                Object.assign(vehicleDeail, vehicleUpdateRequestDetail.requested_data);
 
                 vehicleDeail.verification_status  = constant.VEHICLE_UPDATE_STATUS.APPROVED;
                 vehicleDeail.verification_comment   = verification_comment;
@@ -962,6 +1092,9 @@ exports.vehicleVerificationUpdate = async (req, res) => {
         } else if (vehicleDeail?.pending_request_id?.action === constant.VEHICLE_UPDATE_ACTION.UPDATE) {
 
             if (decision === constant.VEHICLE_UPDATE_STATUS.APPROVED) {
+
+                // add all requested data into vehicle
+                Object.assign(vehicleDeail, vehicleUpdateRequestDetail.requested_data);
 
                 vehicleDeail.has_pending_update   = false;
 
@@ -1016,6 +1149,60 @@ exports.vehicleVerificationUpdate = async (req, res) => {
     } catch (err) {
 
         console.log('❌❌❌❌❌❌❌❌❌Error block user:', err.message);
+        res.send({
+            code: constant.error_code,
+            message: err.message
+        })
+    }
+}
+
+exports.vehicleMakeDefault = async (req, res) => {
+
+    try{
+
+        const vehicleId = req.params.id;
+
+        let vehicle = await VEHICLE.findOne({_id: vehicleId , agency_user_id: req.userId , is_deleted: false});
+
+        if (!vehicle) {
+            return res.send({
+                                code: constant.error_code,
+                                message:  res.__("getVehicle.error.noVehicleFound"),
+                            })
+        }
+
+
+        if (vehicle.verification_status === constant.VEHICLE_UPDATE_STATUS.APPROVED && !vehicle.pending_request_id) {
+
+                await driver_model.findOneAndUpdate({_id: req.userId , defaultVehicle: vehicleId})
+                updateDriverMapCache(req.userId);
+                return res.send({
+                            code: constant.error_code,
+                            message:  res.__("getVehicle.success.vehicleSetAsDefault"),
+                        })
+
+        } else if (vehicle.verification_status === constant.VEHICLE_UPDATE_STATUS.REJECTED && !vehicle.pending_request_id){
+
+            return res.send({
+                            code: constant.error_code,
+                            message:  res.__("getVehicle.error.vehicleRejectedCannotBeDefault"),
+                        })
+        } else {
+
+            return res.send({
+                            code: constant.error_code,
+                            message:  res.__("getVehicle.error.vehicleUnderReviewCannotBeDefault"),
+                        })
+        }
+
+          return res.send({
+                                code: constant.error_code,
+                                message:  vehicle,
+                            })
+
+    } catch (err) {
+
+        console.log('❌❌❌❌❌❌❌❌❌Error vehicleMakeDefault:', err.message);
         res.send({
             code: constant.error_code,
             message: err.message

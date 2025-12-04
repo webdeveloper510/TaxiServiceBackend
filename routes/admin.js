@@ -86,6 +86,7 @@ router.get( "/get_vehicles_with_type/:vehicle_type", [verifyToken], vehicleContr
 router.post("/block_user", [verifyToken ], vehicleController.blockUser);
 router.post("/admin_get_all_vehicle", [verifyToken , adminAuth], vehicleController.adminGetAllVehicle);
 router.put("/vehicle/:id/verification", [verifyToken , adminAuth], vehicleController.vehicleVerificationUpdate);
+router.put("/vehicle/:id/make_default", [verifyToken], vehicleController.vehicleMakeDefault);
 
 router.get( "/get_vehicle_type/:vehicle_type", [verifyToken], vehicleController.get_vehicle_type);
 router.put("/edit_vehicle/:id", [verifyToken], vehicleController.edit_vehicle);

@@ -606,7 +606,9 @@
             "invalidVerificationStatus": "The provided verification status is invalid.",
             "verificationCommentRequired": "A verification comment must be provided when rejecting a vehicle.",
             "onlyAfterApproval": "You can update this vehicle only after it has been approved.",
-            "pendingCannotUpdate": "You already have a pending request for this vehicle. You cannot update the vehicle until the admin reviews it."
+            "pendingCannotUpdate": "You already have a pending request for this vehicle. You cannot update the vehicle until the admin reviews it.",
+            "vehicleUnderReviewCannotBeDefault": "You cannot set this vehicle as the default for trips while it is under review.",
+            "vehicleRejectedCannotBeDefault": "You cannot set this vehicle as the default for trips because it has been rejected by the admin. Please review the details and resubmit it for approval."
         },
         "success": {
             "getVehicleType": "Vehicle types retrieved successfully.",
@@ -617,7 +619,8 @@
             "vehicleUpdated": "The vehicle has been updated successfully.",
             "vehicleDeleted": "The vehicle has been deleted successfully.",
             "vehicleVerificationUpdated": "Vehicle verification updated successfully.",
-            "vehicleUpdationRequestSubmitted": "Your vehicle update request has been successfully submitted"
+            "vehicleUpdationRequestSubmitted": "Your vehicle update request has been successfully submitted",
+            "vehicleSetAsDefault": "The vehicle has been set as the default vehicle in your account."
         }
     },
     "blockedUser": {

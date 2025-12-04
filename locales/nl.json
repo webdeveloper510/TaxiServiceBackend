@@ -606,7 +606,9 @@
       "invalidVerificationStatus": "De opgegeven verificatiestatus is ongeldig.",
       "verificationCommentRequired": "Een verificatieopmerking moet worden toegevoegd bij het afkeuren van een voertuig.",
       "onlyAfterApproval": "U kunt dit voertuig pas bijwerken nadat het is goedgekeurd.",
-      "pendingCannotUpdate": "U heeft al een lopende aanvraag voor dit voertuig. U kunt het voertuig niet bijwerken totdat de beheerder het heeft beoordeeld."
+      "pendingCannotUpdate": "U heeft al een lopende aanvraag voor dit voertuig. U kunt het voertuig niet bijwerken totdat de beheerder het heeft beoordeeld.",
+      "vehicleUnderReviewCannotBeDefault": "U kunt dit voertuig niet als standaard voor ritten instellen zolang het in beoordeling is.",
+      "vehicleRejectedCannotBeDefault": "U kunt dit voertuig niet als standaard voor ritten instellen omdat het door de beheerder is afgekeurd. Controleer de gegevens en dien het opnieuw in ter beoordeling."
     },
     "success": {
       "getVehicleType": "Voertuigtypen succesvol opgehaald.",
@@ -617,7 +619,8 @@
       "vehicleUpdated": "Voertuig succesvol bijgewerkt.",
       "vehicleDeleted": "Voertuig succesvol verwijderd.",
       "vehicleVerificationUpdated": "Voertuigverificatie is succesvol bijgewerkt.",
-      "vehicleUpdationRequestSubmitted": "Uw aanvraag voor het bijwerken van het voertuig is succesvol ingediend"
+      "vehicleUpdationRequestSubmitted": "Uw aanvraag voor het bijwerken van het voertuig is succesvol ingediend",
+      "vehicleSetAsDefault": "The vehicle has been set as the default vehicle in your account."
     }
   },
   "blockedUser": {
