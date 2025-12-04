@@ -99,20 +99,32 @@ app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
     
-    const pi = await stripe.paymentIntents.retrieve("pi_3SaXKPKNzdNk7dDQ1XVaicvp", {
-      expand: ['charges']
-    });
+    const invoice = await stripe.invoices.retrieve("in_1SaXKXKNzdNk7dDQB94wlx6Y");
 
-    const charge = await stripe.charges.retrieve(pi.latest_charge);
-    const receiptUrl = charge.receipt_url;
-    // const charge = pi.charges.data[0];
-    // const receiptUrl = charge.receipt_url
+    // 1) Get the PaymentIntent
+const paymentIntent = await stripe.paymentIntents.retrieve(invoice.payment_intent);
+
+// 2) Get the latest charge
+const latestChargeId = paymentIntent.latest_charge; // e.g. "py_3SaXKPKNzdNk7dDQ1Yhwfzi9"
+
+if (!latestChargeId) {
+  // payment still processing / not charged yet
+  // handle this case (show "still processing" to user)
+}
+
+const charge = await stripe.charges.retrieve(latestChargeId);
+
+// 3) This is the URL for the PDF you like (Ontvangstbewijs)
+const receiptUrl = charge.receipt_url;
+
+    console.log("Receipt URL:", receiptUrl);
 
     return res.send({
                       code: 200,
                       message: "weekly-company-payment",
                       receiptUrl,
-                      pi
+                      // pi
+                      paymentIntent
                     });
   } catch (error) {
     

@@ -446,6 +446,15 @@ exports.remove_driver = async (req, res) => {
   try {
     const driverId = req.userId; // Assuming you pass the driver ID as a URL parameter
 
+    const tripDetails = await TRIP.find({driver_name: driverId , trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false});
+
+    if (tripDetails.length > 0) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__('deleteDriver.error.outstandingTripBalance'),
+      });
+    }
+    
     // You may want to add additional checks to ensure the driver exists or belongs to the agency user
     const removedDriver = await DRIVER.findOneAndUpdate(
                                                           { _id: driverId },
@@ -457,7 +466,7 @@ exports.remove_driver = async (req, res) => {
                                                         );
 
     if (!removedDriver) {
-      res.send({
+      return res.send({
         code: constant.error_code,
         message: res.__('deleteDriver.error.unableToDeleteDriver'),
       });
@@ -492,6 +501,15 @@ exports.remove_driver = async (req, res) => {
 exports.adminDeleteDriver = async (req, res) => {
   try {
     const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+
+    const tripDetails = await TRIP.find({driver_name: driverId , trip_status: constant.TRIP_STATUS.COMPLETED , is_paid: false});
+
+    if (tripDetails.length > 0) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__('deleteDriver.error.driverOutstandingDues'),
+      });
+    }
 
     // You may want to add additional checks to ensure the driver exists or belongs to the agency user
     const removedDriver = await DRIVER.findOneAndUpdate(

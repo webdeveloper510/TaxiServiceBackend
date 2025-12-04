@@ -86,7 +86,9 @@
     },
     "deleteDriver": {
         "error": {
-            "unableToDeleteDriver": "An error occurred while deleting the driver."
+            "unableToDeleteDriver": "An error occurred while deleting the driver.",
+            "outstandingTripBalance": "We’re unable to delete your account right now. Please complete your pending trip payment, and you’ll be able to remove your account immediately after.",
+            "driverOutstandingDues": "We’re unable to delete this account at the moment because the driver has outstanding dues"
         },
         "success": {
             "driverDeleted": "Driver has been deleted successfully."

@@ -86,7 +86,9 @@
   },
   "deleteDriver": {
     "error": {
-      "unableToDeleteDriver": "Er is een fout opgetreden bij het verwijderen van de bestuurder."
+      "unableToDeleteDriver": "Er is een fout opgetreden bij het verwijderen van de bestuurder.",
+      "outstandingTripBalance": "We kunnen uw account op dit moment niet verwijderen. Rond alstublieft uw openstaande ritbetaling af; daarna kunt u uw account direct verwijderen",
+      "driverOutstandingDues": "We kunnen dit account op dit moment niet verwijderen omdat de bestuurder nog openstaande betalingen heeft"
     },
     "success": {
       "driverDeleted": "Bestuurder is succesvol verwijderd."
