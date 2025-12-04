@@ -41,8 +41,11 @@ module.exports = async function subscription(req, res) {
             return res.status(200).send({ received: true , error_message: err.message , istTime:istTime});
         }
 
+        console.log("event.type ---------" , event.type )
         // -------------------- Main Logic start
         if (event.type === 'invoice.payment_succeeded') {
+
+            console.log("inside event tyep ---------" , event.type )
             let invoice = event.data.object;
             let updateData;
 
