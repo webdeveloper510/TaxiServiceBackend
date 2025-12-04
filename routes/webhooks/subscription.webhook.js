@@ -95,7 +95,7 @@ module.exports = async function subscription(req, res) {
 
 const oneTimePayment = async (invoice) => {
 
-    console.log("💳 This invoice is for a **One-Time Payment**");
+    console.log("💳 This invoice is for a **One-Time Payment**-----------" , invoice);
     try {
 
         const checkoutSessions = await stripe.checkout.sessions.list({
