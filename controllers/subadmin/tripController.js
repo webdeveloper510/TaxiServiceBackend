@@ -1003,7 +1003,8 @@ exports.driverCancelTripDecision = async (req, res) => {
       const isDriverHasAccess = await isDriverHasCompanyAccess(driver_data , tripDetails.created_by_company_id)
       
       if (driver_data?.socketId) {
-        console.log("driver_data.socketId----" , driver_data.socketId);
+        console.log("tripCancellationRequestDecision: sending to socket:", driver_data.socketId);
+        console.log("Current sockets on this process:", Array.from(req.io.sockets.sockets.keys()));
 
         const abc = await req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
           message: message,
