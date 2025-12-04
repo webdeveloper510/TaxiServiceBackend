@@ -1003,14 +1003,13 @@ exports.driverCancelTripDecision = async (req, res) => {
       const isDriverHasAccess = await isDriverHasCompanyAccess(driver_data , tripDetails.created_by_company_id)
       
       if (driver_data?.socketId) {
-       
-        req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
+        console.log("driver_data.socketId----" , driver_data.socketId);
+        
+        await req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
           message: message,
           tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
           tripDetails:tripDetails
         });
-
-        
 
         // If driver doesn't have company acces then we can refresh the trip from driver side because he will be refreshed by partnerAccountRefreshTrip function
         if (!isDriverHasAccess) {
@@ -1020,7 +1019,7 @@ exports.driverCancelTripDecision = async (req, res) => {
       }
 
       if (driver_data?.webSocketId) {
-        req.io.to(driver_data.webSocketId).emit("tripCancellationRequestDecision", {
+        await req.io.to(driver_data.webSocketId).emit("tripCancellationRequestDecision", {
                                                                                       message: message,
                                                                                       tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
                                                                                       tripDetails:tripDetails
