@@ -1004,8 +1004,8 @@ exports.driverCancelTripDecision = async (req, res) => {
       
       if (driver_data?.socketId) {
         console.log("driver_data.socketId----" , driver_data.socketId);
-        
-        await req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
+
+        const abc = await req.io.to(driver_data.socketId).emit("tripCancellationRequestDecision", {
           message: message,
           tripDecisionStatus: constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED == tripDecisionStatus ? constant.TRIP_CANCELLATION_REQUEST_STATUS.APPROVED : constant.TRIP_CANCELLATION_REQUEST_STATUS.REJECTED,
           tripDetails:tripDetails
