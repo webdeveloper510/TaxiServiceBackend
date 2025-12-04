@@ -51,6 +51,8 @@ function registerUserHandlers(io, socket) {
                                                                     { $set: { isWebSocketConnected: true, webSocketId: socketId } },
                                                                     { new: true }
                                                                 );
+
+                console.log("web company added--*************--" , socketId , 'websocket----' , user.webSocketId , user.email)
                 if (user) {
 
                     socket.emit("userConnection",   {
