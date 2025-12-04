@@ -96,9 +96,9 @@ module.exports = async function subscription(req, res) {
     }
 }
 
-const oneTimePayment = async (invoice) => {
+const oneTimePayment = async (invoiceFromWebhook) => {
 
-    console.log("💳 This invoice is for a **One-Time Payment**-----------" , invoice , new Date());
+    console.log("💳 This invoice is for a **One-Time Payment**-----------" , invoiceFromWebhook.id , new Date());
     try {
 
         // ⏳ WAIT 30 SECONDS SO STRIPE CAN FINALIZE + MARK INVOICE AS PAID
@@ -106,7 +106,7 @@ const oneTimePayment = async (invoice) => {
 
         console.log("30 seconds----", new Date())
         // 🔄 ALWAYS RE-FETCH INVOICE BECAUSE WEBHOOK MAY ARRIVE TOO EARLY
-        let invoice = await stripe.invoices.retrieve(invoice.id);
+        const invoice = await stripe.invoices.retrieve(invoiceFromWebhook.id);
 
         // 🛑 If invoice still not paid → don't save PDF
         if (invoice.status !== "paid") {
