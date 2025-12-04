@@ -604,7 +604,9 @@
       "uploadVehicleDocumentFrontRequired": "Upload alstublieft de voorkant van uw voertuigdocument.",
       "uploadVehicleDocumentBackRequired": "Upload alstublieft de achterkant van uw voertuigdocument.",
       "invalidVerificationStatus": "De opgegeven verificatiestatus is ongeldig.",
-      "verificationCommentRequired": "Een verificatieopmerking moet worden toegevoegd bij het afkeuren van een voertuig."
+      "verificationCommentRequired": "Een verificatieopmerking moet worden toegevoegd bij het afkeuren van een voertuig.",
+      "onlyAfterApproval": "U kunt dit voertuig pas bijwerken nadat het is goedgekeurd.",
+      "pendingCannotUpdate": "U heeft al een lopende aanvraag voor dit voertuig. U kunt het voertuig niet bijwerken totdat de beheerder het heeft beoordeeld."
     },
     "success": {
       "getVehicleType": "Voertuigtypen succesvol opgehaald.",
@@ -614,7 +616,8 @@
       "vehicle_submitted_for_approval": "Uw voertuig is met succes ter goedkeuring ingediend",
       "vehicleUpdated": "Voertuig succesvol bijgewerkt.",
       "vehicleDeleted": "Voertuig succesvol verwijderd.",
-      "vehicleVerificationUpdated": "Voertuigverificatie is succesvol bijgewerkt."
+      "vehicleVerificationUpdated": "Voertuigverificatie is succesvol bijgewerkt.",
+      "vehicleUpdationRequestSubmitted": "Uw aanvraag voor het bijwerken van het voertuig is succesvol ingediend"
     }
   },
   "blockedUser": {
