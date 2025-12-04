@@ -24,7 +24,10 @@ exports.initiateStripePayment = async (trip, amount , req) => {
                                 description: `Commission fee for ride (Trip ID: ${trip.trip_id}) paid by ${req.user.email} (Role: ${req.user.role})`,   // 👈 goes to Payments tab
                             },
       invoice_creation: {
-        enabled: true, // Enable invoice creation
+        enabled: true, // Enable invoice creation,
+        invoice_data: {
+          collection_method: 'charge_automatically',
+        },
       },
       success_url: `${process.env.FRONTEND_URL}/payment/success/${trip._id}`,
       cancel_url: `${process.env.FRONTEND_URL}/payment/cancel/${trip._id}`,

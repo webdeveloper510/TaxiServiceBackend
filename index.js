@@ -99,9 +99,20 @@ app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
     
+    const pi = await stripe.paymentIntents.retrieve("pi_3SaXKPKNzdNk7dDQ1XVaicvp", {
+      expand: ['charges']
+    });
+
+    const charge = await stripe.charges.retrieve(pi.latest_charge);
+    const receiptUrl = charge.receipt_url;
+    // const charge = pi.charges.data[0];
+    // const receiptUrl = charge.receipt_url
+
     return res.send({
                       code: 200,
-                      message: "weekly-company-payment"
+                      message: "weekly-company-payment",
+                      receiptUrl,
+                      pi
                     });
   } catch (error) {
     
