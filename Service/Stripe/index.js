@@ -4,6 +4,8 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 exports.initiateStripePayment = async (trip, amount , req) => {
   try {
+
+    const customerId  = req.user.stripeCustomerId;
     const paymentIntent = await stripe.checkout.sessions.create({
       payment_method_types: ["ideal"],
       line_items: [
@@ -20,6 +22,7 @@ exports.initiateStripePayment = async (trip, amount , req) => {
         },
       ],
       mode: "payment", // this is one time payment (not a subscription)
+      customer: customerId,
       payment_intent_data: {
                                 description: `Commission fee for ride (Trip ID: ${trip.trip_id}) paid by ${req.user.email} (Role: ${req.user.role})`,   // 👈 goes to Payments tab
                             },
