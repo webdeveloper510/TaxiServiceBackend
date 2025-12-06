@@ -3302,11 +3302,11 @@ exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
       const companyId = tripDetail?.created_by_company_id;
       let  message = '';
       if (smsEventType == constant.SMS_EVENTS.TRIP_CREATE ) {
-        message = `Thank you for your reservation at ${companyAgencyDetail?.company_name}. View your booking details: ${process.env.BASEURL}/ride/${tripDetail?.unique_trip_code}`;
+        message = `Booking confirmed with ${companyAgencyDetail?.company_name}. View details: ${process.env.BASEURL}/ride/${tripDetail?.unique_trip_code}`;
       } else if (smsEventType == constant.SMS_EVENTS.CHANGE_PICKUP_DATE_TIME) {
-        message = `Dear user your trip schedule has been updated. View your booking details: ${companyAgencyDetail?.company_name}. Visit ${process.env.BASEURL}/ride/${tripDetail?.unique_trip_code}`;
+        message = `Trip updated. Details: ${process.env.BASEURL}/ride/${tripDetail?.unique_trip_code} - ${companyAgencyDetail?.company_name}`;
       } else if (smsEventType == constant.SMS_EVENTS.DRIVER_ON_THE_WAY) {
-        message = `Dear customer, your driver is on the way to pick you up for your scheduled trip (${tripDetail?.trip_id}) with ${companyAgencyDetail?.company_name}. View your booking details: ${process.env.BASEURL}/ride/${tripDetail?.unique_trip_code}`;
+        message = `your driver from ${companyAgencyDetail?.company_name} is on the way. Track here: ${process.env.BASEURL}/ride/${tripDetail?.unique_trip_code}`;
       }
       
       let phone = `${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`;
