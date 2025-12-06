@@ -1489,7 +1489,7 @@ exports.getRideWithCompany = async (req, res) => {
                                                 ]);
         const driverDetails = await DRIVER.findById(tripExist.driver_name).select('first_name , last_name , countryCode , phone , defaultVehicle , is_in_ride , location').populate({
         path: "defaultVehicle",
-        select: "vehicle_number vehicle_type vehicle_model"
+        select: "vehicle_number vehicle_type vehicle_model vehicle_make"
       });
     // let companyDetail = await USER.aggregate([
     //                                           {
