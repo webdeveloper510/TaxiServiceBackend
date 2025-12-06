@@ -3080,7 +3080,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
    
     let customerPhone = tripDetail?.customerDetails?.phone ? `+${tripDetail?.customerDetails?.countryCode} ${tripDetail?.customerDetails?.phone}`: '';
 
-    const subject = `Your order confirmation # ${tripDetail?.trip_id}`;
+    const subject = `Trip Confirmation  ${tripDetail?.trip_id}`;
 
     const dateString = tripDetail?.pickup_date_time;
     const date = new Date(dateString);
@@ -3144,7 +3144,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
       trackUrl: bookingTrackLink
     }
   
-    console.log('bookingData--------' , bookingData)
+    console.log('bookingData vijay--------' , bookingData)
     const emailSent = await sendEmail(
                                         email, // Receiver email
                                         subject, // Subject
