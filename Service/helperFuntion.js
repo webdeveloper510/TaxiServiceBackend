@@ -3144,7 +3144,7 @@ exports.sendBookingConfirmationEmail = async (tripDetail) => {
       trackUrl: bookingTrackLink
     }
   
-    console.log('bookingData vijay--------' , bookingData)
+    // console.log('bookingData vijay--------' , bookingData)
     const emailSent = await sendEmail(
                                         email, // Receiver email
                                         subject, // Subject
