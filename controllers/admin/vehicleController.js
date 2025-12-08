@@ -532,6 +532,7 @@ exports.edit_vehicle = async (req, res) => {
             var registration_doc_back = '';
             // var imagePortfolioLogo = []
             let file = req.files
+            console.log("file.length---" , file.length)
             for (i = 0; i < file.length; i++) {
                 if (file[i].fieldname == 'vehicle_photo') {
                     vehicle_photo.push(file[i].location);

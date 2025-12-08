@@ -387,6 +387,7 @@ exports.admin_list = async (req, res) => {
         first_name: 1,
         last_name: 1,
         email: 1,
+        countryCode: 1,
         phone: 1,
         role: 1,
         is_deleted: 1,
@@ -475,7 +476,15 @@ exports.update_admin_details = async (req, res) => {
       }
     }
 
-    let update_data = await USER.findOneAndUpdate(criteria, data, option);
+    const updatableData = {
+      first_name : data.first_name,
+      last_name : data.last_name,
+      phone : data.phone,
+      email : data.email,
+      countryCode : data.countryCode,
+    }
+
+    let update_data = await USER.findOneAndUpdate(criteria, updatableData, option);
 
     if (!update_data) {
       res.send({
