@@ -1061,6 +1061,7 @@ exports.hotelListAdmin = async (req, res) => {
                   email: 1,
                   // company_id:1,
                   // company_name:1,
+                  countryCode:1,
                   phone: 1,
                   createdAt: -1,
                   profile_image: 1,
