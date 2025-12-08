@@ -102,7 +102,7 @@ const oneTimePayment = async (invoiceFromWebhook) => {
     try {
 
         // ⏳ WAIT 30 SECONDS SO STRIPE CAN FINALIZE + MARK INVOICE AS PAID
-        await new Promise(resolve => setTimeout(resolve, 30000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         console.log("30 seconds----", new Date())
         // 🔄 ALWAYS RE-FETCH INVOICE BECAUSE WEBHOOK MAY ARRIVE TOO EARLY
