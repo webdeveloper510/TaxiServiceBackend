@@ -1297,6 +1297,7 @@ exports.search_company = async (req, res) => {
           // company_id:1,
           // company_name:1,
           is_blocked:1,
+          countryCode:1,
           phone: 1,
           createdAt: -1,
           profile_image: 1,
