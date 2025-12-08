@@ -175,7 +175,7 @@ exports.priceUpload = async (req, res) => {
                             user_id: req.userId,
                             departure_place: departurePlace,
                             arrival_place: arrivalPlace,
-                            number_of_person: value['Number of persons'],
+                            // number_of_person: value['Number of persons'],
                             vehicle_type: vehicleType,
                             price_type: req.body.upload_price_type == constant.UPLOADED_PRICE_TYPE.ZIP_CODE ? constant.UPLOADED_PRICE_TYPE.ZIP_CODE : constant.UPLOADED_PRICE_TYPE.ADDRESS
                         },

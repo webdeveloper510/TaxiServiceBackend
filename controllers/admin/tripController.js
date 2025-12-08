@@ -3005,11 +3005,11 @@ exports.calculatePrice = async (req, res) => {
       searchQuery.visible_to_hotel = true;
     }
 
-    if (number_of_person <= 4) {
-      searchQuery.number_of_person = { $lte: 4 };
-    } else if (number_of_person > 4 && number_of_person <= 8) {
-      searchQuery.number_of_person = { $gt: 4, $lte: 8 };
-    }
+    // if (number_of_person <= 4) {
+    //   searchQuery.number_of_person = { $lte: 4 };
+    // } else if (number_of_person > 4 && number_of_person <= 8) {
+    //   searchQuery.number_of_person = { $gt: 4, $lte: 8 };
+    // }
 
     // get the uploaded price based on 
     // console.log('searchQuery---' , searchQuery)
