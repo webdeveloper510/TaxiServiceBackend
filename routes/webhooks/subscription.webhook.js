@@ -131,6 +131,11 @@ const oneTimePayment = async (invoiceFromWebhook) => {
                                                 invoice_pdf: invoice?.invoice_pdf,
                                             } 
                                         };
+
+            console.log("invoice url----" , {
+                                                hosted_invoice_url: invoice?.hosted_invoice_url,
+                                                invoice_pdf: invoice?.invoice_pdf,
+                                            } )
             const option = { new: true } 
             //  Update invoice URL into our system
             const updatedTrip = await TRIP_MODEL.findOneAndUpdate(
