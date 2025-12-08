@@ -604,10 +604,10 @@ exports.edit_vehicle = async (req, res) => {
                 });
             }
 
-            if (vehicle.verification_status !== constant.VEHICLE_UPDATE_STATUS.APPROVED) {
+            if (vehicle.verification_status !== constant.VEHICLE_UPDATE_STATUS.APPROVED && vehicle.has_pending_update == true) {
                 return res.send({
                     code: constant.error_code,
-                    message: res.__("getVehicle.error.onlyAfterApproval")
+                    message: res.__("getVehicle.error.onlyAfterApproval"),
                 });
             }
 
