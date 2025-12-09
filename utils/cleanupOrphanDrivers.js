@@ -37,17 +37,11 @@ module.exports = async function cleanupOrphanDrivers(io) {
       return;
     }
 
-    
-
     const ids = [...new Set(keys.map(key => key.split(":").pop()))];
-
-    
 
     // 3) Filter valid ObjectIds
     const validIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id));
     const invalidIds = ids.filter((id) => !mongoose.Types.ObjectId.isValid(id));
-
-    
 
     // 4) Query Mongo for existing drivers with those valid IDs
     const existingDrivers = await DRIVER_MODEL.find(
@@ -56,7 +50,6 @@ module.exports = async function cleanupOrphanDrivers(io) {
                                                     )
                                                     .lean();
     
-
     const existingSet = new Set(existingDrivers.map((d) => String(d._id)));
     
     // 5) Orphan IDs = not in Mongo OR invalid ObjectId

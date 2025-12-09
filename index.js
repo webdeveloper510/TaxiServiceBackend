@@ -26,6 +26,7 @@ const i18n = require('./i18n');
 const { startAllCrons } = require("./cronjobs");
 const { initSocket } = require("./sockets");
 const cleanupOrphanDrivers = require("./utils/cleanupOrphanDrivers.js")
+const fixOrphanDriverTrips = require("./utils/fixOrphanDriverTrips.js")
 // view engine setup
 
 
@@ -149,6 +150,7 @@ mongoose.connection.once('open', async () => {
   console.log("📡 MongoDB connected (once)");
 
   await cleanupOrphanDrivers(io);   // <--- Your custom function with socket
+  await fixOrphanDriverTrips(io);   // <--- Your custom function with socket
 
   console.log("✅ postDbInit() finished running.");
 });
