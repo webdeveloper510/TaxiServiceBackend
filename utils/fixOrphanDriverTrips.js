@@ -57,7 +57,7 @@ module.exports = async function fixOrphanDriverTrips(io) {
 
 
     if (!driversWithInvalidCurrentTrip.length) {
-        console.log("✅✅✅no driver found with invalid currentTripId");
+        console.log("✅no driver found with invalid currentTripId");
         return;
     }
 

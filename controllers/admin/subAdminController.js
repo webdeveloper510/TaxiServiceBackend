@@ -3777,6 +3777,9 @@ exports.updatePartnerAccountAccess = async (req, res) => {
                                                     );
         }
 
+        req.io.to(driver?.socketId).emit("partial-access-removed", { driver_id: driver._id  , companyId: req.userId , message: message} )
+        req.io.to(driver?.webSocketId).emit("partial-access-removed", { driver_id: driver._id  , companyId: req.userId , message: message} )
+
       } else {
 
         // Check if driver partner already a partner in company account
