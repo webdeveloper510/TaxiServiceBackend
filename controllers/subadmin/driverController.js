@@ -1484,6 +1484,7 @@ exports.getRideWithCompany = async (req, res) => {
                                                       phone: 1,
                                                       countryCode: 1,
                                                       company_name: "$agencyData.company_name",   // get company name
+                                                      website: "$agencyData.website",   // get company name
                                                     }
                                                   }
                                                 ]);
