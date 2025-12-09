@@ -2993,7 +2993,8 @@ exports.calculatePrice = async (req, res) => {
     if(element.status === 'ZERO_RESULTS' || element.status === 'NOT_FOUND') {
       return res.send({
                         code: constant.error_code,
-                        message: res.__("getTrip.error.calculationFailed")
+                        message: res.__("getTrip.error.calculationFailed"),
+                        element
                       });
     }
 

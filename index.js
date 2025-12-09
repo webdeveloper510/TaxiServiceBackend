@@ -102,14 +102,18 @@ app.get( "/weekly-company-payment", async (req, res) => {
     let session = await stripe.checkout.sessions.retrieve("cs_test_a1ANThnlWMdCq4DW82hiEmtvPllnaXei7wFyYLgZRQFgqCwxAlksJczvUh");
 let invoice = await stripe.invoices.retrieve(session.invoice);
 
+    const chargeId = invoice.charge;
+  if (!chargeId) return null; // not paid yet
 
+  const charge = await stripe.charges.retrieve(chargeId);
     // console.log("Receipt URL:", receiptUrl);
 
     return res.send({
-                      code: 200,
-                      message: "weekly-company-payment",
+                      charge:charge.receipt_url,
+                      // code: 200,
+                      // message: "weekly-company-payment",
                       invoice,
-                      session
+                      // session
                     });
   } catch (error) {
     

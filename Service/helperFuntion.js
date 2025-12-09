@@ -3720,13 +3720,16 @@ exports.getLatLng = async (location) => {
 exports.getDistanceAndDuration = async (origin, destination) => {
 
  try {
-
+  
   origin = origin || '';
   destination = destination || '';
+  
+  const encodedOrigin = encodeURIComponent(origin);
+    const encodedDestination = encodeURIComponent(destination);
   // const originLatLng = await this.getLatLng(origin);
   // const destLatLng = await this.getLatLng(destination);
   // const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originLatLng.lat},${originLatLng.lng}&destinations=${destLatLng.lat},${destLatLng.lng}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
-  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
+  const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodedOrigin}&destinations=${encodedDestination}&mode=driving&key=${process.env.GOOGLE_MAP_KEY}`;
   console.log(url)
       const response = await axios.get(url);
       
