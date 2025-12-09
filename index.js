@@ -99,7 +99,7 @@ app.get( "/weekly-company-payment", async (req, res) => {
 
   try {
     
-    let session = await stripe.checkout.sessions.retrieve("cs_test_a12iDcjbYlfZIkXs7UcdVdenXa5IPk9dkk9k5H8MXhXIhCTAGrJ4c7somy");
+    let session = await stripe.checkout.sessions.retrieve("cs_test_a1ANThnlWMdCq4DW82hiEmtvPllnaXei7wFyYLgZRQFgqCwxAlksJczvUh");
 let invoice = await stripe.invoices.retrieve(session.invoice);
 
 
@@ -108,8 +108,8 @@ let invoice = await stripe.invoices.retrieve(session.invoice);
     return res.send({
                       code: 200,
                       message: "weekly-company-payment",
-                      hosted_invoice_url:invoice.hosted_invoice_url,
-                                    invoice_pdf:invoice.invoice_pdf
+                      invoice,
+                      session
                     });
   } catch (error) {
     

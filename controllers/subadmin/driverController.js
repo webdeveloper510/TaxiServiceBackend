@@ -122,7 +122,7 @@ exports.remove_driver = async (req, res) => {
 
 exports.get_driver_detail = async (req, res) => {
   try {
-    const driverId = req.params.id; // Assuming you pass the driver ID as a URL parameter
+    const driverId = req.params.id ?? req.userId; // Assuming you pass the driver ID as a URL parameter
 
     const driver = await DRIVER.findOne({
                                           _id: req.userId,
