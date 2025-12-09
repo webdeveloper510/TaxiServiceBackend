@@ -663,5 +663,16 @@
             "statusUpdated": "Status has been updated successfully",
             "visibilityUpdated": "Visibility has been updated successfully"
         }
+    },
+    "rating": {
+        "error": {
+            "invalidRange": "Rating must be between 1 and 5",
+            "commentRequired": "Comment cannot be empty.",
+            "alreadySubmitted": "You have already submitted a rating for this trip.",
+            "tripNotCompleted": "You cannot submit a rating before the trip is completed."
+        },
+        "success": {
+            "submitted": "Thank you! Your rating has been submitted successfully."
+        }
     }
 }

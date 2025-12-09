@@ -662,6 +662,17 @@
       "priceDeleted": "De prijs is succesvol verwijderd.",
       "statusUpdated": "Status succesvol bijgewerkt.",
       "visibilityUpdated": "Zichtbaarheid succesvol bijgewerkt."
+    },
+    "rating": {
+      "error": {
+        "invalidRange": "Beoordeling moet tussen 1 en 5 liggen",
+        "commentRequired": "Reactie mag niet leeg zijn.",
+        "alreadySubmitted": "U heeft al een beoordeling voor deze rit ingediend.",
+        "tripNotCompleted": "U kunt geen beoordeling indienen voordat de rit is voltooid."
+      },
+      "success": {
+        "submitted": "Bedankt! Uw beoordeling is succesvol ingediend"
+      }
     }
   }
 }

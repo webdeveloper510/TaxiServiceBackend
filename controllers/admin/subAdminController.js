@@ -3753,6 +3753,7 @@ exports.updatePartnerAccountAccess = async (req, res) => {
       // If company wants to remove driver partner access
       if (req?.body?.status == constant.ACCOUNT_SHARE_REVOKED) {
 
+        console.log("revoked~~~~~~~~~~~~~")
         // Remove partner driver id from company account
         user_detail.parnter_account_access = user_detail.parnter_account_access.filter((data) =>data?.driver_id?.toString() != req.body?.driver_id?.toString());
         mesage_data = res.__('updateAccountAccess.success.accountRevokedSuccess');
@@ -3761,13 +3762,13 @@ exports.updatePartnerAccountAccess = async (req, res) => {
         driver.parnter_account_access = driver.parnter_account_access.filter((data) => data?.company_id?.toString() != req.user._id?.toString());
 
 
+        let targetLocale = driver?.app_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyMessage", locale: targetLocale }, { company_name: company_detials.company_name });
+
+        let title = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyTitle", locale: targetLocale });
+
         // Send mobile notification if device
         if (driverDeviceToken != "" && driverDeviceToken != null) {
-
-            let targetLocale = driver?.app_locale || process.env.DEFAULT_LANGUAGE;
-            let message = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyMessage", locale: targetLocale }, { company_name: company_detials.company_name });
-
-            let title = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyTitle", locale: targetLocale });
 
             const response = await sendNotification(
                                                       driverDeviceToken,
@@ -3777,8 +3778,12 @@ exports.updatePartnerAccountAccess = async (req, res) => {
                                                     );
         }
 
-        req.io.to(driver?.socketId).emit("partial-access-removed", { driver_id: driver._id  , companyId: req.userId , message: message} )
-        req.io.to(driver?.webSocketId).emit("partial-access-removed", { driver_id: driver._id  , companyId: req.userId , message: message} )
+        const payload = {  driver_id: driver._id,  companyId: req.userId, message  };
+        
+        console.log("checking partial access ----------driver?.socketId---------" , driver?.socketId)
+
+        if (driver?.socketId) req.io.to(driver?.socketId).emit("partial-access-removed", payload );
+        if (driver?.webSocketId) req.io.to(driver?.webSocketId).emit("partial-access-removed", payload );
 
       } else {
 
