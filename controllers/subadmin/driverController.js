@@ -1446,7 +1446,7 @@ exports.getRideWithCompany = async (req, res) => {
 
     const unique_trip_code = req.params.unique_trip_code;
     const tripExist = await TRIP.findOne({ unique_trip_code: unique_trip_code })
-                                .select(' customerDetails , pickup_date_time , passengerCount , price , payment_method_price , child_seat_price , created_by_company_id , pay_option , trip_from  , trip_to , driver_name , car_type_id , car_type , vehicle_type , trip_id , trip_status');
+                                .select(' customerDetails , pickup_date_time , passengerCount , price , payment_method_price , child_seat_price , created_by_company_id , pay_option , trip_from  , trip_to , driver_name , car_type_id , car_type , vehicle_type , trip_id , trip_status , cancellation_reason');
 
     if (!tripExist) {
       return res.send({
