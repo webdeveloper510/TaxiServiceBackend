@@ -1558,7 +1558,7 @@ exports.getRideWithCompany = async (req, res) => {
       driverDetails:driverDetails,
       trip_detail : tripExist,
       companyDetails: companyDetails,
-      rating: ratingDetail,
+      rating: ratingDetail ? true : false
     });
 
 
