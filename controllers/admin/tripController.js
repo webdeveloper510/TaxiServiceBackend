@@ -335,10 +335,9 @@ exports.add_trip_link = async (req, res) => {
 
     if (!userCheck) {
       return res.send({
-        code: constant.error_code,
-        message: res.__('addTrip.error.invalidOrNonexistentCompany')
-      });
-
+                        code: constant.error_code,
+                        message: res.__('addTrip.error.invalidOrNonexistentCompany')
+                      });
     }
     
     data.series_id = '';
@@ -373,6 +372,10 @@ exports.add_trip_link = async (req, res) => {
     emitNewTripAddedByCustomer(add_trip , req.io);
     let add_return_trip = null;
     if (isRetrunBooking) {
+
+      return_ticket_data.driverPaymentAmount = return_ticket_data?.price ? return_ticket_data.price : 0;
+      return_ticket_data.companyPaymentAmount = 0; 
+      return_ticket_data.superAdminPaymentAmount = 0;
        
       let origin = `${ return_ticket_data.trip_from.lat},${return_ticket_data.trip_from.log}`;
       let destination = `${return_ticket_data.trip_to.lat},${return_ticket_data.trip_to.log}`;
