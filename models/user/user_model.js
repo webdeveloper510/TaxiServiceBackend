@@ -62,6 +62,22 @@ const user = new Schema(
       type: String,
       default: "",
     },
+    company_email: {
+      type: String,
+      default: "",
+      trim: true,
+      lowercase: true,
+      validate: {
+      validator: function (value) {
+          // allow empty/null values
+          if (!value || !this.email) return true;
+
+          // both are already lowercase due to `lowercase: true`
+          return value !== this.email;
+        },
+        message: "Company email cannot be the same as primary email.",
+      },
+    },
     countryCode: {
       type: String,
       default: CONSTANT.NETHERLANDS_COUNTRY_CODE,
