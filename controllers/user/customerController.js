@@ -14,7 +14,7 @@ exports.addTripRating = async (req, res) => {
   try {
     const trip_id = req.params.trip_id;
     const { rating, comment } = req.body;
-    const tripDetail = await TRIP.findById(trip_id).select("_id driver_name");
+    const tripDetail = await TRIP.findById(trip_id).select("_id driver_name trip_status");
       
     if (!tripDetail) {
         return res.send({
@@ -23,10 +23,13 @@ exports.addTripRating = async (req, res) => {
                       });
     }
 
+  
+
     if (tripDetail.trip_status != CONSTANT.TRIP_STATUS.COMPLETED) {
         return res.send({
                         code: constant.error_code,
                         message: res.__("rating.error.tripNotCompleted"),
+                        status: tripDetail.trip_status
                       });
     }
 
@@ -43,6 +46,7 @@ exports.addTripRating = async (req, res) => {
                         message: res.__("rating.error.commentRequired"),
                       });
     }
+
 
     if (rating < 1 || rating > 5) {
       return res.send({
