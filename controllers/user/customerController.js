@@ -73,7 +73,6 @@ exports.addTripRating = async (req, res) => {
     return res.send({
                         code: constant.success_code,
                         message: res.__("rating.success.submitted"),
-                        result: result,
                     });
    
     
