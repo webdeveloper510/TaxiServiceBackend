@@ -2,6 +2,7 @@ const constant = require("../../config/constant");
 const DRIVER = require("../../models/user/driver_model"); // Import the Driver model
 const AGENCY = require("../../models/user/agency_model");
 const USER = require("../../models/user/user_model"); // Import the Driver model
+const RATING_MODEL = require("../../models/user/trip_rating_model"); // Import the Rating model
 const TRIP = require("../../models/user/trip_model"); // Import the Driver model
 const bcrypt = require("bcrypt");
 const multer = require("multer");
@@ -1454,6 +1455,8 @@ exports.getRideWithCompany = async (req, res) => {
         message: res.__("getTrip.error.noTripFound"),
       });
     }
+
+    const ratingDetail = await RATING_MODEL.exists({ trip_id: tripExist._id  , driver_id: tripExist.driver_name })
     // const companyDetails = await USER.findById(tripExist.created_by_company_id).select('first_name last_name email settings , countryCode , phone');
     const companyDetails = await USER.aggregate([
                                                   {
@@ -1555,6 +1558,7 @@ exports.getRideWithCompany = async (req, res) => {
       driverDetails:driverDetails,
       trip_detail : tripExist,
       companyDetails: companyDetails,
+      rating: ratingDetail,
     });
 
 
