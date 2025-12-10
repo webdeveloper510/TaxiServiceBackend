@@ -782,7 +782,12 @@ exports.edit_sub_admin = async (req, res) => {
       
 
       if (checkSubAdmin.email != data.email) {
-        let check_email = await USER.findOne({email: data.email,});
+        let check_email = await USER.findOne({
+                                              $or: [
+                                                { email: { $regex: new RegExp(`^${data.email}$`, 'i') } },
+                                                { company_email: { $regex: new RegExp(`^${data.email}$`, 'i') } }
+                                              ]
+                                            });
         let checkEmailInDrivers = await DRIVER.findOne({
                                                         email: data.email,
                                                         ...(checkSubAdmin?.isDriver == true ? { _id: { $ne: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } } : {}),
@@ -791,6 +796,27 @@ exports.edit_sub_admin = async (req, res) => {
           return res.send({
                             code: constant.error_code,
                             message: res.__('addDriver.error.emailAlreadyInUse'),
+                          });
+        }
+      }
+
+      if (checkSubAdmin.company_email != data.company_email) {
+        let checkCompanyEmail = await USER.findOne({
+                                                    $or: [
+                                                      { email: { $regex: new RegExp(`^${data.company_email}$`, 'i') } },
+                                                      { company_email: { $regex: new RegExp(`^${data.company_email}$`, 'i') } }
+                                                    ]
+                                                  });
+
+
+        let checkCompanyEmailInDrivers = await DRIVER.findOne({
+                                                                email: data.company_email,
+                                                                ...(checkSubAdmin?.isDriver == true ? { _id: { $ne: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } } : {}),
+                                                              });
+        if (checkCompanyEmail || checkCompanyEmailInDrivers) {
+          return res.send({
+                            code: constant.error_code,
+                            message: res.__('createSuperAdmin.error.companyEmailAlreadyInUse'),
                           });
         }
       }

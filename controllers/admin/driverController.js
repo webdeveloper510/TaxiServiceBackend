@@ -102,7 +102,13 @@ exports.add_driver = async (req, res) => {
 
     let checkNickName = await DRIVER.findOne({ nickName: data.nickName});
     let check_other2 = await DRIVER.findOne({ phone: data.phone, is_deleted: false, });
-    let check_other3 = await user_model.findOne({ email: { $regex: data.email, $options: "i" }, is_deleted: false, });
+    let check_other3 = await user_model.findOne({ $or: [
+                                                        { email: { $regex: data.email, $options: "i" } },
+                                                        { company_email: { $regex: data.email, $options: "i" } }
+                                                      ], 
+                                                      is_deleted: false,
+                                                  });
+
     let check_other4 = await user_model.findOne({ phone: data.phone, is_deleted: false, });
 
     if (checkNickName) {
@@ -112,6 +118,8 @@ exports.add_driver = async (req, res) => {
                         
                       });
     }
+
+
     if (check_other1) {
       return res.send({
                         code: constant.error_code,
@@ -119,6 +127,8 @@ exports.add_driver = async (req, res) => {
                       });
       
     }
+
+
     if (check_other2) {
       return res.send({
                         code: constant.error_code,
@@ -126,19 +136,21 @@ exports.add_driver = async (req, res) => {
                       });
       
     }
+
+
     if (check_other3) {
       return res.send({
                         code: constant.error_code,
                         message: res.__('addDriver.error.emailRegisteredAsCompany')
                       });
-      
     }
+
+
     if (check_other4) {
       return res.send({
                         code: constant.error_code,
                         message: res.__('addDriver.error.phoneRegisteredAsCompany')
                       });
-      
     }
 
     // Create or get stripe customer id
@@ -261,7 +273,10 @@ exports.adminAddDriver = async (req, res) => {
     
 
     let checkEmailInUsers = await USER.findOne({ 
-                                                email: { $regex: data.email, $options: "i" },
+                                                $or:  [
+                                                        { email: { $regex: data.email, $options: "i" } },
+                                                        { company_email: { $regex: data.email, $options: "i" } }
+                                                      ],
                                                 ...(data?.isCompany == 'true' ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driver_company_id) } } : {}), 
                                               })
     
