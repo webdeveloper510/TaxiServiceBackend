@@ -643,6 +643,7 @@ exports.get_sub_admin_detail = async (req, res) => {
                                                   first_name: 1,
                                                   last_name: 1,
                                                   email: 1,
+                                                  company_email:1,
                                                   user_name: 1 ,
                                                   // company_id:1,
                                                   created_by: 1,
