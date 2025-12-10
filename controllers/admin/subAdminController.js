@@ -3631,24 +3631,16 @@ exports.update_account_access = async (req, res) => {
         mesage_data = res.__('updateAccountAccess.success.accountRevokedSuccess');
         driver.company_account_access = driver.company_account_access.filter((data) => data?.company_id?.toString() != req.user._id?.toString());
 
-        if (driver_token != "") {
+        let targetLocale = driver?.app_locale || process.env.DEFAULT_LANGUAGE;
+        let message = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyMessage", locale: targetLocale }, { company_name: company_detials.company_name });
+        let title = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyTitle", locale: targetLocale });
 
-          let targetLocale = driver?.app_locale || process.env.DEFAULT_LANGUAGE;
-          let message = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyMessage", locale: targetLocale }, { company_name: company_detials.company_name });
-          let title = i18n.__({ phrase: "updateAccountAccess.success.accountRevokedByCompanyTitle", locale: targetLocale });
+        if (driver_token != "") await sendNotification( driver_token, message,  title, company_detials );
 
-          const response = await sendNotification(
-                                                    driver_token,
-                                                    message,
-                                                    title,
-                                                    company_detials
-                                                  );
-
-          const payload = {  driver_id: driver._id,  companyId: req.userId, message  };  
-          if (driver?.socketId) req.io.to(driver?.socketId).emit("partial-access-removed", payload );
-          if (driver?.webSocketId) req.io.to(driver?.webSocketId).emit("partial-access-removed", payload );                                     
-          
-        }
+        const payload = {  driver_id: driver._id,  companyId: req.userId, message  }; 
+        console.log( "🚀 ~ update account access ~ payload:", payload  , driver?.socketId); 
+        if (driver?.socketId) req.io.to(driver?.socketId).emit("partial-access-removed", payload );
+        if (driver?.webSocketId) req.io.to(driver?.webSocketId).emit("partial-access-removed", payload );
       } else {
 
         let is_already_exist = user_detail.company_account_access.filter( (data) => data?.driver_id?.toString() == req.body?.driver_id?.toString() );
