@@ -50,6 +50,21 @@ exports.add_sub_admin = async (req, res) => {
                                           // is_deleted: false,
                                         });
 
+    let checkCompanyUserEmail = await USER.findOne({
+                                                    $or: [
+                                                      { email: { $regex: new RegExp(`^${data.company_email}$`, 'i') } },
+                                                      { company_email: { $regex: new RegExp(`^${data.company_email}$`, 'i') } }
+                                                    ],
+                                                    // is_deleted: false, // if needed
+                                                  });
+
+    if (checkCompanyUserEmail) {
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('createSuperAdmin.error.companyEmailAlreadyInUse'),
+                      });
+    }
+
     let checkUserName = await USER.findOne({
                                               user_name: { $regex: new RegExp(`^${data.user_name}$`, 'i') }, // Case-insensitive match
                                               // is_deleted: false,
@@ -98,6 +113,21 @@ exports.add_sub_admin = async (req, res) => {
       return res.send({
                         code: constant.error_code,
                         message: res.__('addDriver.error.emailAlreadyInUse'),
+                      });
+    }
+
+    let checkCompanyEmailInDriver = await DRIVER.findOne({
+                                                            email: { $regex: new RegExp(`^${data.company_email}$`, 'i') }, // Case-insensitive match
+                                                            // is_deleted: false,
+                                                            ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
+                                                              ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
+                                                              : {}), 
+                                                          });
+
+    if (checkCompanyEmailInDriver) {
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('createSuperAdmin.error.companyEmailAlreadyInUse'),
                       });
     }
 

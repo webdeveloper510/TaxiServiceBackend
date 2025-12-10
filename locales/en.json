@@ -11,6 +11,7 @@
     "createSuperAdmin": {
         "error": {
             "emailAlreadyInUse": "Email address is already associated with an existing account",
+            "companyEmailAlreadyInUse": "Company email address is already associated with an existing account",
             "phoneAlreadyInUse": "This phone number is already associated with an existing account",
             "saveFailed": "An error occurred while saving your data. Please try again."
         },

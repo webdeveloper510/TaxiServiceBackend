@@ -11,6 +11,7 @@
   "createSuperAdmin": {
     "error": {
       "emailAlreadyInUse": "Het e-mailadres is al gekoppeld aan een bestaand account.",
+      "companyEmailAlreadyInUse": "Het bedrijfs-e-mailadres is al gekoppeld aan een bestaand account.",
       "phoneAlreadyInUse": "Dit telefoonnummer is al gekoppeld aan een bestaand account.",
       "saveFailed": "Er is een fout opgetreden bij het opslaan van uw gegevens. Probeer het opnieuw."
     },
