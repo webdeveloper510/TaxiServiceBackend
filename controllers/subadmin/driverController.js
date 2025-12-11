@@ -920,6 +920,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
           pickup_date_time: 1,
           trip_status: 1,
           price: 1,
+          car_type:1,
           createdAt: 1,
           created_by: 1,
           status: 1,
