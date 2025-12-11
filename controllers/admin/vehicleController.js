@@ -548,7 +548,7 @@ exports.edit_vehicle = async (req, res) => {
                 }
             }
 
-            
+            console.log("registration_doc_front-----" , registration_doc_front);
 
             let vehicle;
             
@@ -570,11 +570,11 @@ exports.edit_vehicle = async (req, res) => {
 
             if (req.user?.role === constant.ROLES.ADMIN || req.user?.role === constant.ROLES.SUPER_ADMIN) {
 
-                missingField = !vehicle?.vehicle_photo 
+                missingField = !vehicle?.vehicle_photo && vehicle_photo.length === 0
                                     ? "getVehicle.error.uploadVehiclePhotoRequired"
-                                    : (!vehicle?.registration_doc_front)
+                                    : ( !vehicle?.registration_doc_front && !registration_doc_front ) 
                                     ? "getVehicle.error.uploadVehicleDocumentFrontRequired"
-                                    : (!vehicle?.registration_doc_back)
+                                    : (!vehicle?.registration_doc_back && !registration_doc_back)
                                         ? "getVehicle.error.uploadVehicleDocumentBackRequired"
                                         : null;
             } else {
@@ -588,6 +588,7 @@ exports.edit_vehicle = async (req, res) => {
                                         : null;
             }
 
+            console.log("missingField----" , missingField);
             if (missingField) {
                 return res.send({
                                     code: constant.error_code,
