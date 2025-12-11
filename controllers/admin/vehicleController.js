@@ -673,6 +673,7 @@ exports.edit_vehicle = async (req, res) => {
                 vehicle.ever_approved    =  true;
                 // last admin decision is now "pending" again
                 vehicle.last_admin_status = constant.VEHICLE_UPDATE_STATUS.APPROVED;
+                vehicle.verification_status = constant.VEHICLE_UPDATE_STATUS.APPROVED;
                 vehicle.last_admin_comment = '';
                 vehicle.last_verified_at = new Date();
                 await vehicle.save();
@@ -1004,6 +1005,7 @@ exports.adminGetAllVehicle = async (req, res) => {
         } else {
             res.send({
                 code: constant.success_code,
+                query,
                 message: res.__("getVehicle.success.vehicleListRetrieved"),
                 totalCount: totalCount,
                 result: get_vehicle
