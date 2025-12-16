@@ -111,6 +111,7 @@ router.delete("/remove_driver/",[verifyToken], driverController.remove_driver);
 router.delete("/remove_driver/:id",[verifyToken], driverController.adminDeleteDriver);
 router.put("/updateLocation", [verifyToken], driverController.updateLocation);
 router.post("/updateVerification/:id",[verifyToken , adminAuth],driverController.updateVerification);
+router.put("/drivers/:driverId/documents/:docType/status",[verifyToken , adminAuth],driverController.updateDriverDocumentStatus);
 router.post("/rejectVerification/:id",[verifyToken],driverController.rejectVerification);
 router.post("/convertDriver",[verifyToken],driverController.convertIntoDriver);
 router.post("/switchDriver", [verifyToken], driverController.switchToDriver);

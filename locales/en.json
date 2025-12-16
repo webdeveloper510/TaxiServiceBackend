@@ -162,6 +162,10 @@
             "invalidFileField": "Invalid file field(s) provided.",
             "tooManyFiles": "Too many files uploaded for this document.",
             "invalidFileType": "Invalid file type uploaded.",
+            "invalidDocType": "The specified document type is invalid. Please select a valid document to verify.",
+            "invalidDocStatus": "The specified document status is invalid. Please provide a valid status to update the document.",
+            "rejectReasonRequired": "A rejection reason is required to reject the document.",
+            "documentNotFound": "The requested document could not be found.",
             "driverDocumentsAlready_under_review": "Your documents have already been submitted and are currently under review. Please wait for the verification process to be completed."
         },
         "success": {
@@ -174,6 +178,7 @@
             },
             "driverSpecialPlanActivated": "The special plan for the driver has been successfully activated.",
             "driverSpecialPlanDeactivated": "The special plan for the driver has been successfully deactivated.",
+            "documentStatusUpdated": "Document has been {{status}} successfully.",
             "driverDocumentsUnderReview": "Your driver documentation has been successfully submitted and is currently under review. We will notify you once the verification process is completed."
         }
     },

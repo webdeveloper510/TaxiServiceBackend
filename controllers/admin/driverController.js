@@ -1474,6 +1474,126 @@ exports.updateVerification = async (req, res) => {
     });
   }
 };
+
+exports.updateDriverDocumentStatus =  async (req, res) => {
+  try {
+    const driverId = req.params.driverId;
+    const docType = req.params.docType;
+
+    const {
+      status, // "APPROVED" | "REJECTED"
+      rejectReasonKey = "",
+      rejectReasonText = "",
+    } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(driverId)) {
+      return res.send({
+              code: constant.error_code,
+              message: res.__("updateDriver.error.driverNotFound"),
+            });
+    }
+
+    if (!Object.values(constant.DRIVER_DOC_TYPE).includes(docType)) {
+      return res.send({
+              code: constant.error_code,
+              message: res.__("updateDriver.error.invalidDocType"),
+            });
+    }
+
+    if (![constant.DOC_STATUS.APPROVED, constant.DOC_STATUS.REJECTED].includes(status)) {
+      return res.send({
+              code: constant.error_code,
+              message: res.__("updateDriver.error.invalidDocStatus"),
+            });
+    }
+
+    if (status === constant.DOC_STATUS.REJECTED && !String(rejectReasonText || "").trim()) {
+      return res.send({
+              code: constant.error_code,
+              message: res.__("updateDriver.error.rejectReasonRequired"),
+            });
+    }
+
+    const now = new Date();
+    const adminId = req.userId || null; // make sure admin auth middleware sets this
+
+    const updateResult = await DRIVER.updateOne(
+      { _id: driverId, is_deleted: false, "kyc.documents.type": docType },
+      {
+        $set: {
+          "kyc.documents.$[doc].status": status,
+          "kyc.documents.$[doc].reviewedAt": now,
+          "kyc.documents.$[doc].reviewedBy": adminId,
+          "kyc.documents.$[doc].rejectReasonKey": status === constant.DOC_STATUS.REJECTED ? rejectReasonKey : "",
+          "kyc.documents.$[doc].rejectReasonText": status === constant.DOC_STATUS.REJECTED ? rejectReasonText : "",
+        },
+      },
+      { arrayFilters: [{ "doc.type": docType }] }
+    );
+
+    if (!updateResult.matchedCount) {
+      return res.send({
+              code: constant.error_code,
+              message: res.__("updateDriver.error.documentNotFound"),
+              docType
+            });
+    }
+
+    const driver = await DRIVER.findOne(
+                                          { _id: driverId, is_deleted: false },
+                                          { "kyc.documents.status": 1, "kyc.documents.type": 1 }
+                                        ).lean();
+
+    const docs = driver?.kyc?.documents || [];
+
+    const statusByType = new Map(docs.map((d) => [d.type, d.status]));
+    const statuses = Object.values(constant.DRIVER_DOC_TYPE).map((t) => statusByType.get(t));
+    
+    const hasMissing = statuses.some((s) => !s);
+    const hasRejected = statuses.includes(constant.DOC_STATUS.REJECTED);
+    const hasPending = statuses.includes(constant.DOC_STATUS.PENDING);
+    const hasAllApproved = statuses.every((s) => s === constant.DOC_STATUS.APPROVED);
+
+    let verificationStatus = constant.DRIVER_VERIFICATION_STATUS.UNDER_REVIEW;
+    let isVerified = false;
+
+    if (hasAllApproved) {
+      verificationStatus = constant.DRIVER_VERIFICATION_STATUS.VERIFIED;
+      isVerified = true;
+    } else if (hasRejected) {
+      verificationStatus = constant.DRIVER_VERIFICATION_STATUS.REJECTED;
+      isVerified = false;
+    } else if (hasPending || hasMissing) {
+      verificationStatus = constant.DRIVER_VERIFICATION_STATUS.UNDER_REVIEW;
+      isVerified = false;
+    }
+
+
+    await DRIVER.updateOne(
+      { _id: driverId, is_deleted: false },
+      {
+        $set: {
+          "kyc.verification.status": verificationStatus,
+          "kyc.verification.isVerified": isVerified,
+          "kyc.verification.lastReviewedAt": now,
+          "kyc.verification.lastReviewedBy": adminId
+        },
+      }
+    );
+
+    return res.send({
+              code: constant.success_code,
+              message: res.__("updateDriver.success.documentStatusUpdated", { status: status.toLowerCase()}),
+            });
+
+  } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌ update updateDriverDocumentStatus error --------------' , err.message)
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
 exports.rejectVerification = async (req, res) => {
   try {
     const { id } = req.params;
