@@ -155,7 +155,14 @@
             "requireSubscriptionForMapVisibility": "Please purchase a subscription plan to enable your visibility on the map.",
             "invalidState": "invalid state found",
             "deniedStatusChangeOnTheWay": "You cannot change your status while you are on the way to pick up a passenger.",
-            "deniedStatusChangeOnTheTrip": "You cannot change your status while a trip is in progress."
+            "deniedStatusChangeOnTheTrip": "You cannot change your status while a trip is in progress.",
+            "missingFields": "Please fill in all required fields.",
+            "missingDocuments": "Please upload all required documents.",
+            "uploadFailed": "Document upload failed. Please try again.",
+            "invalidFileField": "Invalid file field(s) provided.",
+            "tooManyFiles": "Too many files uploaded for this document.",
+            "invalidFileType": "Invalid file type uploaded.",
+            "driverDocumentsAlready_under_review": "Your documents have already been submitted and are currently under review. Please wait for the verification process to be completed."
         },
         "success": {
             "driverAccountUpdated": "Driver account has been updated successfully",
@@ -166,7 +173,8 @@
                 "visitAccountAndManage": "Start Managing Your Account"
             },
             "driverSpecialPlanActivated": "The special plan for the driver has been successfully activated.",
-            "driverSpecialPlanDeactivated": "The special plan for the driver has been successfully deactivated."
+            "driverSpecialPlanDeactivated": "The special plan for the driver has been successfully deactivated.",
+            "driverDocumentsUnderReview": "Your driver documentation has been successfully submitted and is currently under review. We will notify you once the verification process is completed."
         }
     },
     "getTokenDetail": {

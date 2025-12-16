@@ -11,6 +11,7 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const { getUserActivePaidPlans } = require("../../Service/helperFuntion");
+const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry} = require("../../utils/fileUtils");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -44,6 +45,8 @@ const imageStorage = require("../../config/awss3");
 //         maxFileSize: 10000000,
 //     },
 // });
+
+const driverDocumentsUpload = multer({ storage: imageStorage, limits: { fileSize: 100 * 1024 * 1024 }, }).any();
 
 var driverUpload = multer({
   storage: imageStorage,
@@ -322,6 +325,175 @@ exports.update_driver = async (req, res) => {
     }
   });
 };
+
+
+exports.uploadSignupDocuments = async (req, res) => {
+
+  driverDocumentsUpload(req, res, async (err) => {
+
+    try {
+      // console.log("Files uploaded:", req.files);
+      if (err) {
+        console.log("❌ Multer error driverDocumentsUpload:", err);
+        return res.send({
+                        code: constant.error_code,
+                        message: res.__("updateDriver.error.uploadFailed"),
+                      });
+      }
+
+
+    const driverId = req.params.id;
+    
+    if (!mongoose.Types.ObjectId.isValid(driverId)) {
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__("updateDriver.error.driverNotFound"),
+                      });
+    }
+
+    const driver = await DRIVER.findOne({ _id: driverId, is_deleted: false }, { "kyc.documents": 1  , "kyc.verification": 1}).lean();
+    if (!driver) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("updateDriver.error.driverNotFound"),
+      });
+    }
+
+    if (driver.kyc?.verification?.status === constant.DRIVER_VERIFICATION_STATUS.UNDER_REVIEW) {
+
+      return res.send({
+        code: constant.error_code,
+        message: res.__("updateDriver.error.driverDocumentsAlready_under_review"),
+      });
+    }
+
+return
+    // 3) Group files + Strictly allow only expected file fields
+      const filesByField = groupFilesByField(req.files || []);
+      const uploadedFieldNames = Object.keys(filesByField);
+      const invalidFields = uploadedFieldNames.filter(
+        (f) => !Object.keys(constant.DRIVER_DOC_TYPE).includes(f)
+      );
+
+      console.log("Invalid file fields:", uploadedFieldNames , invalidFields);
+      if (invalidFields.length > 0) {
+        return res.send({
+                        code: constant.error_code,
+                        message: res.__("updateDriver.error.invalidFileField"),
+                        invalidFields
+                      });
+      }
+
+      // 4) Validate required documents exist
+      const missingDocs = Object.keys(constant.DRIVER_DOC_TYPE).filter(
+        (f) => !filesByField[f] || filesByField[f].length === 0
+      );
+
+      if (missingDocs.length > 0) {
+        return res.send({
+                        code: constant.error_code,
+                        message: res.__("updateDriver.error.missingDocuments"),
+                        missingDocuments: missingDocs,
+                      });
+      }
+
+    const { address_1, address_2,  country, city, zip_code, companyName, kvk, VatNumber,  bankNumber,} = req.body;
+
+      const missingText = [];
+      if (isEmpty(address_1)) missingText.push("address_1");
+      if (isEmpty(country)) missingText.push("country");
+      if (isEmpty(city)) missingText.push("city");
+      if (isEmpty(zip_code)) missingText.push("zip_code");
+      if (isEmpty(companyName)) missingText.push("companyName");
+      if (isEmpty(kvk)) missingText.push("kvk");
+      if (isEmpty(VatNumber)) missingText.push("VatNumber");
+      if (isEmpty(bankNumber)) missingText.push("bankNumber");
+
+      if (missingText.length > 0) {
+        return res.status(400).send({
+          code: constant.error_code,
+          message: res.__("updateDriver.error.missingFields"),
+          missingFields: missingText,
+        });
+      }
+
+      const docs = Array.isArray(driver?.kyc?.documents)
+        ? JSON.parse(JSON.stringify(driver.kyc.documents)) // safe clone
+        : [];
+
+      const now = new Date();
+
+      // ensure all doc types exist
+      for (const field of Object.values(constant.DRIVER_DOC_TYPE)) {
+        ensureDocEntry(docs, constant.DRIVER_DOC_TYPE[field]);
+      }
+
+      // fill each doc
+      for (const field of Object.values(constant.DRIVER_DOC_TYPE)) {
+        const type = constant.DRIVER_DOC_TYPE[field];
+        const uploadedFiles = filesByField[field];
+
+        const urls = uploadedFiles.map((f) => f.location || f.path).filter(Boolean);
+        const mimes = uploadedFiles.map((f) => f.mimetype).filter(Boolean);
+
+        const doc = docs.find((d) => d.type === type);
+
+        doc.files = urls;
+        doc.mimeTypes = mimes;
+        doc.status = constant.DOC_STATUS.PENDING;
+        doc.submittedAt = now;
+
+        doc.reviewedAt = null;
+        doc.reviewedBy = null;
+        doc.rejectReasonKey = "";
+        doc.rejectReasonText = "";
+
+        // first upload reset
+        doc.revision = doc.revision || 0;
+        doc.versions = doc.versions || [];
+      }
+
+      let updateData = {
+        address_1 : toStr(address_1),
+        address_2 : isEmpty(address_2) ? "" : toStr(address_2),
+        country : toStr(country),
+        city : toStr(city),
+        zip_code : toStr(zip_code),
+        companyName : toStr(companyName),
+        kvk : toStr(kvk),
+        VatNumber : toStr(VatNumber),
+        bankNumber : toStr(bankNumber),
+        isDocUploaded: true,
+        "kyc.documents": docs,
+        "kyc.verification.status": constant.DRIVER_VERIFICATION_STATUS.UNDER_REVIEW,
+        "kyc.verification.isVerified": false,
+        "kyc.verification.lastSubmittedAt": now,
+        "kyc.canGoOnline": false,
+      }
+
+      const updated = await DRIVER.findOneAndUpdate(
+        { _id: driverId, is_deleted: false },
+        { $set: updateData },
+        { new: true }
+      ).lean();
+
+    return res.send({
+                      code: constant.success_code,
+                      message: res.__("updateDriver.success.driverDocumentsUnderReview"),
+                      updated
+                    });
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get uploadSignupDocuments:', err.message);
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+      
+    })
+  
+}
 
 exports.changeDriverAvailability = async (req, res) => {
 
@@ -962,7 +1134,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
       {
         $limit: limit, // Limit the number of documents returned
       },
-    ]).sort({ createdAt: -1 });
+    ]).sort({ pickup_date_time: -1 });
 
     const getActivePaidPlans = await getUserActivePaidPlans(req.user)
     

@@ -155,7 +155,14 @@
       "requireSubscriptionForMapVisibility": "Koop een abonnement om uw zichtbaarheid op de kaart te activeren.",
       "invalidState": "ongeldige status gevonden",
       "deniedStatusChangeOnTheWay": "U kunt uw status niet wijzigen terwijl u onderweg bent om een passagier op te halen.",
-      "deniedStatusChangeOnTheTrip": "U kunt uw status niet wijzigen terwijl een rit bezig is."
+      "deniedStatusChangeOnTheTrip": "U kunt uw status niet wijzigen terwijl een rit bezig is.",
+      "missingFields": "Vul alle verplichte velden in.",
+      "missingDocuments": "Upload alle vereiste documenten.",
+      "uploadFailed": "Het uploaden van documenten is mislukt. Probeer het opnieuw.",
+      "invalidFileField": "Ongeldige bestandsvelden opgegeven.",
+      "tooManyFiles": "Te veel bestanden geüpload voor dit document.",
+      "invalidFileType": "Ongeldig bestandstype geüpload.",
+      "driverDocumentsAlready_under_review": "Uw documenten zijn al ingediend en worden momenteel beoordeeld. Wacht alstublieft tot het verificatieproces is afgerond."
     },
     "success": {
       "driverAccountUpdated": "Bestuurdersaccount succesvol bijgewerkt.",
@@ -166,7 +173,8 @@
         "visitAccountAndManage": "Beheer uw account"
       },
       "driverSpecialPlanActivated": "Het speciale abonnement voor de bestuurder is succesvol geactiveerd.",
-      "driverSpecialPlanDeactivated": "Het speciale abonnement voor de bestuurder is succesvol gedeactiveerd."
+      "driverSpecialPlanDeactivated": "Het speciale abonnement voor de bestuurder is succesvol gedeactiveerd.",
+      "driverDocumentsUnderReview": "Uw chauffeursdocumentatie is succesvol ingediend en wordt momenteel beoordeeld. Wij informeren u zodra het verificatieproces is afgerond."
     }
   },
   "getTokenDetail": {

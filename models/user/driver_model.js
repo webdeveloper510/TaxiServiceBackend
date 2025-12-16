@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const CONSTANT = require("../../config/constant");
+const { driverDocumentsBlockSchema } = require("./driver_documents_model");
 const INTERNATIONALIZATION_LANGUAGE_TYPE_ENUM = Object.values(CONSTANT.INTERNATIONALIZATION_LANGUAGE);
 const DRIVER_STATE_TYPE_ENUM = Object.values(CONSTANT.DRIVER_STATE);
 
@@ -198,6 +199,10 @@ const driver = new Schema(
       type: Boolean,
       default: false,
     },
+
+    // ✅ Clean embed of documents + verification block
+    kyc: { type: driverDocumentsBlockSchema, default: () => ({}) },
+    
     location: {
       type: {
         type: String,
