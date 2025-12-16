@@ -232,8 +232,8 @@ exports.adminAddDriver = async (req, res) => {
     const data = req.body;
 
     data.email = data?.email?.toLowerCase();
-    data.isDocUploaded = false;
-    data.isVerified = true;
+    // data.isDocUploaded = false;
+    // data.isVerified = true;
 
     var driver_image = [];
     var driver_documents = [];
@@ -241,21 +241,66 @@ exports.adminAddDriver = async (req, res) => {
     let file = req.files
 
     const filesByField = groupFilesByField(req.files || []);
-    
+    const uploadedFieldNames = Object.keys(filesByField);
     // validate only allowed fields (admin should not upload random keys)
-    const invalidFields = Object.keys(filesByField).filter(
-      (f) => !ADMIN_DOC_FIELDS.includes(f)
-    );
-    for (i = 0; i < file.length; i++) {
-        if (file[i].fieldname == 'driver_image') {
-            driver_image.push(file[i].location);
-            data.profile_image = file[i].location;
-        } else if (file[i].fieldname == 'driver_documents') {
-            driver_documents.push(file[i].location);
-            data.driver_documents = file[i].location;
-            data.isDocUploaded = true;
-        }
+    const invalidFields = uploadedFieldNames.filter(
+            (f) => !Object.keys(constant.DRIVER_DOC_TYPE).includes(f)
+          );
+    
+    if (invalidFields.length > 0) {
+      return res.send({
+                      code: constant.error_code,
+                      message: res.__("updateDriver.error.invalidFileField"),
+                      invalidFields
+                    });
     }
+
+    const now = new Date();
+
+    const kycDocuments = Object.keys(constant.DRIVER_DOC_TYPE).map((field) => {
+
+      const uploadedFiles = filesByField[field];
+
+      return {
+                type: constant.DRIVER_DOC_TYPE[field],
+                files: uploadedFiles.map((f) => f.location || f.path).filter(Boolean),
+                mimeTypes: uploadedFiles.map((f) => f.mimetype).filter(Boolean),
+
+                status: constant.DOC_STATUS.APPROVED,
+                submittedAt: now,
+
+                reviewedAt: now,
+                reviewedBy: req.userId || null, // admin id if you have it
+
+                rejectReasonKey: "",
+                rejectReasonText: "",
+
+                revision: 0,
+                versions: [],
+              };
+    });
+
+    data.kyc = {
+                documents: kycDocuments,
+                verification: {
+                  status: constant.DRIVER_VERIFICATION_STATUS.VERIFIED,
+                  isVerified: true,
+                  lastSubmittedAt: now,
+                  lastReviewedAt: now,
+                  lastReviewedBy: req.userId || null,
+                }
+              };
+    
+    // for (i = 0; i < file.length; i++) {
+    //     if (file[i].fieldname == 'driver_image') {
+    //         driver_image.push(file[i].location);
+    //         data.profile_image = file[i].location;
+    //     } else if (file[i].fieldname == 'driver_documents') {
+    //         driver_documents.push(file[i].location);
+    //         data.driver_documents = file[i].location;
+    //         data.isDocUploaded = true;
+    //     }
+    // }
 
     // const randomPasword = await generate6DigitPassword()
     // data.stored_password = randomPasword;
@@ -437,6 +482,7 @@ exports.adminAddDriver = async (req, res) => {
     } else {
       customer = await stripe.customers.create(stripeUserData)
     }
+
     data.stripeCustomerId = customer.id;
     data.driverCounterId = `D-`+ await getDriverNextSequenceValue();
     
