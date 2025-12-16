@@ -988,18 +988,18 @@ exports.get_drivers_super = async (req, res) => {
     }
 
     if (selectedType === constant.DRIVER_STATUS.VERIFIED) {
-      query.isVerified = true;
-      query.isDocUploaded = true;
+      query["kyc.verification.isVerified"] = true;
+      // query.isDocUploaded = true;
     }else if (selectedType === constant.DRIVER_STATUS.BLOCKED) {
-      query.isVerified = true;
-      query.isDocUploaded = true;
+      query["kyc.verification.isVerified"] = true;
+      // query.isDocUploaded = true;
       query.is_blocked = true;
     } else if (selectedType === constant.DRIVER_STATUS.UNVERIFIED) {
-      query.isVerified = false;
-      query.isDocUploaded = true;
+      query["kyc.verification.isVerified"] = false;
+      // query.isDocUploaded = true;
     } else if (selectedType === constant.DRIVER_STATUS.REGISTERED) {
-      query.isVerified = false;
-      query.isDocUploaded = false;
+      query["kyc.verification.isVerified"] = false;
+      // query.isDocUploaded = false;
     } else if (selectedType === constant.DRIVER_STATUS.DELETED) {
       query.is_deleted = true;
     }
