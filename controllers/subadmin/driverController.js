@@ -333,6 +333,7 @@ console.log("✅ HIT uploadSignupDocuments", req.method, req.originalUrl);
 
     try {
       // console.log("Files uploaded:", req.files);
+      console.log("✅ MULTER CALLBACK REACHED"); // tells you multer finished parsing
       if (err) {
         console.log("❌ Multer error driverDocumentsUpload:", err);
         return res.send({
@@ -341,7 +342,7 @@ console.log("✅ HIT uploadSignupDocuments", req.method, req.originalUrl);
                       });
       }
 
-
+      console.log("✅ BODY KEYS:", Object.keys(req.body || {}));
     const driverId = req.params.id;
     
     if (!mongoose.Types.ObjectId.isValid(driverId)) {
