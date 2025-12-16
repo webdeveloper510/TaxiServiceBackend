@@ -23,6 +23,7 @@ const {
 } = require("../../Service/helperFuntion");
 const { updateDriverMapCache , removeDriverForSubscribedClients , broadcastDriverLocation} = require("../../Service/location.service");
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
+const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry} = require("../../utils/fileUtils");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -58,6 +59,8 @@ const multerS3 = require("multer-s3");
 //     maxFileSize: 10000000,
 //   },
 // });
+
+const driverDocumentsUpload = multer({ storage: imageStorage, limits: { fileSize: 100 * 1024 * 1024 }, }).any();
 
 var driverUpload = multer({
   storage: imageStorage,
@@ -215,8 +218,17 @@ const generate6DigitPassword = async () => {
 }
 
 exports.adminAddDriver = async (req, res) => {
-  driverUpload(req, res, async (err) => {
+  driverDocumentsUpload(req, res, async (err) => {
   try {
+
+    if (err) {
+      console.log("❌ Multer error driverDocumentsUpload:", err);
+      return res.send({
+                      code: constant.error_code,
+                      message: res.__("updateDriver.error.uploadFailed"),
+                    });
+    }
+
     const data = req.body;
 
     data.email = data?.email?.toLowerCase();
@@ -227,6 +239,13 @@ exports.adminAddDriver = async (req, res) => {
     var driver_documents = [];
     var imagePortfolioLogo = []
     let file = req.files
+
+    const filesByField = groupFilesByField(req.files || []);
+    
+    // validate only allowed fields (admin should not upload random keys)
+    const invalidFields = Object.keys(filesByField).filter(
+      (f) => !ADMIN_DOC_FIELDS.includes(f)
+    );
     for (i = 0; i < file.length; i++) {
         if (file[i].fieldname == 'driver_image') {
             driver_image.push(file[i].location);

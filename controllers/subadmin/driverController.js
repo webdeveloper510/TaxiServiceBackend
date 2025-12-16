@@ -328,7 +328,7 @@ exports.update_driver = async (req, res) => {
 
 
 exports.uploadSignupDocuments = async (req, res) => {
-
+console.log("✅ HIT uploadSignupDocuments", req.method, req.originalUrl);
   driverDocumentsUpload(req, res, async (err) => {
 
     try {
@@ -367,7 +367,6 @@ exports.uploadSignupDocuments = async (req, res) => {
       });
     }
 
-return
     // 3) Group files + Strictly allow only expected file fields
       const filesByField = groupFilesByField(req.files || []);
       const uploadedFieldNames = Object.keys(filesByField);
@@ -479,8 +478,7 @@ return
 
     return res.send({
                       code: constant.success_code,
-                      message: res.__("updateDriver.success.driverDocumentsUnderReview"),
-                      updated
+                      message: res.__("updateDriver.success.driverDocumentsUnderReview")
                     });
   } catch (err) {
 
