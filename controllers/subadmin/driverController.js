@@ -375,7 +375,7 @@ console.log("✅ HIT uploadSignupDocuments", req.method, req.originalUrl);
         (f) => !Object.keys(constant.DRIVER_DOC_TYPE).includes(f)
       );
 
-      console.log("Invalid file fields:", uploadedFieldNames , invalidFields);
+      
       if (invalidFields.length > 0) {
         return res.send({
                         code: constant.error_code,
