@@ -110,7 +110,8 @@ module.exports={
         UNVERIFIED: 'Unverified', 
         REGISTERED : 'Registered',
         DELETED : 'Deleted',
-        BLOCKED: 'Blocked'
+        BLOCKED: 'Blocked',
+        REJECTED: 'Rejected' // when admin will disapprove driver's documents
     },
 
     DRIVER_OFFLINE_ONLINE_STATUS: { // admin dashboard status

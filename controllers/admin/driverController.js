@@ -1000,8 +1000,13 @@ exports.get_drivers_super = async (req, res) => {
       // query.isDocUploaded = true;
     } else if (selectedType === constant.DRIVER_STATUS.REGISTERED) {
       query["kyc.verification.isVerified"] = false;
-       query["kyc.verification.status"] = constant.DOC_STATUS.REJECTED;
+       query["kyc.verification.status"] = constant.DRIVER_VERIFICATION_STATUS.NOT_SUBMITTED;
       // query.isDocUploaded = false;
+
+     } else if (selectedType === constant.DRIVER_STATUS.REJECTED) {
+      query["kyc.verification.isVerified"] = false;
+       query["kyc.verification.status"] = constant.DRIVER_VERIFICATION_STATUS.REJECTED;
+
     } else if (selectedType === constant.DRIVER_STATUS.DELETED) {
       query.is_deleted = true;
     }
