@@ -1496,9 +1496,31 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
 
     if (!mongoose.Types.ObjectId.isValid(driverId)) {
       return res.send({
-              code: constant.error_code,
-              message: res.__("updateDriver.error.driverNotFound"),
-            });
+                        code: constant.error_code,
+                        message: res.__("updateDriver.error.driverNotFound"),
+                      });
+    }
+
+    const driverDoc = await DRIVER.findOne(
+                                              { _id: driverId, is_deleted: false, "kyc.documents.type": docType },
+                                              { "kyc.documents.$": 1 } // returns only matching array element
+                                            ).lean();
+
+    if (!driverDoc?.kyc?.documents?.length) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("updateDriver.error.documentNotFound"),
+        docType,
+      });
+    }
+
+    const currentDoc = driverDoc.kyc.documents[0];
+
+    if (currentDoc.status === status) {
+      return res.send({
+        code: constant.success_code,
+        message: res.__("updateDriver.success.documentStatusUpdated", { status: status.toLowerCase() }),
+      });
     }
 
     if (!Object.values(constant.DRIVER_DOC_TYPE).includes(docType)) {
@@ -1525,9 +1547,23 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
     const now = new Date();
     const adminId = req.userId || null; // make sure admin auth middleware sets this
 
+    // ✅ 2) Build version snapshot of the OLD state (before changing)
+    const versionEntry = {
+      revision: currentDoc.revision || 0,
+      files: currentDoc.files || [],
+      mimeTypes: currentDoc.mimeTypes || [],
+      statusAtThatTime: currentDoc.status || constant.DOC_STATUS.NOT_UPLOADED,
+      submittedAt: currentDoc.submittedAt || null,
+      reviewedAt: currentDoc.reviewedAt || null,
+      reviewedBy: currentDoc.reviewedBy || null,
+      rejectReasonKey: currentDoc.rejectReasonKey || "",
+      rejectReasonText: currentDoc.rejectReasonText || "",
+    };
+
     const updateResult = await DRIVER.updateOne(
       { _id: driverId, is_deleted: false, "kyc.documents.type": docType },
       {
+        $push: { "kyc.documents.$[doc].versions": versionEntry },
         $set: {
           "kyc.documents.$[doc].status": status,
           "kyc.documents.$[doc].reviewedAt": now,
@@ -1538,6 +1574,16 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
       },
       { arrayFilters: [{ "doc.type": docType }] }
     );
+    
+    console.log("where--------" , { _id: driverId, is_deleted: false, "kyc.documents.type": docType })
+    console.log('set---------' , {
+          "kyc.documents.$[doc].status": status,
+          "kyc.documents.$[doc].reviewedAt": now,
+          "kyc.documents.$[doc].reviewedBy": adminId,
+          "kyc.documents.$[doc].rejectReasonKey": status === constant.DOC_STATUS.REJECTED ? rejectReasonKey : "",
+          "kyc.documents.$[doc].rejectReasonText": status === constant.DOC_STATUS.REJECTED ? rejectReasonText : "",
+        } )
+    console.log('array filter---------' , { arrayFilters: [{ "doc.type": docType }] })
 
     if (!updateResult.matchedCount) {
       return res.send({
@@ -2025,7 +2071,7 @@ exports.convertIntoDriver = async (req, res) => {
       
       const company_agency_id = companyInfo ? companyInfo[0].companyDetails._id : null;
 
-      let customer = await stripe.customers.list({ user: data.email });
+      let customer = await stripe.customers.list({ email: data.email });
       customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: user.email });
 
       stripeCustomerId = customer.id;

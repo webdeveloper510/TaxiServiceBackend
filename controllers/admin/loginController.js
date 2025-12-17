@@ -133,7 +133,9 @@ exports.login = async (req, res) => {
     if (userData?.is_deleted) {
       return res.send({
                           code: constant.error_code,
-                          message: res.__('userLogin.error.accountDeleted')
+                          message: res.__('userLogin.error.accountDeleted'),
+                          de: userData?.is_deleted,
+                          email: userData?.email
                         });
     }
 

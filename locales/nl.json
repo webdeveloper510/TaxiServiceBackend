@@ -65,6 +65,7 @@
       "phoneRegisteredAsCompany": "Dit telefoonnummer is al geregistreerd voor een Bedrijfsaccount. Log in om door te gaan met de registratie als bestuurder.",
       "companyHasOwnDriver": "Dit bedrijf heeft al een eigen bestuurder.",
       "driverHasOwnCompany": "Deze bestuurder heeft al een eigen bedrijf.",
+      "aleradyHaveAccount": "Er bestaat al een chauffeurprofiel voor dit account.",
       "saveFailed": "Er is een fout opgetreden bij het opslaan van uw gegevens. Probeer het opnieuw.",
       "hotelIdAlreadyExists": "Er bestaat al een record met deze Hotel-ID.",
       "emailLinkedToInactiveAccount": "Dit e-mailadres is al gekoppeld aan een inactief account (verwijderde gebruiker).",
@@ -166,6 +167,10 @@
       "invalidDocStatus": "De opgegeven documentstatus is ongeldig. Geef alstublieft een geldige status op om het document bij te werken.",
       "rejectReasonRequired": "Een reden voor afwijzing is verplicht om het document te weigeren.",
       "documentNotFound": "Het opgevraagde document kon niet worden gevonden.",
+      "onlyRejectedCanResubmit": "Alleen afgewezen documenten kunnen opnieuw worden ingediend.",
+      "documentMissingInProfile": "Het vereiste document ontbreekt in het profiel. Upload het document om verder te gaan.",
+      "noFilesUploaded": "Er zijn geen bestanden geüpload. Upload alstublieft minimaal één bestand om verder te gaan.",
+      "profilePhotoRequired": "Profielfoto is vereist.",
       "driverDocumentsAlready_under_review": "Uw documenten zijn al ingediend en worden momenteel beoordeeld. Wacht alstublieft tot het verificatieproces is afgerond."
     },
     "success": {
@@ -179,6 +184,7 @@
       "driverSpecialPlanActivated": "Het speciale abonnement voor de bestuurder is succesvol geactiveerd.",
       "driverSpecialPlanDeactivated": "Het speciale abonnement voor de bestuurder is succesvol gedeactiveerd.",
       "documentStatusUpdated": "Document is succesvol {{status}}.",
+      "resubmitted": "Het document is succesvol opnieuw ingediend.",
       "driverDocumentsUnderReview": "Uw chauffeursdocumentatie is succesvol ingediend en wordt momenteel beoordeeld. Wij informeren u zodra het verificatieproces is afgerond."
     }
   },

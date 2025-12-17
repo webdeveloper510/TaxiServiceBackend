@@ -66,6 +66,7 @@
             "companyHasOwnDriver": "This company already has their own driver",
             "driverHasOwnCompany": "This driver already has their own company",
             "saveFailed": "An error occurred while saving your data. Please try again.",
+            "aleradyHaveAccount": "Driver profile already exists for this account.",
             "hotelIdAlreadyExists": "A record with this Hotel ID already exists.",
             "emailLinkedToInactiveAccount": "This email is already associated with an inactive account (Deleted User)",
             "emailAssociatedWithDeletedDriver": "This email ({{email}}) is associated with a previously deleted driver. Please restore the driver from the deleted list instead of creating a new account."
@@ -166,6 +167,10 @@
             "invalidDocStatus": "The specified document status is invalid. Please provide a valid status to update the document.",
             "rejectReasonRequired": "A rejection reason is required to reject the document.",
             "documentNotFound": "The requested document could not be found.",
+            "onlyRejectedCanResubmit": "Only rejected documents can be resubmitted.",
+            "documentMissingInProfile": "The required document is missing from the profile. Please upload the document to proceed.",
+            "noFilesUploaded": "No files were uploaded. Please upload at least one file to continue.",
+            "profilePhotoRequired": "Profile photo is required",
             "driverDocumentsAlready_under_review": "Your documents have already been submitted and are currently under review. Please wait for the verification process to be completed."
         },
         "success": {
@@ -179,6 +184,7 @@
             "driverSpecialPlanActivated": "The special plan for the driver has been successfully activated.",
             "driverSpecialPlanDeactivated": "The special plan for the driver has been successfully deactivated.",
             "documentStatusUpdated": "Document has been {{status}} successfully.",
+            "resubmitted": "The document has been resubmitted successfully.",
             "driverDocumentsUnderReview": "Your driver documentation has been successfully submitted and is currently under review. We will notify you once the verification process is completed."
         }
     },
