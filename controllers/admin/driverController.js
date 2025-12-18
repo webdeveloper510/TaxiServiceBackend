@@ -854,6 +854,7 @@ exports.get_drivers_list = async (req, res) => {
       status: 1,
       is_login: 1,
       isVerified: 1,
+      kyc:1
     });
 
     if (driver) {
@@ -1753,12 +1754,13 @@ exports.get_active_drivers = async (req, res) => {
         $match: {
           status: true,
           is_login: true,
-          isVerified: true,
+          // isVerified: true,
           isDocUploaded: true,
           is_deleted: false,
           defaultVehicle: { $ne: null },
           lastUsedTokenMobile: { $gte: threeHoursBefore },
           "location.coordinates": { $ne: [null, null] },
+          "kyc.verification.isVerified": true
         },
       },
       {
@@ -2217,7 +2219,7 @@ exports.switchToDriver = async (req, res) => {
                         code: constant.error_code,
                         message: res.__('switchProfile.switchToDriver.error.driverBlocked'),
                       });
-    }else {
+    } else {
 
     
       let jwtToken = jwt.sign(

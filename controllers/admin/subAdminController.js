@@ -3915,7 +3915,7 @@ exports.get_driver_list = async (req, res) => {
   try {
     const condition = {
                         is_deleted: false,
-                        isVerified: true,
+                        "kyc.verification.isVerified": true,
                         isDocUploaded: true
                         // _id: { $ne: req.user?.driverId?._id },
                       };
@@ -4025,7 +4025,7 @@ exports.getPartnerDriverList = async (req, res) => {
   try {
     const condition = {
       is_deleted: false,
-      isVerified: true,
+      "kyc.verification.isVerified": true,
       isDocUploaded: true,
       _id: { $ne: req.user?.driverId?._id },
     };

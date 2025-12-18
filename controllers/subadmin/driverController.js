@@ -2125,6 +2125,7 @@ exports.getDriverList = async (req, res) => {
                                               is_login: 1,
                                               nickName:1,
                                               isVerified: 1,
+                                              kvc:1
                                             }
                                     );
                                     
