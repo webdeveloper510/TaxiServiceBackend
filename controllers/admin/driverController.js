@@ -1189,13 +1189,16 @@ exports.get_deleted_drivers_super = async (req, res) => {
 };
 
 exports.update_driver = async (req, res) => {
-  driverUpload(req, res, async (err) => {
+  driverDocumentsUpload(req, res, async (err) => {
+
     if (err) {
-      res.send({
-        code: constant.error_code,
-        message: err.message,
-      });
+      console.log("❌ Multer error update_driver:", err);
+      return res.send({
+                      code: constant.error_code,
+                      message: res.__("updateDriver.error.uploadFailed"),
+                    });
     }
+
     try {
       var driver_image = [];
       var driver_documents = [];
@@ -1370,6 +1373,338 @@ exports.update_driver = async (req, res) => {
     }
   });
 };
+
+exports.adminUpdateDriver = async (req , res) => {
+
+  driverDocumentsUpload(req, res, async (err) => {
+
+    try {
+
+      if (err) {
+        console.log("❌ Multer error adminUpdateDriver:", err);
+        return res.send({
+                        code: constant.error_code,
+                        message: res.__("updateDriver.error.uploadFailed"),
+                      });
+      }
+
+      const driverId = req.params.driverId; // Assuming you pass the driver ID as a URL parameter
+      const updates = req.body; // Assuming you send the updated driver data in the request body
+      const adminId = req.userId || null;
+      const now = new Date();
+
+      if (!driverId || driverId === 'null' || driverId === 'undefined') {
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('updateDriver.error.driverNotFound')
+                        });
+      }
+
+      if (updates.email) updates.email = updates.email.toLowerCase();
+
+      const existingDriver = await DRIVER.findById(driverId);
+
+      if (!existingDriver) {
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('updateDriver.error.driverNotFound')
+                        });
+      }
+
+      if (updates.email != existingDriver.email) {
+        let checkEmail = await DRIVER.findOne({ email: updates.email });
+        let checkEmailInUser = await USER.findOne({
+                                                      email: updates.email,
+                                                      ...(existingDriver?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } } : {}),
+                                                    });
+        if (checkEmail || checkEmailInUser) {
+          return res.send({
+                            code: constant.error_code,
+                            message: res.__('updateDriver.error.emailExistsWithAnotherAccount')
+                          }); 
+        }
+      }
+
+      if (updates.phone != existingDriver.phone) {
+        let checkPhone = await DRIVER.findOne({ phone: updates.phone });
+        let checkPhoneInUser = await USER.findOne({
+                                                    phone: updates.phone,
+                                                    ...(existingDriver?.isCompany == true ? { _id: { $ne: new mongoose.Types.ObjectId(existingDriver?.driver_company_id) } } : {}),
+                                                  });
+        if (checkPhone || checkPhoneInUser) {
+          return res.send({
+                            code: constant.error_code,
+                            message: res.__('updateDriver.error.phoneExistsWithAnotherAccount')
+                          });
+        }
+      }
+
+      updates.password = updates?.password.trim();
+
+      if (updates?.password != '' && updates?.password !== undefined && updates?.password !== 'undefined') {
+        
+        updates.stored_password = updates.password;
+        updates.password = await bcrypt.hashSync(updates.password, 10);
+        // updates.jwtToken = '';
+        // updates.jwtTokenMobile = '';
+      } else {
+        delete updates.password
+      }
+
+      const FIELD_TO_EXP_KEY = {
+        [constant.DRIVER_DOC_TYPE.PROFILE_PHOTO] : "profile_photo_expirationDate",
+        [constant.DRIVER_DOC_TYPE.KVK_KIWA]: "kvk_kiwa_expirationDate",
+        [constant.DRIVER_DOC_TYPE.CHAUFFEUR_CARD]: "chauffeur_card_expirationDate",
+        [constant.DRIVER_DOC_TYPE.DRIVER_LICENSE]: "driver_license_expirationDate",
+      };
+
+      const filesByField = groupFilesByField(req.files || []);
+      const uploadedFields = Object.keys(filesByField);
+
+      // Reject random file fields
+      const invalidFileFields = uploadedFields.filter((f) => !Object.values(constant.DRIVER_DOC_TYPE).includes(f));
+      if (invalidFileFields.length > 0) {
+        return res.send({
+          code: constant.error_code,
+          message: res.__("updateDriver.error.invalidFileField"),
+          invalidFields: invalidFileFields,
+        });
+      }
+
+      const currentDocs = existingDriver?.kyc?.documents || [];
+      const currentByType = new Map(currentDocs.map((d) => [d.type, d]));
+
+      // merge docs: if uploaded => new file + required expiry; else keep DB values
+      const mergedByType = new Map();
+
+      for (const field of Object.values(constant.DRIVER_DOC_TYPE)) {
+        const type = field;
+        const oldDoc = currentByType.get(type) || {};
+        const hasUpload = !!filesByField[field]?.length;
+        // console.log("hasUpload-----" , field , hasUpload)
+        let urls = oldDoc.files || [];
+        let mimes = oldDoc.mimeTypes || [];
+        let expirationDate = oldDoc.expirationDate || null;
+
+        // if uploaded => replace files + require expirationDate
+        if (hasUpload) {
+
+          urls = filesByField[field].map((f) => f.location || f.path).filter(Boolean);
+          mimes = filesByField[field].map((f) => f.mimetype).filter(Boolean);
+
+          const expirationKey = FIELD_TO_EXP_KEY[field];
+          const expDate = normalizeToEndOfDay(updates?.[expirationKey]);
+          // console.log("expDate----" , updates?.[expirationKey] ,expDate)
+          if (!expDate) {
+            return res.send({
+              code: constant.error_code,
+              message: res.__("updateDriver.error.expirationDateRequired", { field }),
+              field,
+              expirationKey: expirationKey,
+            });
+          }
+
+           const today = new Date();
+
+          if (expDate < today) {
+            return res.send({
+              code: constant.error_code,
+              message: res.__("updateDriver.error.expirationDateCantBePast", { field }),
+            });
+          }
+
+          expirationDate = expDate;
+        }
+        console.log("expirationDate checking----" , expirationDate , type)
+
+        mergedByType.set(type, {
+          ...oldDoc,
+          type,
+          files: urls,
+          mimeTypes: mimes,
+          expirationDate,
+          _hasUpload: hasUpload,
+        });
+      }
+      
+      // Rule: after merge, all required must exist (DB or upload)
+      const missingDocTypes = Object.values(constant.DRIVER_DOC_TYPE).filter((t) => {
+        const d = mergedByType.get(t);
+        return !d?.files || d.files.length === 0;
+      });
+
+      if (missingDocTypes.length > 0) {
+        return res.send({
+          code: constant.error_code,
+          message: res.__("updateDriver.error.missingDocumentsForVerification"),
+          missingDocTypes,
+        });
+      }
+
+      // finalize docs: force APPROVED, push versions if changed
+
+      const finalDocs = Object.values(constant.DRIVER_DOC_TYPE).map((type) => {
+
+        const oldDoc = currentByType.get(type) || {};
+        const merged = mergedByType.get(type);
+
+        const changedFiles =
+          JSON.stringify(merged.files || []) !== JSON.stringify(oldDoc.files || []) ||
+          JSON.stringify(merged.mimeTypes || []) !== JSON.stringify(oldDoc.mimeTypes || []);
+
+        const changedExpiry = String(merged.expirationDate || "") !== String(oldDoc.expirationDate || "");
+        const changed = changedFiles || changedExpiry;
+
+        const versions = Array.isArray(oldDoc.versions) ? oldDoc.versions : [];
+
+        if (changed && (oldDoc.files?.length || oldDoc.status)) {
+          versions.push({
+            revision: oldDoc.revision || 0,
+            files: oldDoc.files || [],
+            mimeTypes: oldDoc.mimeTypes || [],
+            expirationDate: oldDoc.expirationDate || null,
+            statusAtThatTime: oldDoc.status || constant.DOC_STATUS.NOT_UPLOADED,
+            submittedAt: oldDoc.submittedAt || null,
+            reviewedAt: oldDoc.reviewedAt || null,
+            reviewedBy: oldDoc.reviewedBy || null,
+            rejectReasonKey: oldDoc.rejectReasonKey || "",
+            rejectReasonText: oldDoc.rejectReasonText || "",
+          });
+        }
+
+        return {
+          type,
+          files: merged.files,
+          mimeTypes: merged.mimeTypes,
+          expirationDate: merged.expirationDate || null,
+
+          status: constant.DOC_STATUS.APPROVED,
+          submittedAt: merged.submittedAt || now,
+          reviewedAt: now,
+          reviewedBy: adminId,
+
+          rejectReasonKey: "",
+          rejectReasonText: "",
+
+          revision: changed ? (oldDoc.revision || 0) + 1 : (oldDoc.revision || 0),
+          versions,
+        };
+      });
+
+      // Set profile image from PROFILE_PHOTO doc
+      const profileDoc = finalDocs.find((d) => d.type === constant.DRIVER_DOC_TYPE.PROFILE_PHOTO);
+      const profileImageUrl = profileDoc?.files?.[0] || existingDriver.profile_image;
+
+      let updatableData = {
+        first_name: updates.first_name,
+        last_name: updates.last_name,
+        address_1: updates.address_1,
+        address_2: updates.address_2,
+        country: updates.country,
+        city: updates.city,
+        zip_code: updates.zip_code,
+        email: updates.email,
+        phone: updates.phone,
+        countryCode: updates.countryCode,
+        gender: updates.gender,
+        nickName: updates.nickName,
+        kvk: updates.kvk,
+        bankNumber: updates.bankNumber,
+        companyName: updates.companyName,
+        VatNumber: updates.VatNumber,
+        profile_image : profileImageUrl,
+        isDocUploaded: true,
+        ...(updates.stored_password ? {stored_password: updates.stored_password , password: updates.password} : {}),
+        kyc: {
+          documents: finalDocs,
+          verification: {
+            status: constant.DRIVER_VERIFICATION_STATUS.VERIFIED,
+            isVerified: true,
+            lastSubmittedAt: existingDriver?.kyc?.verification?.lastSubmittedAt || now,
+            lastReviewedAt: now,
+            lastReviewedBy: adminId,
+          },
+        }
+      }
+
+      try {
+        const emailForStripe = existingDriver.email; // keep same like your old code
+        let customer = await stripe.customers.list({ email: emailForStripe });
+
+        const userFormattedAddress = `${updates?.address_1 || existingDriver.address_1 || ""} ${updates?.address_2 || existingDriver.address_2 || ""} , ${updates?.zip_code || existingDriver.zip_code || ""}`;
+
+        const stripeUserData = {
+          name: updates?.companyName || existingDriver.companyName || "",
+          email: emailForStripe,
+          address: {
+            line1: userFormattedAddress,
+            postal_code: updates?.zip_code || existingDriver.zip_code || "",
+            city: updates?.city || existingDriver.city || "",
+            country: updates?.country || existingDriver.country || "",
+          },
+          metadata: {
+            person_name: `${updates.first_name || existingDriver?.first_name || ""} ${updates.last_name || existingDriver?.last_name || ""}`.trim(),
+          },
+        };
+
+        if (customer.data.length) {
+          customer = customer.data[0];
+          await stripe.customers.update(customer.id, stripeUserData);
+          updatableData.stripeCustomerId = customer.id;
+        } else {
+          customer = await stripe.customers.create(stripeUserData);
+          updatableData.stripeCustomerId = customer.id;
+        }
+      } catch (stripeErr) {
+        console.log("⚠️ Stripe update failed:", stripeErr.message);
+        // don’t fail the whole update because of stripe
+        return res.send({
+              code: constant.error_code,
+              message: err.message,
+            });
+      }
+
+      const updatedDriver = await DRIVER.findOneAndUpdate(
+                                                            { _id: driverId },
+                                                            { $set: updatableData },
+                                                            { new: true }
+                                                          );
+
+      // ------------------- Sync company account if driver isCompany -------------------
+      if (existingDriver?.isCompany === true && existingDriver?.driver_company_id) {
+        const updateCompanyData = {
+          email: updates.email || existingDriver.email,
+          phone: updates.phone || existingDriver.phone,
+          ...(updates.stored_password ? {stored_password: updates.stored_password , password: updates.password} : {})
+        };
+
+        await USER.findOneAndUpdate(
+                                      { _id: new mongoose.Types.ObjectId(existingDriver.driver_company_id) },
+                                      updateCompanyData,
+                                      { new: true }
+                                    );
+      }
+
+      const driverDetails = await updateDriverMapCache(driverId); 
+      await broadcastDriverLocation(req.io , driverId , driverDetails)
+      driverDocumentVerifiedEmail(updatedDriver);
+      
+
+      return res.send({
+          code: constant.success_code,
+          message: res.__('updateDriver.success.driverAccountUpdated')
+        });
+
+    } catch (err) {
+
+      console.log("❌❌❌❌❌❌❌❌❌🚀 ~ exports.adminUpdateDriver= ~ err:", err.message);
+      res.send({
+        code: constant.error_code,
+        message: err.message,
+      });
+    }
+  })
+}
 
 exports.restoreDriver = async (req, res) => {
   try {

@@ -171,7 +171,10 @@
       "documentMissingInProfile": "Het vereiste document ontbreekt in het profiel. Upload het document om verder te gaan.",
       "noFilesUploaded": "Er zijn geen bestanden geüpload. Upload alstublieft minimaal één bestand om verder te gaan.",
       "profilePhotoRequired": "Profielfoto is vereist.",
+      "missingDocumentsForVerification": "Verplichte documenten ontbreken. Upload de ontbrekende documenten om deze chauffeur te verifiëren.",
       "uploadDocumentExpirationDateRequired": "De vervaldatum van het document is vereist.",
+      "expirationDateRequired": "Vervaldatum is verplicht voor {{field}}.",
+      "expirationDateCantBePast": "Vervaldatum mag niet in het verleden liggen voor {{field}}.",
       "uploadDocumentExpirationDateInvalid": "De vervaldatum van het document is ongeldig.",
       "uploadDocumentExpirationDatePast": "De vervaldatum van het document mag niet in het verleden liggen.",
       "driverDocumentsAlready_under_review": "Uw documenten zijn al ingediend en worden momenteel beoordeeld. Wacht alstublieft tot het verificatieproces is afgerond."

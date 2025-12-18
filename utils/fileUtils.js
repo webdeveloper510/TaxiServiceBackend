@@ -39,9 +39,20 @@ const ensureDocEntry = (docs, type) => {
 
 const  normalizeToEndOfDay = (dateInput) => {
 
-  // set expiration date with end of the day
-  const date = new Date(dateInput);
-  date.setUTCHours(23, 59, 59, 999); // last moment of the day
+  if (!dateInput) return null;
+
+  const date =
+    dateInput instanceof Date
+      ? new Date(dateInput)
+      : new Date(Date.parse(dateInput));
+
+  if (isNaN(date.getTime())) {
+    return null; // or throw an error if you prefer
+  }
+
+  // Set expiration date to end of the day (UTC)
+  date.setUTCHours(23, 59, 59, 999);
+
   return date;
 }
 module.exports = {
