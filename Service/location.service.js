@@ -22,7 +22,8 @@ async function canShowOnMap(details) {
   return !!(
     details?.status &&
     details?.is_login &&
-    details?.isVerified &&
+    // details?.isVerified &&
+    details?.kyc?.verification?.isVerified &&
     details?.isDocUploaded &&
     !details?.is_deleted &&
     !details?.is_blocked &&

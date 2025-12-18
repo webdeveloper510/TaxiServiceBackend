@@ -33,24 +33,52 @@
                         did not meet our requirements. As a result, your verification could not be completed.
                     </p>
 
-                    <p style="margin:0 0 15px;">
-                        To proceed, please log in to your account and upload the correct and valid documents. Ensure
-                        that
-                        the files are clear, up-to-date, and match the required criteria.
-                    </p>
+                    <!-- Rejected Document Section -->
+                    <% if (rejectedDocument) { %>
+                        <div
+                            style="margin:20px 0; padding:15px; background:#fff4f4; border:1px solid #f5c6cb; border-radius:6px;">
 
-                    <!-- Call to Action Button -->
-                    <p style="text-align:center; margin:25px 0;">
-                        <a href="<%= baseUrl %>/login"
-                            style="background:#d9534f; color:#fff; padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">
-                            Resubmit Documents
-                        </a>
-                    </p>
+                            <p style="margin:0 0 10px; font-weight:bold; color:#b52b27;">
+                                Rejected Document Details
+                            </p>
 
-                    <p style="margin:0 0 15px;">
-                        If you believe this was a mistake or need further guidance, please contact our support team for
-                        assistance.
-                    </p>
+                            <p style="margin:0 0 6px;">
+                                <strong>Document Name:</strong>
+                                <span style="color:#333;">
+                                    <%= rejectedDocument.name %>
+                                </span>
+                            </p>
+
+                            <p style="margin:0;">
+                                <strong>Reason for Rejection:</strong>
+                                <span style="color:#333;">
+                                    <%= rejectedDocument.reason %>
+                                </span>
+                            </p>
+
+                        </div>
+                        <% } %>
+
+                            <p style="margin:0 0 15px;">
+                                To proceed, please log in to your account and upload the correct and valid documents.
+                                Ensure
+                                that
+                                the files are clear, up-to-date, and match the required criteria.
+                            </p>
+
+                            <!-- Call to Action Button -->
+                            <p style="text-align:center; margin:25px 0;">
+                                <a href="<%= baseUrl %>/login"
+                                    style="background:#d9534f; color:#fff; padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">
+                                    Resubmit Documents
+                                </a>
+                            </p>
+
+                            <p style="margin:0 0 15px;">
+                                If you believe this was a mistake or need further guidance, please contact our support
+                                team for
+                                assistance.
+                            </p>
                 </td>
             </tr>
 

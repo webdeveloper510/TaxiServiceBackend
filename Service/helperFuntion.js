@@ -1995,13 +1995,17 @@ exports.passwordResetOtpEmail = async (info , otp) => {
     
 }
 
-exports.driverDocumentRejectionEmail = async (driverInfo) => {
+exports.driverDocumentRejectionEmail = async (driverInfo ,  docType = "" , reason = "" ) => {
 
 
     let subject = `Important: Your Document Submission Has Been Rejected`;
     const data = {
       userName: `${driverInfo.first_name} ${driverInfo.last_name}`,
       email: driverInfo.email,
+      rejectedDocument: {
+          docType: docType,
+          reason: reason
+      },
       baseUrl: process.env.BASEURL,
       supportEmail: process.env.SUPPORT_EMAIL
     }

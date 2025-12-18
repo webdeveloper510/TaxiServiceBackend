@@ -34,24 +34,52 @@
                         voltooid.
                     </p>
 
-                    <p style="margin:0 0 15px;">
-                        Om verder te gaan, logt u alstublieft in op uw account en upload de correcte en geldige
-                        documenten.
-                        Zorg ervoor dat de bestanden duidelijk, actueel en conform de vereiste criteria zijn.
-                    </p>
+                    <!-- Afgewezen document sectie -->
+                    <% if (rejectedDocument) { %>
+                        <div
+                            style="margin:20px 0; padding:15px; background:#fff4f4; border:1px solid #f5c6cb; border-radius:6px;">
 
-                    <!-- Call to Action Button -->
-                    <p style="text-align:center; margin:25px 0;">
-                        <a href="<%= baseUrl %>/login"
-                            style="background:#d9534f; color:#fff; padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">
-                            Documenten Opnieuw Verzenden
-                        </a>
-                    </p>
+                            <p style="margin:0 0 10px; font-weight:bold; color:#b52b27;">
+                                Gegevens van het afgewezen document
+                            </p>
 
-                    <p style="margin:0 0 15px;">
-                        Als u denkt dat dit een fout is of verdere begeleiding nodig heeft, neem dan contact op met ons
-                        supportteam voor hulp.
-                    </p>
+                            <p style="margin:0 0 6px;">
+                                <strong>Documentnaam:</strong>
+                                <span style="color:#333;">
+                                    <%= rejectedDocument.name %>
+                                </span>
+                            </p>
+
+                            <p style="margin:0;">
+                                <strong>Reden van afwijzing:</strong>
+                                <span style="color:#333;">
+                                    <%= rejectedDocument.reason %>
+                                </span>
+                            </p>
+
+                        </div>
+                        <% } %>
+
+
+                            <p style="margin:0 0 15px;">
+                                Om verder te gaan, logt u alstublieft in op uw account en upload de correcte en geldige
+                                documenten.
+                                Zorg ervoor dat de bestanden duidelijk, actueel en conform de vereiste criteria zijn.
+                            </p>
+
+                            <!-- Call to Action Button -->
+                            <p style="text-align:center; margin:25px 0;">
+                                <a href="<%= baseUrl %>/login"
+                                    style="background:#d9534f; color:#fff; padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">
+                                    Documenten Opnieuw Verzenden
+                                </a>
+                            </p>
+
+                            <p style="margin:0 0 15px;">
+                                Als u denkt dat dit een fout is of verdere begeleiding nodig heeft, neem dan contact op
+                                met ons
+                                supportteam voor hulp.
+                            </p>
                 </td>
             </tr>
 

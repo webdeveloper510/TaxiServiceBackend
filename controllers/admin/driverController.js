@@ -1617,10 +1617,15 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
             });
     }
 
+    
+
     const driver = await DRIVER.findOne(
-                                          { _id: driverId, is_deleted: false },
-                                          { "kyc.documents.status": 1, "kyc.documents.type": 1 }
+                                          { _id: driverId }
                                         ).lean();
+
+    if (status === constant.DOC_STATUS.REJECTED) {
+      driverDocumentRejectionEmail(driver , docType , rejectReasonText)
+    }
 
     const docs = driver?.kyc?.documents || [];
 
@@ -1638,12 +1643,27 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
     if (hasAllApproved) {
       verificationStatus = constant.DRIVER_VERIFICATION_STATUS.VERIFIED;
       isVerified = true;
+
+      const driverDetails = await updateDriverMapCache(driverId); 
+      await broadcastDriverLocation(req.io , driverId , driverDetails)
+      
+      // inform the user for letting him know that he can use the driver account
+      driverDocumentVerifiedEmail(driverDetails)
     } else if (hasRejected) {
+
       verificationStatus = constant.DRIVER_VERIFICATION_STATUS.REJECTED;
       isVerified = false;
+
+      const driverDetails = await updateDriverMapCache(driverId);   // update driver profile cache
+      removeDriverForSubscribedClients(driverDetails , req.io);
+
     } else if (hasPending || hasMissing) {
+
       verificationStatus = constant.DRIVER_VERIFICATION_STATUS.UNDER_REVIEW;
       isVerified = false;
+
+      const driverDetails = await updateDriverMapCache(driverId);   // update driver profile cache
+      removeDriverForSubscribedClients(driverDetails , req.io);
     }
 
 
