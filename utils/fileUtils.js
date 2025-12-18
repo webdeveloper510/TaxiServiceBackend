@@ -36,10 +36,19 @@ const ensureDocEntry = (docs, type) => {
   docs.push(newDoc);
   return newDoc;
 }
+
+const  normalizeToEndOfDay = (dateInput) => {
+
+  // set expiration date with end of the day
+  const date = new Date(dateInput);
+  date.setUTCHours(23, 59, 59, 999); // last moment of the day
+  return date;
+}
 module.exports = {
   isEmpty,
   toStr , 
   groupFilesByField , 
   fileUrl,
-  ensureDocEntry
+  ensureDocEntry,
+  normalizeToEndOfDay
 };

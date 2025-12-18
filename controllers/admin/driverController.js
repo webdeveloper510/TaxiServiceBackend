@@ -23,7 +23,7 @@ const {
 } = require("../../Service/helperFuntion");
 const { updateDriverMapCache , removeDriverForSubscribedClients , broadcastDriverLocation} = require("../../Service/location.service");
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
-const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry} = require("../../utils/fileUtils");
+const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry ,normalizeToEndOfDay} = require("../../utils/fileUtils");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -1488,10 +1488,11 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
     const driverId = req.params.driverId;
     const docType = req.params.docType;
 
-    const {
+    let {
       status, // "APPROVED" | "REJECTED"
       rejectReasonKey = "",
       rejectReasonText = "",
+      expirationDate = null,
     } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(driverId)) {
@@ -1544,6 +1545,37 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
             });
     }
 
+    if (docType != constant.DRIVER_DOC_TYPE.PROFILE_PHOTO && status == constant.DOC_STATUS.APPROVED) {
+
+      if (!expirationDate || expirationDate.trim() == "") {
+        return res.send({
+              code: constant.error_code,
+              message: res.__("updateDriver.error.uploadDocumentExpirationDateRequired"),
+            });
+      }
+
+      const expDate = new Date(expirationDate);
+
+      // invalid date check
+      if (isNaN(expDate.getTime())) {
+        return res.send({
+          code: constant.error_code,
+          message: res.__("updateDriver.error.uploadDocumentExpirationDateInvalid"),
+        });
+      }
+
+      // past date check (date-only comparison)
+      const today = new Date();
+      expirationDate = normalizeToEndOfDay(expirationDate);
+
+      if (expirationDate < today) {
+        return res.send({
+          code: constant.error_code,
+          message: res.__("updateDriver.error.uploadDocumentExpirationDatePast"),
+        });
+      }
+    }
+
     const now = new Date();
     const adminId = req.userId || null; // make sure admin auth middleware sets this
 
@@ -1566,6 +1598,7 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
         $push: { "kyc.documents.$[doc].versions": versionEntry },
         $set: {
           "kyc.documents.$[doc].status": status,
+          "kyc.documents.$[doc].expirationDate": expirationDate,
           "kyc.documents.$[doc].reviewedAt": now,
           "kyc.documents.$[doc].reviewedBy": adminId,
           "kyc.documents.$[doc].rejectReasonKey": status === constant.DOC_STATUS.REJECTED ? rejectReasonKey : "",
@@ -1575,15 +1608,6 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
       { arrayFilters: [{ "doc.type": docType }] }
     );
     
-    console.log("where--------" , { _id: driverId, is_deleted: false, "kyc.documents.type": docType })
-    console.log('set---------' , {
-          "kyc.documents.$[doc].status": status,
-          "kyc.documents.$[doc].reviewedAt": now,
-          "kyc.documents.$[doc].reviewedBy": adminId,
-          "kyc.documents.$[doc].rejectReasonKey": status === constant.DOC_STATUS.REJECTED ? rejectReasonKey : "",
-          "kyc.documents.$[doc].rejectReasonText": status === constant.DOC_STATUS.REJECTED ? rejectReasonText : "",
-        } )
-    console.log('array filter---------' , { arrayFilters: [{ "doc.type": docType }] })
 
     if (!updateResult.matchedCount) {
       return res.send({

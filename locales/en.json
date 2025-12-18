@@ -171,6 +171,9 @@
             "documentMissingInProfile": "The required document is missing from the profile. Please upload the document to proceed.",
             "noFilesUploaded": "No files were uploaded. Please upload at least one file to continue.",
             "profilePhotoRequired": "Profile photo is required",
+            "uploadDocumentExpirationDateRequired": "Document expiration date is required.",
+            "uploadDocumentExpirationDateInvalid": "The document expiration date is invalid.",
+            "uploadDocumentExpirationDatePast": "The document expiration date cannot be in the past.",
             "driverDocumentsAlready_under_review": "Your documents have already been submitted and are currently under review. Please wait for the verification process to be completed."
         },
         "success": {

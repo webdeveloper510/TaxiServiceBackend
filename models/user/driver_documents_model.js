@@ -20,7 +20,7 @@ const documentVersionSchema = new Schema(
       enum: DOC_STATUS_ENUM,
       required: true,
     },
-
+    expirationDate: { type: Date, default: null },
     submittedAt: { type: Date, default: Date.now },
     reviewedAt: { type: Date, default: null },
     reviewedBy: { type: Schema.Types.ObjectId, ref: "users", default: null },
@@ -50,7 +50,7 @@ const driverDocumentSchema = new Schema(
       default: CONSTANT.DOC_STATUS.NOT_UPLOADED,
       index: true,
     },
-
+    expirationDate: { type: Date, default: null },
     submittedAt: { type: Date, default: null },
 
     reviewedAt: { type: Date, default: null },
