@@ -107,11 +107,11 @@ exports.login = async (req, res) => {
     const webDeviceToken = data.webDeviceToken;
     const mobile = data?.platform == constants.PLATFORM.MOBILE;
     const locale = constants.INTERNATIONALIZATION_LANGUAGE.ENGLISH === req.query.lang ? constants.INTERNATIONALIZATION_LANGUAGE.ENGLISH : constants.INTERNATIONALIZATION_LANGUAGE.DUTCH;
-    
+    const normalizedEmail = data.email.trim().toLowerCase();
 
     let check_data;
     let userData = await USER.findOne(
-                                        { email: data.email }, // Exact match on content
+                                        { email: normalizedEmail }, // Exact match on content
                                         null,
                                         { collation: { locale: 'en', strength: 2 } } // Case-insensitive
                                       // {
@@ -171,20 +171,7 @@ exports.login = async (req, res) => {
     // drver login code
     if (!userData || (userData?.role == constants.ROLES.COMPANY &&  userData?.isDriver == true && userData?.is_blocked == true)) {
 
-      
-      let DriverDetails = await DRIVER.findOne({
-                                              $and: [
-                                                {
-                                                  $or: [
-                                                    { email: { $regex: data.email, $options: "i" } },
-                                                    { phone: { $regex: data.email, $options: "i" } },
-                                                  ],
-                                                },
-                                                {
-                                                  is_deleted: false,
-                                                },
-                                              ],
-                                            });
+      let DriverDetails = await DRIVER.findOne({ email:normalizedEmail, is_deleted: false, });
       
 
       if (!DriverDetails) {
@@ -1286,8 +1273,8 @@ exports.verify_otp = async (req, res) => {
 exports.forgot_password = async (req, res) => {
   try {
     let data = req.body;
-
-    let criteria = { email: { $regex: data.email, $options: "i" } };
+    const normalizedEmail = data.email.trim().toLowerCase();
+    let criteria = { email: normalizedEmail };
     let check_email = await USER.findOne(criteria);
     if (!check_email) {
       let check_driver = await DRIVER.findOne(criteria);
