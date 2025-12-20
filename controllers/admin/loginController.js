@@ -1110,7 +1110,7 @@ exports.send_otp = async (req, res) => {
       });
     }
 
-    const OTP = randToken.generate(6, "123456789");
+    const OTP = randToken.generate(4, "123456789");
     const otp_expiry = new Date(Date.now() + 60 * 1000); // 1 minute
 
     // 6️⃣ Update only required fields
@@ -1129,7 +1129,7 @@ exports.send_otp = async (req, res) => {
       message: res.__("sendOtp.success.otpSentToEmail"),
     });
 
-    
+
     let data = req.body;
     let check_email = await USER.findOne({
       $and: [
