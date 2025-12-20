@@ -7,11 +7,80 @@ exports.driverAutoLogoutCron = (io) =>  {
   cron.schedule("* * * * *", async () => { // every minute
 
    try {
-      await autoLogoutdriverUsers(io);
+      // await autoLogoutdriverUsers(io);
+      await addKycToOldDriver();
     } catch (cronErr) {
       console.error("❌ driver auto logout Cron Crash Prevented:", cronErr);
     }
   });
+}
+
+const addKycToOldDriver = async () => {
+  const requiredTypes = Object.values(CONSTANT.DRIVER_DOC_TYPE);
+
+    const makeDefaultKyc = () => ({
+      documents: requiredTypes.map((t) => ({
+        type: t,
+        files: [],
+        mimeTypes: [],
+        expirationDate: null, // keep if in schema
+        status: CONSTANT.DOC_STATUS.NOT_UPLOADED,
+        submittedAt: null,
+        reviewedAt: null,
+        reviewedBy: null,
+        rejectReasonKey: "",
+        rejectReasonText: "",
+        revision: 0,
+        versions: [],
+      })),
+      verification: {
+        status: CONSTANT.DRIVER_VERIFICATION_STATUS.NOT_SUBMITTED,
+        isVerified: false,
+        lastSubmittedAt: null,
+        lastReviewedAt: null,
+        lastReviewedBy: null,
+      },
+      canGoOnline: false,
+    });
+
+    const batchSize = parseInt( 500);
+    let totalUpdated = 0;
+
+    while (true) {
+      // find a batch of drivers missing kyc
+      const drivers = await DRIVER_MODEL.find(
+        {
+          is_deleted: false,
+          $or: [
+            { kyc: { $exists: false } },
+            { "kyc.documents": { $exists: false } },
+            { "kyc.documents.0": { $exists: false } },
+          ],
+        },
+        { _id: 1 }
+      )
+        .limit(batchSize)
+        .lean();
+
+      if (!drivers.length) break;
+
+      const ids = drivers.map((d) => d._id);
+
+      const result = await DRIVER_MODEL.updateMany(
+        { _id: { $in: ids } },
+        { $set: { kyc: makeDefaultKyc() } }
+      );
+
+      totalUpdated += result.modifiedCount || 0;
+
+      // safety: prevent infinite loops in case of weird writes
+      if ((result.modifiedCount || 0) === 0) break;
+    }
+
+    console.log("add kyc done-------------", {
+      code: CONSTANT.success_code,
+      updatedDrivers: totalUpdated,
+    });
 }
 
 const autoLogoutdriverUsers = async (io) => {

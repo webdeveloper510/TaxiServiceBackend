@@ -23,7 +23,7 @@ const {
 } = require("../../Service/helperFuntion");
 const { updateDriverMapCache , removeDriverForSubscribedClients , broadcastDriverLocation} = require("../../Service/location.service");
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
-const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry ,normalizeToEndOfDay} = require("../../utils/fileUtils");
+const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry ,normalizeToEndOfDay , humanize} = require("../../utils/fileUtils");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -230,7 +230,7 @@ exports.adminAddDriver = async (req, res) => {
     }
 
     const data = req.body;
-
+    const today = new Date();
     data.email = data?.email?.toLowerCase();
     // data.isDocUploaded = false;
     // data.isVerified = true;
@@ -255,6 +255,15 @@ exports.adminAddDriver = async (req, res) => {
                     });
     }
 
+    const missingUploads = Object.values(constant.DRIVER_DOC_TYPE).filter((f) => !filesByField[f] || filesByField[f].length === 0);
+      if (missingUploads.length > 0) {
+        return res.send({
+          code: constant.error_code,
+          message: res.__("updateDriver.error.missingDocuments"),
+          missingDocuments: missingUploads,
+        });
+      }
+
     const now = new Date();
     const FIELD_TO_EXP_KEY = {
         [constant.DRIVER_DOC_TYPE.PROFILE_PHOTO] : "profile_photo_expirationDate",
@@ -263,21 +272,49 @@ exports.adminAddDriver = async (req, res) => {
         [constant.DRIVER_DOC_TYPE.DRIVER_LICENSE]: "driver_license_expirationDate",
       };
 
-    // const REQUIRED_EXP_FIELDS = new Set([
-    //     constant.DRIVER_DOC_TYPE.KVK_KIWA,
-    //     constant.DRIVER_DOC_TYPE.CHAUFFEUR_CARD,
-    //     constant.DRIVER_DOC_TYPE.DRIVER_LICENSE,
-    //   ]);
+      
+
+    const REQUIRED_EXP_FIELDS = new Set([
+        constant.DRIVER_DOC_TYPE.KVK_KIWA,
+        constant.DRIVER_DOC_TYPE.CHAUFFEUR_CARD,
+        constant.DRIVER_DOC_TYPE.DRIVER_LICENSE,
+      ]);
+
+    for (let field of Object.keys(constant.DRIVER_DOC_TYPE)) {
+
+      if (field  !== constant.DRIVER_DOC_TYPE.PROFILE_PHOTO) {
+        const expirationKey = FIELD_TO_EXP_KEY[field];
+
+        const expDate = normalizeToEndOfDay(data?.[expirationKey]);
+        
+        if (!expDate) {
+          return res.send({
+            code: constant.error_code,
+            message: res.__("updateDriver.error.expirationDateRequired", { field: humanize(field) }),
+            field,
+            expirationKey: expirationKey,
+          });
+        }
+
+        if (expDate < today) {
+            return res.send({
+              code: constant.error_code,
+              message: res.__("updateDriver.error.expirationDateCantBePast", { field: humanize(field) }),
+            });
+          }
+      }
+    }
 
     const kycDocuments = Object.keys(constant.DRIVER_DOC_TYPE).map((field) => {
 
       const uploadedFiles = filesByField[field];
-
+      const expDate = field !== constant.DRIVER_DOC_TYPE.PROFILE_PHOTO ? normalizeToEndOfDay(data?.[FIELD_TO_EXP_KEY[field]]) : null;
+      
       return {
                 type: constant.DRIVER_DOC_TYPE[field],
                 files: uploadedFiles.map((f) => f.location || f.path).filter(Boolean),
                 mimeTypes: uploadedFiles.map((f) => f.mimetype).filter(Boolean),
-
+                expirationDate: expDate || null,
                 status: constant.DOC_STATUS.APPROVED,
                 submittedAt: now,
 
@@ -291,7 +328,7 @@ exports.adminAddDriver = async (req, res) => {
                 versions: [],
               };
     });
-
+   
     data.kyc = {
                 documents: kycDocuments,
                 verification: {
@@ -346,12 +383,12 @@ exports.adminAddDriver = async (req, res) => {
       }
     }
 
-    
+    const normalizedEmail = data.email.trim().toLowerCase();
 
     let checkEmailInUsers = await USER.findOne({ 
                                                 $or:  [
-                                                        { email: { $regex: data.email, $options: "i" } },
-                                                        { company_email: { $regex: data.email, $options: "i" } }
+                                                        { email: normalizedEmail },
+                                                        { company_email: normalizedEmail }
                                                       ],
                                                 ...(data?.isCompany == 'true' ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driver_company_id) } } : {}), 
                                               })
@@ -464,7 +501,6 @@ exports.adminAddDriver = async (req, res) => {
     let hashedPassword = await bcrypt.hashSync(randomPasword, 10);
     data.password = hashedPassword;
 
-    
     // Create or get stripe customer id
     // let customer = await stripe.customers.list({ email: data.email });
     // customer = customer.data.length ? customer.data[0] : await stripe.customers.create({ email: data.email });
@@ -503,7 +539,7 @@ exports.adminAddDriver = async (req, res) => {
    
 
     if (!save_driver) {
-      res.send({
+      return res.send({
         code: constant.error_code,
         message: res.__('addDriver.error.saveFailed'),
       });
