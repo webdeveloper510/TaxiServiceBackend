@@ -7,6 +7,22 @@ const DRIVER_VERIFICATION_STATUS_ENUM = Object.values(CONSTANT.DRIVER_VERIFICATI
 
 // ======================= SUB SCHEMAS =======================
 
+// ----------------- Reminder event (audit) -----------------
+const expiryReminderSchema = new Schema(
+  {
+    daysBefore: { type: Number, required: true }, // 30 / 15 / 5
+    channel: { type: String, enum: ["EMAIL", "PUSH", "SMS"], required: true },
+    sentAt: { type: Date, required: true },
+
+    provider: { type: String, default: "" }, // e.g. "SENDGRID"
+    messageId: { type: String, default: "" }, // provider message id
+
+    status: { type: String, enum: ["SENT", "FAILED"], default: "SENT" },
+    failReason: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
 // Store all previous uploads (audit)
 const documentVersionSchema = new Schema(
   {
@@ -63,6 +79,11 @@ const driverDocumentSchema = new Schema(
 
     // history of old uploads
     versions: { type: [documentVersionSchema], default: [] },
+
+    // reminders history
+    expiryReminders: { type: [expiryReminderSchema], default: [] },
+    lastExpiryReminderAt: { type: Date, default: null },
+    lastExpiryReminderDaysBefore: { type: Number, default: null },
   },
   { _id: false }
 );

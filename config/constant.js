@@ -16,7 +16,7 @@ module.exports={
     DRIVER_AUTO_LOGOUT: 120_000 , // 120_000 = 2 * 60 * 1000 = 120 seconds
     CUSTOMER_CANCEL_TIMING_TRIP: 120, //  2 minutes will be applied if no value find in company settings 
     CUSTOMER_PRE_TRIP_NOTIFICATION_TIME: 10, // cutsomer will get notification 10 minutes before the trip start time
-
+    KYC_DOCUMENT_EXPIRY_WARNING_DAYS: 10, // we will send notification before  10 days expiration of the document 
     DRIVER_DOC_TYPE : {
             PROFILE_PHOTO: "PROFILE_PHOTO",
             KVK_KIWA: "KVK_KIWA", // Kiwa / Business registration
@@ -28,6 +28,7 @@ module.exports={
         PENDING: "PENDING",
         APPROVED: "APPROVED",
         REJECTED: "REJECTED",
+        EXPIRED: "EXPIRED",
     },
     DRIVER_VERIFICATION_STATUS : {
         NOT_SUBMITTED: "NOT_SUBMITTED",

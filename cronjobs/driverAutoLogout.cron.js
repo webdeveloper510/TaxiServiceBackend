@@ -7,8 +7,8 @@ exports.driverAutoLogoutCron = (io) =>  {
   cron.schedule("* * * * *", async () => { // every minute
 
    try {
-      // await autoLogoutdriverUsers(io);
-      await addKycToOldDriver();
+      await autoLogoutdriverUsers(io);
+      // await addKycToOldDriver();
     } catch (cronErr) {
       console.error("❌ driver auto logout Cron Crash Prevented:", cronErr);
     }
