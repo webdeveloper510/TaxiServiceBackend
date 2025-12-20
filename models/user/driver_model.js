@@ -64,8 +64,10 @@ const driver = new Schema(
     },
     email: {
       type: String,
-      default: "",
+      lowercase: true,
       index: true,
+      trim: true,
+      unique: true
     },
     countryCode: {
       type: String,

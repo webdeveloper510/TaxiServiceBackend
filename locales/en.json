@@ -39,7 +39,8 @@
             "invalidOtp": "The OTP you entered is invalid",
             "requestExpired": "The request is no longer valid. Kindly authenticate again",
             "roleValidationFailed": "Role validation failed. Please contact support if the issue persists.",
-            "invalidEmail": "The email address entered is invalid."
+            "invalidEmail": "The email address entered is invalid.",
+            "invalidRequest": "The request is invalid or incomplete."
         },
         "success": {
             "otpVerified": "OTP verified successfully"

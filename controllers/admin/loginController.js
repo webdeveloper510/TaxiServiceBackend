@@ -1076,6 +1076,60 @@ exports.getCompanyDetail = async (req , res) => {
 }
 exports.send_otp = async (req, res) => {
   try {
+
+    const { email } = req.body;
+
+    // 1️⃣ Validate input
+    if (!email || typeof email !== "string") {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("sendOtp.error.invalidInput"),
+      });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // 2️⃣ Find user or driver
+    let account =
+      (await USER.findOne({ email: normalizedEmail, status: true, is_deleted: false, })) ||
+      (await DRIVER.findOne({ email: normalizedEmail, is_deleted: false, }));
+
+    // 3️⃣ Account not found
+    if (!account) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("sendOtp.error.invalidInput"),
+      });
+    }
+
+    // 4️⃣ Blocked check
+    if (account.is_blocked) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("userLogin.error.accessRestricted"),
+      });
+    }
+
+    const OTP = randToken.generate(6, "123456789");
+    const otp_expiry = new Date(Date.now() + 60 * 1000); // 1 minute
+
+    // 6️⃣ Update only required fields
+    await account.updateOne({ OTP, otp_expiry });
+
+    // 7️⃣ Send email (non-blocking)
+    try {
+      await passwordResetOtpEmail(account, OTP);
+    } catch (mailErr) {
+      console.error("OTP email failed:", mailErr.message);
+    }
+
+     // 8️⃣ Success response
+    return res.send({
+      code: constant.success_code,
+      message: res.__("sendOtp.success.otpSentToEmail"),
+    });
+
+    
     let data = req.body;
     let check_email = await USER.findOne({
       $and: [
@@ -1181,48 +1235,45 @@ exports.send_otp = async (req, res) => {
 
 exports.verify_otp = async (req, res) => {
   try {
-    let data = req.body;
 
-    let checkEmail;
-    let checkEmail1 = await USER.findOne({
-      email: { $regex: data.email, $options: "i" },
-    });
-    if (!checkEmail1) {
-      let checkEmail2 = await DRIVER.findOne({email: { $regex: data.email, $options: "i" },});
+    const { email, OTP } = req.body;
 
-      if (!checkEmail2) {
-        return res.send({
-                          code: constant.error_code,
-                          message:  res.__('loginOtpVerify.error.invalidEmail'),
-                        });
-      }
-
-      let checkEmail = checkEmail2;
-      if (data.OTP != checkEmail.OTP) {
-        return res.send({
-                          code: constant.error_code,
-                          message: res.__('loginOtpVerify.error.invalidOtp'),
-                        });
-        
-      }
+    // Validate input
+    if (!email || !OTP) {
       return res.send({
-                        code: constant.success_code,
-                        message: res.__('loginOtpVerify.success.otpVerified'),
-                      });
-    } else {
-      if (data.OTP != checkEmail1.OTP) {
-        res.send({
-          code: constant.error_code,
-          message: res.__('loginOtpVerify.error.invalidOtp'),
-        });
-        return;
-      }
-      res.send({
-        code: constant.success_code,
-        message: res.__('loginOtpVerify.success.otpVerified'),
+        code: constant.error_code,
+        message: res.__('loginOtpVerify.error.invalidRequest'),
       });
-     
     }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const account =
+      (await USER.findOne({ email: normalizedEmail })) ||
+      (await DRIVER.findOne({ email: normalizedEmail }));
+
+    if (!account) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__('loginOtpVerify.error.invalidEmail'),
+      });
+    }
+
+    // Normalize OTP comparison
+    if (String(OTP) !== String(account.OTP)) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__('loginOtpVerify.error.invalidOtp'),
+      });
+    }
+
+    await account.updateOne({ OTP: null });
+
+    return res.send({
+      code: constant.success_code,
+      message: res.__('loginOtpVerify.success.otpVerified'),
+    });
+
   } catch (err) {
     console.log('❌❌❌❌❌❌❌❌❌ verify otp error --------------' , err.message)
     res.send({

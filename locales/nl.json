@@ -39,7 +39,8 @@
       "invalidOtp": "De ingevoerde OTP is ongeldig.",
       "requestExpired": "Dit verzoek is niet langer geldig. Gelieve opnieuw te verifiëren.",
       "roleValidationFailed": "Rolvalidatie is mislukt. Neem contact op met de ondersteuning als het probleem zich blijft voordoen.",
-      "invalidEmail": "Het ingevoerde e-mailadres is ongeldig."
+      "invalidEmail": "Het ingevoerde e-mailadres is ongeldig.",
+      "invalidRequest": "De aanvraag is ongeldig of onvolledig"
     },
     "success": {
       "otpVerified": "OTP succesvol geverifieerd."

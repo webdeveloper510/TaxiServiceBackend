@@ -60,7 +60,10 @@ const user = new Schema(
     },
     email: {
       type: String,
-      default: "",
+      lowercase: true,
+      index: true,
+      trim: true,
+      unique: true
     },
     company_email: {
       type: String,
