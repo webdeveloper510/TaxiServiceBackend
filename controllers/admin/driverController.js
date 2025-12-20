@@ -1542,25 +1542,27 @@ exports.adminUpdateDriver = async (req , res) => {
 
           const expirationKey = FIELD_TO_EXP_KEY[field];
           const expDate = normalizeToEndOfDay(updates?.[expirationKey]);
-          // console.log("expDate----" , updates?.[expirationKey] ,expDate)
-          if (!expDate) {
-            return res.send({
-              code: constant.error_code,
-              message: res.__("updateDriver.error.expirationDateRequired", { field }),
-              field,
-              expirationKey: expirationKey,
-            });
+          
+
+          if (type  !== constant.DRIVER_DOC_TYPE.PROFILE_PHOTO) {
+            if (!expDate) {
+              return res.send({
+                code: constant.error_code,
+                message: res.__("updateDriver.error.expirationDateRequired", { field }),
+                field,
+                expirationKey: expirationKey,
+              });
+            }
+
+            const today = new Date();
+
+            if (expDate < today) {
+              return res.send({
+                code: constant.error_code,
+                message: res.__("updateDriver.error.expirationDateCantBePast", { field }),
+              });
+            }
           }
-
-           const today = new Date();
-
-          if (expDate < today) {
-            return res.send({
-              code: constant.error_code,
-              message: res.__("updateDriver.error.expirationDateCantBePast", { field }),
-            });
-          }
-
           expirationDate = expDate;
         }
         console.log("expirationDate checking----" , expirationDate , type)
@@ -1643,6 +1645,7 @@ exports.adminUpdateDriver = async (req , res) => {
       const profileDoc = finalDocs.find((d) => d.type === constant.DRIVER_DOC_TYPE.PROFILE_PHOTO);
       const profileImageUrl = profileDoc?.files?.[0] || existingDriver.profile_image;
 
+      
       let updatableData = {
         first_name: updates.first_name,
         last_name: updates.last_name,
@@ -1674,6 +1677,9 @@ exports.adminUpdateDriver = async (req , res) => {
           },
         }
       }
+
+      
+
 
       try {
         const emailForStripe = existingDriver.email; // keep same like your old code
@@ -1712,6 +1718,7 @@ exports.adminUpdateDriver = async (req , res) => {
             });
       }
 
+      // console.log("updatableData-------" , updatableData);
       const updatedDriver = await DRIVER.findOneAndUpdate(
                                                             { _id: driverId },
                                                             { $set: updatableData },
@@ -1735,7 +1742,7 @@ exports.adminUpdateDriver = async (req , res) => {
 
       const driverDetails = await updateDriverMapCache(driverId); 
       await broadcastDriverLocation(req.io , driverId , driverDetails)
-      driverDocumentVerifiedEmail(updatedDriver);
+      // driverDocumentVerifiedEmail(updatedDriver);
       
 
       return res.send({
