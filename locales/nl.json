@@ -177,6 +177,7 @@
       "expirationDateCantBePast": "Vervaldatum mag niet in het verleden liggen voor {{field}}.",
       "uploadDocumentExpirationDateInvalid": "De vervaldatum van het document is ongeldig.",
       "uploadDocumentExpirationDatePast": "De vervaldatum van het document mag niet in het verleden liggen.",
+      "documentAlreadyInReview": "De {{documentName}} wordt al beoordeeld.",
       "driverDocumentsAlready_under_review": "Uw documenten zijn al ingediend en worden momenteel beoordeeld. Wacht alstublieft tot het verificatieproces is afgerond."
     },
     "success": {

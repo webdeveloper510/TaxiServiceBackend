@@ -55,11 +55,15 @@ const  normalizeToEndOfDay = (dateInput) => {
 
   return date;
 }
+
+const humanize = (text) => text .toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+
 module.exports = {
   isEmpty,
   toStr , 
   groupFilesByField , 
   fileUrl,
   ensureDocEntry,
-  normalizeToEndOfDay
+  normalizeToEndOfDay,
+  humanize
 };

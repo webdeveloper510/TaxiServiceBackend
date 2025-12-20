@@ -256,6 +256,18 @@ exports.adminAddDriver = async (req, res) => {
     }
 
     const now = new Date();
+    const FIELD_TO_EXP_KEY = {
+        [constant.DRIVER_DOC_TYPE.PROFILE_PHOTO] : "profile_photo_expirationDate",
+        [constant.DRIVER_DOC_TYPE.KVK_KIWA]: "kvk_kiwa_expirationDate",
+        [constant.DRIVER_DOC_TYPE.CHAUFFEUR_CARD]: "chauffeur_card_expirationDate",
+        [constant.DRIVER_DOC_TYPE.DRIVER_LICENSE]: "driver_license_expirationDate",
+      };
+
+    // const REQUIRED_EXP_FIELDS = new Set([
+    //     constant.DRIVER_DOC_TYPE.KVK_KIWA,
+    //     constant.DRIVER_DOC_TYPE.CHAUFFEUR_CARD,
+    //     constant.DRIVER_DOC_TYPE.DRIVER_LICENSE,
+    //   ]);
 
     const kycDocuments = Object.keys(constant.DRIVER_DOC_TYPE).map((field) => {
 

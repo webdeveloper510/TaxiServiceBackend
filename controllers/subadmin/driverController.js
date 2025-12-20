@@ -13,7 +13,7 @@ const mongoose = require("mongoose");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
 const { getUserActivePaidPlans } = require("../../Service/helperFuntion");
-const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry} = require("../../utils/fileUtils");
+const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry , humanize} = require("../../utils/fileUtils");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -571,12 +571,22 @@ exports.resubmitRejectedDocuments = async (req, res) => {
                             message: res.__("updateDriver.error.documentMissingInProfile"),
                           });
         }
+       
 
-        if (existingDoc.status !== constant.DOC_STATUS.REJECTED) {
+        if (existingDoc.status == constant.DOC_STATUS.PENDING ) {
+          // If approved or pending or not_uploaded, block re-upload in this endpoint
+          return res.send({
+                            code: constant.error_code,
+                            message: res.__("updateDriver.error.documentAlreadyInReview" , {documentName: humanize(type)}),
+                          });
+        }
+
+        if (existingDoc.status == constant.DOC_STATUS.APPROVED ) {
           // If approved or pending or not_uploaded, block re-upload in this endpoint
           return res.send({
                             code: constant.error_code,
                             message: res.__("updateDriver.error.onlyRejectedCanResubmit"),
+                            type: type
                           });
         }
 
