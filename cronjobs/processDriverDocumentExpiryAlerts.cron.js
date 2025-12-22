@@ -1,14 +1,15 @@
 const cron = require("node-cron");
 const DRIVER_MODEL = require("../models/user/driver_model");
 const CONSTANT = require('../config/constant')
-
+const { driverDocumentExpirationReminderEmail } = require("../Service/helperFuntion");
+const { humanize } = require("../utils/fileUtils")
 exports.processDriverDocumentExpiryAlerts = (io) =>  {
-  cron.schedule("* * * * *", async () => { // every minute
+  cron.schedule("5 0 * * *", async () => { // every minute
 
    try {
     // await findExpiringDriverDocuments(io , 10);
       // await addKycToOldDriver();
-    //   await checkDriverDocumentExpirations()
+      await checkDriverDocumentExpirations()
     } catch (cronErr) {
       console.error("❌ driver auto logout Cron Crash Prevented:", cronErr);
     }
@@ -69,14 +70,16 @@ const documentLabel = (type) => {
 }
 
 // ✅ replace this with your real sendgrid function
-const sendDriverExpiryEmail = async ({ to, name, docName, expiryDateISO, daysBefore }) => {
+const sendDriverExpiryEmail = async ({ driverInfo, docName, expiryDateISO, docType , daysBefore }) => {
   // Example: integrate your existing SendGrid util
   // await sendGrid.send({ to, from, subject, html })
-  console.log(`[EMAIL] To=${to} | ${docName} expires on ${expiryDateISO} | ${daysBefore} days before`);
+  console.log(`[EMAIL] To=${driverInfo.email} | ${docName} expires on ${expiryDateISO} | ${daysBefore} days before`);
+  driverDocumentExpirationReminderEmail(driverInfo , expiryDateISO , docName , docType , daysBefore)
   return { provider: "SENDGRID", messageId: "" }; // optionally return msg id
 }
 
 const checkDriverDocumentExpirations = async () => {
+  
   try {
 
     console.log("checkDriverDocumentExpirations-----------------------")
@@ -86,16 +89,16 @@ const checkDriverDocumentExpirations = async () => {
     const excludedTypes = [CONSTANT.DRIVER_DOC_TYPE.PROFILE_PHOTO];
 
     for (const daysBefore of daysList) {
-      const { start, end } = getUtcDayRangeNDaysFromNow(daysBefore);
+      const { start, end } = await getUtcDayRangeNDaysFromNow(daysBefore);
 
       // ✅ Guard: prevents toISOString crash
       if (!start || !end) {
         console.log(`[CRON] Skipping invalid daysBefore:`, daysBefore , { start, end });
         continue;
       }
-      console.log(`[CRON] Expiry reminders (${daysBefore}d) window: ${safeIso(start)} - ${safeIso(end)}`);
+      console.log(`[CRON] Expiry reminders (${daysBefore}d) window:`, start , end);
 
-
+     
 
       // Find docs expiring on that target day AND not already reminded for that daysBefore+EMAIL
       const rows = await DRIVER_MODEL.aggregate([
@@ -144,7 +147,7 @@ const checkDriverDocumentExpirations = async () => {
         if (!r.email) continue;
 
         const name = `${r.first_name || ""} ${r.last_name || ""}`.trim() || "Driver";
-        const docName = documentLabel(r.docType);
+        const docName = r.docType;
 
         let provider = "";
         let messageId = "";
@@ -152,17 +155,19 @@ const checkDriverDocumentExpirations = async () => {
         let failReason = "";
 
         try {
+          
           const resp = await sendDriverExpiryEmail({
-            to: r.email,
-            name,
-            docName,
+            driverInfo: r,
+            docName: humanize(docName),
             expiryDateISO: new Date(r.expirationDate).toISOString().slice(0, 10),
+            docType: docName,
             daysBefore,
           });
 
           provider = resp?.provider || "SENDGRID";
           messageId = resp?.messageId || "";
         } catch (e) {
+          console.log("failing" , e?.message)
           status = "FAILED";
           failReason = e?.message || "Email send failed";
         }

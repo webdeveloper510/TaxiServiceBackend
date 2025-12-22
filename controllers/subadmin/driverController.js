@@ -626,6 +626,11 @@ exports.resubmitRejectedDocuments = async (req, res) => {
           reviewedBy: existingDoc.reviewedBy || null,
           rejectReasonKey: existingDoc.rejectReasonKey || "",
           rejectReasonText: existingDoc.rejectReasonText || "",
+          // ✅ keep audit of reminders already sent for that old version
+          // ✅ store old reminder history in audit
+          expiryReminders: existingDoc.expiryReminders || [],
+          lastExpiryReminderAt: existingDoc.lastExpiryReminderAt || null,
+          lastExpiryReminderDaysBefore: existingDoc.lastExpiryReminderDaysBefore || null,
         };
 
         await DRIVER.updateOne(
@@ -760,6 +765,11 @@ exports.updateDriverProfilePhotoDoc = async (req, res) => {
         reviewedBy: currentDoc.reviewedBy || null,
         rejectReasonKey: currentDoc.rejectReasonKey || "",
         rejectReasonText: currentDoc.rejectReasonText || "",
+
+        // ✅ store old reminder history in audit
+        expiryReminders: currentDoc.expiryReminders || [],
+        lastExpiryReminderAt: currentDoc.lastExpiryReminderAt || null,
+        lastExpiryReminderDaysBefore: currentDoc.lastExpiryReminderDaysBefore || null,
       };
 
        // 3) Update PROFILE_PHOTO to new file => PENDING + clear review fields

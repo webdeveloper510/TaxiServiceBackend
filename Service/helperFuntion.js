@@ -2021,6 +2021,58 @@ exports.driverDocumentRejectionEmail = async (driverInfo ,  docType = "" , reaso
     return emailSent
 }
 
+exports.driverDocumentExpirationReminderEmail = async (driverInfo , expiryDate = null ,  documentName = "" , docType = "" , daysLeft = 0 ) => {
+
+
+    let subject = `Important: Your Document expiring soon`;
+    const data = {
+      userName: `${driverInfo.first_name} ${driverInfo.last_name}`,
+      documentName: documentName,
+      expiryDate: expiryDate,
+      docType: docType,
+      daysLeft: daysLeft,
+      baseUrl: process.env.BASEURL,
+      supportEmail: process.env.SUPPORT_EMAIL
+    }
+    
+    const emailSent = await sendEmail(
+                                        driverInfo.email, // Receiver email
+                                        subject, // Subject
+                                        "driver-document-expiry-reminder", // Template name (without .ejs extension)
+                                        data,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
+                                      
+    return emailSent
+}
+
+exports.driverDocumentExpirationEmail = async (driverInfo , expiryDate = null ,  documentName = "" , docType = "") => {
+
+
+    let subject = `Important: your document has expired`;
+    const data = {
+      userName: `${driverInfo.first_name} ${driverInfo.last_name}`,
+      documentName: documentName,
+      expiryDate: expiryDate,
+      docType: docType,
+      baseUrl: process.env.BASEURL,
+      supportEmail: process.env.SUPPORT_EMAIL
+    }
+    
+    const emailSent = await sendEmail(
+                                        // driverInfo.email, // Receiver email
+                                        "vsingh@codenomad.net", // Receiver email
+                                        subject, // Subject
+                                        "driver-document-expired", // Template name (without .ejs extension)
+                                        data,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
+                                      
+    return emailSent
+}
+
 exports.companyHotelAccountCreationEmail = async (userInfo , password) => {
 
 

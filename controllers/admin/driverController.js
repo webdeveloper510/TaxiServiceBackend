@@ -1981,6 +1981,10 @@ exports.updateDriverDocumentStatus =  async (req, res) => {
       reviewedBy: currentDoc.reviewedBy || null,
       rejectReasonKey: currentDoc.rejectReasonKey || "",
       rejectReasonText: currentDoc.rejectReasonText || "",
+      // ✅ store old reminder history in audit
+      expiryReminders: currentDoc.expiryReminders || [],
+      lastExpiryReminderAt: currentDoc.lastExpiryReminderAt || null,
+      lastExpiryReminderDaysBefore: currentDoc.lastExpiryReminderDaysBefore || null,
     };
 
     const updateResult = await DRIVER.updateOne(

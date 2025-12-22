@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document Expiring Soon</title>
+</head>
+
+<body style="margin:0; padding:0; font-family: Arial, Helvetica, sans-serif; background:#f4f7fa; color:#444;">
+
+    <table align="center" cellpadding="0" cellspacing="0" width="600"
+        style="margin:30px auto; border-radius:10px; overflow:hidden; box-shadow:0px 2px 8px rgba(0,0,0,0.15); background:#ffffff;">
+        <tbody>
+
+            <!-- Header -->
+            <tr>
+                <td align="center" bgcolor="#f0ad4e"
+                    style="padding:20px; color:#ffffff; font-size:22px; font-weight:bold;">
+                    iDispatch Mobility – Document Expiring Soon
+                </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+                <td style="padding:30px; font-size:15px; line-height:1.6; color:#444;">
+
+                    <p style="margin:0 0 15px;">
+                        Hello <strong>
+                            <%= userName %>
+                        </strong>,
+                    </p>
+
+                    <p style="margin:0 0 15px;">
+                        This is a reminder that your document
+                        <strong>
+                            <%= documentName %>
+                        </strong>
+                        will expire in
+                        <strong>
+                            <%= daysLeft %> day<%= daysLeft> 1 ? 's' : '' %>
+                        </strong>.
+                    </p>
+
+                    <!-- Document Info Box -->
+                    <div
+                        style="margin:20px 0; padding:15px; background:#fff8e5; border:1px solid #ffe0a3; border-radius:6px;">
+
+                        <p style="margin:0 0 10px; font-weight:bold; color:#c27c0e;">
+                            Document Details
+                        </p>
+
+                        <p style="margin:0 0 6px;">
+                            <strong>Document Name:</strong>
+                            <span style="color:#333;">
+                                <%= documentName %>
+                            </span>
+                        </p>
+
+                        <p style="margin:0;">
+                            <strong>Expiration Date:</strong>
+                            <span style="color:#333;">
+                                <%= expiryDate %>
+                            </span>
+                        </p>
+
+                    </div>
+
+                    <p style="margin:0 0 15px;">
+                        To prevent any interruption to your account access or trip availability,
+                        please upload an updated and valid version of this document before it expires.
+                    </p>
+
+                    <!-- CTA Button -->
+                    <p style="text-align:center; margin:25px 0;">
+                        <a href="<%= baseUrl %>/login"
+                            style="background:#f0ad4e; color:#ffffff; padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">
+                            Upload Updated Document
+                        </a>
+                    </p>
+
+                    <p style="margin:0 0 15px;">
+                        If you have already submitted the updated document, you may safely ignore this email.
+                        For further assistance, please contact our support team.
+                    </p>
+
+                    <p style="margin:0;">
+                        Thank you for your cooperation.
+                    </p>
+
+                </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+                <td align="center" bgcolor="#f1f1f1" style="padding:15px; font-size:12px; color:#888;">
+                    &copy; <%= new Date().getFullYear() %> iDispatch Mobility. All rights reserved.
+                        <br />
+                        Need help? Contact us at
+                        <a href="mailto:<%= supportEmail %>" style="color:#f0ad4e; text-decoration:none;">
+                            <%= supportEmail %>
+                        </a>.
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
+</body>
+
+</html>

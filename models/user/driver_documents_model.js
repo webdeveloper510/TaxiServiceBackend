@@ -43,6 +43,13 @@ const documentVersionSchema = new Schema(
 
     rejectReasonKey: { type: String, default: "" },
     rejectReasonText: { type: String, default: "" },
+
+    // ✅ keep audit of reminders already sent for that old version
+    expiryReminders: { type: [expiryReminderSchema], default: [] },
+    lastExpiryReminderAt: { type: Date, default: null },
+    lastExpiryReminderDaysBefore: { type: Number, default: null },
+    emailSentOnExpiry: { type: Boolean, default: false },
+    expiredAt: { type: Date, default: null, }, // when system marked it as expired
   },
   { _id: false }
 );
@@ -84,6 +91,9 @@ const driverDocumentSchema = new Schema(
     expiryReminders: { type: [expiryReminderSchema], default: [] },
     lastExpiryReminderAt: { type: Date, default: null },
     lastExpiryReminderDaysBefore: { type: Number, default: null },
+
+    emailSentOnExpiry: { type: Boolean, default: false },
+    expiredAt: { type: Date, default: null, }, // when system marked it as expired
   },
   { _id: false }
 );
