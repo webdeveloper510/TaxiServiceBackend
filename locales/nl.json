@@ -1,4 +1,9 @@
 {
+  "common": {
+    "error": {
+      "somethingWentWrong": "Er is iets misgegaan. Probeer het later opnieuw."
+    }
+  },
   "auth": {
     "error": {
       "tokenError": "Uw sessie is verlopen of het token is ongeldig. Log alstublieft opnieuw in.",

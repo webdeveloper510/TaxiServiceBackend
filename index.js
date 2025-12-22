@@ -15,6 +15,7 @@ const { Server } = require("socket.io");
 const driver_model = require("./models/user/driver_model");
 const trip_model = require("./models/user/trip_model.js");
 const user_model = require("./models/user/user_model");
+const mongoSanitize = require("express-mongo-sanitize");
 const mongoose = require("mongoose");
 var app = express();
 app.use(cors());
@@ -46,8 +47,9 @@ startAllCrons(io);
 app.disable('x-powered-by')
 app.use(logger("dev"));
 app.use(i18n.init);
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: false , limit: "100kb" }));
+app.use(mongoSanitize({ replaceWith: "_" }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 // const io = new Server(httpServer, {
@@ -62,9 +64,15 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use((req, res, next) => {
   
   const lang = req.query.lang || req.headers['accept-language'];
-  if (lang) {
-    req.setLocale(lang);
-  }
+  const allowed = ["en", "nl"];
+
+   if (typeof lang === 'string' && allowed.includes(lang.split(",")[0].trim())) {
+    const parsedLang = lang.split(',')[0].trim().toLowerCase();
+    req.setLocale(parsedLang);
+   } else {
+      req.setLocale(lang);
+   }
+  
   req.io = io; // attach io to req for routes if you need it
   next();
 });

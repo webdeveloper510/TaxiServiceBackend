@@ -1,4 +1,9 @@
 {
+    "common": {
+        "error": {
+            "somethingWentWrong": "Something went wrong. Please try again later."
+        }
+    },
     "auth": {
         "error": {
             "tokenError": "Your session has expired or the token is invalid. Please log in again.",

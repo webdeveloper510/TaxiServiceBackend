@@ -18,6 +18,7 @@
     "dotenv": "^16.3.1",
     "ejs": "^3.1.10",
     "express": "~4.16.1",
+    "express-mongo-sanitize": "^2.2.0",
     "fcm-node": "^1.6.1",
     "firebase-admin": "^12.4.0",
     "geolib": "^3.3.4",

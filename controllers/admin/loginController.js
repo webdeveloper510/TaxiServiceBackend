@@ -107,6 +107,23 @@ exports.login = async (req, res) => {
     const webDeviceToken = data.webDeviceToken;
     const mobile = data?.platform == constants.PLATFORM.MOBILE;
     const locale = constants.INTERNATIONALIZATION_LANGUAGE.ENGLISH === req.query.lang ? constants.INTERNATIONALIZATION_LANGUAGE.ENGLISH : constants.INTERNATIONALIZATION_LANGUAGE.DUTCH;
+    
+    if ( !data || typeof data.email !== "string" || typeof data.password !== "string") {
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+
+    if (data.email.length > 255 || data.password.length > 128) {
+
+      return res.send({
+                        code: constant.error_code,
+                        d:"d",
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+    
     const normalizedEmail = data.email.trim().toLowerCase();
 
     let check_data;
