@@ -380,20 +380,22 @@ exports.updateAdminSettings = async (req, res) => {
 
     let data = req.body
     const settings = await SETTINGS.find()
-    
+      console.log("'key---------" , Object.values(constant.ADMIN_SETTINGS) , data)
     for (const key in data) {
-      
-        const matchedKey = Object.values(constant.ADMIN_SETTINGS).find(value => value === key);
-
+       
+        const matchedKey = Object.values(constant.ADMIN_SETTINGS).find(value => value === key.trim());
+        console.log("matchedKey------" , key , matchedKey)
         if (matchedKey) {
 
             let checkKeyExist = await SETTINGS.findOne({key: key});
-
+            // console.log("checkKeyExist-------", checkKeyExist )
             if (checkKeyExist) {
 
               // settings will be updated
               let updated_data = { value : data[key] };
               let option = { new: true };
+
+              // console.log("checkKeyExist-------", updated_data)
               await SETTINGS.findOneAndUpdate({key: key} , updated_data ,option);
               
               

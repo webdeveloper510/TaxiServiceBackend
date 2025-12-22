@@ -158,7 +158,7 @@ exports.successTripPay = async (req, res) => {
 
         const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
         
-        const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
+        const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISSION});
 
         const myPlans = await getUserActivePaidPlans(companyData);
         const superAdminCommission = (myPlans.length > 0 || companyData?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);

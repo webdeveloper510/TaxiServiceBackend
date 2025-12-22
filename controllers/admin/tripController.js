@@ -127,7 +127,7 @@ exports.add_trip = async (req, res) => {
         commission = (data.price * data.commission.commission_value) / 100;
       }
 
-      const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
+      const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISSION});
 
       // const myPlans = await getUserActivePaidPlans(req.user);
       
@@ -271,7 +271,7 @@ exports.access_add_trip = async (req, res) => {
           data.susbscriptionPlanId  = isCommisionPay?.subscriptionDetail?.planDetails?._id;
         }
 
-        const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISION});
+        const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISSION});
         
         data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0).toFixed(2);
         // data.superAdminPaymentAmount = (myPlans.length > 0 || getCompanyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);

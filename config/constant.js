@@ -48,7 +48,7 @@ module.exports={
     },
     ADMIN_SETTINGS_SEED: [
         { 
-            key: 'commision', 
+            key: 'commission', 
             value: '10' 
         },
         { 
@@ -135,7 +135,7 @@ module.exports={
         ON_ACCOUNT: 'On Account'
     },
     ADMIN_SETTINGS: {
-        COMMISION: 'commision',
+        COMMISSION: 'commission',
         PRE_NOTIFICATION_TIME: 'pre_notification_time', // The system will send a notification to the user a specified amount of time before the scheduled trip begins
     },
     SUBSCRIPTION_PAYMENT_STATUS: {
