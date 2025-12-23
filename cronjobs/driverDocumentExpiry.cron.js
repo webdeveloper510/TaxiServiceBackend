@@ -5,7 +5,7 @@ const { driverDocumentExpirationEmail } = require("../Service/helperFuntion");
 const { humanize } = require("../utils/fileUtils");
 
 exports.driverDocumentExpiry = (io) =>  {
-  cron.schedule("* * * * *", async () => { // every minute
+  cron.schedule("5 0 * * *", async () => { // every minute
 
    try {
     

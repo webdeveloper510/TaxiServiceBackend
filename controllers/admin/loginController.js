@@ -1250,6 +1250,13 @@ exports.verify_otp = async (req, res) => {
       });
     }
 
+    if (!email || typeof email !== "string") {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("sendOtp.error.invalidInput"),
+      });
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
 
     const account =
@@ -1259,7 +1266,8 @@ exports.verify_otp = async (req, res) => {
     if (!account) {
       return res.send({
         code: constant.error_code,
-        message: res.__('loginOtpVerify.error.invalidEmail'),
+        // message: res.__('loginOtpVerify.error.invalidEmail'),
+        message: res.__("sendOtp.error.invalidInput"),
       });
     }
 
@@ -1267,7 +1275,8 @@ exports.verify_otp = async (req, res) => {
     if (String(OTP) !== String(account.OTP)) {
       return res.send({
         code: constant.error_code,
-        message: res.__('loginOtpVerify.error.invalidOtp'),
+        // message: res.__('loginOtpVerify.error.invalidOtp'),
+        message: res.__("sendOtp.error.invalidInput")
       });
     }
 
@@ -1290,6 +1299,13 @@ exports.verify_otp = async (req, res) => {
 exports.forgot_password = async (req, res) => {
   try {
     let data = req.body;
+     if (!data.email || typeof data.email !== "string") {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("sendOtp.error.invalidInput"),
+      });
+    }
+    
     const normalizedEmail = data.email.trim().toLowerCase();
     let criteria = { email: normalizedEmail };
     let check_email = await USER.findOne(criteria);
