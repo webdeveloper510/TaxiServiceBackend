@@ -2571,7 +2571,8 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
                                 pay_option: 1,
                                 under_cancellation_review:1,
                                 navigation_mode: 1,
-
+                                child_seat_price:1,
+                                payment_method_price:1,
                                 customer_phone: { $ifNull: [{ $arrayElemAt: ["$userData.p_number", 0] }, "" ] },
                                 company_phone: { $ifNull: [{ $arrayElemAt: ["$companyData.phone", 0] }, "" ] },
                                 company_country_code: { $ifNull: [{ $arrayElemAt: ["$companyData.countryCode", 0] }, "" ] },
