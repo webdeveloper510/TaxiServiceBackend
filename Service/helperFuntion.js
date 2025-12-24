@@ -2478,53 +2478,65 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
                             { $limit: safeLimit },
 
                             // ---------------- LOOKUPS only for returned docs ----------------
-                            {
-                              $lookup: {
-                                from: "drivers",
-                                localField: "driver_name",
-                                foreignField: "_id",
-                                as: "driver",
-                              },
-                            },
+                            // ✅ driver lookup (only first_name, last_name)
+                            // {
+                            //   $lookup: {
+                            //     from: "drivers",
+                            //     let: { did: "$driver_name" },
+                            //     pipeline: [
+                            //       { $match: { $expr: { $eq: ["$_id", "$$did"] } } },
+                            //       { $project: { first_name: 1, last_name: 1 } },
+                            //     ],
+                            //     as: "driver",
+                            //   },
+                            // },
+                            // ✅ vehicle lookup (only number & model)
                             {
                               $lookup: {
                                 from: "vehicles",
-                                localField: "vehicle",
-                                foreignField: "_id",
+                                let: { vid: "$vehicle" },
+                                pipeline: [
+                                  { $match: { $expr: { $eq: ["$_id", "$$vid"] } } },
+                                  { $project: { vehicle_number: 1, vehicle_model: 1 } },
+                                ],
                                 as: "vehicle",
                               },
                             },
                             {
                               $lookup: {
                                 from: "agencies",
-                                localField: "hotel_id",
-                                foreignField: "user_id",
+                                let: { hid: "$hotel_id" },
+                                pipeline: [
+                                  { $match: { $expr: { $eq: ["$_id", "$$hid"] } } },
+                                  { $project: { company_name: 1 } },
+                                ],
                                 as: "hotelData",
                               },
                             },
+                            // ✅ userData lookup (agency row by agencies.user_id = created_by_company_id)
                             {
                               $lookup: {
                                 from: "agencies",
-                                localField: "created_by_company_id",
-                                foreignField: "user_id",
+                                let: { cid: "$created_by_company_id" },
+                                pipeline: [
+                                  { $match: { $expr: { $eq: ["$user_id", "$$cid"] } } },
+                                  { $project: { company_name: 1, p_number: 1, phone: 1 } },
+                                ],
                                 as: "userData",
                               },
                             },
+                            // ✅ companyData lookup (users by _id = created_by_company_id)
                             {
                               $lookup: {
                                 from: "users",
-                                localField: "created_by_company_id",
-                                foreignField: "_id",
+                                let: { cid: "$created_by_company_id" },
+                                pipeline: [
+                                  { $match: { $expr: { $eq: ["$_id", "$$cid"] } } },
+                                  { $project: { phone: 1, countryCode: 1 } },
+                                ],
                                 as: "companyData",
                               },
                             },
-                            {
-                              $unwind: {
-                                path: "$userData",
-                                preserveNullAndEmptyArrays: true,
-                              },
-                            },
-
                             // ---------------- PROJECT ----------------
                             {
                               $project: {
@@ -2537,42 +2549,43 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
                                 trip_status: 1,
                                 price: 1,
                                 car_type: 1,
-                                createdAt: 1,
+                                customerDetails: 1,
                                 comment: 1,
                                 commission: 1,
                                 pay_option: 1,
                                 under_cancellation_review:1,
                                 navigation_mode: 1,
 
-                                customer_phone: "$userData.p_number",
-                                company_phone: { $arrayElemAt: ["$companyData.phone", 0] },
-                                company_country_code: { $arrayElemAt: ["$companyData.countryCode", 0] },
+                                customer_phone: { $ifNull: [{ $arrayElemAt: ["$userData.p_number", 0] }, "" ] },
+                                company_phone: { $ifNull: [{ $arrayElemAt: ["$companyData.phone", 0] }, "" ] },
+                                company_country_code: { $ifNull: [{ $arrayElemAt: ["$companyData.countryCode", 0] }, "" ] },
 
-                                company_name: "$userData.company_name",
-                                user_company_name: "$userData.company_name",
-                                user_company_phone: "$userData.phone",
+                                company_name:  { $ifNull: [{ $arrayElemAt: ["$userData.company_name", 0] }, "" ] },
+                                user_company_name: { $ifNull: [{ $arrayElemAt: ["$userData.company_name", 0] }, "" ] },
+                                user_company_phone: { $ifNull: [{ $arrayElemAt: ["$userData.phone", 0] }, "" ] },
 
-                                hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
+                                hotel_name: { $ifNull: [{ $arrayElemAt: ["$hotelData.company_name", 0] }, "" ] },
 
-                                driver_name: {
-                                  $trim: {
-                                    input: {
-                                      $concat: [
-                                        { $ifNull: [{ $arrayElemAt: ["$driver.first_name", 0] }, ""] },
-                                        " ",
-                                        { $ifNull: [{ $arrayElemAt: ["$driver.last_name", 0] }, ""] },
-                                      ],
-                                    },
-                                  },
-                                },
+                                // driver_name: {
+                                //           $trim: {
+                                //             input: {
+                                //               $concat: [
+                                //                 { $ifNull: [{ $arrayElemAt: ["$driver.first_name", 0] }, "" ] },
+                                //                 " ",
+                                //                 { $ifNull: [{ $arrayElemAt: ["$driver.last_name", 0] }, "" ] },
+                                //               ],
+                                //             },
+                                //           },
+                                //         },
 
+                                // ✅ vehicle => normal string
                                 vehicle: {
                                   $trim: {
                                     input: {
                                       $concat: [
-                                        { $ifNull: [{ $arrayElemAt: ["$vehicle.vehicle_number", 0] }, ""] },
+                                        { $ifNull: [{ $arrayElemAt: ["$vehicle.vehicle_number", 0] }, "" ] },
                                         " ",
-                                        { $ifNull: [{ $arrayElemAt: ["$vehicle.vehicle_model", 0] }, ""] },
+                                        { $ifNull: [{ $arrayElemAt: ["$vehicle.vehicle_model", 0] }, "" ] },
                                       ],
                                     },
                                   },

@@ -315,4 +315,14 @@ const user = new Schema(
   { timestamps: true }
 );
 
+// unique
+user.index({ email: 1 }, { unique: true });
+user.index({ user_name: 1 }, { unique: true });
+
+// search indexes (prefix search)
+user.index({ phone: 1 });
+user.index({ first_name: 1 });
+user.index({ last_name: 1 });
+user.index({ role: 1, is_deleted: 1, is_blocked: 1, createdAt: -1 });
+
 module.exports = mongoose.model("user", user);
