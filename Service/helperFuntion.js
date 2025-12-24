@@ -2450,9 +2450,25 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
           statusRank: {
             $switch: {
               branches: [
+                // 1) ACTIVE
                 { case: { $eq: ["$trip_status", CONSTANT.TRIP_STATUS.ACTIVE] }, then: 0 },
+
+                // 2) REACHED
                 { case: { $eq: ["$trip_status", CONSTANT.TRIP_STATUS.REACHED] }, then: 1 },
-                { case: { $eq: ["$trip_status", CONSTANT.TRIP_STATUS.BOOKED] }, then: 2 },
+                
+                // 3) BOOKED + under_cancellation_review true
+                {
+                  case: {
+                    $and: [
+                      { $eq: ["$trip_status", CONSTANT.TRIP_STATUS.BOOKED] },
+                      { $eq: ["$under_cancellation_review", true] },
+                    ],
+                  },
+                  then: 2,
+                },
+
+                // 4) Normal BOOKED
+                { case: { $eq: ["$trip_status", CONSTANT.TRIP_STATUS.BOOKED] }, then: 3 },
               ],
               default: 99,
             },
