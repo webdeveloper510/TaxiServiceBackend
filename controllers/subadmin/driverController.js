@@ -1790,32 +1790,32 @@ exports.getDriverTrips = async (req, res) => {
     const limit = req.query.limit;
     const tripStatus =  (req.params.status || constant.TRIP_STATUS.BOOKED).toString().trim();
 
-    const data = await getDriverTripsRanked(driverId, tripStatus, { page, limit });
-    const activePlans = await getUserActivePaidPlans(req.user);
-
     let currentDate = new Date();
     let startOfCurrentWeek = new Date(currentDate);
     startOfCurrentWeek.setHours(0, 0, 0, 0);
     startOfCurrentWeek.setDate( startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay());
 
-    const totalUnpaidTrips = await TRIP.find({
-                                                driver_name: driverId,
-                                                trip_status: constant.TRIP_STATUS.COMPLETED,
-                                                is_paid: false,
-                                                drop_time: {
-                                                  $lte: startOfCurrentWeek,
-                                                },
-                                              })
-                                          .countDocuments();
+    const [tripData, activePlans, totalUnpaidTrips] = await Promise.all([
+      getDriverTripsRanked(driverId, tripStatus, { page, limit }),
+
+      getUserActivePaidPlans(req.user),
+
+      TRIP.countDocuments({
+        driver_name: driverId,
+        trip_status: constant.TRIP_STATUS.COMPLETED,
+        is_paid: false,
+        drop_time: { $lte: startOfCurrentWeek },
+      }),
+    ]);
     return res.send({
                       code: constant.success_code,
                       message: res.__("getTrip.success.tripDataRetrieved"),
                       activePlans: activePlans.length > 0 ? true  : false,
-                      totalCount: data.totalCount,
-                      page: data.page,
-                      limit: data.limit,
                       totalUnpaidTrips:totalUnpaidTrips,
-                      result: data.trips,
+                      totalCount: tripData.totalCount,
+                      page: tripData.page,
+                      limit: tripData.limit,
+                      result: tripData.trips,
                       
                     });
 

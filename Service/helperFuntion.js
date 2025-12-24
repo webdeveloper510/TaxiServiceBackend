@@ -2440,7 +2440,8 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
                     trip_status: isBookedTab
                       ? { $in: [CONSTANT.TRIP_STATUS.ACTIVE, CONSTANT.TRIP_STATUS.REACHED, CONSTANT.TRIP_STATUS.BOOKED] }
                       : status,
-                    is_paid: isBookedTab ? CONSTANT.DRIVER_TRIP_PAYMENT.UNPAID : CONSTANT.DRIVER_TRIP_PAYMENT.PAID
+                    ...(!isBookedTab ? {is_paid: CONSTANT.DRIVER_TRIP_PAYMENT.UNPAID} : {})
+                    
                   };
 
     // ✅ Rank order only for BOOKED tab
@@ -2461,6 +2462,7 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
       }
     : { $addFields: { statusRank: 0 } };
 
+    console.log("match------" , match , addRankStage)
     const pipeline = [
                       { $match: match },
                       addRankStage,

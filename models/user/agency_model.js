@@ -83,4 +83,6 @@ const agency = new Schema({
 
 }, { timestamps: true })
 
+agency.index({ user_id: 1 });
+agency.index({ user_id: 1, company_name: 1 });
 module.exports = mongoose.model('agency', agency)
