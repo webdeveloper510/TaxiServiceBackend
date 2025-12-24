@@ -2441,7 +2441,6 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
                       ? { $in: [CONSTANT.TRIP_STATUS.ACTIVE, CONSTANT.TRIP_STATUS.REACHED, CONSTANT.TRIP_STATUS.BOOKED] }
                       : status,
                     ...(!isBookedTab ? {is_paid: CONSTANT.DRIVER_TRIP_PAYMENT.UNPAID} : {})
-                    
                   };
 
     // ✅ Rank order only for BOOKED tab
@@ -2542,6 +2541,7 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
                                 comment: 1,
                                 commission: 1,
                                 pay_option: 1,
+                                under_cancellation_review:1,
                                 navigation_mode: 1,
 
                                 customer_phone: "$userData.p_number",

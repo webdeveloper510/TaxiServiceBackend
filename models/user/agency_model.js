@@ -3,7 +3,9 @@ const Schema = mongoose.Schema
 
 const agency = new Schema({
     user_id: {
-        type: mongoose.Schema.Types.ObjectId, ref: 'users',
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'users',
+        required: true
     },
     land: {
         type: String,
