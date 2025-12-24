@@ -2477,7 +2477,6 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
       }
     : { $addFields: { statusRank: 0 } };
 
-    console.log("match------" , match , addRankStage)
     const pipeline = [
                       { $match: match },
                       addRankStage,
@@ -2523,7 +2522,7 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
                                 from: "agencies",
                                 let: { hid: "$hotel_id" },
                                 pipeline: [
-                                  { $match: { $expr: { $eq: ["$_id", "$$hid"] } } },
+                                  { $match: { $expr: { $eq: ["$user_id", "$$hid"] } } },
                                   { $project: { company_name: 1 } },
                                 ],
                                 as: "hotelData",
@@ -2579,7 +2578,7 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
 
                                 company_name:  { $ifNull: [{ $arrayElemAt: ["$userData.company_name", 0] }, "" ] },
                                 user_company_name: { $ifNull: [{ $arrayElemAt: ["$userData.company_name", 0] }, "" ] },
-                                user_company_phone: { $ifNull: [{ $arrayElemAt: ["$userData.phone", 0] }, "" ] },
+                                // user_company_phone: { $ifNull: [{ $arrayElemAt: ["$userData.phone", 0] }, "" ] },
 
                                 hotel_name: { $ifNull: [{ $arrayElemAt: ["$hotelData.company_name", 0] }, "" ] },
 
