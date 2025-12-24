@@ -12,7 +12,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
-const { getUserActivePaidPlans } = require("../../Service/helperFuntion");
+const { getUserActivePaidPlans , getDriverTripsRanked } = require("../../Service/helperFuntion");
 const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry , humanize} = require("../../utils/fileUtils");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -1780,6 +1780,54 @@ exports.getAllTripsForDrivers = async (req, res) => {
     });
   }
 };
+
+exports.getDriverTrips = async (req, res) => {
+  try{
+
+    let driverId = new mongoose.Types.ObjectId(req.userId);
+
+    const page = req.query.page;
+    const limit = req.query.limit;
+    const tripStatus =  (req.params.status || constant.TRIP_STATUS.BOOKED).toString().trim();
+
+    const data = await getDriverTripsRanked(driverId, tripStatus, { page, limit });
+    const activePlans = await getUserActivePaidPlans(req.user);
+
+    let currentDate = new Date();
+    let startOfCurrentWeek = new Date(currentDate);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    startOfCurrentWeek.setDate( startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay());
+
+    const totalUnpaidTrips = await TRIP.find({
+                                                driver_name: driverId,
+                                                trip_status: constant.TRIP_STATUS.COMPLETED,
+                                                is_paid: false,
+                                                drop_time: {
+                                                  $lte: startOfCurrentWeek,
+                                                },
+                                              })
+                                          .countDocuments();
+    return res.send({
+                      code: constant.success_code,
+                      message: res.__("getTrip.success.tripDataRetrieved"),
+                      activePlans: activePlans.length > 0 ? true  : false,
+                      totalCount: data.totalCount,
+                      page: data.page,
+                      limit: data.limit,
+                      totalUnpaidTrips:totalUnpaidTrips,
+                      result: data.trips,
+                      
+                    });
+
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error getDriverTrips driver controller:', err.message);
+    res.send({
+      code: constant.error_code,
+      message: res.__("common.error.somethingWentWrong"),
+    });
+  }
+}
 
 exports.getTripsCountForDrivers = async (req, res) => {
 

@@ -2414,6 +2414,199 @@ exports.getUserActivePaidPlans = async (userInfo) => {
   return await SUBSCRIPTION_MODEL.find(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
 }
 
+exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
+
+  try {
+
+    const {
+      page = 1,
+      limit = 10,
+      sortDate = { pickup_date_time: -1 },
+    } = options;
+
+    const safePage = Math.max(parseInt(page, 10) || 1, 1);
+    const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 50);
+    const skip = (safePage - 1) * safeLimit;
+
+    const status = (tripStatus || CONSTANT.TRIP_STATUS.BOOKED).toString().trim();
+    const driverObjectId = new mongoose.Types.ObjectId(driverId);
+    // ✅ If driver requests BOOKED tab -> include ACTIVE+REACHED also, but rank them first
+    const isBookedTab = status === CONSTANT.TRIP_STATUS.BOOKED;
+
+    const match = {
+                    status: true,
+                    is_deleted: false,
+                    driver_name: driverObjectId,
+                    trip_status: isBookedTab
+                      ? { $in: [CONSTANT.TRIP_STATUS.ACTIVE, CONSTANT.TRIP_STATUS.REACHED, CONSTANT.TRIP_STATUS.BOOKED] }
+                      : status,
+                    is_paid: isBookedTab ? CONSTANT.DRIVER_TRIP_PAYMENT.UNPAID : CONSTANT.DRIVER_TRIP_PAYMENT.PAID
+                  };
+
+    // ✅ Rank order only for BOOKED tab
+  const addRankStage = isBookedTab
+    ? {
+        $addFields: {
+          statusRank: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$trip_status", CONSTANT.TRIP_STATUS.ACTIVE] }, then: 0 },
+                { case: { $eq: ["$trip_status", CONSTANT.TRIP_STATUS.REACHED] }, then: 1 },
+                { case: { $eq: ["$trip_status", CONSTANT.TRIP_STATUS.BOOKED] }, then: 2 },
+              ],
+              default: 99,
+            },
+          },
+        },
+      }
+    : { $addFields: { statusRank: 0 } };
+
+    const pipeline = [
+                      { $match: match },
+                      addRankStage,
+
+                      // ✅ One combined sorted stream
+                      { $sort: { statusRank: 1, ...sortDate } },
+
+                      // ✅ Facet: count + paginated data
+                      {
+                        $facet: {
+                          meta: [{ $count: "totalCount" }],
+                          data: [
+                            { $skip: skip },
+                            { $limit: safeLimit },
+
+                            // ---------------- LOOKUPS only for returned docs ----------------
+                            {
+                              $lookup: {
+                                from: "drivers",
+                                localField: "driver_name",
+                                foreignField: "_id",
+                                as: "driver",
+                              },
+                            },
+                            {
+                              $lookup: {
+                                from: "vehicles",
+                                localField: "vehicle",
+                                foreignField: "_id",
+                                as: "vehicle",
+                              },
+                            },
+                            {
+                              $lookup: {
+                                from: "agencies",
+                                localField: "hotel_id",
+                                foreignField: "user_id",
+                                as: "hotelData",
+                              },
+                            },
+                            {
+                              $lookup: {
+                                from: "agencies",
+                                localField: "created_by_company_id",
+                                foreignField: "user_id",
+                                as: "userData",
+                              },
+                            },
+                            {
+                              $lookup: {
+                                from: "users",
+                                localField: "created_by_company_id",
+                                foreignField: "_id",
+                                as: "companyData",
+                              },
+                            },
+                            {
+                              $unwind: {
+                                path: "$userData",
+                                preserveNullAndEmptyArrays: true,
+                              },
+                            },
+
+                            // ---------------- PROJECT ----------------
+                            {
+                              $project: {
+                                _id: 1,
+                                trip_from: 1,
+                                trip_to: 1,
+                                is_paid: 1,
+                                passengerCount: 1,
+                                pickup_date_time: 1,
+                                trip_status: 1,
+                                price: 1,
+                                car_type: 1,
+                                createdAt: 1,
+                                comment: 1,
+                                commission: 1,
+                                pay_option: 1,
+                                navigation_mode: 1,
+
+                                customer_phone: "$userData.p_number",
+                                company_phone: { $arrayElemAt: ["$companyData.phone", 0] },
+                                company_country_code: { $arrayElemAt: ["$companyData.countryCode", 0] },
+
+                                company_name: "$userData.company_name",
+                                user_company_name: "$userData.company_name",
+                                user_company_phone: "$userData.phone",
+
+                                hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
+
+                                driver_name: {
+                                  $trim: {
+                                    input: {
+                                      $concat: [
+                                        { $ifNull: [{ $arrayElemAt: ["$driver.first_name", 0] }, ""] },
+                                        " ",
+                                        { $ifNull: [{ $arrayElemAt: ["$driver.last_name", 0] }, ""] },
+                                      ],
+                                    },
+                                  },
+                                },
+
+                                vehicle: {
+                                  $trim: {
+                                    input: {
+                                      $concat: [
+                                        { $ifNull: [{ $arrayElemAt: ["$vehicle.vehicle_number", 0] }, ""] },
+                                        " ",
+                                        { $ifNull: [{ $arrayElemAt: ["$vehicle.vehicle_model", 0] }, ""] },
+                                      ],
+                                    },
+                                  },
+                                },
+
+                                trip_id: 1,
+                              },
+                            },
+                          ],
+                        },
+                      },
+
+                      // ✅ flatten meta
+                      {
+                        $addFields: {
+                          totalCount: { $ifNull: [{ $arrayElemAt: ["$meta.totalCount", 0] }, 0] },
+                        },
+                      },
+                      { $project: { meta: 0 } },
+                    ];
+
+    const result = await TRIP_MODEL.aggregate(pipeline).allowDiskUse(true);
+    return  {
+              totalCount: result?.[0]?.totalCount || 0,
+              trips: result?.[0]?.data || [],
+              page: safePage,
+              limit: safeLimit,
+            };
+
+  } catch (err) {
+  
+      console.log('❌❌❌❌❌❌❌❌❌Error getDriverTrips helper fucntion:', err.message);
+      
+    }
+}
+
 exports.getCompanyActivePaidPlans = async (companyId) => {
 
   // Get the plan if plan end date will not expire base don current date and it is paid. it is doesn't matter if client cancel that subscription 

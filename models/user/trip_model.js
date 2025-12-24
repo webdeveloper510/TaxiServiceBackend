@@ -470,6 +470,35 @@ const trip = new Schema({
 
 },{timestamps:true})
 
+/**
+ * =========================
+ * ✅ PRODUCTION INDEXES
+ * =========================
+ * Keep indexes minimal + high impact.
+ * Order matters (MongoDB uses left-to-right).
+ */
+
+// 1) Main driver trips (current/booked/reached/active + sorting)
+trip.index({
+  driver_name: 1,
+  trip_status: 1,
+  is_deleted: 1,
+  status: 1,
+  pickup_date_time: -1,
+});
+
+// 2) Unpaid completed / payment-related queries (only if you query these often)
+trip.index({
+  driver_name: 1,
+  trip_status: 1,
+  is_paid: 1,
+  pickup_date_time: -1,
+});
+
+// 3) Company/hotel list views (optional but common in dispatch dashboards)
+trip.index({ created_by_company_id: 1, pickup_date_time: -1 });
+trip.index({ hotel_id: 1, pickup_date_time: -1 });
+
 // AUTO GENERATE UNIQUE 8-CHAR CODE
 trip.pre("save", async function (next) {
     if (this.unique_trip_code) return next();

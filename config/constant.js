@@ -17,6 +17,10 @@ module.exports={
     CUSTOMER_CANCEL_TIMING_TRIP: 120, //  2 minutes will be applied if no value find in company settings 
     CUSTOMER_PRE_TRIP_NOTIFICATION_TIME: 10, // cutsomer will get notification 10 minutes before the trip start time
     DRIVER_DOCUMENT_EXPIRY_REMINDER_DAYS_LIST: [30, 15, 5], // we will send warning to expiration of document before soem day like 30 days , 15 days and 5 days 
+    DRIVER_TRIP_PAYMENT: {
+        PAID: true,
+        UNPAID: false
+    },
     DRIVER_DOC_TYPE : {
             PROFILE_PHOTO: "PROFILE_PHOTO",
             KVK_KIWA: "KVK_KIWA", // Kiwa / Business registration

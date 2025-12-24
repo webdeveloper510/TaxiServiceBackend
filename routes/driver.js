@@ -31,6 +31,7 @@ router.put('/reset_password',[verifyToken],driverController.reset_password)
 router.get('/get_trips_for_driver/:status',[verifyToken],driverController.get_trips_for_driver)
 router.get('/get_trips_for_drivers/:status',[verifyToken],driverController.get_trips_for_drivers)
 router.get('/get_all_trips_for_drivers/:status',[verifyToken],driverController.getAllTripsForDrivers)
+router.get('/trips/current/:status',[verifyToken],driverController.getDriverTrips)
 router.get('/get_trips_count_for_drivers/:status',[verifyToken],driverController.getTripsCountForDrivers)
 router.get('/get_under_cancelled_trips_count_for_drivers',[verifyToken],driverController.getUnderTripCancelledTripsCountForDrivers)
 
