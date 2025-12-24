@@ -238,6 +238,7 @@
       "commissionValidationError": "Het commissieb bedrag mag niet hoger zijn dan de totale ritprijs.",
       "cantAllocateNoShowReason": "De rit kan niet worden toegewezen omdat deze is geannuleerd toen de klant niet aanwezig was.",
       "cantAllocateCanceledReason": "De rit kan niet worden toegewezen omdat deze is geannuleerd.",
+      "activeTripExists": "U heeft al een lopende rit. Rond de huidige rit af voordat u een nieuwe start.",
       "cantAllocateApprovedReason": "De rit kan niet worden toegewezen omdat er al een verzoek is verzonden. Wacht alstublieft tot de chauffeur op het vorige verzoek heeft gereageerd. Als de chauffeur niet accepteert, kunt u een nieuw verzoek indienen."
     },
     "socket": {

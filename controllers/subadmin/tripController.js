@@ -569,11 +569,29 @@ exports.edit_trip = async (req, res) => {
       data.trip_cancelled_by_ref = req.companyPartnerAccess ? 'driver' : 'user';
       data.cancelled_at = new Date();
     }
+
+    if (data?.trip_status === constant.TRIP_STATUS.REACHED) {
+
+      
+      let isAlreadyTripRunning = await TRIP.exists({ 
+                                                      driver_name: trip_data?.driver_name , 
+                                                      under_cancellation_review: false , 
+                                                      trip_status: {$in: [ constant.TRIP_STATUS.REACHED ,  constant.TRIP_STATUS.ACTIVE]},
+                                                      _id: { $ne : trip_data._id}
+                                                    });
+
+      if (isAlreadyTripRunning) {
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('editTrip.error.activeTripExists'),
+                        });
+      }
+    }
     
    
     let update_trip = await TRIP.findOneAndUpdate(criteria, data, option);
     if (!update_trip) {
-      res.send({
+      return res.send({
         code: constant.error_code,
         message: res.__('editTrip.error.unableToUpdateTrip'),
       });

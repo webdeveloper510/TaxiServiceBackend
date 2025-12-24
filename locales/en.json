@@ -238,6 +238,7 @@
             "commissionValidationError": "The commission amount cannot exceed the total trip price.",
             "cantAllocateNoShowReason": "Trip can't be allocated because the trip was cancelled when the customer was unavailable.",
             "cantAllocateCanceledReason": "The trip can't be allocated as it has been cancelled",
+            "activeTripExists": "You already have an ongoing trip. Please complete the current trip before starting a new one.",
             "cantAllocateApprovedReason": "The trip can't be allocated as a request has already been sent. Please wait until the driver responds to the previous request. If the driver does not accept, you will be able to send a new request"
         },
         "socket": {
