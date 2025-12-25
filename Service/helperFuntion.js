@@ -2061,8 +2061,8 @@ exports.driverDocumentExpirationEmail = async (driverInfo , expiryDate = null , 
     }
     
     const emailSent = await sendEmail(
-                                        // driverInfo.email, // Receiver email
-                                        "vsingh@codenomad.net", // Receiver email
+                                        driverInfo.email, // Receiver email
+                                        // "vsingh@codenomad.net", // Receiver email
                                         subject, // Subject
                                         "driver-document-expired", // Template name (without .ejs extension)
                                         data,
