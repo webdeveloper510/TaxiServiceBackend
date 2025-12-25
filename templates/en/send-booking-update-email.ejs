@@ -79,12 +79,14 @@
 
         .footer {
             margin-top: 25px;
-            text-align: left;        /* LEFT ALIGN */
+            text-align: left;
+            /* LEFT ALIGN */
             font-size: 14px;
             color: #000000;
             padding: 20px;
             line-height: 1.55;
         }
+
         .footer a {
             color: #000000;
             text-decoration: underline;
@@ -217,24 +219,29 @@
                                                     <% } %>
             </table>
 
-            <a href="<%= trackUrl %>" class="button">Track My Ride</a>
+            <!-- <a href="<%= trackUrl %>" class="button">Track My Ride</a> -->
         </div>
 
         <!-- Footer -->
         <div class="footer">
-            <strong><%= companyName %></strong><br>
-             <%= companyStreet  %>
-            <br>
-            <%= companyPostcode %>  <%= companyCity  %><br>
-             <%= companyCountry  %> 
-            <br><br>
+            <strong>
+                <%= companyName %>
+            </strong><br>
+            <%= companyStreet %>
+                <br>
+                <%= companyPostcode %>
+                    <%= companyCity %><br>
+                        <%= companyCountry %>
+                            <br><br>
 
-            KVK:  <%= companyKvK  || "-" %> <br> 
-            VAT:  <%= companyVat  || "-" %> <br>
-            Website: <a href="<%= companyWebsite %>"><%= companyWebsite %></a><br><br>
+                            KVK: <%= companyKvK || "-" %> <br>
+                                VAT: <%= companyVat || "-" %> <br>
+                                    Website: <a href="<%= companyWebsite %>">
+                                        <%= companyWebsite %>
+                                    </a><br><br>
 
-            Phone: <%= companyPhone %><br>
-            Email: <%= companyEmail %>
+                                    Phone: <%= companyPhone %><br>
+                                        Email: <%= companyEmail %>
         </div>
     </div>
 </body>
