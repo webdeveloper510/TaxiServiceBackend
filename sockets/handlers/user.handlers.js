@@ -204,25 +204,53 @@ function registerUserHandlers(io, socket) {
 
     })
 
-    socket.on("driver::trip::update:unsubscribe", async ({ id , driverId , tripId} , ack) => {
+    socket.on("driver::trip::update:unsubscribe", async ({ id, driverId, tripId, lang = process.env.DEFAULT_LANGUAGE || "en" } = {}, ack = () => {}) => {
         try {
+
+            // 🔐 Validation
+            if (!tripId || !driverId) {
+                return ack({
+                    code: CONSTANT.error_code,
+                    message:  i18n.__({ phrase: "map.error.invalidUnsubscribeData", locale: lang })
+                });
+            }
 
             const key = `driver:trip:update:${tripId}`;
             // await redis.del(key);
             socket.leave(key);
             console.log(`🏢 trip Driver  ${driverId} update unsubscribed`);
+
+            return ack({
+                            code: CONSTANT.success_code,
+                            message: i18n.__({ phrase: "map.succes.driverTripUnsubscribed", locale: lang })
+                        });
         } catch (error) {
-            console.error("❌ Error in company:subscribe:", error.message);
+            console.error("❌ Error in trip : unsubscribe:", error.message);
+            return ack({
+                        code: CONSTANT.error_code,
+                        message: i18n.__({ phrase: "map.error.invalidHeartbeatData", locale: lang })
+                    });
         }
     })     
 
-    socket.on("company::app:subscribe", async ({ companyId, bounds } , ack) => {
+    socket.on("company::app:subscribe", async ({ companyId, bounds , lang = process.env.DEFAULT_LANGUAGE || CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH} = {} , ack = () => {})  => {
         
         try {
-
+            
+            if (!companyId || !bounds) {
+                return ack({
+                code: CONSTANT.error_code,
+                message: i18n.__({ phrase: "map.error.invalidSubscriptionData", locale: lang }),
+                });
+            }
+            
             const key = `bounds:app:${companyId}`;
-            await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
-            await redis.sadd("bounds:index:app:company", key);
+            const ttlSeconds = 300;
+
+            await Promise.all([
+                                redis.set(key, JSON.stringify(bounds), "EX", ttlSeconds), // 60 * 5 minutes = 300 seconds
+                                redis.sadd("bounds:index:app:company", key),
+                            ]);
             socket.join(key);
 
             // console.log(`🏢 Company ${companyId} subscribed`, bounds);
@@ -230,24 +258,40 @@ function registerUserHandlers(io, socket) {
             const driverList = await getDriversInBounds(bounds , companyId , socket)
             return ack({
                         code: CONSTANT.success_code,
-                        message: 'compnay subscribed successfully',
+                        message: i18n.__({ phrase: "map.succes.companySubscribed", locale: lang }),
                         driverList: driverList ? driverList : []
                     })
            
            
         } catch (error) {
             console.error("❌ Error in company:subscribe:", error.message);
+            return  ack({
+                        code: CONSTANT.error_code,
+                        message: i18n.__({ phrase: "map.error.companySubscribeFailed", locale: lang }),
+                    });
         }
 
     })
 
-    socket.on("company::web:subscribe", async ({ companyId, bounds } , ack) => {
+    socket.on("company::web:subscribe", async ({ companyId, bounds , lang = process.env.DEFAULT_LANGUAGE || CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH } = {} , ack = () => {}) => {
         
         try {
 
+            if (!companyId || !bounds) {
+                return ack({
+                code: CONSTANT.error_code,
+                message: i18n.__({ phrase: "map.error.invalidSubscriptionData", locale: lang }),
+                });
+            }
+
             const key = `bounds:web:${companyId}`;
-            await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
-            await redis.sadd("bounds:index:web:company", key);
+            const ttlSeconds = 300;
+            
+            await Promise.all([
+                                redis.set(key, JSON.stringify(bounds), "EX", ttlSeconds), // 60 * 5 minutes = 300 seconds
+                                redis.sadd("bounds:index:web:company", key),
+                            ]);
+
             socket.join(key);
 
             console.log('company::web:subscribe -----------key and room id ------------' , key)
@@ -256,72 +300,189 @@ function registerUserHandlers(io, socket) {
             const driverList = await getDriversInBounds(bounds , companyId , socket)
             return ack({
                         code: CONSTANT.success_code,
-                        message: 'compnay subscribed successfully',
+                        message: i18n.__({ phrase: "map.succes.companySubscribed", locale: lang }),
                         driverList: driverList ? driverList : []
                     })
            
            
         } catch (error) {
             console.error("❌ Error in company:web:subscribe:", error.message);
+
+            return  ack({
+                        code: CONSTANT.error_code,
+                        message: i18n.__({ phrase: "map.error.companySubscribeFailed", locale: lang }),
+                    });
         }
 
     })
 
-    socket.on("company::app:heartbeat", async ({ companyId }) => {
+    socket.on("company::app:heartbeat", async ({ companyId , lang = process.env.DEFAULT_LANGUAGE || CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH }  = {} , ack = () => {}) => {
         try {
-            const key = `bounds:app:${companyId}`;
-            const exists = await redis.exists(key);
+            
 
-            if (exists) {
-            // Refresh TTL to 5 minutes again
-            await redis.expire(key, 300);
-            console.log(`💓 Heartbeat received for compnay, TTL refreshed for ${key}`);
-            } else {
-            console.log(`⚠️ Heartbeat received for company but no active subscription for ${key}`);
+            if (!companyId) {
+                return ack({
+                    code: CONSTANT.error_code,
+                    message: i18n.__({ phrase: "map.error.invalidHeartbeatData", locale: lang })
+                });
             }
+            // const exists = await redis.exists(key);
+            const key = `bounds:app:${companyId}`;
+            const TTL_SECONDS = 300;
+
+            try {
+
+                const refreshed  = await redis.expire(key, TTL_SECONDS);
+                if (refreshed ) {
+                    // Refresh TTL to 5 minutes again
+                    await redis.expire(key, TTL_SECONDS);
+                    console.log(`💓 Heartbeat received for compnay, TTL refreshed for ${key}`);
+                    return ack({
+                                    code: CONSTANT.success_code,
+                                    message: i18n.__({ phrase: "map.succes.heartbeatReceived", locale: lang })
+                                });
+                }
+
+                console.log(`⚠️ Heartbeat received for company but no active subscription for ${key}`);
+                return ack({
+                            code: CONSTANT.error_code,
+                            message:  i18n.__({ phrase: "map.error.noActiveSubscription", locale: lang })
+                        });
+
+            } catch (error) {
+                console.error( "❌ Error in company::app:heartbeat:", error?.message || error );
+
+                return ack({
+                            code: CONSTANT.error_code,
+                            message:  i18n.__({ phrase: "map.error.heartbeatFailed", locale: lang })
+                        });
+            }
+            
         } catch (error) {
             console.error("❌ Error in company:app:heartbeat:", error.message);
+            return ack({
+                            code: CONSTANT.error_code,
+                            message:  i18n.__({ phrase: "map.error.heartbeatFailed", locale: lang })
+                        });
         }
     });
 
-    socket.on("company::web:heartbeat", async ({ companyId }) => {
+    socket.on("company::web:heartbeat", async ({ companyId , lang = process.env.DEFAULT_LANGUAGE || CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH }  = {} , ack = () => {}) => {
         try {
-            const key = `bounds:web:${companyId}`;
-            const exists = await redis.exists(key);
 
-            if (exists) {
-            // Refresh TTL to 5 minutes again
-            await redis.expire(key, 300);
-            console.log(`💓 Heartbeat received for compnay web, TTL refreshed for ${key}`);
-            } else {
-            console.log(`⚠️ Heartbeat received for company web but no active subscription for ${key}`);
+            if (!companyId) {
+                return ack({
+                    code: CONSTANT.error_code,
+                    message: i18n.__({ phrase: "map.error.invalidHeartbeatData", locale: lang })
+                });
             }
+            const key = `bounds:web:${companyId}`;
+            const TTL_SECONDS = 300;
+
+            try {
+
+                const refreshed  = await redis.expire(key, TTL_SECONDS);
+                if (refreshed ) {
+                    // Refresh TTL to 5 minutes again
+                    await redis.expire(key, TTL_SECONDS);
+                    console.log(`💓 Heartbeat received for company, TTL refreshed for ${key}`);
+                    return ack({
+                                    code: CONSTANT.success_code,
+                                    message: i18n.__({ phrase: "map.succes.heartbeatReceived", locale: lang })
+                                });
+                }
+
+                console.log(`⚠️ Heartbeat received for company but no active subscription for ${key}`);
+                return ack({
+                            code: CONSTANT.error_code,
+                            message:  i18n.__({ phrase: "map.error.noActiveSubscription", locale: lang })
+                        });
+                        
+            } catch (error) {
+                console.error( "❌ Error in company::app:heartbeat:", error?.message || error );
+
+                return ack({
+                            code: CONSTANT.error_code,
+                            message:  i18n.__({ phrase: "map.error.heartbeatFailed", locale: lang })
+                        });
+            }
+            
         } catch (error) {
             console.error("❌ Error in company:web:heartbeat:", error.message);
         }
     });
 
-    socket.on("company::app:unsubscribe", async ({ companyId }) => {
+    socket.on("company::app:unsubscribe", async ({ companyId, lang = process.env.DEFAULT_LANGUAGE || "en" } = {}, ack = () => {}) => {
         try {
             
+            if (!companyId) {
+                return ack({
+                    code: CONSTANT.error_code,
+                    message: i18n.__({ phrase: "map.error.invalidSubscriptionData", locale: lang })
+                });
+            }
+
             const key = `bounds:app:${companyId}`;
-            await redis.del(key);
-            await redis.srem("bounds:index:app:company", key);
-            socket.leave(key);
-            console.log(`🏢 Company ${companyId} unsubscribed`);
+
+            try {
+
+                await Promise.all([
+                                    redis.del(key),
+                                    redis.srem("bounds:index:app:company", key)
+                                ]);
+
+                socket.leave(key);
+
+                console.info(`🏢 Company ${companyId} unsubscribed from app`);
+
+                return ack({
+                                code: CONSTANT.success_code,
+                                message: i18n.__({ phrase: "map.succes.companyUnsubscribed", locale: lang })
+                            });
+
+            } catch (error) {
+                console.error( "❌ Error in company::app:unsubscribe:", error?.message || error);
+
+                return ack({
+                    code: CONSTANT.error_code,
+                    message: i18n.__({ phrase: "map.error.companyUnsubscribeFailed", locale: lang })
+                });
+            }
+
+            
         } catch (error) {
-            console.error("❌ Error in company:web:subscribe:", error.message);
+            console.error("❌ Error in company:web:subscribe:", error?.message || error);
+
+            return ack({
+                            code: CONSTANT.error_code,
+                            message: i18n.__({ phrase: "map.error.companyUnsubscribeFailed", locale: lang })
+                        });
         }
     });
 
-    socket.on("company::web:unsubscribe", async ({ companyId }) => {
+    socket.on("company::web:unsubscribe", async ({ companyId, lang = process.env.DEFAULT_LANGUAGE || "en" } = {}, ack = () => {}) => {
         try {
             
+            if (!companyId) {
+                return ack({
+                    code: CONSTANT.error_code,
+                    message: i18n.__({ phrase: "map.error.invalidSubscriptionData", locale: lang })
+                });
+            }
+
             const key = `bounds:web:${companyId}`;
-            await redis.del(key);
-            await redis.srem("bounds:index:web:company", key);
+            await Promise.all([
+                                    redis.del(key),
+                                    await redis.srem("bounds:index:web:company", key)
+                                ]);
+            
             socket.leave(key);
             console.log(`🏢 Company web ${companyId} unsubscribed`);
+
+            return ack({
+                        code: CONSTANT.success_code,
+                        message: i18n.__({ phrase: "map.succes.companyUnsubscribed", locale: lang })
+                    });
         } catch (error) {
             console.error("❌ Error in web company:app:unsubscribe:", error.message);
         }

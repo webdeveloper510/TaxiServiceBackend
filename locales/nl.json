@@ -708,5 +708,23 @@
         "submitted": "Bedankt! Uw beoordeling is succesvol ingediend"
       }
     }
+  },
+  "map": {
+    "error": {
+      "invalidSubscriptionData": "Het abonnementsverzoek is ongeldig. Controleer de ingevoerde gegevens en probeer het opnieuw.",
+      "invalidHeartbeatData": "Ongeldige heartbeat-gegevens. Vereiste informatie ontbreekt of is onjuist.",
+      "companySubscribeFailed": "Het is momenteel niet mogelijk om het bedrijf te abonneren. Probeer het later opnieuw.",
+      "noActiveSubscription": "Geen actieve abonnementsstatus gevonden voor dit bedrijf.",
+      "heartbeatFailed": "Verwerken van de heartbeat is mislukt. Probeer het opnieuw.",
+      "companyUnsubscribeFailed": "Het uitschrijven van het bedrijf is mislukt. Probeer het later opnieuw.",
+      "driverTripUnsubscribeFailed": "Het stoppen van ritupdates is mislukt. Probeer het opnieuw.",
+      "invalidUnsubscribeData": "Ongeldig afmeldverzoek. Rit- of bestuurdersinformatie ontbreekt."
+    },
+    "succes": {
+      "companySubscribed": "The company has been successfully subscribed.",
+      "heartbeatReceived": "Heartbeat succesvol ontvangen.",
+      "companyUnsubscribed": "Het bedrijf is succesvol uitgeschreven.",
+      "driverTripUnsubscribed": "You have successfully stopped receiving updates for this trip."
+    }
   }
 }

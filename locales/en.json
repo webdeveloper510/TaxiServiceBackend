@@ -708,5 +708,23 @@
         "success": {
             "submitted": "Thank you! Your rating has been submitted successfully."
         }
+    },
+    "map": {
+        "error": {
+            "invalidSubscriptionData": "The subscription request is invalid. Please check the provided information and try again.",
+            "invalidHeartbeatData": "Invalid heartbeat data. Required information is missing or incorrect.",
+            "companySubscribeFailed": "Unable to subscribe the company at this time. Please try again later.",
+            "noActiveSubscription": "No active subscription found for this company.",
+            "heartbeatFailed": "Failed to process heartbeat. Please try again.",
+            "companyUnsubscribeFailed": "Failed to unsubscribe the company. Please try again later.",
+            "driverTripUnsubscribeFailed": "Failed to stop trip updates. Please try again.",
+            "invalidUnsubscribeData": "Invalid unsubscribe request. Trip or driver information is missing."
+        },
+        "succes": {
+            "companySubscribed": "Het bedrijf is succesvol geabonneerd.",
+            "heartbeatReceived": "Heartbeat received successfully",
+            "companyUnsubscribed": "The company has been successfully unsubscribed.",
+            "driverTripUnsubscribed": "You have successfully stopped receiving updates for this trip."
+        }
     }
 }
