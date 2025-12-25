@@ -599,22 +599,29 @@ exports.edit_trip = async (req, res) => {
 
       let driver_data = await DRIVER.findOne({ _id: trip_data?.driver_name });
       
+      
       // When driver will go to for pick the customer (On the way) then customer will be notify
       if (trip_data?.trip_status == constant.TRIP_STATUS.BOOKED && update_trip?.trip_status == constant.TRIP_STATUS.REACHED) {
         
-        const timeDiffInMinutes = await exactMinutes( new Date()  , update_trip.pickup_date_time);
         
-        // If customer booked the trip with in 10 minutes from current time and notification is not sent him already then he will get notified otherwise he will notified with cronjo prenotification before 10 minutes starting of the trips
+        const timeDiffInMinutes = await exactMinutes( new Date()  , update_trip.pickup_date_time);
+
+        
+
+        // If customer booked the trip with in 10 minutes from current time and notification is not sent him already then he will get notified otherwise he will notified with cronjob prenotification before 10 minutes starting of the trips
+        
         if (timeDiffInMinutes < constant.CUSTOMER_PRE_TRIP_NOTIFICATION_TIME && !update_trip.customerPreNotificationSent) {
           
           sendBookingUpdateDateTimeEmail(update_trip); // update user regarding the date time changed
-          const companyDetail = await USER.findById(update_trip.created_by_company_id);
+          await TRIP.findOneAndUpdate( { _id:  update_trip._id}, { $set: {  customerPreNotificationSent: true, }, }  , { new: true });
+        }
+
+        const companyDetail = await USER.findById(update_trip.created_by_company_id);
           
-          if (companyDetail?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
-            
-            sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
-            await TRIP.findOneAndUpdate( { _id:  update_trip._id}, { $set: {  customerPreNotificationSent: true, }, }  , { new: true });
-          }
+        if (companyDetail?.settings?.sms_options?.driver_on_the_way_request?.enabled) { // check if company turned on sms feature for driver on the route
+          
+          sendTripUpdateToCustomerViaSMS(update_trip , constant.SMS_EVENTS.DRIVER_ON_THE_WAY);
+          
         }
         
 
