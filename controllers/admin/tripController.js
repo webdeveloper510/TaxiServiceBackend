@@ -30,7 +30,8 @@ const {
         emitTripNotAcceptedByDriver,
         emitNewTripAddedByCustomer,
         emitTripAssignedToSelf,
-        getTimeZoneIdFromAddress
+        getTimeZoneIdFromAddress,
+        getCompanyActivePaidPlansBulk
       } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
@@ -1342,18 +1343,24 @@ exports.get_access_trip = async (req, res) => {
       );
 
       if (!is_driver_has_company_access) {
-        res.send({
+        return res.send({
           code: constant.ACCESS_ERROR_CODE,
           message: res.__("addTrip.error.companyAccessRevoked"),
         });
-
-        return;
       }
     }
 
     let data = req.body;
+    const companyId = (req.body.company_id || "").toString().trim();
 
-    let check_company = USER.findById(req.body.company_id);
+    if (!mongoose.Types.ObjectId.isValid(companyId)) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("companyGetFares.error.invalidCompany"),
+      });
+    }
+
+    let check_company = await USER.findById(companyId);
 
     if (!check_company && check_company?.is_deleted == true) {
       return res.send({
@@ -1362,129 +1369,195 @@ exports.get_access_trip = async (req, res) => {
                       });
     }
     
-    const page = parseInt(data.page) || 1; // Default to page 1 if not provided
-    const limit = parseInt(data.limit) || 10; // Default to 10 items per page if not provided
+    // Pagination safe
+    const page = Math.max(parseInt(req.body?.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.body?.limit, 10) || 10, 1), 50);
+    const skip = (page - 1) * limit;
     
     let   criteria =  {
                         status: true,
                         trip_status: req.params.status,
                         is_deleted: false,
-                        created_by_company_id: new mongoose.Types.ObjectId(req.body.company_id),
+                        created_by_company_id: new mongoose.Types.ObjectId(companyId),
                       };
 
-    const totalCount = await TRIP.countDocuments(criteria);
+    const [company, paidPlanRow] = await Promise.all([
+      USER.findOne({ _id: companyId, is_deleted: false , is_blocked : false }, { _id: 1, is_special_plan_active: 1 })
+        .lean(),
+      // ✅ "exists" check is faster than find + populate
+      getCompanyActivePaidPlans(companyId),
+    ]);  
+    
+    if (!company) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("companyGetFares.error.invalidCompany"),
+      });
+    }
 
-    let get_trip = await TRIP.aggregate([
+    const activePlans = !!paidPlanRow;
+    const hasSpecialPlan = !!company?.is_special_plan_active;
+
+    const pipeline = [
+      { $match: criteria },
+
+      // ✅ sort early to use index
+      { $sort: { pickup_date_time: 1, _id: -1 } },
+
       {
-        $match: criteria,
-      },
-      {
-        $lookup: {
-          from: "drivers",
-          localField: "driver_name",
-          foreignField: "_id",
-          as: "driver",
-        },
-      },
-      {
-        $lookup: {
-          from: "vehicles",
-          localField: "vehicle",
-          foreignField: "_id",
-          as: "vehicle",
+        $facet: {
+          meta: [{ $count: "totalCount" }],
+          list: [
+            { $skip: skip },
+            { $limit: limit },
+
+            // driver (minimal fields)
+            {
+              $lookup: {
+                from: "drivers",
+                let: { driverId: "$driver_name" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
+                  { $project: { _id: 1, first_name: 1, last_name: 1 } },
+                ],
+                as: "driver",
+              },
+            },
+            { $unwind: { path: "$driver", preserveNullAndEmptyArrays: true } },
+
+            // vehicle (minimal fields)
+            {
+              $lookup: {
+                from: "vehicles",
+                let: { vehicleId: "$vehicle" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } },
+                  { $project: { _id: 1, vehicle_number: 1, vehicle_model: 1 } },
+                ],
+                as: "vehicleDoc",
+              },
+            },
+            { $unwind: { path: "$vehicleDoc", preserveNullAndEmptyArrays: true } },
+
+            // company agency (minimal)
+            {
+              $lookup: {
+                from: "agencies",
+                let: { companyUserId: "$created_by_company_id" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$user_id", "$$companyUserId"] } } },
+                  { $project: { _id: 0, company_name: 1 } },
+                ],
+                as: "companyAgency",
+              },
+            },
+            { $unwind: { path: "$companyAgency", preserveNullAndEmptyArrays: true } },
+
+            // hotel agency (minimal)
+            {
+              $lookup: {
+                from: "agencies",
+                let: { hotelUserId: "$hotel_id" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$user_id", "$$hotelUserId"] } } },
+                  { $project: { _id: 0, company_name: 1 } },
+                ],
+                as: "hotelAgency",
+              },
+            },
+            { $unwind: { path: "$hotelAgency", preserveNullAndEmptyArrays: true } },
+
+            // final projection
+            {
+              $project: {
+                _id: 1,
+                trip_id: 1,
+                trip_from: 1,
+                trip_to: 1,
+                pickup_date_time: 1,
+                pickup_timezone: 1,
+                trip_status: 1,
+                createdAt: 1,
+                created_by: 1,
+                status: 1,
+
+                passenger_detail: 1,
+                vehicle_type: 1,
+                payment_method_price: 1,
+                child_seat_price: 1,
+                comment: 1,
+                commission: 1,
+                pay_option: 1,
+                customerDetails: 1,
+                car_type: 1,
+                car_type_id: 1,
+                price: 1,
+                passengerCount: 1,
+
+                hotel_name: "$hotelAgency.company_name",
+                company_name: "$companyAgency.company_name",
+
+                driver_id: "$driver._id",
+                driver_name: {
+                  $trim: {
+                    input: {
+                      $concat: [
+                        { $ifNull: ["$driver.first_name", ""] },
+                        " ",
+                        { $ifNull: ["$driver.last_name", ""] },
+                      ],
+                    },
+                  },
+                },
+
+                vehicle: {
+                  $trim: {
+                    input: {
+                      $concat: [
+                        { $ifNull: ["$vehicleDoc.vehicle_number", ""] },
+                        " ",
+                        { $ifNull: ["$vehicleDoc.vehicle_model", ""] },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          ],
         },
       },
 
-      {
-        $lookup: {
-          from: "agencies",
-          localField: "created_by_company_id",
-          foreignField: "user_id",
-          as: "userData",
-        },
-      },
-      {
-        $lookup: {
-          from: "agencies",
-          localField: "hotel_id",
-          foreignField: "user_id",
-          as: "hotelData",
-        },
-      },
       {
         $project: {
-          _id: 1,
-          trip_from: 1,
-          trip_to: 1,
-          pickup_date_time: 1,
-          trip_status: 1,
-          createdAt: 1,
-          created_by: 1,
-          status: 1,
-          passenger_detail: 1,
-          vehicle_type: 1,
-          payment_method_price:1,
-          child_seat_price:1,
-          comment: 1,
-          commission: 1,
-          pickup_timezone:1,
-          pay_option: 1,
-          customerDetails: 1,
-          car_type:1,
-          car_type_id:1,
-          price: 1,
-          passengerCount: 1,
-          hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
-          company_name: { $arrayElemAt: ["$userData.company_name", 0] },
-          driver_name: {
-            $concat: [
-              { $arrayElemAt: ["$driver.first_name", 0] },
-              " ",
-              { $arrayElemAt: ["$driver.last_name", 0] },
-            ],
-          },
-          driver_id: { $arrayElemAt: ["$driver._id", 0] },
-          vehicle: {
-            $concat: [
-              { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
-              " ",
-              { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
-            ],
-          },
-          trip_id: 1,
+          totalCount: { $ifNull: [{ $arrayElemAt: ["$meta.totalCount", 0] }, 0] },
+          result: "$list",
         },
       },
+    ];
 
+    const aggrigation = await TRIP.aggregate(pipeline).allowDiskUse(true);
+    const out = aggrigation?.[0] || { totalCount: 0, result: [] };
 
-      { $sort: { createdAt: -1 } },
-      // Pagination: skip and limit
-      {
-        $skip: (page - 1) * limit, // Skip documents for previous pages
-      },
-      {
-        $limit: limit, // Limit the number of documents returned
-      },
-    ]);
-
-    const getActivePaidPlans = await getCompanyActivePaidPlans(req.body.company_id);
-    let hasSpecialPlan = await USER.findOne({_id: req.body.company_id});
-    if (!get_trip) {
+    
+    if (!out.result) {
       res.send({
         code: constant.error_code,
         message: res.__("getTrip.error.noTripFound"),
-        activePlans: getActivePaidPlans.length > 0 ? true  : false,
-        hasSpecialPlan: hasSpecialPlan?.is_special_plan_active ? true: false
+        activePlans: activePlans ? true  : false,
+        hasSpecialPlan: hasSpecialPlan ? true: false
       });
     } else {
       
       res.send({
         code: constant.success_code,
         message: res.__("getTrip.success.tripListRetrieved"),
-        result: get_trip,
-        totalCount: totalCount,
-        activePlans: getActivePaidPlans.length > 0 ? true  : false,
-        hasSpecialPlan: hasSpecialPlan?.is_special_plan_active ? true: false,
-        
+        result: out.result,
+        totalCount: out.totalCount,
+        activePlans: activePlans ? true  : false,
+        hasSpecialPlan: hasSpecialPlan ? true: false,
+        page,
+        limit,
+        totalPages: Math.ceil((out.totalCount || 0) / limit),
       });
     }
   } catch (err) {
@@ -1499,153 +1572,220 @@ exports.get_access_trip = async (req, res) => {
 
 exports.get_all_access_trip = async (req, res) => {
   try {
-    
-    let companyIds = await req.user.company_account_access.map(item => item.company_id);
 
-    if (companyIds.length == 0) {
+    const access = Array.isArray(req.user?.company_account_access) ? req.user.company_account_access : [];
+    const companyIdsRaw = access.map((item) => item?.company_id).filter(Boolean).map(String);
+
+    if (!companyIdsRaw.length) {
       return res.send({
-                        code: constant.error_code,
-                        message:res.__("getTrip.error.noDataFound"),
-                        result : []
-                      });
-    }
-
-    let filteredCompanyId = [];
-
-    // remove the driver who doesn't have the active payed plan
-    for (let value of companyIds) {
-      const checkUserSpecialPlan = await USER.findOne({_id: value , is_special_plan_active: true});
-      
-      if (checkUserSpecialPlan?._id) {
-        filteredCompanyId.push(value)
-        continue;
-      }
-
-      let getActivePaidPlans = await getCompanyActivePaidPlans(value)
-      
-      if (getActivePaidPlans.length > 0) {
-        filteredCompanyId.push(value)
-      }
+        code: constant.error_code,
+        message: res.__("getTrip.error.noDataFound"),
+        totalCount: 0,
+        result: [],
+      });
     }
     
-    companyIds = filteredCompanyId;
+    // Convert once
+    const companyObjectIds = companyIdsRaw.map((id) => new mongoose.Types.ObjectId(id));
+
+    // ✅ BULK plan filtering (NO LOOP)
+
+    // 1) Special plan companies (single query)
+    const specialCompanies = await USER.find(
+                                              { _id: { $in: companyObjectIds }, is_special_plan_active: true , is_deleted : false , is_blocked: false},
+                                              { _id: 1 }
+                                            ).lean();
+
+    const specialSet = new Set(specialCompanies.map((u) => String(u._id)));
+
+    const paidCompaniesRows = await getCompanyActivePaidPlansBulk(companyObjectIds);
+                                            
+    const paidSet = new Set(paidCompaniesRows.map((r) => String(r.purchaseByCompanyId)));
+
+    const allowedCompanyIds = companyObjectIds.filter((cid) => {
+      const k = String(cid);
+      return specialSet.has(k) || paidSet.has(k);
+    });
+
+    if (!allowedCompanyIds.length) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("getTrip.error.noDataFound"),
+        totalCount: 0,
+        result: [],
+      });
+    }
     
   
     let data = req.body;
-    const page = parseInt(data.page) || 1; // Default to page 1 if not provided
-    const limit = parseInt(data.limit) || 10; // Default to 10 items per page if not provided
+    const page = Math.max(parseInt(data?.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(data?.limit, 10) || 10, 1), 50);
+    const skip = (page - 1) * limit;
 
-    let   criteria =  {
-                        status: true,
-                        trip_status: req.params.status,
-                        under_cancellation_review: false, // trip is not under review
-                        is_deleted: false,
-                        created_by_company_id: { $in: companyIds.map(id => new mongoose.Types.ObjectId(id)) }
-                      };
+    const statusParam = (req.params.status || "").toString().trim();
+
+    let criteria =  {
+                      status: true,
+                      trip_status: statusParam,
+                      under_cancellation_review: false, // trip is not under review
+                      is_deleted: false,
+                     created_by_company_id: { $in: allowedCompanyIds }
+                    };
               
     const totalCount = await TRIP.countDocuments(criteria);
 
-    let get_trip = await TRIP.aggregate([
-      {
-        $match: criteria,
-      },
-      {
-        $lookup: {
-          from: "drivers",
-          localField: "driver_name",
-          foreignField: "_id",
-          as: "driver",
-        },
-      },
-      {
-        $lookup: {
-          from: "vehicles",
-          localField: "vehicle",
-          foreignField: "_id",
-          as: "vehicle",
-        },
-      },
+    // ✅ FAST aggregate: match -> sort -> paginate -> lookups
+    // -------------------------
+    const pipeline = [
+      { $match: criteria },
+
+      // robust sort key (works if pickup_date_time is Date OR ISO string)
+      { $addFields: { sortPickupDate: { $toDate: "$pickup_date_time" } } },
+
+      // ✅ ASC (8 then 9 then 10...)
+      { $sort: { sortPickupDate: 1, _id: 1 } },
 
       {
-        $lookup: {
-          from: "agencies",
-          localField: "created_by_company_id",
-          foreignField: "user_id",
-          as: "userData",
-        },
-      },
-      {
-        $lookup: {
-          from: "agencies",
-          localField: "hotel_id",
-          foreignField: "user_id",
-          as: "hotelData",
+        $facet: {
+          meta: [{ $count: "totalCount" }],
+          list: [
+            { $skip: skip },
+            { $limit: limit },
+
+            // ---- minimal lookups AFTER pagination ----
+            {
+              $lookup: {
+                from: "drivers",
+                let: { driverId: "$driver_name" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
+                  { $project: { _id: 1, first_name: 1, last_name: 1 } },
+                ],
+                as: "driver",
+              },
+            },
+            { $unwind: { path: "$driver", preserveNullAndEmptyArrays: true } },
+
+            {
+              $lookup: {
+                from: "vehicles",
+                let: { vehicleId: "$vehicle" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } },
+                  { $project: { _id: 1, vehicle_number: 1, vehicle_model: 1 } },
+                ],
+                as: "vehicleDoc",
+              },
+            },
+            { $unwind: { path: "$vehicleDoc", preserveNullAndEmptyArrays: true } },
+
+            {
+              $lookup: {
+                from: "agencies",
+                let: { companyUserId: "$created_by_company_id" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$user_id", "$$companyUserId"] } } },
+                  { $project: { _id: 0, company_name: 1 } },
+                ],
+                as: "companyAgency",
+              },
+            },
+            { $unwind: { path: "$companyAgency", preserveNullAndEmptyArrays: true } },
+
+            {
+              $lookup: {
+                from: "agencies",
+                let: { hotelUserId: "$hotel_id" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$user_id", "$$hotelUserId"] } } },
+                  { $project: { _id: 0, company_name: 1 } },
+                ],
+                as: "hotelAgency",
+              },
+            },
+            { $unwind: { path: "$hotelAgency", preserveNullAndEmptyArrays: true } },
+
+            // ---- final projection ----
+            {
+              $project: {
+                _id: 1,
+                trip_id: 1,
+                trip_from: 1,
+                trip_to: 1,
+                pickup_date_time: 1,
+                pickup_timezone: 1,
+                trip_status: 1,
+                createdAt: 1,
+                created_by: 1,
+                status: 1,
+
+                passenger_detail: 1,
+                vehicle_type: 1,
+                comment: 1,
+                commission: 1,
+                pay_option: 1,
+                customerDetails: 1,
+                payment_method_price: 1,
+                child_seat_price: 1,
+                price: 1,
+                passengerCount: 1,
+                created_by_company_id: 1,
+                car_type: 1,
+
+                hotel_name: "$hotelAgency.company_name",
+                company_name: "$companyAgency.company_name",
+
+                driver_id: "$driver._id",
+                driver_name: {
+                  $trim: {
+                    input: {
+                      $concat: [
+                        { $ifNull: ["$driver.first_name", ""] },
+                        " ",
+                        { $ifNull: ["$driver.last_name", ""] },
+                      ],
+                    },
+                  },
+                },
+
+                vehicle: {
+                  $trim: {
+                    input: {
+                      $concat: [
+                        { $ifNull: ["$vehicleDoc.vehicle_number", ""] },
+                        " ",
+                        { $ifNull: ["$vehicleDoc.vehicle_model", ""] },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          ],
         },
       },
       {
         $project: {
-          _id: 1,
-          trip_from: 1,
-          trip_to: 1,
-          pickup_date_time: 1,
-          trip_status: 1,
-          createdAt: 1,
-          created_by: 1,
-          status: 1,
-          passenger_detail: 1,
-          vehicle_type: 1,
-          comment: 1,
-          commission: 1,
-          pay_option: 1,
-          customerDetails: 1,
-          payment_method_price:1,
-          child_seat_price:1,
-          pickup_timezone:1,
-          price: 1,
-          passengerCount: 1,
-          created_by_company_id:1,
-          hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
-          company_name: { $arrayElemAt: ["$userData.company_name", 0] },
-          driver_name: {
-            $concat: [
-              { $arrayElemAt: ["$driver.first_name", 0] },
-              " ",
-              { $arrayElemAt: ["$driver.last_name", 0] },
-            ],
-          },
-          driver_id: { $arrayElemAt: ["$driver._id", 0] },
-          vehicle: {
-            $concat: [
-              { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
-              " ",
-              { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
-            ],
-          },
-          trip_id: 1,
-          car_type: 1
+          result: "$list",
+          totalCount: { $ifNull: [{ $arrayElemAt: ["$meta.totalCount", 0] }, 0] },
         },
       },
-      // Pagination: skip and limit
-      {
-        $skip: (page - 1) * limit, // Skip documents for previous pages
-      },
-      {
-        $limit: limit, // Limit the number of documents returned
-      },
-    ]).sort({ createdAt: -1 });
-    if (!get_trip) {
-      res.send({
-        code: constant.error_code,
-        message: res.__("getTrip.error.noTripFound")
-      });
-    } else {
+    ];
+
+    const aggregation = await TRIP.aggregate(pipeline).allowDiskUse(true);
+    const out = aggregation?.[0] || { result: [], totalCount: 0 };
+
+    
       res.send({
         code: constant.success_code,
         message: res.__("getTrip.success.tripListRetrieved"),
-        totalCount: totalCount,
-        result: get_trip
+        totalCount: out.totalCount,
+        result: out.result,
+        page,
+        limit,
+        totalPages: Math.ceil((out.totalCount || 0) / limit),
       });
-    }
+    
   } catch (err) {
 
     console.log('❌❌❌❌❌❌❌❌❌Error get all access trip:', err.message);

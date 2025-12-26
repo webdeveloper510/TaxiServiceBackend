@@ -100,4 +100,11 @@ const subscriptions = new Schema({
     },
 },{timestamps:true})
 
+subscriptions.index({
+  purchaseByCompanyId: 1,
+  role: 1,
+  paid: 1,
+  endPeriod: 1,
+});
+
 module.exports = mongoose.model('subscriptions',subscriptions)

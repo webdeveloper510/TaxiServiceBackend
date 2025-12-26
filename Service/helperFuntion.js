@@ -2421,7 +2421,7 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
     const {
       page = 1,
       limit = 10,
-      sortDate = { pickup_date_time: -1 },
+      sortDate = { pickup_date_time: 1 },
     } = options;
 
     const safePage = Math.max(parseInt(page, 10) || 1, 1);
@@ -2651,6 +2651,22 @@ exports.getCompanyActivePaidPlans = async (companyId) => {
                   }
 
   return await SUBSCRIPTION_MODEL.find(conditions).populate('purchaseByCompanyId').populate('purchaseByDriverId');
+}
+
+exports.getCompanyActivePaidPlansBulk = async (companyObjectIds) => {
+
+  const currentDate = new Date();
+  const paidCompaniesRows = await SUBSCRIPTION_MODEL.find(
+      {
+        role: CONSTANT.ROLES.COMPANY,
+        paid: CONSTANT.SUBSCRIPTION_PAYMENT_STATUS.PAID,
+        endPeriod: { $gt: currentDate },
+        purchaseByCompanyId: { $in: companyObjectIds },
+      },
+      { purchaseByCompanyId: 1 }
+    ).lean();
+
+    return paidCompaniesRows ? paidCompaniesRows : []
 }
 
 exports.getUserCurrentActivePayedPlan = async (userInfo) => {

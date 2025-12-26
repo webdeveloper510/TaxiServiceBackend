@@ -1579,11 +1579,15 @@ exports.getAllTripsForDrivers = async (req, res) => {
     let data = req.body;
     let id = new mongoose.Types.ObjectId(req.userId);
     
-    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page if not provided
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 50);
+    const skip = (page - 1) * limit;
+
+    const statusParam = (req.params.status || "").toString().trim();
+
     let   criteria =  {
                         status: true,
-                        trip_status: req.params.status,
+                        trip_status: statusParam,
                         is_deleted: false,
                       };
 
@@ -1594,184 +1598,259 @@ exports.getAllTripsForDrivers = async (req, res) => {
 
       criteria.driver_name = id;
 
-      if (req.params.status === constant.TRIP_STATUS.BOOKED) {
+      if (statusParam === constant.TRIP_STATUS.BOOKED) {
         criteria.trip_status = { $in: [constant.TRIP_STATUS.BOOKED, constant.TRIP_STATUS.REACHED] }; // driver will get both status because frontend need cancellation review true also when booked
       }
       
     }
 
-    const totalCount = await TRIP.countDocuments(criteria);
+    const now = new Date();
+    const startOfCurrentWeek = new Date(now);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    startOfCurrentWeek.setDate(startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay());
 
-    let get_trip = await TRIP.aggregate([
-      {
-        $match: criteria,
-      },
-      {
-        $lookup: {
-          from: "drivers",
-          localField: "driver_name",
-          foreignField: "_id",
-          as: "driver",
-        },
-      },
-      {
-        $lookup: {
-          from: "vehicles",
-          localField: "vehicle",
-          foreignField: "_id",
-          as: "vehicle",
-        },
-      },
-      {
-        $lookup: {
-          from: "agencies",
-          localField: "hotel_id",
-          foreignField: "user_id",
-          as: "hotelData",
-        },
-      },
+    // 1) Trips (count + paginated list + lookups only for that page)
+
+    // -------------------------
+    const tripsPipeline = [
+      { $match: criteria },
+
+      // ✅ Robust sorting even if pickup_date_time is ISO string sometimes
+      { $addFields: { sortPickupDate: { $toDate: "$pickup_date_time" } } },
+
+      // ✅ ASC (8 then 9 then 10...) + stable tie-breaker
+      { $sort: { sortPickupDate: 1, _id: 1 } },
 
       {
-        $lookup: {
-          from: "agencies",
-          localField: "created_by_company_id",
-          foreignField: "user_id",
-          as: "userData",
-        },
-      },
-      {
-        $lookup: {
-          from: "users",
-          localField: "created_by_company_id",
-          foreignField: "_id",
-          as: "companyData",
-        },
-      },
-      {
-        $unwind: {
-          path: "$userData",
+        $facet: {
+          meta: [{ $count: "totalCount" }],
+          list: [
+            { $skip: skip },
+            { $limit: limit },
+
+            // ---- Lookups after pagination (FAST) ----
+            {
+              $lookup: {
+                from: "drivers",
+                let: { driverId: "$driver_name" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
+                  { $project: { _id: 1, first_name: 1, last_name: 1 } },
+                ],
+                as: "driver",
+              },
+            },
+            { $unwind: { path: "$driver", preserveNullAndEmptyArrays: true } },
+
+            {
+              $lookup: {
+                from: "vehicles",
+                let: { vehicleId: "$vehicle" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } },
+                  { $project: { _id: 1, vehicle_number: 1, vehicle_model: 1 } },
+                ],
+                as: "vehicleDoc",
+              },
+            },
+            { $unwind: { path: "$vehicleDoc", preserveNullAndEmptyArrays: true } },
+
+            {
+              $lookup: {
+                from: "agencies",
+                let: { hotelUserId: "$hotel_id" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$user_id", "$$hotelUserId"] } } },
+                  { $project: { _id: 1, company_name: 1 } },
+                ],
+                as: "hotelData",
+              },
+            },
+            { $unwind: { path: "$hotelData", preserveNullAndEmptyArrays: true } },
+
+            {
+              $lookup: {
+                from: "agencies",
+                let: { companyUserId: "$created_by_company_id" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$user_id", "$$companyUserId"] } } },
+                  { $project: { _id: 1, company_name: 1, phone: 1, p_number: 1 } },
+                ],
+                as: "userData",
+              },
+            },
+            { $unwind: { path: "$userData", preserveNullAndEmptyArrays: true } },
+
+            {
+              $lookup: {
+                from: "users",
+                let: { companyId: "$created_by_company_id" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$companyId"] } } },
+                  { $project: { _id: 1, phone: 1, countryCode: 1 } },
+                ],
+                as: "companyData",
+              },
+            },
+            { $unwind: { path: "$companyData", preserveNullAndEmptyArrays: true } },
+
+            {
+              $project: {
+                _id: 1,
+                trip_id: 1,
+                trip_from: 1,
+                trip_to: 1,
+                pickup_date_time: 1,
+                pickup_timezone: 1,
+                trip_status: 1,
+                createdAt: 1,
+                created_by: 1,
+
+                is_paid: 1,
+                passengerCount: 1,
+                price: 1,
+                car_type: 1,
+                vehicle_type: 1,
+                passenger_detail: 1,
+                customerDetails: 1,
+                payment_method_price: 1,
+                child_seat_price: 1,
+                comment: 1,
+                commission: 1,
+                pay_option: 1,
+                navigation_mode: 1,
+                status: 1,
+
+                customer_phone: "$userData.p_number",
+                company_name: "$userData.company_name",
+                user_company_name: "$userData.company_name",
+                user_company_phone: "$userData.phone",
+
+                company_phone: "$companyData.phone",
+                company_country_code: "$companyData.countryCode",
+
+                hotel_name: "$hotelData.company_name",
+
+                driver_name: {
+                  $trim: {
+                    input: {
+                      $concat: [
+                        { $ifNull: ["$driver.first_name", ""] },
+                        " ",
+                        { $ifNull: ["$driver.last_name", ""] },
+                      ],
+                    },
+                  },
+                },
+
+                vehicle: {
+                  $trim: {
+                    input: {
+                      $concat: [
+                        { $ifNull: ["$vehicleDoc.vehicle_number", ""] },
+                        " ",
+                        { $ifNull: ["$vehicleDoc.vehicle_model", ""] },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          ],
         },
       },
       {
         $project: {
-          _id: 1,
-          // userData: 1,
-          customer_phone: "$userData.p_number",
-          company_phone:{ $arrayElemAt: ["$companyData.phone", 0] },
-          company_country_code:{ $arrayElemAt: ["$companyData.countryCode", 0] },
-          trip_from: 1,
-          trip_to: 1,
-          is_paid: 1,
-          passengerCount:1,
-          pickup_date_time: 1,
-          trip_status: 1,
-          price: 1,
-          car_type:1,
-          createdAt: 1,
-          created_by: 1,
-          status: 1,
-          passenger_detail: 1,
-          customerDetails: 1,
-          payment_method_price:1,
-          child_seat_price:1,
-          vehicle_type: 1,
-          comment: 1,
-          commission: 1,
-          pay_option: 1,
-          navigation_mode:1,
-          pickup_timezone:1,
-          company_name: "$userData.company_name",
-          user_company_name: "$userData.company_name",
-          user_company_phone: "$userData.phone",
-          
-          hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
-          driver_name: {
-            $concat: [
-              { $arrayElemAt: ["$driver.first_name", 0] },
-              " ",
-              { $arrayElemAt: ["$driver.last_name", 0] },
-            ],
-          },
-          vehicle: {
-            $concat: [
-              { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
-              " ",
-              { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
-            ],
-          },
-          trip_id: 1,
+          list: 1,
+          totalCount: { $ifNull: [{ $arrayElemAt: ["$meta.totalCount", 0] }, 0] },
         },
       },
-      // Pagination: skip and limit
-      {
-        $skip: (page - 1) * limit, // Skip documents for previous pages
-      },
-      {
-        $limit: limit, // Limit the number of documents returned
-      },
-    ]).sort({ pickup_date_time: -1 });
+    ];
 
-    const getActivePaidPlans = await getUserActivePaidPlans(req.user)
+     // -------------------------
+    // 2) Driver stats in ONE query (instead of 4 queries)
+    // -------------------------
+    const statsPipeline = [
+      { $match: { driver_name: id } },
+      {
+        $facet: {
+          totalActiveTrips: [
+            { $match: { trip_status: constant.TRIP_STATUS.ACTIVE } },
+            { $count: "count" },
+          ],
+          totalUnpaidTrips: [
+            {
+              $match: {
+                trip_status: constant.TRIP_STATUS.COMPLETED,
+                is_paid: false,
+                drop_time: { $lte: startOfCurrentWeek },
+              },
+            },
+            { $count: "count" },
+          ],
+          totalReachedTrip: [
+            {
+              $match: {
+                trip_status: constant.TRIP_STATUS.REACHED,
+                is_paid: false,
+                under_cancellation_review: false,
+              },
+            },
+            { $count: "count" },
+          ],
+          underCancellationReview: [
+            { $match: { under_cancellation_review: true } },
+            // if you only need count, comment next line & keep count only
+            // { $project: { _id: 1, trip_id: 1, pickup_date_time: 1, trip_status: 1 } },
+            { $addFields: { sortPickupDate: { $toDate: "$pickup_date_time" } } },
+            { $sort: { sortPickupDate: 1, _id: 1 } },
+          ],
+        },
+      },
+      {
+        $project: {
+          totalActiveTrips: { $ifNull: [{ $arrayElemAt: ["$totalActiveTrips.count", 0] }, 0] },
+          totalUnpaidTrips: { $ifNull: [{ $arrayElemAt: ["$totalUnpaidTrips.count", 0] }, 0] },
+          totalReachedTrip: { $ifNull: [{ $arrayElemAt: ["$totalReachedTrip.count", 0] }, 0] },
+          underCancellationReview: 1,
+          totalUndercancellationReview: { $size: "$underCancellationReview" },
+        },
+      },
+    ];
+
+    // Run in parallel (reduces API time)
+    // -------------------------
+    const [tripsAgg, statsAgg, plans] = await Promise.all([
+      TRIP.aggregate(tripsPipeline).allowDiskUse(true),
+      req.user.role === constant.ROLES.DRIVER ? TRIP.aggregate(statsPipeline).allowDiskUse(true) : Promise.resolve([]),
+      getUserActivePaidPlans(req.user),
+    ]);
+
+    const tripsResult = tripsAgg?.[0] || { list: [], totalCount: 0 };
+    const statsResult = statsAgg?.[0] || {
+      totalActiveTrips: 0,
+      totalUnpaidTrips: 0,
+      totalReachedTrip: 0,
+      underCancellationReview: [],
+      totalUndercancellationReview: 0,
+    };
+
+
+    return res.send({
+                      code: constant.success_code,
+                      message: res.__("getTrip.success.tripDataRetrieved"),
+                      activePlans: plans.length > 0 ? true  : false,
+                      totalCount: tripsResult.totalCount,
+                      result: tripsResult.list,
+                      
+                      totalActiveTrips: statsResult.totalActiveTrips,
+                      totalUnpaidTrips: statsResult.totalUnpaidTrips,
+                      totalReachedTrip: statsResult.totalReachedTrip,
+
+                      totalUndercancellationReview: statsResult.totalUndercancellationReview,
+                      totalUndercancellationTrip: statsResult.underCancellationReview,
+                    });
     
-    if (!get_trip) {
-      res.send({
-        code: constant.error_code,
-        message: res.__("getTrip.error.noDataFound"),
-        activePlans: getActivePaidPlans.length > 0 ? true  : false
-      });
-    } else {
-
-
-      // For driver only
-      
-      let currentDate = new Date();
-      let startOfCurrentWeek = new Date(currentDate);
-      startOfCurrentWeek.setHours(0, 0, 0, 0);
-      startOfCurrentWeek.setDate( startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay());
-
-      const totalActiveTrips = await  TRIP.find({
-                                                  driver_name: id,
-                                                  trip_status: constant.TRIP_STATUS.ACTIVE,
-                                                })
-                                          .countDocuments();
-
-      const totalUnpaidTrips = await TRIP.find({
-                                                driver_name: id,
-                                                trip_status: constant.TRIP_STATUS.COMPLETED,
-                                                is_paid: false,
-                                                drop_time: {
-                                                  $lte: startOfCurrentWeek,
-                                                },
-                                              })
-                                          .countDocuments();
-
-      const totalReachedTrip = await TRIP.find({
-                                                driver_name: id,
-                                                trip_status: constant.TRIP_STATUS.REACHED,
-                                                is_paid: false,
-                                                under_cancellation_review: false
-                                              })
-                                          .countDocuments();
-      const underCancellationReview = await TRIP.find({
-                                                driver_name: id,
-                                                under_cancellation_review: true,
-                                              });
-
-
-
-      return res.send({
-                        code: constant.success_code,
-                        message: res.__("getTrip.success.tripDataRetrieved"),
-                        activePlans: getActivePaidPlans.length > 0 ? true  : false,
-                        totalCount: totalCount,
-                        result: get_trip,
-                        totalActiveTrips,
-                        totalUnpaidTrips,
-                        totalReachedTrip,
-                        totalUndercancellationReview: underCancellationReview.length,
-                        totalUndercancellationTrip: underCancellationReview,
-                      });
-    }
   } catch (err) {
 
     console.log('❌❌❌❌❌❌❌❌❌Error get all trips for Driversss:', err.message);
