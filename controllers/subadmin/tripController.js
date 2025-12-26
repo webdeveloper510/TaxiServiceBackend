@@ -20,13 +20,14 @@ const {
   sendBookingCancelledEmail ,
   getDistanceAndDuration , 
   emitTripCancellationRequestByDriver,
-  canCustomerCancelTrip
+  canCustomerCancelTrip ,
+  getTimeZoneIdFromAddress
 } = require("../../Service/helperFuntion");
 const AGENCY = require("../../models/user/agency_model");
 const SETTING_MODEL = require("../../models/user/setting_model");
 const i18n = require('../../i18n');
 const { updateDriverMapCache , broadcastDriverLocation} = require("../../Service/location.service")
-const { exactMinutes } = require("../../utils/timeDiff.js")
+const { exactMinutes , convertLocalToUTC } = require("../../utils/timeDiff.js")
 
 
 exports.add_trip = async (req, res) => {
@@ -399,6 +400,21 @@ exports.update_trip = async (req , res) => {
     let option = { new: true };
     data.status = true;
 
+    const pickupTimezone = await getTimeZoneIdFromAddress(data?.trip_from.address , data?.pickup_date_time);
+        
+    if (!pickupTimezone) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addTrip.error.timezoneNotResolved'),
+                        
+                      });
+    }
+        
+    // convert date into utc date time
+    data.pickup_date_time = await convertLocalToUTC(data?.pickup_date_time , pickupTimezone);
+    data.pickup_timezone = pickupTimezone;
+  
     let  isCommisionPay;
         
     if (req.user.role == constant.ROLES.HOTEL) {
@@ -407,7 +423,7 @@ exports.update_trip = async (req , res) => {
       if (!companyDetail) {
         return res.send({
                         code: constant.error_code,
-                        result: res.__('addSubAdmin.error.invalidCompany')
+                        message: res.__('addSubAdmin.error.invalidCompany')
                       });
       }
       isCommisionPay = await willCompanyPayCommissionOnTrip(companyDetail);
@@ -419,7 +435,7 @@ exports.update_trip = async (req , res) => {
 
       return res.send({
                         code: constant.error_code,
-                        result: res.__('editTrip.error.noActivePlanForTripCreation'),
+                        message: res.__('editTrip.error.noActivePlanForTripCreation'),
                       });
     }
 

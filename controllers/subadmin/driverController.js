@@ -1679,6 +1679,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
           commission: 1,
           pay_option: 1,
           navigation_mode:1,
+          pickup_timezone:1,
           company_name: "$userData.company_name",
           user_company_name: "$userData.company_name",
           user_company_phone: "$userData.phone",

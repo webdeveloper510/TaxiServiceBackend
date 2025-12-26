@@ -214,7 +214,8 @@
       "noActivePlanForTripCreation": "Er kan geen rit worden aangemaakt zonder een actief abonnement. Abonneer u eerst.",
       "unableToCreateTrip": "Er is een fout opgetreden bij het aanmaken van de rit. Probeer het later opnieuw.",
       "companyAccessRevoked": "De toegang voor het bedrijf is ingetrokken.",
-      "invalidOrNonexistentCompany": "Het opgegeven bedrijf is ongeldig of bestaat niet."
+      "invalidOrNonexistentCompany": "Het opgegeven bedrijf is ongeldig of bestaat niet.",
+      "timezoneNotResolved": "De tijdzone kan niet worden bepaald op basis van het opgegeven adres."
     },
     "socket": {
       "tripCreatedRefresh": "Er is een nieuwe rit aangemaakt. Vernieuw om de laatste informatie te laden."

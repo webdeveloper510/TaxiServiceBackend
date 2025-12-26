@@ -214,7 +214,8 @@
             "noActivePlanForTripCreation": "Trip creation is not allowed without an active plan. Please subscribe to a plan first.",
             "unableToCreateTrip": "An error occurred while creating the trip. Please try again later.",
             "companyAccessRevoked": "Access for the company has been revoked",
-            "invalidOrNonexistentCompany": "The specified company is invalid or does not exist"
+            "invalidOrNonexistentCompany": "The specified company is invalid or does not exist",
+            "timezoneNotResolved": "Unable to determine timezone from the provided address."
         },
         "socket": {
             "tripCreatedRefresh": "A new trip has been created. Kindly refresh to load the latest information."

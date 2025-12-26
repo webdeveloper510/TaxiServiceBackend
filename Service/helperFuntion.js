@@ -2571,6 +2571,7 @@ exports.getDriverTripsRanked = async (driverId, tripStatus, options = {}) => {
                                 under_cancellation_review:1,
                                 navigation_mode: 1,
                                 child_seat_price:1,
+                                pickup_timezone:1,
                                 payment_method_price:1,
                                 customer_phone: { $ifNull: [{ $arrayElemAt: ["$userData.p_number", 0] }, "" ] },
                                 company_phone: { $ifNull: [{ $arrayElemAt: ["$companyData.phone", 0] }, "" ] },
@@ -3466,6 +3467,18 @@ exports.convertToCustomFormat = async (address, utcDateTime) => {
 }
 
 exports.getTimeZoneIdFromAddress = async (address , utcDateTime) => {
+
+  if (utcDateTime instanceof Date) {
+   
+    utcDateTime = utcDateTime;
+  } else if (typeof utcDateTime === "string") {
+   
+    utcDateTime = new Date(utcDateTime);
+  } else {
+    throw new Error("Invalid date input: must be a Date or ISO string");
+  }
+
+  console.log({address , utcDateTime})
   const geoRes = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${process.env.GOOGLE_MAP_KEY}`);
   const geoData = await geoRes.json();
   if (!geoData.results.length) throw new Error("Address not found");
@@ -3474,7 +3487,9 @@ exports.getTimeZoneIdFromAddress = async (address , utcDateTime) => {
   const timestamp = Math.floor(utcDateTime.getTime() / 1000);
   const tzRes = await fetch(`https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${lng}&timestamp=${timestamp}&key=${process.env.GOOGLE_MAP_KEY}`);
   const tzData = await tzRes.json();
-  return tzData.timeZoneId; // e.g. "Asia/Kolkata"
+
+  return tzData.status == "OK" ? tzData.timeZoneId : "";
+  
 }
 
 exports.sendBookingCancelledEmail = async (tripDetail) => { 

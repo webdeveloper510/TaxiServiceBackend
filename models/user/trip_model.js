@@ -143,6 +143,13 @@ const trip = new Schema({
         type:Date,
         default:Date.now
     },
+    pickup_timezone: {
+        type: String,
+        required: true,
+        // examples: "Europe/Amsterdam", "Asia/Kolkata"
+    },
+
+    // we are not using this key for passagner
     passenger_detail:{
         type:[
             {

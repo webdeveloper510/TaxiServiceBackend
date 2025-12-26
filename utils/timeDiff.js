@@ -1,3 +1,4 @@
+const { DateTime, IANAZone } = require("luxon");
 /**
  * Convert any valid input into a safe Date object.
  * @param {Date|string|number} value
@@ -25,6 +26,36 @@ function toDate(value) {
  * exactMinutes("2025-01-10T10:00:00", "2025-01-10T10:45:30")
  * // → 45.5 minutes
  */
+
+/**
+ * Convert local datetime + timezone into UTC JS Date
+ *
+ * @param {string} localDateTime - "2025-12-30T12:00"
+ * @param {string} timezone - "Asia/Kolkata"
+ * @returns {Date} UTC Date (for MongoDB)
+ */
+
+function convertLocalToUTC(localDateTime, timezone) {
+  if (!localDateTime || !timezone) {
+    throw new Error("localDateTime and timezone are required");
+  }
+
+  if (!IANAZone.isValidZone(timezone)) {
+    throw new Error(`Invalid timezone: ${timezone}`);
+  }
+
+  const dtLocal = DateTime.fromISO(localDateTime, {
+    zone: timezone,
+    setZone: true,
+  });
+
+  if (!dtLocal.isValid) {
+    throw new Error(`Invalid datetime: ${dtLocal.invalidReason}`);
+  }
+
+  return dtLocal.toUTC().toJSDate();
+}
+
 function exactMinutes(from, to) {
   const start = toDate(from);
   const end = toDate(to);
@@ -35,4 +66,5 @@ function exactMinutes(from, to) {
 
 module.exports = {
   exactMinutes,
+  convertLocalToUTC
 };

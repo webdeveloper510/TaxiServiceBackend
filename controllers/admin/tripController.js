@@ -30,6 +30,7 @@ const {
         emitTripNotAcceptedByDriver,
         emitNewTripAddedByCustomer,
         emitTripAssignedToSelf,
+        getTimeZoneIdFromAddress
       } = require("../../Service/helperFuntion");
 const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
@@ -41,7 +42,7 @@ const emailConstant = require("../../config/emailConstant");
 const twilio = require("twilio");
 const { Sms } = require("twilio/lib/twiml/VoiceResponse");
 const similarity = require('string-similarity');
-
+const {convertLocalToUTC} = require("../../utils/timeDiff")
 const tripIsBooked = async (tripId, driver_info, io) => {
   
   const driver_full_info = await driver_model.findOne({ _id: driver_info._id, });
@@ -77,8 +78,23 @@ const tripIsBooked = async (tripId, driver_info, io) => {
 exports.add_trip = async (req, res) => {
   try {
     let data = req.body;
-
     data.created_by = data.created_by ? data.created_by : req.userId;
+
+    const pickupTimezone = await getTimeZoneIdFromAddress(data?.trip_from.address , data?.pickup_date_time);
+    
+    if (!pickupTimezone) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addTrip.error.timezoneNotResolved'),
+                        
+                      });
+    }
+    
+    // convert date into utc date time
+    data.pickup_date_time = await convertLocalToUTC(data?.pickup_date_time , pickupTimezone);
+    data.pickup_timezone = pickupTimezone;
+
     // data.trip_id = randToken.generate(4, '1234567890abcdefghijklmnopqrstuvxyz')
     data.trip_id    = await getNextSequenceValue();
     let token_code  = randToken.generate( 4, "1234567890abcdefghijklmnopqrstuvxyz" );
@@ -110,7 +126,6 @@ exports.add_trip = async (req, res) => {
     }
     
   
-    
     if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan && req.user.role !== constant.ROLES.HOTEL){
 
       return res.send({
@@ -224,6 +239,20 @@ exports.access_add_trip = async (req, res) => {
       let token_code = randToken.generate(4,"1234567890abcdefghijklmnopqrstuvxyz");
       let check_user = await USER.findOne({ _id: req.userId });
       
+      const pickupTimezone = await getTimeZoneIdFromAddress(data?.trip_from.address , data?.pickup_date_time);
+    
+      if (!pickupTimezone) {
+
+        return res.send({
+                          code: constant.error_code,
+                          message: res.__('addTrip.error.timezoneNotResolved'),
+                          
+                        });
+      }
+      
+      // convert date into utc date time
+      data.pickup_date_time = await convertLocalToUTC(data?.pickup_date_time , pickupTimezone);
+      data.pickup_timezone = pickupTimezone;
       
       data.series_id = '';
 
@@ -1398,6 +1427,7 @@ exports.get_access_trip = async (req, res) => {
           child_seat_price:1,
           comment: 1,
           commission: 1,
+          pickup_timezone:1,
           pay_option: 1,
           customerDetails: 1,
           car_type:1,
@@ -1570,6 +1600,7 @@ exports.get_all_access_trip = async (req, res) => {
           customerDetails: 1,
           payment_method_price:1,
           child_seat_price:1,
+          pickup_timezone:1,
           price: 1,
           passengerCount: 1,
           created_by_company_id:1,
@@ -2729,6 +2760,7 @@ exports.get_trip_detail = async (req, res) => {
           child_seat_price:1,
           created_by: 1,
           is_deleted: 1,
+          pickup_timezone:1,
           status: 1,
           trip_status: 1,
           createdAt: 1,
@@ -2871,6 +2903,7 @@ exports.access_get_trip_detail = async (req, res) => {
           car_type:1,
           car_type_id:1,
           status: 1,
+          pickup_timezone:1,
           trip_status: 1,
           createdAt: 1,
           updatedAt: 1,
