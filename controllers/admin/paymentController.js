@@ -142,7 +142,19 @@ exports.successTripPay = async (req, res) => {
         trip_by_id.payment_completed_date = new Date();
         trip_by_id.payment_collcted = constant.PAYMENT_COLLECTION_TYPE.ONLINE;
         
-        await trip_by_id.save();
+        await TRIP.updateOne(
+                              {_id: trip_by_id._id}, 
+                              {
+                                $set: { 
+                                        is_paid: constant.DRIVER_TRIP_PAYMENT.PAID, 
+                                        "stripe_payment.payment_status": "Paid",
+                                        payment_completed_date: new Date(),
+                                        payment_collcted: constant.PAYMENT_COLLECTION_TYPE.ONLINE
+                                      }
+                              }
+                            );
+
+        // await trip_by_id.save();
         
         let commission = trip_by_id.commission.commission_value;
 
