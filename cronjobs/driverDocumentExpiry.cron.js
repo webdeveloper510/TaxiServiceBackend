@@ -69,7 +69,7 @@ const checkDriverDocumentExpirated = async () => {
                                                         { _id: item._id },
                                                         {
                                                             $set: {
-                                                                    "kyc.verification.status": CONSTANT.DRIVER_VERIFICATION_STATUS.UNDER_REVIEW,
+                                                                    "kyc.verification.status": CONSTANT.DRIVER_VERIFICATION_STATUS.EXPIRED,
                                                                     "kyc.verification.isVerified": false,
                                                                     "kyc.documents.$[doc].emailSentOnExpiry": true,
                                                                     "kyc.documents.$[doc].expiredAt": now,

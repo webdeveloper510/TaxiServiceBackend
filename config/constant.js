@@ -39,6 +39,7 @@ module.exports={
         UNDER_REVIEW: "UNDER_REVIEW",
         VERIFIED: "VERIFIED",
         REJECTED: "REJECTED",
+        EXPIRED: "EXPIRED",
     },
     TRIP_HISTORY_ENUM_STATUS: {
         ASSIGN:"ASSIGN",
