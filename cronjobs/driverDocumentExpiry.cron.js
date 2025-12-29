@@ -72,6 +72,7 @@ const checkDriverDocumentExpirated = async () => {
                                                                     "kyc.verification.status": CONSTANT.DRIVER_VERIFICATION_STATUS.EXPIRED,
                                                                     "kyc.verification.isVerified": false,
                                                                     "kyc.documents.$[doc].emailSentOnExpiry": true,
+                                                                    "kyc.documents.$[doc].rejectReasonText": "Your document has been expired",
                                                                     "kyc.documents.$[doc].expiredAt": now,
                                                                     "kyc.documents.$[doc].status": CONSTANT.DOC_STATUS.EXPIRED,
                                                                 },
