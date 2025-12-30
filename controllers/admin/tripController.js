@@ -370,6 +370,21 @@ exports.add_trip_link = async (req, res) => {
                       });
     }
     
+    const pickupTimezone = await getTimeZoneIdFromAddress(data?.trip_from.address , data?.pickup_date_time);
+    
+    if (!pickupTimezone) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addTrip.error.timezoneNotResolved'),
+                        
+                      });
+    }
+    
+    // convert date into utc date time
+    data.pickup_date_time = await convertLocalToUTC(data?.pickup_date_time , pickupTimezone);
+    data.pickup_timezone = pickupTimezone;
+
     data.series_id = '';
     data.trip_id = "T" + "-" + data.trip_id;
     data.driverPaymentAmount = data?.price ? data.price : 0;
@@ -402,6 +417,21 @@ exports.add_trip_link = async (req, res) => {
     emitNewTripAddedByCustomer(add_trip , req.io);
     let add_return_trip = null;
     if (isRetrunBooking) {
+
+      const returnPickupTimezone = await getTimeZoneIdFromAddress(return_ticket_data?.trip_from.address , return_ticket_data?.pickup_date_time);
+    
+    if (!returnPickupTimezone) {
+
+      return res.send({
+                        code: constant.error_code,
+                        message: res.__('addTrip.error.timezoneNotResolved'),
+                        
+                      });
+    }
+    
+    // convert date into utc date time
+    return_ticket_data.pickup_date_time = await convertLocalToUTC(return_ticket_data?.pickup_date_time , returnPickupTimezone);
+    return_ticket_data.pickup_timezone = returnPickupTimezone;
 
       return_ticket_data.driverPaymentAmount = return_ticket_data?.price ? return_ticket_data.price : 0;
       return_ticket_data.companyPaymentAmount = 0; 
