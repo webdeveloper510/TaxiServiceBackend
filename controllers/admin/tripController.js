@@ -673,6 +673,7 @@ exports.get_trip = async (req, res) => {
           customerDetails: 1,
           price: 1,
           passengerCount: 1,
+          pickup_timezone:1,
           is_paid:1,
           car_type:1,
           car_type_id:1,

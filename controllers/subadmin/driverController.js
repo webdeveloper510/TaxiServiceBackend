@@ -1705,7 +1705,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
                 trip_status: 1,
                 createdAt: 1,
                 created_by: 1,
-
+                booking_source:1,
                 is_paid: 1,
                 passengerCount: 1,
                 price: 1,
