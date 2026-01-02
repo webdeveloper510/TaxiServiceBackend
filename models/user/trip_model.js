@@ -98,6 +98,10 @@ const trip = new Schema({
         enum:BOOKING_SOURCE_ENUM,
         default: CONSTANT.BOOKING_SOURCE.COMPNAY_DASHBOARD
     },
+    booking_channel:{
+        type:String,
+        default: ""
+    },
     drop_time:{
         type:Date,
         default:Date.now
