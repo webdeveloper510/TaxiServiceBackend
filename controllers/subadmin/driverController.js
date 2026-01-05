@@ -1931,7 +1931,13 @@ exports.getTripsCountForDrivers = async (req, res) => {
       criteria =  {
                     driver_name: id,
                     status: true,
-                    trip_status: req.params.status,
+                    trip_status: {
+                      $in: [
+                              constant.TRIP_STATUS.BOOKED,
+                              constant.TRIP_STATUS.ACTIVE,
+                              constant.TRIP_STATUS.REACHED,
+                            ],
+                    },
                     is_deleted: false
                   }
     }
