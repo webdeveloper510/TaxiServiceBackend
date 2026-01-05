@@ -98,16 +98,19 @@ exports.add_driver = async (req, res) => {
     //     })
     //     return
     // }
+
+    const normalizedEmail = data.email.trim().toLowerCase();
+    
     const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
     data.lastUsedToken = new Date();
     data.created_by = superAdmin; // Assuming you have user authentication
-    let check_other1 = await DRIVER.findOne({ email: { $regex: data.email, $options: "i" }, is_deleted: false, });
+    let check_other1 = await DRIVER.findOne({ email: normalizedEmail, is_deleted: false, });
 
     let checkNickName = await DRIVER.findOne({ nickName: data.nickName});
     let check_other2 = await DRIVER.findOne({ phone: data.phone, is_deleted: false, });
     let check_other3 = await user_model.findOne({ $or: [
-                                                        { email: { $regex: data.email, $options: "i" } },
-                                                        { company_email: { $regex: data.email, $options: "i" } }
+                                                        { email: normalizedEmail },
+                                                        { company_email: normalizedEmail }
                                                       ], 
                                                       is_deleted: false,
                                                   });
@@ -360,11 +363,13 @@ exports.adminAddDriver = async (req, res) => {
     // data.profile_image = driver_image?.length != 0 ? driver_image[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
     // data.driver_documents = driver_documents?.length != 0 ? driver_documents[0] : 'https://res.cloudinary.com/dtkn5djt5/image/upload/v1697718254/samples/y7hq8ch6q3t7njvepqka.jpg'
     
+    const normalizedEmail = data.email.trim().toLowerCase();
+
     const superAdmin = await user_model.findOne({ role: "SUPER_ADMIN" });
     
     data.created_by = superAdmin; // Assuming you have user authentication
 
-    let checkEmailInDrivers = await DRIVER.findOne({email: { $regex: data.email, $options: "i" },
+    let checkEmailInDrivers = await DRIVER.findOne({email: normalizedEmail,
       // is_deleted: false,
     });
 
@@ -383,7 +388,7 @@ exports.adminAddDriver = async (req, res) => {
       }
     }
 
-    const normalizedEmail = data.email.trim().toLowerCase();
+    
 
     let checkEmailInUsers = await USER.findOne({ 
                                                 $or:  [

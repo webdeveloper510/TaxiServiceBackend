@@ -509,14 +509,16 @@ console.log('get it inoto-----------')
     const webDeviceToken = data.webDeviceToken;
     const roleType = data.roleType;
 
+    const normalizedEmail = data.email.trim().toLowerCase();
+
     if (roleType === constants.ROLES.COMPANY) {
       
       let userData = await USER.findOne({
                                         $and: [
                                           {
                                             $or: [
-                                              { email: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
-                                              { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+                                              { email: normalizedEmail }, // Exact match
+                                              // { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
                                             ],
                                           },
                                           {
@@ -613,8 +615,8 @@ console.log('get it inoto-----------')
                                                 $and: [
                                                   {
                                                     $or: [
-                                                      { email: { $regex: data.email, $options: "i" } },
-                                                      { phone: { $regex: data.email, $options: "i" } },
+                                                      { email: normalizedEmail },
+                                                      // { phone: { $regex: data.email, $options: "i" } },
                                                     ],
                                                   },
                                                   {
@@ -1139,8 +1141,8 @@ exports.send_otp = async (req, res) => {
       $and: [
         {
           $or: [
-            { email: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
-            { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+            { email: normalizedEmail }, // Exact match
+            // { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
           ],
         },
         {
@@ -1159,8 +1161,8 @@ exports.send_otp = async (req, res) => {
         $and: [
           {
             $or: [
-              { email: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
-              { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
+              { email: normalizedEmail }, // Exact match
+              // { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
             ],
           },
           {

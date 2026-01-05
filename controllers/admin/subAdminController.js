@@ -44,16 +44,17 @@ exports.add_sub_admin = async (req, res) => {
     data.email = data.email.toLowerCase();
 
     
-
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const normalizedCompanyEmail = data.company_email.trim().toLowerCase();
     let checkEmail = await USER.findOne({
-                                          email: { $regex: new RegExp(`^${data.email}$`, 'i') }, // Case-insensitive match
+                                          email: normalizedEmail,
                                           // is_deleted: false,
                                         });
 
     let checkCompanyUserEmail = await USER.findOne({
                                                     $or: [
-                                                      { email: { $regex: new RegExp(`^${data.company_email}$`, 'i') } },
-                                                      { company_email: { $regex: new RegExp(`^${data.company_email}$`, 'i') } }
+                                                      { email: normalizedCompanyEmail },
+                                                      { company_email: normalizedCompanyEmail }
                                                     ],
                                                     // is_deleted: false, // if needed
                                                   });
@@ -101,7 +102,7 @@ exports.add_sub_admin = async (req, res) => {
 
     // Cheked Email in driver table if comapany already rigestered as a driver then match email except the driver that is already created. 
     let checkDriverEmail = await DRIVER.findOne({
-                                                  email: { $regex: new RegExp(`^${data.email}$`, 'i') }, // Case-insensitive match
+                                                  email: normalizedEmail, // Case-insensitive match
                                                   // is_deleted: false,
                                                   ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
                                                     ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
@@ -117,7 +118,7 @@ exports.add_sub_admin = async (req, res) => {
     }
 
     let checkCompanyEmailInDriver = await DRIVER.findOne({
-                                                            email: { $regex: new RegExp(`^${data.company_email}$`, 'i') }, // Case-insensitive match
+                                                            email: normalizedCompanyEmail, // Case-insensitive match
                                                             // is_deleted: false,
                                                             ...(data.role === constant.ROLES.COMPANY && data?.isDriver == 'true'
                                                               ? { _id: { $ne: new mongoose.Types.ObjectId(data?.driverId) } }
@@ -779,17 +780,18 @@ exports.edit_sub_admin = async (req, res) => {
       }
 
         
-      
+      const normalizedEmail = data.email.trim().toLowerCase();
+      const normalizedCompanyEmail = data.company_email.trim().toLowerCase();
 
       if (checkSubAdmin.email != data.email) {
         let check_email = await USER.findOne({
                                               $or: [
-                                                { email: { $regex: new RegExp(`^${data.email}$`, 'i') } },
-                                                { company_email: { $regex: new RegExp(`^${data.email}$`, 'i') } }
+                                                { email: normalizedEmail },
+                                                { company_email: normalizedEmail }
                                               ]
                                             });
         let checkEmailInDrivers = await DRIVER.findOne({
-                                                        email: data.email,
+                                                        email: normalizedEmail,
                                                         ...(checkSubAdmin?.isDriver == true ? { _id: { $ne: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } } : {}),
                                                       });
         if (check_email || checkEmailInDrivers) {
@@ -803,14 +805,14 @@ exports.edit_sub_admin = async (req, res) => {
       if (checkSubAdmin.company_email != data.company_email) {
         let checkCompanyEmail = await USER.findOne({
                                                     $or: [
-                                                      { email: { $regex: new RegExp(`^${data.company_email}$`, 'i') } },
-                                                      { company_email: { $regex: new RegExp(`^${data.company_email}$`, 'i') } }
+                                                      { email: normalizedCompanyEmail },
+                                                      { company_email: normalizedCompanyEmail }
                                                     ]
                                                   });
 
 
         let checkCompanyEmailInDrivers = await DRIVER.findOne({
-                                                                email: data.company_email,
+                                                                email: normalizedCompanyEmail,
                                                                 ...(checkSubAdmin?.isDriver == true ? { _id: { $ne: new mongoose.Types.ObjectId(checkSubAdmin?.driverId) } } : {}),
                                                               });
         if (checkCompanyEmail || checkCompanyEmailInDrivers) {
