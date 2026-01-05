@@ -17,7 +17,6 @@ const geolib = require("geolib");
 const mongoose = require("mongoose");
 const randToken = require("rand-token").generator();
 const moment = require("moment");
-const { sendNotification } = require("../../Service/helperFuntion");
 const { 
         isDriverHasCompanyAccess , 
         getCompanyActivePaidPlans , 
@@ -31,9 +30,10 @@ const {
         emitNewTripAddedByCustomer,
         emitTripAssignedToSelf,
         getTimeZoneIdFromAddress,
-        getCompanyActivePaidPlansBulk
+        getCompanyActivePaidPlansBulk,
+        partnerAccountRefreshTrip,
+        sendNotification
       } = require("../../Service/helperFuntion");
-const {partnerAccountRefreshTrip} = require("../../Service/helperFuntion");
 const trip_model = require("../../models/user/trip_model");
 const user_model = require("../../models/user/user_model");
 const { default: axios } = require("axios");
@@ -2440,8 +2440,6 @@ exports.alocate_driver = async (req, res) => {
                         });
       }
 
-      
-
       let newValues = {
                         $set: {
                           driver_name: driver_full_info._id,
@@ -2467,6 +2465,8 @@ exports.alocate_driver = async (req, res) => {
 
         const isPartiallyAccess = false; // to check if main company owner or partner accessign this function
         emitTripAssignedToSelf(update_trip , req.companyPartnerAccess , driver_full_info , req.io , )
+
+        partnerAccountRefreshTrip(update_trip.created_by_company_id , res.__('editTrip.socket.tripChangedRefresh') , req.io)
         return res.send({
                         code: constant.success_code,
                         message:  res.__("getDrivers.success.allocatedDriver"),
@@ -2483,7 +2483,7 @@ exports.alocate_driver = async (req, res) => {
         let token_value = driver_full_info.deviceToken == null ? driver_c_data.deviceToken :driver_full_info.deviceToken;
         let web_token_value = driver_full_info.webDeviceToken == null ? driver_c_data.webDeviceToken :driver_full_info.webDeviceToken;
         
-
+        
         if (token_value) {
 
          
@@ -2568,6 +2568,7 @@ exports.alocate_driver = async (req, res) => {
       
       setTimeout(() => { tripIsBooked(update_trip._id, driver_full_info, req.io); }, process.env.TRIP_POP_UP_SHOW_TIME * 1000);
       
+      partnerAccountRefreshTrip(update_trip.created_by_company_id , res.__('editTrip.socket.tripChangedRefresh') , req.io)
       return res.send({
                         code: constant.success_code,
                         message: res.__("getDrivers.success.allocatedDriver"),

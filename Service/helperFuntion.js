@@ -515,14 +515,17 @@ exports.partnerAccountRefreshTrip = async (companyId , message, io) => {
 
   const companyData = await user_model.findOne({ _id: companyId });
 
+  // console.log("partner refrrsh")
   
   if (companyData?.socketId) {
-    await io.to(companyData?.socketId).emit("refreshTrip", { message: message } )
+    io.to(companyData?.socketId).emit("refreshTrip", { message: message } )
+
+    // console.log("app socket---", companyData?.socketId)
   }
 
   if (companyData?.webSocketId) {
     
-    await io.to(companyData?.webSocketId).emit("refreshTrip", { message: message })
+    io.to(companyData?.webSocketId).emit("refreshTrip", { message: message })
   }
 
   // functionality for the drivers who have account access as partner
@@ -1403,7 +1406,7 @@ exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDeta
             let targetLocale = tokenData?.app_locale || process.env.DEFAULT_LANGUAGE;
             let message = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedMessage", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetail.trip_id });
 
-            let title = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedTitle", locale: targetLocale }, { trip_id: tripDetails.trip_id });
+            let title = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedTitle", locale: targetLocale }, { trip_id: tripDetail.trip_id });
             this.sendNotification(
                                     tokenValue,
                                     message,
@@ -1417,7 +1420,7 @@ exports.emitTripAssignedToSelf = async(tripDetail , isPartnerAccess , driverDeta
             let targetLocale = tokenData?.app_locale || process.env.DEFAULT_LANGUAGE;
             let message = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedMessage", locale: targetLocale }, { driver_name: driver_name , trip_id: tripDetail.trip_id });
 
-            let title = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedTitle", locale: targetLocale }, { trip_id: tripDetails.trip_id });
+            let title = i18n.__({ phrase: "editTrip.notification.tripSelfAssignedTitle", locale: targetLocale }, { trip_id: tripDetail.trip_id });
             this.sendNotification(
                                     tokenValue,
                                     message,

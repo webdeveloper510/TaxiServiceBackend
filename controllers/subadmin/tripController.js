@@ -532,52 +532,7 @@ exports.edit_trip = async (req, res) => {
     let option = { new: true };
     data.status = true;
 
-    if (data?.car_type) { // when commission will be changed 
-
-      if (data?.commission && data?.commission?.commission_value != 0) {
-      
-        let commission = data.commission.commission_value;
-        if ( data.commission.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE && data.commission.commission_value > 0 ) {
-          commission = (Number(data.price) * data.commission.commission_value) / 100;
-        }
-
-        const companyDetails = await USER.findById(trip_data?.created_by_company_id);
-        const isCommisionPay = await willCompanyPayCommissionOnTrip(req.user);
-
-
-        if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan){
-
-          return res.send({
-                            code: constant.error_code,
-                            result: res.__('editTrip.error.noActivePlanForTripCreation'),
-                          });
-        }
-
-        const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISSION});
-        
-        data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0).toFixed(2);
-        // data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision?.value)) / 100 || 0);
-        data.companyPaymentAmount = (commission - data.superAdminPaymentAmount).toFixed(2);
-        data.driverPaymentAmount = (Number(data.price) - data.companyPaymentAmount - data.superAdminPaymentAmount).toFixed(2);
-  
-      } else {
-
-        if (data?.price) {
-
-          data.superAdminPaymentAmount = 0;
-          data.companyPaymentAmount = 0;
-          data.driverPaymentAmount = Number(data.price).toFixed(2);
-        }
-      }
-    }
-
-    if (data?.trip_from) {
-      const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
-      const destination = `${data.trip_to.lat},${data.trip_to.log}`;
-      let distanceInfo = await getDistanceAndDuration(origin , destination)
-      data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
-    }
-
+    // when trip will be cancelled
     if (data?.trip_status == constant.TRIP_STATUS.CANCELED) {
       
       data.trip_cancelled_by_role = req.companyPartnerAccess ? constant.TRIP_CANCELLED_BY_ROLE.PARTNER_ACCESS : constant.TRIP_CANCELLED_BY_ROLE.COMPANY;
@@ -680,6 +635,7 @@ exports.edit_trip = async (req, res) => {
         req.io.to(driver_data.socketId).emit("popUpClose", { message: res.__('editTrip.socket.tripRetrivedByCompany')})
       }
 
+      // when company reyrive the trip from driver
       if ( data?.trip_status == constant.TRIP_STATUS.PENDING && trip_data.driver_name !== null && trip_data.driver_name != "null" && trip_data.driver_name != "" ) {
 
         let driver_data = await DRIVER.findOne({ _id: trip_data.driver_name });
@@ -766,10 +722,12 @@ exports.edit_trip = async (req, res) => {
         }
       }
       
-      let responseMessage = res.__('editTrip.success.tripUpdated');
-      if (data?.trip_status == constant.TRIP_STATUS.CANCELED) { // change the message when trip is canceled
-        responseMessage = res.__('getTrip.success.tripCancelled');
-      }
+      
+
+      const responseMessage = res.__( data?.trip_status === constant.TRIP_STATUS.CANCELED
+                                        ? 'getTrip.success.tripCancelled'
+                                        : 'editTrip.success.tripUpdated'
+                                    );
       return res.send({
                         code: constant.success_code,
                         message: responseMessage,
@@ -779,6 +737,7 @@ exports.edit_trip = async (req, res) => {
   } catch (err) {
 
     console.log('❌❌❌❌❌❌❌❌❌Error edit trip :', err.message);
+    throw err;
     return res.send({
                       code: constant.error_code,
                       message: err.message,
@@ -1730,47 +1689,6 @@ exports.access_edit_trip = async (req, res) => {
 
     let option = { new: true };
     data.status = true;
-    
-    if (data?.commission && data?.commission?.commission_value != 0) {
-
-      let commission = data.commission.commission_value;
-      if ( data.commission.commission_type === constant.TRIP_COMMISSION_TYPE.PERCENTAGE && data.commission.commission_value > 0 ) {
-        commission = (data.price * data.commission.commission_value) / 100;
-      }
-
-      const companyDetails = await USER.findById(trip_data?.created_by_company_id);
-      if (!isCommisionPay?.paidPlan && !isCommisionPay?.specialPlan){
-
-        return res.send({
-                          code: constant.error_code,
-                          result: res.__('editTrip.error.noActivePlanForTripCreation'),
-                        });
-      }
-      const adminCommision = await SETTING_MODEL.findOne({key: constant.ADMIN_SETTINGS.COMMISSION});
-
-      
-      data.superAdminPaymentAmount = !isCommisionPay.commision  ? 0 : ((Number(commission) * parseFloat(adminCommision.value)) / 100 || 0).toFixed(2);
-      // data.superAdminPaymentAmount = (myPlans.length > 0 || companyDetails?.is_special_plan_active)? 0 : ((commission * parseFloat(adminCommision.value)) / 100 || 0);
-      data.companyPaymentAmount = (Number(commission) - Number(data.superAdminPaymentAmount)).toFixed(2);
-      data.driverPaymentAmount = (Number(data.price) - data.companyPaymentAmount - data.superAdminPaymentAmount).toFixed(2);
-
-    } else {
-
-      if (data?.price) {
-        data.superAdminPaymentAmount = 0;
-        data.companyPaymentAmount = 0;
-        
-        data.driverPaymentAmount = Number(data.price).toFixed(2)
-      }
-      
-    }
-
-    if (data?.trip_from) {
-      const origin = `${ data.trip_from.lat},${data.trip_from.log}`;
-      const destination = `${data.trip_to.lat},${data.trip_to.log}`;
-      let distanceInfo = await getDistanceAndDuration(origin , destination)
-      data.trip_distance = distanceInfo?.distance?.text ? (parseFloat(distanceInfo?.distance?.text)  * 0.621371).toFixed(2) : ''; // in miles
-    }
 
     if (data?.trip_status == constant.TRIP_STATUS.CANCELED) {
       
