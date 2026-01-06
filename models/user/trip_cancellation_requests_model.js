@@ -73,4 +73,6 @@ const cancellationRequestSchema = new Schema({
  
 }, { timestamps: true });
 
-module.exports = mongoose.model('trip_cancellation_requests', cancellationRequestSchema);
+cancellationRequestSchema.index({ requested_at: -1, company_id: 1 });
+cancellationRequestSchema.index({ requested_at: -1, trip_id: 1 });
+module.exports = mongoose.model('trip_cancellation_requests', cancellationRequestSchema , 'trip_cancellation_requests');

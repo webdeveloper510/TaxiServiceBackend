@@ -1529,11 +1529,19 @@ exports.driverCancelTripRequests = async (req, res) => {
                   under_cancellation_review: true,
                 };
 
-    if (date) {
+    // ✅ date range for requested_at (if date provided)
+    let requestedAtRange = null;
+
+    if (date && !isNaN(date.getTime())) {
       const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
       const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999));
-      match.updatedAt = { $gte: startOfDay, $lte: endOfDay };
+      // match.updatedAt = { $gte: startOfDay, $lte: endOfDay };
+      requestedAtRange  = { $gte: startOfDay, $lte: endOfDay };
+
+      console.log("ddd---",{ $gte: startOfDay, $lte: endOfDay })
     }
+
+
 
     if (req.user.role === constant.ROLES.COMPANY) {
       match.created_by_company_id = new mongoose.Types.ObjectId(req.user._id);
@@ -1550,7 +1558,34 @@ exports.driverCancelTripRequests = async (req, res) => {
 
     const result = await TRIP.aggregate([
       { $match: match },
+      // ✅ Join cancellation request (needed for date filter + response)
+      {
+        $lookup: {
+          from: "trip_cancellation_requests", // <-- confirm actual collection name
+          let: { reqId: "$trip_cancellation_request_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$reqId"] } } },
+            { $limit: 1 },
+            {
+              $project: {
+                _id: 1,
+                requested_at: 1,
+                // cancellation_reason: 1,
+                // trip_status: 1,
+                // reviewer_action: 1,
+                // reviewed_by_role: 1,
+              },
+            },
+          ],
+          as: "cancel_request",
+        },
+      },
+      { $unwind: { path: "$cancel_request", preserveNullAndEmptyArrays: false } },
 
+      // ✅ Apply date filter on cancellation requested_at (ONLY when date provided)
+      ...(requestedAtRange
+        ? [{ $match: { "cancel_request.requested_at": requestedAtRange } }]
+        : []),
       // ✅ Use facet to get data + total in one query
       {
         $facet: {
@@ -1613,9 +1648,19 @@ exports.driverCancelTripRequests = async (req, res) => {
                 trip_from: 1,
                 trip_to: 1,
                 cancellation_reason: 1,
+                trip_cancellation_request_id: 1,
+                under_cancellation_review: 1,
                 updatedAt: 1,
                 createdAt: 1,
                 company_name: "$agency.company_name",
+                cancellation_request: {
+                  _id: "$cancel_request._id",
+                  requested_at: "$cancel_request.requested_at",
+                  // cancellation_reason: "$cancel_request.cancellation_reason",
+                  // trip_status: "$cancel_request.trip_status",
+                  // reviewer_action: "$cancel_request.reviewer_action",
+                  // reviewed_by_role: "$cancel_request.reviewed_by_role",
+                },
                 driver: {
                   _id: "$driver._id",
                   first_name: "$driver.first_name",
