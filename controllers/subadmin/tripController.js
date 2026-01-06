@@ -1518,40 +1518,132 @@ exports.customerCancelTrip = async (req , res) => {
 exports.driverCancelTripRequests = async (req, res) => {
   try {
 
-    const page = parseInt(req.body.page) || 1; // default to page 1
-    const limit = parseInt(req.body.limit) || 10; // default to 10 items per page
+    const page = Math.max(parseInt(req.body.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.body.limit, 10) || 10, 1), 50);
     const skip = (page - 1) * limit;
     const date = req.body.date ? new Date(req.body.date) : null;
 
     // Optional filter (e.g., by user or company)
-    let filter = { 
-                    is_deleted: false,
-                    under_cancellation_review: true,
-                  };
+    let match = { 
+                  is_deleted: false,
+                  under_cancellation_review: true,
+                };
 
     if (date) {
       const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
       const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999));
-      filter.updatedAt = { $gte: startOfDay, $lte: endOfDay };
+      match.updatedAt = { $gte: startOfDay, $lte: endOfDay };
     }
 
-    if (req.user.role == constant.ROLES.COMPANY) {
-
-      filter.created_by_company_id = req.user._id;
-    } else if (req.user.role == constant.ROLES.DRIVER) {
-      
-      filter.created_by_company_id = req.body?.company_id;
+    if (req.user.role === constant.ROLES.COMPANY) {
+      match.created_by_company_id = new mongoose.Types.ObjectId(req.user._id);
+    } else if (req.user.role === constant.ROLES.DRIVER) {
+      const companyId = (req.body.company_id || "").toString().trim();
+      if (!mongoose.Types.ObjectId.isValid(companyId)) {
+        return res.send({ code: constant.error_code, message: "Invalid company_id" });
+      }
+      match.created_by_company_id = new mongoose.Types.ObjectId(companyId);
     }
 
-    let tripInfo = await TRIP.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
-    const total = await TRIP.countDocuments(filter);
+    // let tripInfo = await TRIP.find(match).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    // const total = await TRIP.countDocuments(match);
+
+    const result = await TRIP.aggregate([
+      { $match: match },
+
+      // ✅ Use facet to get data + total in one query
+      {
+        $facet: {
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+
+            // ✅ Join driver (only required fields)
+            {
+              $lookup: {
+                from: "drivers", // <-- confirm actual collection name
+                let: { driverId: "$driver_name" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
+                  {
+                    $project: {
+                      _id: 1,
+                      first_name: 1,
+                      last_name: 1,
+                      phone: 1,
+                      countryCode: 1,
+                      email: 1,
+                    },
+                  },
+                ],
+                as: "driver",
+              },
+            },
+            { $unwind: { path: "$driver", preserveNullAndEmptyArrays: true } },
+
+            // ✅ Join agency to get company_name (based on created_by_company_id)
+            {
+              $lookup: {
+                from: "agencies", // <-- confirm collection name in Mongo
+                let: { companyUserId: "$created_by_company_id" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$user_id", "$$companyUserId"] } } },
+                  { $limit: 1 },
+                  {
+                    $project: {
+                      _id: 0,
+                      company_name: 1,
+                    },
+                  },
+                ],
+                as: "agency",
+              },
+            },
+            { $unwind: { path: "$agency", preserveNullAndEmptyArrays: true } },
+
+            // ✅ Return only minimal keys (edit as you want)
+            {
+              $project: {
+                _id: 1,
+                trip_id: 1,
+                trip_status: 1,
+                pickup_date_time: 1,
+                pickup_timezone: 1,
+                trip_from: 1,
+                trip_to: 1,
+                cancellation_reason: 1,
+                updatedAt: 1,
+                createdAt: 1,
+                company_name: "$agency.company_name",
+                driver: {
+                  _id: "$driver._id",
+                  first_name: "$driver.first_name",
+                  last_name: "$driver.last_name",
+                  phone: "$driver.phone",
+                  countryCode: "$driver.countryCode",
+                  email: "$driver.email",
+                },
+              },
+            },
+          ],
+
+          total: [
+            { $count: "count" }
+          ],
+        },
+      },
+    ]).allowDiskUse(true);
+
+    const data = result?.[0]?.data || [];
+    const total = result?.[0]?.total?.[0]?.count || 0;
 
     return res.send({
                       code: constant.success_code,
                       currentPage: page,
                       totalPages: Math.ceil(total / limit),
                       totalTrips: total,
-                      data: tripInfo,
+                      data,
                       
                     });
   } catch (err) {

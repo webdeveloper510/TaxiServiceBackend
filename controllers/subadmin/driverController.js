@@ -1635,7 +1635,7 @@ exports.getAllTripsForDrivers = async (req, res) => {
                 let: { driverId: "$driver_name" },
                 pipeline: [
                   { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
-                  { $project: { _id: 1, first_name: 1, last_name: 1 } },
+                  { $project: { _id: 1, first_name: 1, last_name: 1 , phone: 1 , countryCode:1} },
                 ],
                 as: "driver",
               },
@@ -1743,7 +1743,8 @@ exports.getAllTripsForDrivers = async (req, res) => {
                     },
                   },
                 },
-
+                driver_country_code: "$driver.countryCode",
+                driver_phone: "$driver.phone",
                 vehicle: {
                   $trim: {
                     input: {

@@ -515,6 +515,14 @@ trip.index({
   pickup_date_time: 1,
 });
 
+trip.index({
+  under_cancellation_review: 1,
+  is_deleted: 1,
+  created_by_company_id: 1,
+  updatedAt: 1,
+  createdAt: -1,
+});
+
 // 3) Company/hotel list views (optional but common in dispatch dashboards)
 trip.index({ created_by_company_id: 1, pickup_date_time: -1 });
 trip.index({ hotel_id: 1, pickup_date_time: -1 });
