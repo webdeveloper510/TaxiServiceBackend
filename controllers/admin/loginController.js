@@ -1,6 +1,6 @@
 require("dotenv").config();
 const { default: axios } = require("axios");
-const constants = require("../../config/constant");
+const CONSTANT = require("../../config/constant");
 const USER = require("../../models/user/user_model");
 const AGENCY = require("../../models/user/agency_model");
 const FEEDBACK = require("../../models/user/feedback_model");
@@ -45,7 +45,7 @@ exports.create_super_admin = async (req, res) => {
     let checkEmail = await USER.findOne({ email: data.email });
     if (checkEmail) {
       res.send({
-        code: constants.error_code,
+        code: CONSTANT.error_code,
         message: res.__('createSuperAdmin.error.emailAlreadyInUse'),
       });
       return;
@@ -53,7 +53,7 @@ exports.create_super_admin = async (req, res) => {
     let checkPhone = await USER.findOne({ phone: data.phone });
     if (checkPhone) {
       res.send({
-        code: constants.error_code,
+        code: CONSTANT.error_code,
         message: res.__('createSuperAdmin.error.phoneAlreadyInUse'),
       });
       return;
@@ -65,7 +65,7 @@ exports.create_super_admin = async (req, res) => {
     let save_data = await USER(data).save();
     if (!save_data) {
       res.send({
-        code: constants.error_code,
+        code: CONSTANT.error_code,
         message: res.__('createSuperAdmin.error.saveFailed'),
       });
     } else {
@@ -79,7 +79,7 @@ exports.create_super_admin = async (req, res) => {
       );
       save_data.jwtToken = jwtToken;
       res.send({
-        code: constants.success_code,
+        code: CONSTANT.success_code,
         message: res.__('createSuperAdmin.success.accountCreated'),
         result: save_data,
       });
@@ -87,7 +87,7 @@ exports.create_super_admin = async (req, res) => {
   } catch (err) {
     console.log('❌❌❌❌❌❌❌❌❌ create super admin error --------------' , err.message)
     res.send({
-      code: constants.error_code,
+      code: CONSTANT.error_code,
       message: err.message,
     });
   }
@@ -105,8 +105,8 @@ exports.login = async (req, res) => {
     let data = req.body;
     const deviceToken = data.deviceToken;
     const webDeviceToken = data.webDeviceToken;
-    const mobile = data?.platform == constants.PLATFORM.MOBILE;
-    const locale = constants.INTERNATIONALIZATION_LANGUAGE.ENGLISH === req.query.lang ? constants.INTERNATIONALIZATION_LANGUAGE.ENGLISH : constants.INTERNATIONALIZATION_LANGUAGE.DUTCH;
+    const mobile = data?.platform == CONSTANT.PLATFORM.MOBILE;
+    const locale = CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH === req.query.lang ? CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH : CONSTANT.INTERNATIONALIZATION_LANGUAGE.DUTCH;
     
     if ( !data || typeof data.email !== "string" || typeof data.password !== "string") {
       return res.send({
@@ -119,7 +119,6 @@ exports.login = async (req, res) => {
 
       return res.send({
                         code: constant.error_code,
-                        d:"d",
                         message: res.__('userLogin.error.incorrectCredentials'),
                       });
     }
@@ -160,19 +159,19 @@ exports.login = async (req, res) => {
     // If user is blocked by admin or super admin
     if (userData && userData.role != "SUPER_ADMIN" && (userData?.is_blocked) ) {
 
-      if ( userData.role != constants.ROLES.COMPANY) {
+      if ( userData.role != CONSTANT.ROLES.COMPANY) {
         return res.send({
                           code: constant.error_code,
                           message: res.__('userLogin.error.accessRestricted')
                         });
-      } else if (userData?.role == constants.ROLES.COMPANY && userData?.isDriver == false){
+      } else if (userData?.role == CONSTANT.ROLES.COMPANY && userData?.isDriver == false){
         return res.send({
                           code: constant.error_code,
                           message: res.__('userLogin.error.accessRestricted')
                         });
       } else {}
       
-    }else if (userData?.role == constants.ROLES.HOTEL) {
+    }else if (userData?.role == CONSTANT.ROLES.HOTEL) {
 
       let hotelCreatedBy = await USER.findOne({_id: userData.created_by})
 
@@ -186,7 +185,7 @@ exports.login = async (req, res) => {
 
     
     // drver login code
-    if (!userData || (userData?.role == constants.ROLES.COMPANY &&  userData?.isDriver == true && userData?.is_blocked == true)) {
+    if (!userData || (userData?.role == CONSTANT.ROLES.COMPANY &&  userData?.isDriver == true && userData?.is_blocked == true)) {
 
       let DriverDetails = await DRIVER.findOne({ email:normalizedEmail, is_deleted: false, });
       
@@ -233,7 +232,7 @@ exports.login = async (req, res) => {
         
       if (!checkPassword) {
         return res.send({
-                          code: constants.error_code,
+                          code: CONSTANT.error_code,
                           message: res.__('userLogin.error.incorrectCredentials')
                         });
         
@@ -314,7 +313,7 @@ exports.login = async (req, res) => {
       // update driver cahce data
       updateDriverMapCache(DriverDetails._id);
       return res.send({
-                        code: constants.success_code,
+                        code: CONSTANT.success_code,
                         message: res.__('userLogin.success.loginWelcome'),
                         result: updateLogin,
                         jwtToken: jwtToken,
@@ -336,7 +335,7 @@ exports.login = async (req, res) => {
 
       if (!checkPassword) {
         return res.send({
-                          code: constants.error_code,
+                          code: CONSTANT.error_code,
                           message: res.__('userLogin.error.incorrectCredentials'),
                         });
       }
@@ -368,7 +367,7 @@ exports.login = async (req, res) => {
           setTimeout(() => { removeOTPAfter5Minutes(uniqueId); }, 120 * 1000); // 120 seconds ( 2 minutes)
           
           return res.send({
-                            code: constants.OTP_CODE,
+                            code: CONSTANT.OTP_CODE,
                             message: res.__('userLogin.success.otpSent', { phone: check_data.phone.slice(-4)}),
                             uniqueId: uniqueId,
                             OTP: process.env.IS_SMS_FUNCTIONALITY_ACTIVE == `true` ? "" : OTP, // when it will be false then we will send OTP manually to frontend
@@ -377,7 +376,7 @@ exports.login = async (req, res) => {
         } else {
 
           return res.send({
-                            code: constants.error_code,
+                            code: CONSTANT.error_code,
                             message: res.__('userLogin.error.noPhoneLinked')
                           });
         }
@@ -421,7 +420,7 @@ exports.login = async (req, res) => {
       // await check_data.save();
       await USER.findByIdAndUpdate( check_data._id, { $set: updateData }, { new: true });
 
-      // Update device token imn driver profile if compmany has driver account also
+      // Update device token in driver profile if compmany has driver account also
       if (check_data.isDriver) {
         
 
@@ -479,7 +478,7 @@ exports.login = async (req, res) => {
       }
 
       res.send({
-        code: constants.success_code,
+        code: CONSTANT.success_code,
         message: res.__('userLogin.success.loginWelcome'),
         result: getData[0] ? getData[0] : check_data,
         jwtToken: jwtToken,
@@ -487,15 +486,15 @@ exports.login = async (req, res) => {
     }
   } catch (err) {
     console.log('❌❌❌❌❌❌❌❌❌ login error --------------' , err.message)
-    res.send({
-      code: constants.error_code,
+    return res.send({
+      code: CONSTANT.error_code,
       message: err.message,
     });
   }
 };
 
 exports.appLogin = async (req, res) => {
-console.log('get it inoto-----------')
+
   try {
 
     let currentDate = new Date();
@@ -505,13 +504,257 @@ console.log('get it inoto-----------')
       startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
     ); // Set to Monday of current week
     let data = req.body;
+
+    if ( !data || typeof data?.email !== "string" || typeof data?.password !== "string" || typeof data?.platform !== "string") {
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+
+    if (data.email.length > 255 || data.password.length > 128 || data?.platform !== 'mobile') {
+
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+    
     const deviceToken = data.deviceToken;
-    const webDeviceToken = data.webDeviceToken;
     const roleType = data.roleType;
 
     const normalizedEmail = data.email.trim().toLowerCase();
 
-    if (roleType === constants.ROLES.COMPANY) {
+    const checkCompany = await USER.findOne({
+                                              email: normalizedEmail,
+                                              is_deleted: false,
+                                              is_blocked:false,
+                                              role: CONSTANT.ROLES.COMPANY
+                                            })
+                                            .lean();
+
+    const checkDriver = await DRIVER.findOne({
+                                              email: normalizedEmail,
+                                              is_deleted: false,
+                                              is_blocked:false,
+                                            })
+                                            .lean();
+
+    if (!checkCompany && !checkDriver) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    const checkPassword = await bcrypt.compare( data.password, checkCompany ? checkCompany.password : checkDriver.password);
+
+    if (!checkPassword) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    // Update token
+    if (deviceToken) {
+      await Promise.all([
+                          DRIVER.updateMany({ deviceToken }, { deviceToken: null }),
+                          USER.updateMany({ deviceToken }, { deviceToken: null }),
+                        ]);
+    }
+
+    // if user has company rolee
+    if (checkCompany) {
+
+      let jwtToken = jwt.sign(
+                              { 
+                                userId: checkCompany._id,
+                                companyPartnerAccess: false
+                              },
+                              process.env.JWTSECRET,
+                              { expiresIn: CONSTANT.JWT_TOKEN_EXPIRE }
+                            );
+
+      const updateData = {
+                          app_locale: locale,
+                          jwtTokenMobile: jwtToken,
+                          lastUsedTokenMobile: new Date(),
+                          ...(deviceToken? {deviceToken} : {})
+                        };
+
+      await USER.findByIdAndUpdate(checkCompany._id , { $set: updateData});
+    
+      // Update device token in driver profile if compmany has driver account also
+      if (checkCompany.isDriver) {
+        
+
+        let updateDriverdata =  {
+                                    deviceToken,
+                                    is_login: true,
+                                    app_locale: locale, 
+                                    lastUsedTokenMobile: new Date(), 
+                                    jwtTokenMobile: null,
+                                  };
+        
+        await DRIVER.updateOne(
+                                {_id: checkCompany.driverId},
+                                { $set: updateDriverdata }
+                              )
+
+        if (checkCompany?.driverId) { 
+          // update driver cahce data
+          updateDriverMapCache(checkCompany?.driverId); 
+        }
+      }
+
+      const [companyDetails] = await USER.aggregate([
+                                                      { $match: { _id: new mongoose.Types.ObjectId(checkCompany._id) } },
+                                                      { $limit: 1 },
+
+                                                      { $project: { 
+                                                                    _id: 1,  
+                                                                    email: 1,
+                                                                    first_name: 1, 
+                                                                    last_name: 1,
+                                                                    user_name: 1,
+                                                                    app_locale: 1,
+                                                                    countryCode: 1, 
+                                                                    phone: 1, 
+                                                                    role: 1, 
+                                                                    role: 1,
+                                                                    is_deleted: 1,
+                                                                    is_blocked: 1,
+                                                                    is_special_plan_active: 1,
+                                                                    commission:1,
+                                                                    isSocketConnected:1,
+                                                                    deviceToken:1,
+                                                                    is_email_verified: 1,
+                                                                    is_phone_verified: 1,
+                                                                    isDriver: 1,
+                                                                    driverId: 1,
+                                                                    isDriverDeleted: 1,
+                                                                    socketId: 1,
+                                                                    favoriteDrivers: 1,
+                                                                    company_account_access: 1,
+                                                                    parnter_account_access: 1,
+                                                                    settings: 1,
+                                                                    status: 1 
+                                                                  } 
+                                                      },
+
+                                                      {
+                                                        $lookup: {
+                                                          from: "agencies",
+                                                          let: { userId: "$_id" },
+                                                          pipeline: [
+                                                            { $match: { $expr: { $eq: ["$user_id", "$$userId"] } } },
+                                                            { $limit: 1 },
+                                                            { $project: {  
+                                                                          company_id: 1, 
+                                                                          company_name: 1,
+                                                                          p_number: 1,
+                                                                        } 
+                                                            },
+                                                          ],
+                                                          as: "company_detail",
+                                                        },
+                                                      },
+
+                                                      { $unwind: { path: "$company_detail", preserveNullAndEmptyArrays: true } },
+                                                    ]);
+
+    if (!companyDetails) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
+    } 
+    return res.send({
+        code: CONSTANT.success_code,
+        message: res.__('userLogin.success.loginWelcome'),
+        result: companyDetails,
+        jwtToken: jwtToken,
+      });
+    } else {
+
+      let currentDate = new Date();
+      let startOfCurrentWeek = new Date(currentDate);
+      startOfCurrentWeek.setHours(0, 0, 0, 0);
+      startOfCurrentWeek.setDate(
+        startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+      ); // Set to Monday of current week
+
+
+      const completedTrips = await trip_model.countDocuments({
+                                                                driver_name: checkDriver._id,
+                                                                trip_status: CONSTANT.TRIP_STATUS.COMPLETED,
+                                                                is_paid: false,
+                                                              }); 
+
+      const totalUnpaidTrips = await trip_model.countDocuments({
+                                                                driver_name: checkDriver._id,
+                                                                trip_status: CONSTANT.TRIP_STATUS.COMPLETED,
+                                                                is_paid: false,
+                                                                drop_time: {
+                                                                  $lte: startOfCurrentWeek,
+                                                                },
+                                                              });
+
+      const totalActiveTrips = await trip_model.countDocuments({
+                                                                driver_name: checkDriver._id,
+                                                                trip_status: "Active",
+                                                              });
+
+      let jwtToken =  jwt.sign(
+                                { 
+                                  userId: checkDriver._id,
+                                  companyPartnerAccess: false
+                                },
+                                process.env.JWTSECRET,
+                                { expiresIn: CONSTANT.JWT_TOKEN_EXPIRE }
+                              );
+
+      const updateDriver = { 
+                            is_login: true,
+                            app_locale: locale,
+                            jwtTokenMobile: jwtToken,
+                            lastUsedTokenMobile: new Date(),
+                            ...(deviceToken ? {deviceToken} : {}),
+                          };
+
+      let driverDetials = await DRIVER.findOneAndUpdate(
+                                                        { _id: checkDriver._id },
+                                                        { $set: updateDriver },
+                                                        { 
+                                                          new: true,
+                                                          select: "_id first_name last_name app_locale companyName address_2 address_1 city country zip_code email countryCode phone favoriteDrivers deviceToken profile_image driver_documents gender is_available is_deleted is_blocked status driver_state currentTripId isVerified isBlocked isDocUploaded kyc is_login is_in_ride is_special_plan_active isSocketConnected socketId nickName isCompany isCompanyDeleted driver_company_id company_agency_id jwtTokenMobile defaultVehicle driverCounterId company_account_access parnter_account_access "
+                                                        }
+                                                      );
+
+      if (driverDetials?.isCompany) {
+
+        await USER.updateOne( { 
+                                _id: checkDriver.driver_company_id }, 
+                                { 
+                                  $set: { 
+                                          deviceToken: deviceToken , 
+                                          app_locale: locale
+                                        }
+                                }
+                            );
+      }
+
+      driverDetials = driverDetials.toObject();
+      driverDetials.role = "DRIVER";
+      driverDetials.totalTrips = completedTrips;
+      driverDetials.totalUnpaidTrips = totalUnpaidTrips;
+      driverDetials.totalActiveTrips = totalActiveTrips;
+
+      // update driver cahce data
+      updateDriverMapCache(checkDriver._id);
+
+      return res.send({
+                        code: CONSTANT.success_code,
+                        message: res.__('userLogin.success.loginWelcome'),
+                        result: driverDetials,
+                        jwtToken: jwtToken,
+                      });
+    }
+
+
+    if (roleType === CONSTANT.ROLES.COMPANY) {
       
       let userData = await USER.findOne({
                                         $and: [
@@ -538,7 +781,7 @@ console.log('get it inoto-----------')
 
       if (!checkPassword) {
         return res.send({
-                          code: constants.error_code,
+                          code: CONSTANT.error_code,
                           message: res.__('userLogin.error.incorrectCredentials'),
                         });
       }
@@ -602,14 +845,14 @@ console.log('get it inoto-----------')
                                           ]);
 
       return res.send({
-                        code: constants.success_code,
+                        code: CONSTANT.success_code,
                         message: res.__('userLogin.success.loginWelcome'),
                         result: getData[0] ? getData[0] : userData,
                         jwtToken: jwtToken,
                       });
       
 
-    } else if (roleType === constants.ROLES.DRIVER) {
+    } else if (roleType === CONSTANT.ROLES.DRIVER) {
       
       let driverDetail  = await DRIVER.findOne({
                                                 $and: [
@@ -645,7 +888,7 @@ console.log('get it inoto-----------')
 
         if (!checkPassword) {
           return res.send({
-                            code: constants.error_code,
+                            code: CONSTANT.error_code,
                             message: res.__('userLogin.error.incorrectCredentials')
                           });
         
@@ -729,7 +972,7 @@ console.log('get it inoto-----------')
         check_data2.totalActiveTrips = totalActiveTrips;
 
         return res.send({
-                          code: constants.success_code,
+                          code: CONSTANT.success_code,
                           message: res.__('userLogin.success.loginWelcome'),
                           result: check_data2,
                           jwtToken: jwtToken,
@@ -738,7 +981,7 @@ console.log('get it inoto-----------')
       }
     } else {
       return res.send({
-        code: constants.error_code,
+        code: CONSTANT.error_code,
         message: res.__('userLogin.error.incorrectCredentials')
       });
     }
@@ -747,9 +990,162 @@ console.log('get it inoto-----------')
 
     console.log('❌❌❌❌❌❌❌❌❌ app login error --------------' , err.message)
     return res.send({
-                      code: constants.error_code,
+                      code: CONSTANT.error_code,
                       message: err.message,
                     });
+  }
+}
+
+exports.hotelWebLogin = async (req, res) => {
+
+  try {
+
+    let data = req.body;
+
+    if ( !data || typeof data?.email !== "string" || typeof data?.password !== "string" || typeof data?.id !== "string") {
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+
+    if (data.email.length > 255 || data.password.length > 128 || data.id.length != 24) {
+
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(data.id)) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    const webDeviceToken = typeof data.webDeviceToken === "string" ? data.webDeviceToken.trim() : "";
+
+    if (webDeviceToken && webDeviceToken.length > 4096) {
+      return res.send({ code: CONSTANT.error_code, message: res.__("userLogin.error.incorrectCredentials") });
+    }
+
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const hotelId = new mongoose.Types.ObjectId(data.id);
+    const lang = (req.query.lang || "").toString().toLowerCase();
+    const locale = CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH === lang ? CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH : CONSTANT.INTERNATIONALIZATION_LANGUAGE.DUTCH;
+    
+    const checkHotel = await USER.findOne({
+                                              email: normalizedEmail,
+                                              _id: hotelId,
+                                              is_deleted: false,
+                                              role: CONSTANT.ROLES.HOTEL,
+                                              // status: true,
+                                              is_blocked: false,
+                                            }).
+                                            select('_id password')
+                                            .lean();
+
+    if (!checkHotel) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    const checkPassword = await bcrypt.compare( data.password, checkHotel.password);
+
+    if (!checkPassword) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    let jwtToken = jwt.sign(
+                              { 
+                                userId: hotelId,
+                                companyPartnerAccess: false
+                              },
+                              process.env.JWTSECRET,
+                              { expiresIn: CONSTANT.JWT_TOKEN_EXPIRE }
+                            );
+
+    const updateData = {
+                          web_locale: locale,
+                          jwtToken: jwtToken,
+                          ...(webDeviceToken ? { webDeviceToken } : {}),
+                          lastUsedToken: new Date()
+                        };
+
+    await USER.findByIdAndUpdate( hotelId, { $set: updateData });
+
+    const [hotelDetails] = await USER.aggregate([
+                                                {
+                                                  $match: { _id: hotelId },
+                                                },
+
+                                                // 🔹 lookup company (created_by user)
+                                                {
+                                                  $lookup: {
+                                                    from: "users",
+                                                    localField: "created_by",
+                                                    foreignField: "_id",
+                                                    as: "company_detail",
+                                                    pipeline: [
+                                                      { $limit: 1 },
+                                                      {
+                                                        $project: {
+                                                          _id: 1,
+                                                          first_name: 1,
+                                                          last_name: 1,
+                                                          email: 1,
+                                                          phone: 1,
+                                                          user_name:1,
+                                                          countryCode:1,
+                                                          logo:1,
+                                                          settings:1,
+                                                        },
+                                                      },
+                                                    ],
+                                                  },
+                                                },
+                                                {
+                                                  $unwind: {
+                                                    path: "$company_detail",
+                                                    preserveNullAndEmptyArrays: true,
+                                                  },
+                                                },
+
+                                                // 🔹 select only required hotel + company fields
+                                                {
+                                                  $project: {
+                                                    _id: 1,
+                                                    first_name: 1,
+                                                    last_name: 1,
+                                                    email: 1,
+                                                    phone: 1,
+                                                    logo:1,
+                                                    is_deleted:1,
+                                                    is_blocked:1,
+                                                    status:1,
+                                                    is_email_verified:1,
+                                                    is_phone_verified:1,
+                                                    jwtToken:1,
+                                                    countryCode:1,
+                                                    role: 1,
+                                                    user_name:1,
+                                                    web_locale:1,
+                                                    company_detail: 1, // 👈 nested company info
+                                                  },
+                                                },
+                                                { $limit: 1 },
+                                              ]);
+
+    if (!hotelDetails) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
+    }    
+    return res.send({
+                      code: CONSTANT.success_code,
+                      message: res.__('userLogin.success.loginWelcome'),
+                      result: hotelDetails,
+                      jwtToken: jwtToken,
+                    });
+
+  } catch (err) {
+    console.log('❌❌❌❌❌❌❌❌❌ hotelWebLogin error --------------' , err.message)
+    return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
   }
 }
 
@@ -761,14 +1157,14 @@ exports.getIosAppVersion = async (req, res) => {
     const response = await axios.get(url);
     const data = response.data;
     res.send({
-      code: constants.success_code,
+      code: CONSTANT.success_code,
       message: data.results[0].version
     });
   } catch (error) {
 
     console.log('❌❌❌❌❌❌❌❌❌ get ISO app version error --------------' , error.message)
     res.send({
-      code: constants.error_code,
+      code: CONSTANT.error_code,
       message: res.__('userLogin.error.appVersionNotFound')
     });
   }
@@ -825,31 +1221,31 @@ exports.login_otp_verify = async (req, res) => {
         ]);
 
         return res.send({
-          code: constants.success_code,
+          code: CONSTANT.success_code,
           message: res.__('userLogin.success.loginWelcome'),
           result: getData[0] ? getData[0] : check_data,
           jwtToken: jwtToken,
         });
       } else {
         return res.send({
-          code: constants.error_code,
+          code: CONSTANT.error_code,
           message: res.__('loginOtpVerify.error.invalidOtp')
         });
       }
       res.send({
-        code: constants.success_code,
+        code: CONSTANT.success_code,
         message: user,
       });
     } else {
       return res.send({
-        code: constants.error_code,
+        code: CONSTANT.error_code,
         message: res.__('loginOtpVerify.error.requestExpired')
       });
     }
   } catch (error) {
     console.log('❌❌❌❌❌❌❌❌❌ login otp verify error --------------' , error.message)
     return res.send({
-        code: constants.error_code,
+        code: CONSTANT.error_code,
         message: error.message,
       });
   }
@@ -885,33 +1281,33 @@ exports.resend_login_otp = async (req, res) => {
           }, 120 * 1000); // 120 seconds ( 2 minutes)
 
           return res.send({
-            code: constants.OTP_CODE,
+            code: CONSTANT.OTP_CODE,
             message: res.__('userLogin.success.otpSent' , {phone: check_data.phone.slice(-4)}),
             OTP: process.env.IS_SMS_FUNCTIONALITY_ACTIVE == `true` ? "" : OTP, // when it will be false then we will send OTP manually to frontend,
             uniqueId: uniqueId,
           });
         } else {
           return res.send({
-            code: constants.error_code,
+            code: CONSTANT.error_code,
             message:res.__('userLogin.error.noPhoneLinked'),
           });
         }
       } else {
         return res.send({
-          code: constants.error_code,
+          code: CONSTANT.error_code,
           message: res.__('loginOtpVerify.error.roleValidationFailed'),
         });
       }
     } else {
       return res.send({
-        code: constants.error_code,
+        code: CONSTANT.error_code,
         message: res.__('loginOtpVerify.error.requestExpired')
       });
     }
   } catch (error) {
     console.log('❌❌❌❌❌❌❌❌❌ resend login otp error --------------' , error.message)
     res.send({
-      code: constants.error_code,
+      code: CONSTANT.error_code,
       message: error.message,
     });
   }
@@ -990,7 +1386,7 @@ exports.get_token_detail = async (req, res) => {
       if (!get_data) {
 
         return res.send({
-                          code: constants.error_code,
+                          code: CONSTANT.error_code,
                           message: res.__('getTokenDetail.error.unableToFetchDetail'),
                         });
         
@@ -1047,7 +1443,7 @@ exports.get_token_detail = async (req, res) => {
 
     console.log('❌❌❌❌❌❌❌❌❌ get token details error --------------' , err.message)
     return  res.send({
-                      code: constants.error_code,
+                      code: CONSTANT.error_code,
                       message: err.message,
                     });
   }
@@ -1061,7 +1457,7 @@ exports.getCompanyDetail = async (req , res) => {
     const companyDetail = await USER.findById(compnayId).populate("driverId");
     if (!companyDetail) {
       res.send({
-                code: constants.error_code,
+                code: CONSTANT.error_code,
                 message: res.__('addSubAdmin.error.invalidCompany'),
               });
     }
@@ -1075,7 +1471,7 @@ exports.getCompanyDetail = async (req , res) => {
   } catch (error) {
     console.log("❌❌❌❌❌❌❌❌❌🚀 ~ exports.getCompanyDetail= ~ err:", error.message);
     res.send({
-      code: constants.error_code,
+      code: CONSTANT.error_code,
       message: error.message,
     });
   }
