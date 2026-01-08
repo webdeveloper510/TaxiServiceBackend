@@ -1262,7 +1262,7 @@ exports.hotelContextCompany = async (req , res) => {
     }
 
     const hotelId = new mongoose.Types.ObjectId(data.id);
-    const t0 = Date.now();
+    
     const checkHotel = await USER.findOne({
                                             _id: hotelId,
                                             is_deleted: false,
@@ -1270,20 +1270,24 @@ exports.hotelContextCompany = async (req , res) => {
                                             // status: true,
                                             is_blocked: false,
                                             })
-                                            .populate({
-                                              path: "created_by",          // make sure this matches schema field
-                                              select: "first_name last_name logo phone countryCode role",
-                                            })
                                             .select("_id created_by") 
                                             .lean();
-    console.log("hotelContextCompany query ms:", Date.now() - t0 );
+    
      if (!checkHotel) {
       return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
     }
 
+ 
+    const [company , companyDetails] = await Promise.all([
+      USER.findById(checkHotel?.created_by).select('first_name last_name logo phone countryCode role').lean(),
+      AGENCY.findOne({user_id: checkHotel?.created_by}).select('company_name').lean()
+    ]);
+    
+
+    if (company) company.company_name = companyDetails?.company_name || "";
     return res.send({
                       code: CONSTANT.success_code,
-                      result: checkHotel?.created_by || null,
+                      result: company || null,
                     });
   } catch (error) {
 

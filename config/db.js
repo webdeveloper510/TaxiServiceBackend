@@ -9,9 +9,13 @@ const dbUrl = process.env.DATABASE_URL
 const connection = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    maxPoolSize: 20,
+    minPoolSize: 5,
+    serverSelectionTimeoutMS: 5000, 
+    socketTimeoutMS: 20000,
 }
 
-mongoose
+ mongoose
     .connect(dbUrl, connection)
     .then((res) => {
         console.info('Connected to db')
@@ -19,4 +23,5 @@ mongoose
     .catch((e) => {
         
         console.log('❌❌❌❌❌❌❌❌❌  Unable to connect to the db', e)
+        process.exit(1);
     })
