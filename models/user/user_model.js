@@ -324,5 +324,5 @@ user.index({ phone: 1 });
 user.index({ first_name: 1 });
 user.index({ last_name: 1 });
 user.index({ role: 1, is_deleted: 1, is_blocked: 1, createdAt: -1 });
-
+user.index({ deviceToken: 1 });
 module.exports = mongoose.model("user", user);

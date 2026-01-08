@@ -1449,7 +1449,7 @@ exports.get_access_trip = async (req, res) => {
                 let: { driverId: "$driver_name" },
                 pipeline: [
                   { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
-                  { $project: { _id: 1, first_name: 1, last_name: 1 } },
+                  { $project: { _id: 1, first_name: 1, last_name: 1 , phone: 1, countryCode:1 } },
                 ],
                 as: "driver",
               },
@@ -1530,6 +1530,8 @@ exports.get_access_trip = async (req, res) => {
                 company_name: "$companyAgency.company_name",
 
                 driver_id: "$driver._id",
+                driver_phone: "$driver.phone",
+                driver_countryCode: "$driver.countryCode",
                 driver_name: {
                   $trim: {
                     input: {

@@ -526,6 +526,7 @@ exports.appLogin = async (req, res) => {
                                         is_blocked:false,
                                         role: CONSTANT.ROLES.COMPANY
                                       })
+                                      .select("_id password isDriver driverId")
                                       .lean(),
 
                         DRIVER.findOne({
@@ -533,6 +534,7 @@ exports.appLogin = async (req, res) => {
                                           is_deleted: false,
                                           is_blocked:false,
                                         })
+                                        .select("_id password driver_company_id")
                                         .lean()
     ])
 
@@ -654,15 +656,15 @@ exports.appLogin = async (req, res) => {
                                                       { $unwind: { path: "$company_detail", preserveNullAndEmptyArrays: true } },
                                                     ]);
 
-    if (!companyDetails) {
-      return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
-    } 
-    return res.send({
-        code: CONSTANT.success_code,
-        message: res.__('userLogin.success.loginWelcome'),
-        result: companyDetails,
-        jwtToken: jwtToken,
-      });
+      if (!companyDetails) {
+        return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
+      } 
+      return res.send({
+          code: CONSTANT.success_code,
+          message: res.__('userLogin.success.loginWelcome'),
+          result: companyDetails,
+          jwtToken: jwtToken,
+        });
     } else {
 
       let currentDate = new Date();
@@ -755,7 +757,7 @@ exports.appLogin = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ app login error --------------' , err.message)
     return res.send({
                       code: CONSTANT.error_code,
-                      message: err.message,
+                      message: res.__("common.error.somethingWentWrong"),
                     });
   }
 }

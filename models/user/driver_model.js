@@ -321,5 +321,5 @@ driver.index({ lastUsedTokenMobile: -1 }); // recent active drivers
 driver.index({ createdAt: -1 }); // sorting
 driver.index({ location: "2dsphere" }); // map/geospatial filtering
 driver.index({ is_special_plan_active: 1 }); // subscription logic
-
+driver.index({ deviceToken: 1 });
 module.exports = mongoose.model("driver", driver);
