@@ -515,7 +515,6 @@ exports.appLogin = async (req, res) => {
     }
     
     const deviceToken = data.deviceToken;
-    const roleType = data.roleType;
 
     const normalizedEmail = data.email.trim().toLowerCase();
 
@@ -551,8 +550,8 @@ exports.appLogin = async (req, res) => {
     // Update token
     if (deviceToken) {
       await Promise.all([
-                          DRIVER.updateMany({ deviceToken }, { $set: { deviceToken: null } }),
-                          USER.updateMany({ deviceToken }, { $set: { deviceToken: null } }),
+                          DRIVER.updateOne({ deviceToken }, { $set: { deviceToken: null } }),
+                          USER.updateOne({ deviceToken }, { $set: { deviceToken: null } }),
                         ]);
     }
 
@@ -914,6 +913,160 @@ exports.hotelWebLogin = async (req, res) => {
     return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
   }
 }
+
+exports.driverWebLogin = async (req, res) => {
+
+  try {
+
+    let data = req.body;
+
+    if ( !data || typeof data?.email !== "string" || typeof data?.password !== "string") {
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+
+    if (data.email.length > 255 || data.password.length > 128) {
+
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+
+    const webDeviceToken = typeof data.webDeviceToken === "string" ? data.webDeviceToken.trim() : "";
+
+    if (webDeviceToken && webDeviceToken.length > 4096) {
+      return res.send({ code: CONSTANT.error_code, message: res.__("userLogin.error.incorrectCredentials") });
+    }
+
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const lang = (req.query.lang || "").toString().toLowerCase();
+    const locale = CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH === lang ? CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH : CONSTANT.INTERNATIONALIZATION_LANGUAGE.DUTCH;
+    
+
+    const checkDriver = await DRIVER.findOne({
+                                              email: normalizedEmail,
+                                              is_deleted: false,
+                                              // status: true,
+                                              is_blocked: false,
+                                            }).
+                                            select('_id password')
+                                            .lean();
+
+    if (!checkDriver) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    const checkPassword = await bcrypt.compare( data.password, checkDriver.password);
+
+    if (!checkPassword) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    if (webDeviceToken) {
+      await Promise.all([
+                          DRIVER.updateOne({ webDeviceToken }, { $set: { webDeviceToken: null } }),
+                          USER.updateOne({ webDeviceToken }, { $set: { webDeviceToken: null } }),
+                        ]);
+    }
+
+    let currentDate = new Date();
+    let startOfCurrentWeek = new Date(currentDate);
+    startOfCurrentWeek.setHours(0, 0, 0, 0);
+    startOfCurrentWeek.setDate(
+      startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+    ); // Set to Monday of current week
+
+    const [completedTrips, totalUnpaidTrips, totalActiveTrips] = await Promise.all([
+
+                                                                                        trip_model.countDocuments({
+                                                                                                                    driver_name: checkDriver._id,
+                                                                                                                    trip_status: CONSTANT.TRIP_STATUS.COMPLETED,
+                                                                                                                    is_paid: false,
+                                                                                                                  }),
+
+                                                                                        trip_model.countDocuments({
+                                                                                                                    driver_name: checkDriver._id,
+                                                                                                                    trip_status: CONSTANT.TRIP_STATUS.COMPLETED,
+                                                                                                                    is_paid: false,
+                                                                                                                    drop_time: {
+                                                                                                                      $lte: startOfCurrentWeek,
+                                                                                                                    },
+                                                                                                                  }),
+
+                                                                                        trip_model.countDocuments({
+                                                                                                                    driver_name: checkDriver._id,
+                                                                                                                    trip_status: CONSTANT.TRIP_STATUS.ACTIVE,
+                                                                                                                  })
+                                                                                      ]);
+
+    let jwtToken =  jwt.sign(
+                              { 
+                                userId: checkDriver._id,
+                                companyPartnerAccess: false
+                              },
+                              process.env.JWTSECRET,
+                              { expiresIn: CONSTANT.JWT_TOKEN_EXPIRE }
+                            );
+
+    const updateDriver = { 
+                            // is_login: true,
+                            web_locale: locale,
+                            jwtToken: jwtToken,
+                            lastUsedToken: new Date(),
+                            ...(webDeviceToken ? {webDeviceToken} : {}),
+                          };
+
+    let driverDetials = await DRIVER.findOneAndUpdate(
+                                                        { _id: checkDriver._id },
+                                                        { $set: updateDriver },
+                                                        { 
+                                                          new: true,
+                                                          select: "_id first_name last_name app_locale companyName address_2 address_1 city country zip_code email countryCode phone favoriteDrivers deviceToken profile_image driver_documents gender is_available is_deleted is_blocked status driver_state currentTripId isVerified isBlocked isDocUploaded kyc is_login is_in_ride is_special_plan_active isSocketConnected socketId nickName isCompany isCompanyDeleted driver_company_id company_agency_id jwtTokenMobile defaultVehicle driverCounterId company_account_access parnter_account_access "
+                                                        }
+                                                      );
+
+    if (driverDetials?.isCompany) {
+
+      await USER.updateOne( { 
+                              _id: checkDriver.driver_company_id }, 
+                              { 
+                                $set: { 
+                                        webDeviceToken: webDeviceToken , 
+                                        web_locale: locale
+                                      }
+                              }
+                          );
+    }
+
+    driverDetials = driverDetials.toObject();
+    driverDetials.role = "DRIVER";
+    driverDetials.totalTrips = completedTrips;
+    driverDetials.totalUnpaidTrips = totalUnpaidTrips;
+    driverDetials.totalActiveTrips = totalActiveTrips;
+
+    // update driver cahce data
+    updateDriverMapCache(checkDriver._id);
+
+    return res.send({
+                      code: CONSTANT.success_code,
+                      message: res.__('userLogin.success.loginWelcome'),
+                      result: driverDetials,
+                      jwtToken: jwtToken,
+                    });
+
+  } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ driverWebLogin error --------------' , error.message)
+    res.send({
+      code: CONSTANT.error_code,
+      message: res.__('common.error.somethingWentWrong')
+    })
+  }
+}
+
 
 exports.getIosAppVersion = async (req, res) => {
   const appId = 6476204096;

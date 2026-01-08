@@ -1693,7 +1693,7 @@ exports.get_all_access_trip = async (req, res) => {
                 let: { driverId: "$driver_name" },
                 pipeline: [
                   { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
-                  { $project: { _id: 1, first_name: 1, last_name: 1 } },
+                  { $project: { _id: 1, first_name: 1, last_name: 1, countryCode: 1, phone: 1, } },
                 ],
                 as: "driver",
               },
@@ -1752,7 +1752,8 @@ exports.get_all_access_trip = async (req, res) => {
                 createdAt: 1,
                 created_by: 1,
                 status: 1,
-
+                booking_source: 1,
+                booking_channel: 1,
                 passenger_detail: 1,
                 vehicle_type: 1,
                 comment: 1,
@@ -1770,6 +1771,8 @@ exports.get_all_access_trip = async (req, res) => {
                 company_name: "$companyAgency.company_name",
 
                 driver_id: "$driver._id",
+                driver_countryCode: "$driver.countryCode",
+                driver_phone: "$driver.phone",
                 driver_name: {
                   $trim: {
                     input: {

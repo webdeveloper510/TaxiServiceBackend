@@ -26,8 +26,9 @@ router.post("/createPaymentSession", loginController.createPaymentSession);
 
 router.post("/create_super_admin", loginController.create_super_admin);
 router.post("/login", loginController.login);
-router.post("/app_login", loginController.appLogin);
+router.post("/app-login", loginController.appLogin);
 router.post("/hotel-web-login", loginController.hotelWebLogin);
+router.post("/driver-web-login", loginController.driverWebLogin);
 
 router.post("/login_otp_verify", loginController.login_otp_verify);
 router.post("/resend_login_otp", loginController.resend_login_otp);
