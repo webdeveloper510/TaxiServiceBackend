@@ -1067,6 +1067,233 @@ exports.driverWebLogin = async (req, res) => {
   }
 }
 
+exports.companyWebLogin = async (req, res) => {
+
+  try {
+
+    let data = req.body;
+
+    if ( !data || typeof data?.email !== "string" || typeof data?.password !== "string") {
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+
+    if (data.email.length > 255 || data.password.length > 128) {
+
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+
+    const webDeviceToken = typeof data.webDeviceToken === "string" ? data.webDeviceToken.trim() : "";
+
+    if (webDeviceToken && webDeviceToken.length > 4096) {
+      return res.send({ code: CONSTANT.error_code, message: res.__("userLogin.error.incorrectCredentials") });
+    }
+
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const lang = (req.query.lang || "").toString().toLowerCase();
+    const locale = CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH === lang ? CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH : CONSTANT.INTERNATIONALIZATION_LANGUAGE.DUTCH;
+    
+    const checkCompany = await USER.findOne({
+                                              email: normalizedEmail,
+                                              is_deleted: false,
+                                              role: CONSTANT.ROLES.COMPANY,
+                                              // status: true,
+                                              is_blocked: false,
+                                            }).
+                                            select('_id password isDriver driverId')
+                                            .lean();
+
+    if (!checkCompany) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    const checkPassword = await bcrypt.compare( data.password, checkCompany.password);
+
+    if (!checkPassword) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    if (webDeviceToken) {
+      await Promise.all([
+                          DRIVER.updateOne({ webDeviceToken }, { $set: { webDeviceToken: null } }),
+                          USER.updateOne({ webDeviceToken }, { $set: { webDeviceToken: null } }),
+                        ]);
+    }
+
+    let jwtToken = jwt.sign(
+                              { 
+                                userId: checkCompany._id,
+                                companyPartnerAccess: false
+                              },
+                              process.env.JWTSECRET,
+                              { expiresIn: CONSTANT.JWT_TOKEN_EXPIRE }
+                            );
+
+    const updateData = {
+                          web_locale: locale,
+                          jwtToken: jwtToken,
+                          lastUsedToken: new Date(),
+                          ...(webDeviceToken? {webDeviceToken} : {})
+                        };
+
+    await USER.findByIdAndUpdate(checkCompany._id , { $set: updateData});
+  
+    // Update device token in driver profile if compmany has driver account also
+      if (checkCompany.isDriver) {
+        
+
+        let updateDriverdata =  {
+                                    ...(webDeviceToken ? {webDeviceToken} : {}),
+                                    // is_login: true,
+                                    web_locale: locale, 
+                                    lastUsedToken: new Date(), 
+                                    jwtTokenMobile: null,
+                                  };
+        
+        await DRIVER.updateOne(
+                                {_id: checkCompany.driverId},
+                                { $set: updateDriverdata }
+                              )
+
+        if (checkCompany?.driverId) { 
+          // update driver cahce data
+          updateDriverMapCache(checkCompany?.driverId); 
+        }
+      }
+
+      const [companyDetails] = await USER.aggregate([
+                                                      { $match: { _id: new mongoose.Types.ObjectId(checkCompany._id) } },
+                                                      { $limit: 1 },
+
+                                                      { $project: { 
+                                                                    _id: 1,  
+                                                                    email: 1,
+                                                                    first_name: 1, 
+                                                                    last_name: 1,
+                                                                    user_name: 1,
+                                                                    app_locale: 1,
+                                                                    countryCode: 1, 
+                                                                    phone: 1, 
+                                                                    role: 1, 
+                                                                    role: 1,
+                                                                    is_deleted: 1,
+                                                                    is_blocked: 1,
+                                                                    is_special_plan_active: 1,
+                                                                    commission:1,
+                                                                    isSocketConnected:1,
+                                                                    deviceToken:1,
+                                                                    is_email_verified: 1,
+                                                                    is_phone_verified: 1,
+                                                                    isDriver: 1,
+                                                                    driverId: 1,
+                                                                    isDriverDeleted: 1,
+                                                                    socketId: 1,
+                                                                    favoriteDrivers: 1,
+                                                                    company_account_access: 1,
+                                                                    parnter_account_access: 1,
+                                                                    settings: 1,
+                                                                    status: 1 
+                                                                  } 
+                                                      },
+
+                                                      {
+                                                        $lookup: {
+                                                          from: "agencies",
+                                                          let: { userId: "$_id" },
+                                                          pipeline: [
+                                                            { $match: { $expr: { $eq: ["$user_id", "$$userId"] } } },
+                                                            { $limit: 1 },
+                                                            { $project: {  
+                                                                          company_id: 1, 
+                                                                          company_name: 1,
+                                                                          p_number: 1,
+                                                                        } 
+                                                            },
+                                                          ],
+                                                          as: "company_detail",
+                                                        },
+                                                      },
+
+                                                      { $unwind: { path: "$company_detail", preserveNullAndEmptyArrays: true } },
+                                                    ]);
+
+      if (!companyDetails) {
+        return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
+      } 
+      
+      return res.send({
+                        code: CONSTANT.success_code,
+                        message: res.__('userLogin.success.loginWelcome'),
+                        result: companyDetails,
+                        jwtToken: jwtToken,
+                      });
+
+  } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ companyWebLogin error --------------' , error.message)
+    res.send({
+      code: CONSTANT.error_code,
+      message: res.__('common.error.somethingWentWrong')
+    })
+  }
+}
+
+exports.hotelContextCompany = async (req , res) => {
+
+  try {
+
+    
+    let data = req.body;
+
+    if (!data?.id || typeof data?.id !== "string" || data?.id.length != 24) {
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('common.error.somethingWentWrong'),
+                      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(data.id)) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
+    }
+
+    const hotelId = new mongoose.Types.ObjectId(data.id);
+    const t0 = Date.now();
+    const checkHotel = await USER.findOne({
+                                            _id: hotelId,
+                                            is_deleted: false,
+                                            role: CONSTANT.ROLES.HOTEL,
+                                            // status: true,
+                                            is_blocked: false,
+                                            })
+                                            .populate({
+                                              path: "created_by",          // make sure this matches schema field
+                                              select: "first_name last_name logo phone countryCode role",
+                                            })
+                                            .select("_id created_by") 
+                                            .lean();
+    console.log("hotelContextCompany query ms:", Date.now() - t0 );
+     if (!checkHotel) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
+    }
+
+    return res.send({
+                      code: CONSTANT.success_code,
+                      result: checkHotel?.created_by || null,
+                    });
+  } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ hotelContextCompany error --------------' , error.message)
+    res.send({
+      code: CONSTANT.error_code,
+      message: res.__('common.error.somethingWentWrong')
+    })
+  }
+}
 
 exports.getIosAppVersion = async (req, res) => {
   const appId = 6476204096;
