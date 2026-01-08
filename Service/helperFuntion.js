@@ -4031,6 +4031,7 @@ exports.getLatLng = async (location) => {
   }
 }
 
+// based on address
 exports.getDistanceAndDuration = async (origin, destination) => {
 
  try {
@@ -4048,6 +4049,27 @@ exports.getDistanceAndDuration = async (origin, destination) => {
       const response = await axios.get(url);
       
       const element = response.data.rows[0].elements[0];
+      return element;
+  } catch (error) {
+
+    console.log("❌❌❌❌❌❌❌❌❌Error getDistanceAndDuration:",  error.message);
+    throw error;
+  }
+}
+
+// based on lat long
+exports.getDistanceAndDurationFromlatLong = async (pickupLat, pickupLng , dropLat , dropLng) => {
+
+  try {
+  
+    const origin = `${pickupLat},${pickupLng}`;
+    const destination = `${dropLat},${dropLng}`;
+    
+    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&mode=driving&units=imperial&departure_time=now&key=${process.env.GOOGLE_MAP_KEY}`;
+    console.log(url)
+      const response = await axios.get(url);
+      
+      const element = response?.data?.rows?.[0]?.elements?.[0];
       return element;
   } catch (error) {
 

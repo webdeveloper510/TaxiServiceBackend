@@ -26,6 +26,7 @@ const {
         sendTripUpdateToCustomerViaSMS,
         sendBookingConfirmationEmail,
         getDistanceAndDuration,
+        getDistanceAndDurationFromlatLong,
         emitTripNotAcceptedByDriver,
         emitNewTripAddedByCustomer,
         emitTripAssignedToSelf,
@@ -3167,6 +3168,43 @@ exports.getDistanceAndTime = async (req, res) => {
   }
 }
 
+
+exports.distanceMatrix = async (req, res) => {
+  try {
+
+    let data = req.body;
+    const element = await getDistanceAndDurationFromlatLong(data.from.lat , data.from.lng , data.to.lat , data.to.lng);
+
+    if (element.status === 'OK') {
+      
+      return res.send({
+        code: constant.success_code,
+        distanceText: element.distance.text,       // e.g., "25.4 km"
+        distanceMeters: element.distance.value,    // e.g., 25400
+        durationText: element.duration.text,       // e.g., "32 mins"
+        durationSeconds: element.duration.value
+      });
+    } else {
+      // throw new Error(`Google Maps API error: ${element.status}`);
+      return res.send({
+        code: constant.success_code,
+        distanceText: 0,       // e.g., "25.4 km"
+        distanceMeters: 0,    // e.g., 25400
+        durationText: 0,       // e.g., "32 mins"
+        durationSeconds: 0
+      });
+    }
+    
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error distanceMatrix:', err.message);
+    return res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+
+}
 exports.calculatePrice = async (req, res) => {
   try {
 
