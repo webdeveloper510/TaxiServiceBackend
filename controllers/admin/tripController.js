@@ -3173,7 +3173,25 @@ exports.distanceMatrix = async (req, res) => {
   try {
 
     let data = req.body;
-    const element = await getDistanceAndDurationFromlatLong(data.from.lat , data.from.lng , data.to.lat , data.to.lng);
+
+    const fromLat = Number(data?.from?.lat);
+    const fromLng = Number(data?.from?.lng);
+    const toLat   = Number(data?.to?.lat);
+    const toLng   = Number(data?.to?.lng);
+
+    const isValidLatLng =
+      Number.isFinite(fromLat) && Number.isFinite(fromLng) &&
+      Number.isFinite(toLat) && Number.isFinite(toLng) &&
+      Math.abs(fromLat) <= 90 && Math.abs(toLat) <= 90 &&
+      Math.abs(fromLng) <= 180 && Math.abs(toLng) <= 180;
+
+    if (!isValidLatLng) {
+      return res.send({
+        code: constant.error_code,
+        message: "Invalid from/to lat,lng",
+      });
+    }
+    const element = await getDistanceAndDurationFromlatLong(fromLat, fromLng, toLat, toLng);
 
     if (element.status === 'OK') {
       
@@ -3188,9 +3206,9 @@ exports.distanceMatrix = async (req, res) => {
       // throw new Error(`Google Maps API error: ${element.status}`);
       return res.send({
         code: constant.success_code,
-        distanceText: 0,       // e.g., "25.4 km"
+        distanceText: "0 mi",       // e.g., "25.4 km"
         distanceMeters: 0,    // e.g., 25400
-        durationText: 0,       // e.g., "32 mins"
+        durationText: "0 mins",       // e.g., "32 mins"
         durationSeconds: 0
       });
     }
