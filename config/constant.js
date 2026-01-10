@@ -8,6 +8,7 @@ module.exports={
     ACCOUNT_SHARE_REVOKED: "REVOKED",
     ACCOUNT_SHARE_INVOKED: "INVOKED",
     ACCESS_ERROR_CODE: 202,
+    BRAND_NAME: "IDISPATCH MOBILITY",
     JWT_TOKEN_EXPIRE:"30d",
     NETHERLANDS_COUNTRY_CODE: 31, // this is netherland code
     MIN_TIME_MS: 15_000 ,         // ✅ minimum time between broadcasts

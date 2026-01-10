@@ -3193,7 +3193,7 @@ exports.distanceMatrix = async (req, res) => {
     }
     const element = await getDistanceAndDurationFromlatLong(fromLat, fromLng, toLat, toLng);
 
-    if (element.status === 'OK') {
+    if (element?.status === 'OK') {
       
       return res.send({
         code: constant.success_code,

@@ -358,9 +358,11 @@ exports.login = async (req, res) => {
          
           await check_data.save();
 
-
+          let countryCode = check_data?.countryCode.startsWith('+') ? check_data?.countryCode :  `+${check_data?.countryCode}`
           sendSms({
-            to: `+${check_data?.countryCode}${check_data.phone}`,
+            to: `${countryCode}${check_data.phone}`,
+            senderName: CONSTANT.BRAND_NAME, 
+            countryCode: countryCode,
             message: res.__('userLogin.success.otpMessage', { first_name: check_data.first_name , last_name: check_data.last_name , OTP:OTP })
           });
 
@@ -1421,8 +1423,13 @@ exports.resend_login_otp = async (req, res) => {
           check_data.login_sms_otp_uid = uniqueId;
           check_data.login_sms_otp = OTP;
           await check_data.save();
+
+          let countryCode = check_data?.countryCode.startsWith('+') ? check_data?.countryCode :  `+${check_data?.countryCode}`
+          
           sendSms({
             to: `+${check_data?.countryCode}${check_data.phone}`,
+            senderName: CONSTANT.BRAND_NAME,
+            countryCode: countryCode,
             message: res.__('userLogin.success.otpMessage' , {first_name: check_data.first_name , last_name: check_data.last_name, OTP:OTP})
           });
 

@@ -289,7 +289,7 @@ exports.sendSms = async (data) => {
     let payload = {
                     body: data.message,
                     to: data.to,
-                    from: "+3197010204679",
+                    from: countryCode === `+${CONSTANT.NETHERLANDS_COUNTRY_CODE}` ? this.getSenderId(data?.senderName).slice(0, 11) :"+3197010204679", // +31 in netherland we can send sender id as alphanumeric with 11 charater 
                   }; 
     if (process.env.IS_SMS_FUNCTIONALITY_ACTIVE == `true`) {
       const message = await client.messages.create(payload);
@@ -304,6 +304,22 @@ exports.sendSms = async (data) => {
    
   }
 };
+
+exports.getSenderId = (senderName) => {
+  if (!senderName || typeof senderName !== "string") {
+    return "AMSTAXI"; // fallback brand
+  }
+
+  // Remove non-alphanumeric characters
+  const cleaned = senderName.replace(/[^a-zA-Z0-9]/g, "");
+
+  // Must contain at least one letter
+  if (!/[a-zA-Z]/.test(cleaned)) {
+    return "AMSTAXI";
+  }
+
+  return cleaned.slice(0, 11);
+}
 
 exports.userDetailsByToken = async (token) => {
   const { userId } = jwt.verify(token, process.env.JWTSECRET);
@@ -3623,10 +3639,11 @@ exports.sendTripUpdateToCustomerViaSMS = async (tripDetail , smsEventType) => {
         message = `your driver from ${companyAgencyDetail?.company_name} is on the way. Track here: ${process.env.BASEURL}/ride/${tripDetail?.unique_trip_code}`;
       }
       
-      let phone = `${tripDetail?.customerDetails?.countryCode}${tripDetail?.customerDetails?.phone}`;
-      phone = phone.startsWith('+') ? phone :  `+${phone}`;
+      let countryCode = tripDetail?.customerDetails?.countryCode.startsWith('+') ? tripDetail?.customerDetails?.countryCode :  `+${tripDetail?.customerDetails?.countryCode}`
+      let phone = `${countryCode}${tripDetail?.customerDetails?.phone}`;
       
-      const isSendSms    = await this.sendSms({to: phone , message:message});
+      const senderName = companyAgencyDetail?.company_name ?? "";
+      const isSendSms    = await this.sendSms({to: phone , message:message , senderName:senderName , countryCode: countryCode});
 
 
       const smsTransactionData = {
