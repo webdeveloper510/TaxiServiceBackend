@@ -289,11 +289,12 @@ exports.sendSms = async (data) => {
     let payload = {
                     body: data.message,
                     to: data.to,
-                    from: countryCode === `+${CONSTANT.NETHERLANDS_COUNTRY_CODE}` ? this.getSenderId(data?.senderName).slice(0, 11) :"+3197010204679", // +31 in netherland we can send sender id as alphanumeric with 11 charater 
+                    from: data.countryCode === `+${CONSTANT.NETHERLANDS_COUNTRY_CODE}` ? this.getSenderId(data?.senderName).slice(0, 11) :"+3197010204679", // +31 in netherland we can send sender id as alphanumeric with 11 charater 
                   }; 
     if (process.env.IS_SMS_FUNCTIONALITY_ACTIVE == `true`) {
       const message = await client.messages.create(payload);
       console.log("🚀 Sms has been sent to---" , data.to)
+      // console.log("checking----message", message)
     }
     // const message = await client.messages.create(payload);
     return true
