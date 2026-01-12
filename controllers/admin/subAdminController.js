@@ -778,12 +778,12 @@ exports.edit_sub_admin = async (req, res) => {
           });
         }
       }
-
+      
         
-      const normalizedEmail = data.email.trim().toLowerCase();
-      const normalizedCompanyEmail = data.company_email.trim().toLowerCase();
+      const normalizedEmail = data?.email ? data?.email.trim().toLowerCase() : "";
+      const normalizedCompanyEmail = data?.company_email ? data?.company_email.trim().toLowerCase() : "";
 
-      if (checkSubAdmin.email != data.email) {
+      if (checkSubAdmin.email != data.email && normalizedEmail) {
         let check_email = await USER.findOne({
                                               $or: [
                                                 { email: normalizedEmail },
@@ -802,7 +802,7 @@ exports.edit_sub_admin = async (req, res) => {
         }
       }
 
-      if (checkSubAdmin.company_email != data.company_email) {
+      if (checkSubAdmin.company_email != data.company_email && normalizedCompanyEmail) {
         let checkCompanyEmail = await USER.findOne({
                                                     $or: [
                                                       { email: normalizedCompanyEmail },
