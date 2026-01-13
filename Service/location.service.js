@@ -432,6 +432,9 @@ async function broadcastDriverLocation(io, driverId, details) {
 /** stores driver position in Redis (GEO + HASH) and broadcasts */
 async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, details) {
     
+  const DRIVERS_GEO_KEY = "drivers:geo";
+  const DRIVER_KEY_PREFIX = "driver:";
+
   try {
 
     // // fake lat long added for web testing only- start--------
@@ -441,22 +444,45 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
     // lng = newLatlng.lng;
     // // fake lat long added for web testing only- end--------
 
-    driverId = String(driverId);
+    driverId = String(driverId).trim();
+
+    // Convert incoming values (can be strings from socket/mobile)
+    const longitudeNum = Number(lng);
+    const latitudeNum = Number(lat);
+
+    // Validate numeric
+    if (!Number.isFinite(longitudeNum) || !Number.isFinite(latitudeNum)) {
+      console.warn("⚠️ Skipping driver location update: invalid numeric coords", { driverId, lng, lat });
+      return;
+    }
+
+    // Validate range
+    if ( latitudeNum < -90 || latitudeNum > 90 || longitudeNum < -180 || longitudeNum > 180  ) {
+      console.warn("⚠️ Skipping driver location update: coords out of range", { driverId, longitude: longitudeNum, latitude: latitudeNum });
+      return;
+    }
 
     // console.log("drivers:geo", lng, lat, driverId)
-    const key = `driver:${driverId}`;
-    await redis.geoadd("drivers:geo", lng, lat, driverId); // Geo index
 
     const driverDetails = await getDriverMapCache(driverId);
+    const key = `${DRIVER_KEY_PREFIX}${driverId}`;
+
+    // ✅ One round-trip to Redis
+    const pipeline = redis.multi();
+    pipeline.geoadd(DRIVERS_GEO_KEY, longitudeNum, latitudeNum, driverId); // Geo index
+
+    
     // Metadata
-    await redis.hset(key, {
+    pipeline.hset(key, {
                               driverId: driverId,
-                              lat,
-                              lng,
+                              lat:latitudeNum,
+                              lng: longitudeNum,
                               lastUpdate: Date.now(),
-                              details: JSON.stringify(driverDetails),
+                              details: JSON.stringify(driverDetails ?? {}),
                           }
                     );
+
+    await pipeline.exec();
   
     // Broadcast to listeners
     // await broadcastDriverLocation(io, redis, driverId, lng, lat, driverDetails);
