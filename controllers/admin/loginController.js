@@ -516,6 +516,8 @@ exports.appLogin = async (req, res) => {
                       });
     }
     
+    const locale = CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH === req.query.lang ? CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH : CONSTANT.INTERNATIONALIZATION_LANGUAGE.DUTCH;
+
     const deviceToken = data.deviceToken;
 
     const normalizedEmail = data.email.trim().toLowerCase();
@@ -916,6 +918,281 @@ exports.hotelWebLogin = async (req, res) => {
   }
 }
 
+exports.partnerLogin = async (req, res) => {
+
+  try {
+
+    
+    let data = req.body;
+
+    if ( !data || typeof data?.email !== "string" || typeof data?.password !== "string") {
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+
+    if (data.email.length > 255 || data.password.length > 128) {
+
+      return res.send({
+                        code: CONSTANT.error_code,
+                        message: res.__('userLogin.error.incorrectCredentials'),
+                      });
+    }
+    
+    const webDeviceToken = typeof data.webDeviceToken === "string" ? data.webDeviceToken.trim() : "";
+
+    if (webDeviceToken && webDeviceToken.length > 4096) {
+      return res.send({ code: CONSTANT.error_code, message: res.__("userLogin.error.incorrectCredentials") });
+    }
+
+    const locale = CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH === req.query.lang ? CONSTANT.INTERNATIONALIZATION_LANGUAGE.ENGLISH : CONSTANT.INTERNATIONALIZATION_LANGUAGE.DUTCH;
+    const normalizedEmail = data.email.trim().toLowerCase();
+
+    const [checkCompany , checkDriver] = await Promise.all([
+                        USER.findOne({
+                                        email: normalizedEmail,
+                                        is_deleted: false,
+                                        is_blocked:false,
+                                        role: CONSTANT.ROLES.COMPANY
+                                      })
+                                      .select("_id password isDriver driverId")
+                                      .lean(),
+
+                        DRIVER.findOne({
+                                          email: normalizedEmail,
+                                          is_deleted: false,
+                                          is_blocked:false,
+                                        })
+                                        .select("_id password driver_company_id")
+                                        .lean()
+    ]);
+
+    if (!checkCompany && !checkDriver) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    const checkPassword = await bcrypt.compare( data.password, checkCompany ? checkCompany.password : checkDriver.password);
+
+    if (!checkPassword) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+
+    // Update token
+    if (webDeviceToken) {
+      await Promise.all([
+                          DRIVER.updateOne({ webDeviceToken }, { $set: { webDeviceToken: null } }),
+                          USER.updateOne({ webDeviceToken }, { $set: { webDeviceToken: null } }),
+                        ]);
+    }
+
+    // if user has company rolee
+    if (checkCompany) {
+
+      let jwtToken = jwt.sign(
+                              { 
+                                userId: checkCompany._id,
+                                companyPartnerAccess: false
+                              },
+                              process.env.JWTSECRET,
+                              { expiresIn: CONSTANT.JWT_TOKEN_EXPIRE }
+                            );
+      console.log("locale----", locale)
+      const updateData = {
+                          web_locale: locale,
+                          jwtToken: jwtToken,
+                          lastUsedToken: new Date(),
+                          ...(webDeviceToken? {webDeviceToken} : {})
+                        };
+
+      await USER.findByIdAndUpdate(checkCompany._id , { $set: updateData});
+    
+      // Update device token in driver profile if compmany has driver account also
+      if (checkCompany.isDriver) {
+        
+
+        let updateDriverdata =  {
+                                    ...(webDeviceToken ? {webDeviceToken} : {}),
+                                    // is_login: true,
+                                    web_locale: locale, 
+                                    lastUsedToken: new Date(), 
+                                    // jwtTokenMobile: null,
+                                  };
+        
+        await DRIVER.updateOne(
+                                {_id: checkCompany.driverId},
+                                { $set: updateDriverdata }
+                              )
+
+        if (checkCompany?.driverId) { 
+          // update driver cahce data
+          updateDriverMapCache(checkCompany?.driverId); 
+        }
+      }
+
+      const [companyDetails] = await USER.aggregate([
+                                                      { $match: { _id: new mongoose.Types.ObjectId(checkCompany._id) } },
+                                                      { $limit: 1 },
+
+                                                      { $project: { 
+                                                                    _id: 1,  
+                                                                    email: 1,
+                                                                    first_name: 1, 
+                                                                    last_name: 1,
+                                                                    user_name: 1,
+                                                                    app_locale: 1,
+                                                                    countryCode: 1, 
+                                                                    phone: 1, 
+                                                                    role: 1, 
+                                                                    role: 1,
+                                                                    is_deleted: 1,
+                                                                    is_blocked: 1,
+                                                                    is_special_plan_active: 1,
+                                                                    commission:1,
+                                                                    isSocketConnected:1,
+                                                                    deviceToken:1,
+                                                                    is_email_verified: 1,
+                                                                    is_phone_verified: 1,
+                                                                    isDriver: 1,
+                                                                    driverId: 1,
+                                                                    isDriverDeleted: 1,
+                                                                    socketId: 1,
+                                                                    favoriteDrivers: 1,
+                                                                    company_account_access: 1,
+                                                                    parnter_account_access: 1,
+                                                                    settings: 1,
+                                                                    status: 1 
+                                                                  } 
+                                                      },
+
+                                                      {
+                                                        $lookup: {
+                                                          from: "agencies",
+                                                          let: { userId: "$_id" },
+                                                          pipeline: [
+                                                            { $match: { $expr: { $eq: ["$user_id", "$$userId"] } } },
+                                                            { $limit: 1 },
+                                                            { $project: {  
+                                                                          company_id: 1, 
+                                                                          company_name: 1,
+                                                                          p_number: 1,
+                                                                        } 
+                                                            },
+                                                          ],
+                                                          as: "company_detail",
+                                                        },
+                                                      },
+
+                                                      { $unwind: { path: "$company_detail", preserveNullAndEmptyArrays: true } },
+                                                    ]);
+
+      if (!companyDetails) {
+        return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
+      } 
+      return res.send({
+          code: CONSTANT.success_code,
+          message: res.__('userLogin.success.loginWelcome'),
+          result: companyDetails,
+          jwtToken: jwtToken,
+        });
+    } else {
+
+      let currentDate = new Date();
+      let startOfCurrentWeek = new Date(currentDate);
+      startOfCurrentWeek.setHours(0, 0, 0, 0);
+      startOfCurrentWeek.setDate(
+        startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
+      ); // Set to Monday of current week
+
+      const [completedTrips, totalUnpaidTrips, totalActiveTrips] = await Promise.all([
+
+                                                                                        trip_model.countDocuments({
+                                                                                                                    driver_name: checkDriver._id,
+                                                                                                                    trip_status: CONSTANT.TRIP_STATUS.COMPLETED,
+                                                                                                                    is_paid: false,
+                                                                                                                  }),
+
+                                                                                        trip_model.countDocuments({
+                                                                                                                    driver_name: checkDriver._id,
+                                                                                                                    trip_status: CONSTANT.TRIP_STATUS.COMPLETED,
+                                                                                                                    is_paid: false,
+                                                                                                                    drop_time: {
+                                                                                                                      $lte: startOfCurrentWeek,
+                                                                                                                    },
+                                                                                                                  }),
+
+                                                                                        trip_model.countDocuments({
+                                                                                                                    driver_name: checkDriver._id,
+                                                                                                                    trip_status: CONSTANT.TRIP_STATUS.ACTIVE,
+                                                                                                                  })
+                                                                                      ]);
+
+      let jwtToken =  jwt.sign(
+                                { 
+                                  userId: checkDriver._id,
+                                  companyPartnerAccess: false
+                                },
+                                process.env.JWTSECRET,
+                                { expiresIn: CONSTANT.JWT_TOKEN_EXPIRE }
+                              );
+
+      const updateDriver = { 
+                            // is_login: true,
+                            web_locale: locale,
+                            jwtToken: jwtToken,
+                            lastUsedToken: new Date(),
+                            ...(webDeviceToken ? {webDeviceToken} : {}),
+                          };
+
+      let driverDetials = await DRIVER.findOneAndUpdate(
+                                                        { _id: checkDriver._id },
+                                                        { $set: updateDriver },
+                                                        { 
+                                                          new: true,
+                                                          select: "_id first_name last_name app_locale companyName address_2 address_1 city country zip_code email countryCode phone favoriteDrivers deviceToken profile_image driver_documents gender is_available is_deleted is_blocked status driver_state currentTripId isVerified isBlocked isDocUploaded kyc is_login is_in_ride is_special_plan_active isSocketConnected socketId nickName isCompany isCompanyDeleted driver_company_id company_agency_id jwtTokenMobile defaultVehicle driverCounterId company_account_access parnter_account_access "
+                                                        }
+                                                      );
+
+      if (driverDetials?.isCompany) {
+
+        await USER.updateOne( { 
+                                _id: checkDriver.driver_company_id }, 
+                                { 
+                                  $set: { 
+                                          webDeviceToken: webDeviceToken , 
+                                          web_locale0: locale
+                                        }
+                                }
+                            );
+      }
+
+      driverDetials = driverDetials.toObject();
+      driverDetials.role = "DRIVER";
+      driverDetials.totalTrips = completedTrips;
+      driverDetials.totalUnpaidTrips = totalUnpaidTrips;
+      driverDetials.totalActiveTrips = totalActiveTrips;
+
+      // update driver cahce data
+      updateDriverMapCache(checkDriver._id);
+
+      return res.send({
+                        code: CONSTANT.success_code,
+                        message: res.__('userLogin.success.loginWelcome'),
+                        result: driverDetials,
+                        jwtToken: jwtToken,
+                      });
+    }
+
+  } catch (error) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ partnerLogin error --------------' , error.message)
+    res.send({
+      code: CONSTANT.error_code,
+      message: res.__('common.error.somethingWentWrong')
+    })
+  }
+}
+
 exports.driverWebLogin = async (req, res) => {
 
   try {
@@ -1154,7 +1431,7 @@ exports.companyWebLogin = async (req, res) => {
                                     // is_login: true,
                                     web_locale: locale, 
                                     lastUsedToken: new Date(), 
-                                    jwtTokenMobile: null,
+                                    // jwtTokenMobile: null,
                                   };
         
         await DRIVER.updateOne(
