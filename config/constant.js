@@ -192,6 +192,8 @@ module.exports={
         PAID: `PAID`,
         FAILED: `FAILED`,
         NOT_INITIATED: `NOT_INITIATED`,
+        TRANSFER_CREATED: "TRANSFER_CREATED",   // ✅ after transfer created
+        PAYOUT_INITIATED: "PAYOUT_INITIATED",   // ✅ after payout created
         CANCELED: `CANCELED`,
     },
     SUBSCRIPTION_PLAN_NAMES: {

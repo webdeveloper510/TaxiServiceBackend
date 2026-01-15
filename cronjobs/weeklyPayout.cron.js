@@ -1,8 +1,21 @@
 const cron = require("node-cron");
-const { runPayoutsBatch } = require("../Service/payoutService");
+const { runCompanyTransfersBatch  , runCompanyPayoutsBatch} = require("../Service/payoutService");
 exports.weeklyPayoutCron = () => {
-  cron.schedule("* * * * *", () => { // every Monday midnight
+
+  let isRunning = false;
+
+  // this cron will run evry monday and starting time will be 1:00pm and each hour interval will start again like 1:00 pm , 2:00 pm and 3:00pm
+  cron.schedule("0 13-23 * * 1", async () => { // every Monday after 1 pm and evry hoours
     
-    runPayoutsBatch();
-  });
+    if (isRunning) return;
+    
+    isRunning = true;
+    
+    try {
+      await runCompanyTransfersBatch();
+      await runCompanyPayoutsBatch();
+    } finally {
+      isRunning = false;
+    }
+  }, { timezone: "Europe/Amsterdam" });
 }

@@ -364,6 +364,11 @@ const trip = new Schema({
             type: Array,
             default: [], // optional: track reversals if any
         },
+        attempts: { type: Number, default: 0 },      // how many times tried transfer
+        locked_at: { type: Date, default: null },    // worker lock timestamp
+        last_error: { type: String, default: null }, // last stripe error
+        last_error_at: { type: Date, default: null },
+        next_retry_at: { type: Date, default: null } // when worker can retry
     },
 
     payout: {
@@ -423,7 +428,12 @@ const trip = new Schema({
         completed_date: {
             type: Date,
             default: null,
-        }
+        },
+        attempts: { type: Number, default: 0 },
+        locked_at: { type: Date, default: null },
+        last_error: { type: String, default: null },
+        last_error_at: { type: Date, default: null },
+        next_retry_at: { type: Date, default: null }
     },
     
     company_trip_payout_status: { //  when payemt will be transafered from connected account to company bank acccount (Afetr transfer from paypal to connected account)
