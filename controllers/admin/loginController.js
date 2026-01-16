@@ -1542,31 +1542,96 @@ exports.hotelContextCompany = async (req , res) => {
 
     const hotelId = new mongoose.Types.ObjectId(data.id);
     
-    const checkHotel = await USER.findOne({
-                                            _id: hotelId,
-                                            is_deleted: false,
-                                            role: CONSTANT.ROLES.HOTEL,
-                                            // status: true,
-                                            is_blocked: false,
-                                            })
-                                            .select("_id created_by") 
-                                            .lean();
+    // const checkHotel = await USER.findOne({
+    //                                         _id: hotelId,
+    //                                         is_deleted: false,
+    //                                         role: CONSTANT.ROLES.HOTEL,
+    //                                         // status: true,
+    //                                         is_blocked: false,
+    //                                         })
+    //                                         .select("_id created_by") 
+    //                                         .lean();
     
-     if (!checkHotel) {
-      return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
-    }
+    //  if (!checkHotel) {
+    //   return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
+    // }
 
  
-    const [company , companyDetails] = await Promise.all([
-      USER.findById(checkHotel?.created_by).select('first_name last_name logo phone countryCode role').lean(),
-      AGENCY.findOne({user_id: checkHotel?.created_by}).select('company_name').lean()
-    ]);
+    // const [company , companyDetails ,HotelCompanyDetails] = await Promise.all([
+    //   USER.findById(checkHotel?.created_by).select('first_name last_name logo phone countryCode role').lean(),
+    //   AGENCY.findOne({user_id: checkHotel?.created_by}).select('company_name').lean(),
+    //   AGENCY.findOne({user_id: checkHotel?._id}).select('company_name').lean(),
+    // ]);
     
 
-    if (company) company.company_name = companyDetails?.company_name || "";
+    // if (company) {
+    //   company.company_name = companyDetails?.company_name || "";
+    //   company.hotel_name = HotelCompanyDetails?.company_name || "";
+    // }
+
+    const rows = await USER.aggregate([
+      {
+        $match: {
+          _id: hotelId,
+          is_deleted: false,
+          role: CONSTANT.ROLES.HOTEL,
+          is_blocked: false,
+        },
+      },
+
+      // company user
+      {
+        $lookup: {
+          from: "users",
+          localField: "created_by",
+          foreignField: "_id",
+          as: "companyUser",
+        },
+      },
+      { $unwind: { path: "$companyUser", preserveNullAndEmptyArrays: true } },
+
+      // company agency (company name)
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "created_by",
+          foreignField: "user_id",
+          as: "companyAgency",
+        },
+      },
+      { $unwind: { path: "$companyAgency", preserveNullAndEmptyArrays: true } },
+
+      // hotel agency (hotel name)
+      {
+        $lookup: {
+          from: "agencies",
+          localField: "_id",
+          foreignField: "user_id",
+          as: "hotelAgency",
+        },
+      },
+      { $unwind: { path: "$hotelAgency", preserveNullAndEmptyArrays: true } },
+
+      {
+        $project: {
+          _id: "$companyUser._id",
+          first_name: "$companyUser.first_name",
+          last_name: "$companyUser.last_name",
+          phone: "$companyUser.phone",
+          countryCode: "$companyUser.countryCode",
+          role: "$companyUser.role",
+          logo: "$companyUser.logo",
+          company_name: { $ifNull: ["$companyAgency.company_name", ""] },
+          hotel_name: { $ifNull: ["$hotelAgency.company_name", ""] },
+        },
+      },
+    ]);
+
+    const result = rows[0] || null;
+
     return res.send({
                       code: CONSTANT.success_code,
-                      result: company || null,
+                      result: result || null,
                     });
   } catch (error) {
 

@@ -82,7 +82,7 @@ exports.createConnectedAccount = async (email ) =>{
                     },
                   },
     });
-    console.log('account.id------' , JSON.stringify(account))
+    // console.log('account.id------' , JSON.stringify(account))
     return account.id;
   } catch (error) {
 
@@ -144,7 +144,7 @@ exports.createCustomAccount = async (email) => {
       });
 
 
-    console.log('account.id------' , JSON.stringify(account))
+    // console.log('account.id------' , JSON.stringify(account))
     return account.id;
   } catch (error) {
     console.log('❌❌❌❌❌❌❌❌❌Error create custom account:', error.message);
@@ -2098,7 +2098,7 @@ exports.companyHotelAccountCreationEmail = async (userInfo , password) => {
 
     let subject = `Welcome to iDispatch  Mobility – Your Account Is Now Active`; 
     const data = {
-      userName: `${userInfo.first_name} ${userInfo.last_name}`,
+      userName: userInfo.first_name ? `${userInfo.first_name} ${userInfo.last_name}`: userInfo.user_name,
       email: userInfo.email,
       role: userInfo.role,
       password: password,

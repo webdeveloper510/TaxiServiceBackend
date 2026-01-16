@@ -45,7 +45,7 @@ exports.add_sub_admin = async (req, res) => {
 
     
     const normalizedEmail = data.email.trim().toLowerCase();
-    const normalizedCompanyEmail = data.company_email.trim().toLowerCase();
+    const normalizedCompanyEmail = data?.company_email ? data.company_email.trim().toLowerCase() : "";
     let checkEmail = await USER.findOne({
                                           email: normalizedEmail,
                                           // is_deleted: false,
@@ -59,10 +59,11 @@ exports.add_sub_admin = async (req, res) => {
                                                     // is_deleted: false, // if needed
                                                   });
 
-    if (checkCompanyUserEmail) {
+    if (checkCompanyUserEmail && data?.company_email) {
       return res.send({
                         code: constant.error_code,
                         message: res.__('createSuperAdmin.error.companyEmailAlreadyInUse'),
+                        
                       });
     }
 
