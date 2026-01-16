@@ -88,7 +88,7 @@ exports.create_super_admin = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ create super admin error --------------' , err.message)
     res.send({
       code: CONSTANT.error_code,
-      message: err.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 };
@@ -490,7 +490,7 @@ exports.login = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ login error --------------' , err.message)
     return res.send({
       code: CONSTANT.error_code,
-      message: err.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 };
@@ -1619,6 +1619,7 @@ exports.hotelContextCompany = async (req , res) => {
           last_name: "$companyUser.last_name",
           phone: "$companyUser.phone",
           countryCode: "$companyUser.countryCode",
+          email: "$companyUser.email",
           role: "$companyUser.role",
           logo: "$companyUser.logo",
           company_name: { $ifNull: ["$companyAgency.company_name", ""] },
@@ -1740,7 +1741,7 @@ exports.login_otp_verify = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ login otp verify error --------------' , error.message)
     return res.send({
         code: CONSTANT.error_code,
-        message: error.message,
+        message: res.__("common.error.somethingWentWrong"),
       });
   }
 };
@@ -1807,7 +1808,7 @@ exports.resend_login_otp = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ resend login otp error --------------' , error.message)
     res.send({
       code: CONSTANT.error_code,
-      message: error.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 };
@@ -1943,7 +1944,7 @@ exports.get_token_detail = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ get token details error --------------' , err.message)
     return  res.send({
                       code: CONSTANT.error_code,
-                      message: err.message,
+                      message: res.__("common.error.somethingWentWrong"),
                     });
   }
 };
@@ -1971,7 +1972,7 @@ exports.getCompanyDetail = async (req , res) => {
     console.log("❌❌❌❌❌❌❌❌❌🚀 ~ exports.getCompanyDetail= ~ err:", error.message);
     res.send({
       code: CONSTANT.error_code,
-      message: error.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 }
@@ -1990,11 +1991,12 @@ exports.send_otp = async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // 2️⃣ Find user or driver
-    let account =
-      (await USER.findOne({ email: normalizedEmail, status: true, is_deleted: false, })) ||
-      (await DRIVER.findOne({ email: normalizedEmail, is_deleted: false, }));
+    const [user, driver] = await Promise.all([
+      USER.findOne({ email: normalizedEmail, status: true, is_deleted: false }).select("_id is_blocked first_name last_name email").lean(),
+      DRIVER.findOne({ email: normalizedEmail, is_deleted: false }).select("_id is_blocked first_name last_name email").lean(),
+    ]);
 
+    const account = user || driver;
     // 3️⃣ Account not found
     if (!account) {
       return res.send({
@@ -2007,7 +2009,8 @@ exports.send_otp = async (req, res) => {
     if (account.is_blocked) {
       return res.send({
         code: constant.error_code,
-        message: res.__("userLogin.error.accessRestricted"),
+        // message: res.__("userLogin.error.accessRestricted"),
+        message: res.__("sendOtp.error.invalidInput"),
       });
     }
 
@@ -2015,11 +2018,13 @@ exports.send_otp = async (req, res) => {
     const otp_expiry = new Date(Date.now() + 60 * 1000); // 1 minute
 
     // 6️⃣ Update only required fields
-    await account.updateOne({ OTP, otp_expiry });
+
+    const Model = account?.role ? USER : DRIVER;
+    Model.findOneAndUpdate({ _id: account._id }, { $set: { OTP, otp_expiry } });
 
     // 7️⃣ Send email (non-blocking)
     try {
-      await passwordResetOtpEmail(account, OTP);
+      passwordResetOtpEmail(account, OTP);
     } catch (mailErr) {
       console.error("OTP email failed:", mailErr.message);
     }
@@ -2029,107 +2034,12 @@ exports.send_otp = async (req, res) => {
       code: constant.success_code,
       message: res.__("sendOtp.success.otpSentToEmail"),
     });
-
-
-    let data = req.body;
-    let check_email = await USER.findOne({
-      $and: [
-        {
-          $or: [
-            { email: normalizedEmail }, // Exact match
-            // { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
-          ],
-        },
-        {
-          status: true,
-        },
-        {
-          is_deleted: false,
-        },
-      ],
-    });
-    if (!check_email) {
-
-      
-
-      let check_driver = await DRIVER.findOne({
-        $and: [
-          {
-            $or: [
-              { email: normalizedEmail }, // Exact match
-              // { phone: { $regex: `^${data.email}$`, $options: "i" } }, // Exact match
-            ],
-          },
-          {
-            is_deleted: false,
-          },
-        ],
-      });
-      
-      if (!check_driver) {
-        res.send({
-          code: constant.error_code,
-          message: res.__('sendOtp.error.invalidInput'),
-        });
-        return;
-      }
-
-      if (check_driver.is_blocked) {
-        return res.send({
-                      code: constant.error_code,
-                      message: res.__('userLogin.error.accessRestricted'),
-                    });
-      }
-      data.OTP = randToken.generate(4, "123456789");
-      data.otp_expiry = moment().add("minutes", 1).format();
-      let updateUser = await DRIVER.findOneAndUpdate(
-                                                      { _id: check_driver._id },
-                                                      data,
-                                                      { new: true }
-                                                    );
-
-      passwordResetOtpEmail(check_driver , data.OTP)
-      
-      res.send({
-        code: constant.success_code,
-        message: res.__('sendOtp.success.otpSentToEmail'),
-      });
-    } else {
-
-      if (check_email.is_blocked) {
-        return res.send({
-                      code: constant.error_code,
-                      message: res.__('userLogin.error.accessRestricted'),
-                    });
-      }
-
-      data.OTP = randToken.generate(4, "123456789");
-      data.otp_expiry = moment().add("minutes", 1).format();
-      let updateUser = await USER.findOneAndUpdate(
-        { _id: check_email._id },
-        data,
-        { new: true }
-      );
-      if (!updateUser) {
-        res.send({
-          code: constant.error_code,
-          message: res.__('sendOtp.error.otpSendFailed'),
-        });
-      } else {
-        passwordResetOtpEmail(check_email , data.OTP)
-        
-        res.send({
-          code: constant.success_code,
-          message: res.__('sendOtp.success.otpSentToEmail'),
-        });
-      }
-    }
   } catch (err) {
 
     console.log('❌❌❌❌❌❌❌❌❌ send OTP error --------------' , err.message)
     res.send({
       code: constant.error_code,
-      message: err.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 };
@@ -2188,7 +2098,7 @@ exports.verify_otp = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ verify otp error --------------' , err.message)
     res.send({
       code: constant.error_code,
-      message: err.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 };
@@ -2274,7 +2184,7 @@ exports.forgot_password = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ forgot password error --------------' , err.message)
     res.send({
       code: constant.error_code,
-      message: err.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 };
@@ -2365,7 +2275,7 @@ exports.reset_password = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ reset password error --------------' , err.message)
     return res.send({
                       code: constant.error_code,
-                      message: err.message,
+                      message: res.__("common.error.somethingWentWrong"),
                     });
   }
 };
@@ -2391,7 +2301,7 @@ exports.save_feedback = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ save feedback error --------------' , err.message)
     res.send({
       code: constant.error_code,
-      message: err.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 };
@@ -2445,7 +2355,7 @@ exports.get_feedback = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ get feedback error --------------' , err.message)
     res.send({
       code: constant.error_code,
-      message: err.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 };
@@ -2481,7 +2391,7 @@ exports.createPaymentSession = async (req, res) => {
     console.log('❌❌❌❌❌❌❌❌❌ create paymemr session error --------------' , err.message)
     res.send({
       code: constant.error_code,
-      message: err.message,
+      message: res.__("common.error.somethingWentWrong"),
     });
   }
 };
