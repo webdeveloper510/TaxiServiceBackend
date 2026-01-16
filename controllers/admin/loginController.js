@@ -60,7 +60,7 @@ exports.create_super_admin = async (req, res) => {
       return;
     }
     data.stored_password = data.password;
-    let hash = await bcrypt.hashSync(data.password, 10);
+    let hash = await bcrypt.hash(data.password, 10);
     data.password = hash;
      
     let save_data = await USER(data).save();
@@ -2136,80 +2136,69 @@ exports.verify_otp = async (req, res) => {
 
 exports.forgot_password = async (req, res) => {
   try {
-    let data = req.body;
-     if (!data.email || typeof data.email !== "string") {
+   
+    const resetToken = (req.body?.resetToken || "").toString().trim();
+    const password = (req.body?.password || "").toString();
+    
+    if (!resetToken || !password) {
       return res.send({
         code: constant.error_code,
         message: res.__("sendOtp.error.invalidInput"),
       });
     }
-    
-    const normalizedEmail = data.email.trim().toLowerCase();
-    let criteria = { email: normalizedEmail };
-    let check_email = await USER.findOne(criteria);
-    if (!check_email) {
-      let check_driver = await DRIVER.findOne(criteria);
 
-      
-      if (!check_driver) {
-        return res.send({
-                          code: constant.error_code,
-                          message: res.__('forgot_password.error.emailNotFound'),
-                        });
-        
-      }
-      let option = { new: true };
-      let hash = bcrypt.hashSync(data.password, 10);
-      let newValue = { $set: { password: hash, stored_password: data.password, OTP: "",  }, };
+    const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
+    const now = new Date();
 
-      let updatePassword = await DRIVER.findOneAndUpdate( criteria, newValue, option);
+    const [user, driver] = await Promise.all([
+          USER.findOne({ reset_password_token: resetTokenHash, reset_password_expiry: { $gt: now }, is_deleted: false , is_blocked: false}).select("_id email isDriver driverId").lean(),
+          DRIVER.findOne({ reset_password_token: resetTokenHash, reset_password_expiry: { $gt: now }, is_deleted: false , is_blocked: false}).select("_id email isCompany driver_company_id").lean(),
+        ]);
 
-      if (check_driver.isCompany == true && check_driver.driver_company_id) {
+    const account = user || driver;
 
-        await DRIVER.findOneAndUpdate({_id: check_driver.driver_company_id},{ $set: { password: hash, stored_password: data.password  }, },option);
-      }
-      if (!updatePassword) {
-        res.send({
-                  code: constant.error_code,
-                  message: res.__('forgot_password.error.passwordUpdateFailed'),
-                });
-      } else {
-        res.send({
-                  code: constant.success_code,
-                  message: res.__('forgot_password.success.passwordUpdated'),
-                });
-      }
-    } else {
-
-      let option = { new: true };
-      let hash = bcrypt.hashSync(data.password, 10);
-      let newValue = {
-        $set: {
-          password: hash,
-          stored_password: data.password,
-          OTP: "",
-        },
-      };
-
-      let updatePassword = await USER.findOneAndUpdate(criteria,newValue,option);
-
-      if (check_email.isDriver == true && check_email.driverId) {
-
-        await DRIVER.findOneAndUpdate({_id: check_email.driverId},{ $set: { password: hash, stored_password: data.password  }, },option);
-      }
-
-      if (!updatePassword) {
-        res.send({
-          code: constant.error_code,
-          message: res.__('forgot_password.error.passwordUpdateFailed'),
-        });
-      } else {
-        res.send({
-          code: constant.success_code,
-          message: res.__('forgot_password.success.passwordUpdated'),
-        });
-      }
+    if (!account) {
+      return res.send({
+        code: constant.error_code,
+        // message: res.__('loginOtpVerify.error.invalidEmail'),
+        message: res.__("sendOtp.error.invalidInput"),
+      });
     }
+
+    const Model = user ? USER : DRIVER;
+
+    
+    let hash = await bcrypt.hash(password, 10);
+    let newValue =  {  
+                      $set: { 
+                        password: hash, 
+                        stored_password: password, 
+                        reset_password_token: null, 
+                        reset_password_expiry: null  
+                      },
+                    };
+
+
+    await Model.updateOne( { _id: account._id }, newValue);
+
+    const updates = [];
+
+    if (Model === USER && account.isDriver === true && account.driverId) {
+      updates.push(DRIVER.updateOne({ _id: account.driverId }, newValue ));
+    }
+
+    if (Model === DRIVER && account.isCompany === true && account.driver_company_id) {
+      updates.push(DRIVER.updateOne({ _id: account.driver_company_id }, newValue));
+    }
+    
+    if (updates.length) await Promise.all(updates);
+
+    return res.send({
+                      code: constant.success_code,
+                      message: res.__('forgot_password.success.passwordUpdated'),
+                    });
+    
+    
   } catch (err) {
 
     console.log('❌❌❌❌❌❌❌❌❌ forgot password error --------------' , err.message)
@@ -2246,7 +2235,7 @@ exports.reset_password = async (req, res) => {
                           });
         } 
 
-        let hashedPassword = await bcrypt.hashSync(data.password, 10);
+        let hashedPassword = await bcrypt.hash(data.password, 10);
         let newValue = {
                           $set: {
                             stored_password : data.password,
@@ -2275,7 +2264,7 @@ exports.reset_password = async (req, res) => {
                         });
       } else {
 
-        let hashedPassword = await bcrypt.hashSync(data.password, 10);
+        let hashedPassword = await bcrypt.hash(data.password, 10);
         let newValue = {
           $set: {
             stored_password : data.password,
