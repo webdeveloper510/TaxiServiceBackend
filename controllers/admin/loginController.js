@@ -1,4 +1,5 @@
 require("dotenv").config();
+const crypto = require("crypto");
 const { default: axios } = require("axios");
 const CONSTANT = require("../../config/constant");
 const USER = require("../../models/user/user_model");
@@ -1992,8 +1993,8 @@ exports.send_otp = async (req, res) => {
     const normalizedEmail = email.trim().toLowerCase();
 
     const [user, driver] = await Promise.all([
-      USER.findOne({ email: normalizedEmail, status: true, is_deleted: false }).select("_id is_blocked first_name last_name email").lean(),
-      DRIVER.findOne({ email: normalizedEmail, is_deleted: false }).select("_id is_blocked first_name last_name email").lean(),
+      USER.findOne({ email: normalizedEmail, status: true, is_deleted: false }).select("_id is_blocked first_name last_name email OTP role").lean(),
+      DRIVER.findOne({ email: normalizedEmail, is_deleted: false }).select("_id is_blocked first_name last_name email OTP").lean(),
     ]);
 
     const account = user || driver;
@@ -2020,7 +2021,7 @@ exports.send_otp = async (req, res) => {
     // 6️⃣ Update only required fields
 
     const Model = account?.role ? USER : DRIVER;
-    Model.findOneAndUpdate({ _id: account._id }, { $set: { OTP, otp_expiry } });
+    await Model.findOneAndUpdate({ _id: account._id }, { $set: { OTP, otp_expiry } });
 
     // 7️⃣ Send email (non-blocking)
     try {
@@ -2066,9 +2067,12 @@ exports.verify_otp = async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    const account =
-      (await USER.findOne({ email: normalizedEmail })) ||
-      (await DRIVER.findOne({ email: normalizedEmail }));
+    const [user, driver] = await Promise.all([
+          USER.findOne({ email: normalizedEmail, status: true, is_deleted: false }).select("_id is_blocked first_name last_name email OTP role otp_expiry ").lean(),
+          DRIVER.findOne({ email: normalizedEmail, is_deleted: false }).select("_id is_blocked first_name last_name email OTP otp_expiry ").lean(),
+        ]);
+
+    const account = user || driver;
 
     if (!account) {
       return res.send({
@@ -2087,11 +2091,38 @@ exports.verify_otp = async (req, res) => {
       });
     }
 
-    await account.updateOne({ OTP: null });
+    // ✅ Create reset token (10 minutes)
+    const resetTokenPlain = crypto.randomBytes(32).toString("hex");
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetTokenPlain)
+      .digest("hex");
+
+    const resetExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    const Model = account?.role ? USER : DRIVER;
+
+    await Model.findOneAndUpdate(
+                                  { 
+                                    _id: account._id 
+                                  }, 
+                                  { 
+                                    $set: { 
+                                      reset_password_token: resetTokenHash,
+                                      reset_password_expiry: resetExpiry,
+                                      OTP: null,
+                                      otp_expiry: null 
+                                    }
+                                  }
+                                );
 
     return res.send({
       code: constant.success_code,
       message: res.__('loginOtpVerify.success.otpVerified'),
+      data: {
+        resetToken: resetTokenPlain, // frontend uses this for reset-password API
+        expiresAt: resetExpiry,
+      }
     });
 
   } catch (err) {

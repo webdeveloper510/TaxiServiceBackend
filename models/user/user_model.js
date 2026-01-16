@@ -215,6 +215,17 @@ const user = new Schema(
     },
     otp_expiry: {
       type: Date,
+      default: null,
+    },
+    reset_password_token: {
+      type: String,
+      default: null,
+      index: true, // important for fast lookup
+    },
+
+    reset_password_expiry: {
+      type: Date,
+      default: null,
     },
     is_email_verified: {
       type: Boolean,

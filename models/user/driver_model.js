@@ -130,6 +130,20 @@ const driver = new Schema(
       type: String,
       default: "a0",
     },
+    otp_expiry: {
+      type: Date,
+      default: null,
+    },
+    reset_password_token: {
+      type: String,
+      default: null,
+      index: true, // important for fast lookup
+    },
+
+    reset_password_expiry: {
+      type: Date,
+      default: null,
+    },
     role: {
       type: String,
       default: "DRIVER",
