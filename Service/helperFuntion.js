@@ -158,8 +158,8 @@ exports.stripeOnboardingAccountLink = async (accountId , user_id) => {
   try {
       const accountLink = await stripe.accountLinks.create({
           account: accountId,
-          refresh_url: `${process.env.BASEURL}/bank-account-verification-pending/${user_id}`,
-          return_url: `${process.env.BASEURL}/bank-account-verification-completed/${user_id}`,
+          refresh_url: `${process.env.PARTNER_BASEURL}/bank-account-verification-pending/${user_id}`,
+          return_url: `${process.env.PARTNER_BASEURL}/bank-account-verification-completed/${user_id}`,
           type: 'account_onboarding',
       });
 
@@ -1877,8 +1877,7 @@ exports.sendEmailMissingInfoStripeOnboarding = async (accountId , missingFields 
   const data = {
                   userName: `${userDetail.first_name} ${userDetail.last_name}`,
                   missingFields: missingFields,
-                  onboardingLink:onboardingLink,
-                  baseUrl: process.env.BASEURL,
+                  onboardingLink: onboardingLink,
                   supportEmail: process.env.SUPPORT_EMAIL
                 }
 
@@ -1905,7 +1904,7 @@ exports.sendEmailDriverCreation = async (driverInfo , randomPasword) => {
       driverName: `${driverInfo.first_name} ${driverInfo.last_name}`,
       driverEmail: driverInfo.email,
       randomPasword:randomPasword,
-      baseUrl: process.env.BASEURL,
+      baseUrl: process.env.PARTNER_BASEURL,
       supportEmail: process.env.SUPPORT_EMAIL
     }
 
@@ -1947,7 +1946,6 @@ exports.driverDocumentSubmissionEmail = async (driverInfo) => {
     const driverData = {
       driverName: `${driverInfo.first_name} ${driverInfo.last_name}`,
       driverEmail: driverInfo.email,
-      baseUrl: process.env.BASEURL,
       supportEmail: process.env.SUPPORT_EMAIL
     }
 
@@ -1970,7 +1968,7 @@ exports.driverDocumentVerifiedEmail = async (driverInfo) => {
     const driverData = {
       driverName: `${driverInfo.first_name} ${driverInfo.last_name}`,
       // driverEmail: driverInfo.email,
-      baseUrl: process.env.BASEURL,
+      baseUrl: process.env.PARTNER_BASEURL,
       // supportEmail: process.env.SUPPORT_EMAIL
     }
 
@@ -1995,7 +1993,6 @@ exports.passwordResetOtpEmail = async (info , otp) => {
       userName: `${info.first_name} ${info.last_name}`,
       email: info.email,
       otp: otp,
-      // baseUrl: process.env.BASEURL,
       supportEmail: process.env.SUPPORT_EMAIL
     }
 
@@ -2026,7 +2023,7 @@ exports.driverDocumentRejectionEmail = async (driverInfo ,  docType = "" , reaso
           docType: docType,
           reason: reason
       },
-      baseUrl: process.env.BASEURL,
+      baseUrl: process.env.PARTNER_BASEURL,
       supportEmail: process.env.SUPPORT_EMAIL
     }
 
@@ -2051,7 +2048,7 @@ exports.driverDocumentExpirationReminderEmail = async (driverInfo , expiryDate =
       expiryDate: expiryDate,
       docType: docType,
       daysLeft: daysLeft,
-      baseUrl: process.env.BASEURL,
+      baseUrl: process.env.PARTNER_BASEURL,
       supportEmail: process.env.SUPPORT_EMAIL
     }
     
@@ -2076,7 +2073,7 @@ exports.driverDocumentExpirationEmail = async (driverInfo , expiryDate = null , 
       documentName: documentName,
       expiryDate: expiryDate,
       docType: docType,
-      baseUrl: process.env.BASEURL,
+      baseUrl: process.env.PARTNER_BASEURL,
       supportEmail: process.env.SUPPORT_EMAIL
     }
     
@@ -2100,9 +2097,10 @@ exports.companyHotelAccountCreationEmail = async (userInfo , password) => {
     const data = {
       userName: userInfo.first_name ? `${userInfo.first_name} ${userInfo.last_name}`: userInfo.user_name,
       email: userInfo.email,
+      hotel_id: userInfo.user_id,
       role: userInfo.role,
       password: password,
-      baseUrl: process.env.BASEURL,
+      baseUrl: process.env.PORTAL_BASEURL,
       supportEmail: process.env.SUPPORT_EMAIL
     }
 
@@ -3114,25 +3112,23 @@ exports.sendAccountDeactivationEmail = async (userInfo) => {
       userDetail = await driver_model.findById(userInfo?._id); 
     }
     
-   
     const subject = `Important Notice Regarding Your Account`;
 
     const data = {
                   userName: `${userDetail.first_name} ${userDetail.last_name}`,
                   role: userDetail.role,
                   email: userDetail.email,
-                  baseUrl: process.env.BASEURL,
                   supportEmail: process.env.SUPPORT_EMAIL
                 }
 
-  const emailSent = await sendEmail(
-                                      userDetail?.email, // Receiver email
-                                      subject, // Subject
-                                      "account-deactivation", // Template name (without .ejs extension)
-                                      data,
-                                      'en', //  for lanuguage
-                                      [] // for attachment
-                                    );
+    const emailSent = await sendEmail(
+                                        userDetail?.email, // Receiver email
+                                        subject, // Subject
+                                        "account-deactivation", // Template name (without .ejs extension)
+                                        data,
+                                        'en', //  for lanuguage
+                                        [] // for attachment
+                                      );
   
     return emailSent
     
@@ -3160,7 +3156,6 @@ exports.sendAccountReactivationEmail = async (userInfo) => {
                   userName: `${userDetail.first_name} ${userDetail.last_name}`,
                   role: userDetail.role,
                   email: userDetail.email,
-                  baseUrl: process.env.BASEURL,
                   supportEmail: process.env.SUPPORT_EMAIL
                 }
 
@@ -4009,7 +4004,6 @@ exports.notifyLowSmsBalance = async (userDetails) => {
     const data = {
                   companyName: companyAgencyDetails?.company_name,
                   minimumBalance: process.env.MINIMUM_SMS_BALANCE_ALERT / 100,
-                  baseUrl: process.env.BASEURL,
                   supportEmail: process.env.SUPPORT_EMAIL
                 }
 
