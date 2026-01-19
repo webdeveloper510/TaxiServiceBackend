@@ -5,7 +5,7 @@ const CONSTANT = require('../../config/constant');
 const LOGS = require("../../models/user/logs_model");
 const { driverDetailsByToken  , activeDriverInfo} = require("../../Service/helperFuntion");
 const { redis , sub }= require("../../utils/redis");
-const { OfflineDriver } = require("../utils");
+const { OfflineDriver , parseBoolean} = require("../utils");
 const {isInsideBounds} = require("../../utils/bounds.js")
 const { updateDriverLocationInRedis ,
         getDriversInBounds , 
@@ -507,20 +507,34 @@ function registerDriverHandlers(io, socket) {
     })
 
      // when driver internet will be restored then driver will be visible on the map
-    socket.on("driverOnlineRestored", async ({lang , longitude, latitude , driverId  , token} , ack) => {
+    socket.on("driverOnlineRestored", async ({lang , longitude, latitude , driverId  , token , status} , ack) => {
         try {
             
             let driver_info = await DRIVER_MODEL.findOne({"jwtTokenMobile": token});
             
             if (driver_info) {
                 
+                const checkStatus = await parseBoolean(status);
+                
+                if (!checkStatus.valid) {
+
+                    console.log("driverOnlineRestored-- invalid status value----", status)
+                    return ack({
+                                code: CONSTANT.error_code,
+                                message: i18n.__({ phrase: "common.error.somethingWentWrong", locale: lang }),
+                               
+                            });
+                }
+
+                status = checkStatus.value;
+
                 const driverId = driver_info?._id;
 
                 const updatedDriver = await DRIVER_MODEL.findOneAndUpdate(
                                                         { _id: driverId },
                                                         {
                                                             $set: {
-                                                                status: true,
+                                                                status: status,
                                                                 location: { type: "Point", coordinates: [longitude, latitude] },
                                                                 locationUpdatedAt: new Date(),
                                                                 lastUsedTokenMobile: new Date(), // we will logout the user if lastUsedToken time as been exceeded 3 hours

@@ -46,5 +46,19 @@ async function OfflineDriver(driverInfo , io) {
   }
 }
 
+async function parseBoolean(value) {
+  if (typeof value === "boolean") {
+    return { valid: true, value };
+  }
 
-module.exports = { OfflineDriver };
+  if (typeof value === "string") {
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (normalizedValue === "true") return { valid: true, value: true };
+    if (normalizedValue === "false") return { valid: true, value: false };
+  }
+
+  return { valid: false };
+}
+
+module.exports = { OfflineDriver  , parseBoolean};
