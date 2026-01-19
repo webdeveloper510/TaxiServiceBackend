@@ -138,7 +138,7 @@ function registerDriverHandlers(io, socket) {
     // Driver live location update
     socket.on("updateDriverLocation", async ({ longitude, latitude , driverId }) => {
 
-        console.log('in--------📍📍' , { longitude, latitude , driverId } )
+        console.log('in--------📍📍' , { longitude, latitude , driverId , time: new Date()} )
         try {
             
             if (!driverId) return console.warn("⚠️ Missing driverId in location update------❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌");
