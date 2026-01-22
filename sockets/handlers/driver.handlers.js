@@ -510,10 +510,21 @@ function registerDriverHandlers(io, socket) {
     socket.on("driverOnlineRestored", async ({lang , longitude, latitude , driverId  , token , status} , ack) => {
         try {
             
+            const checkStatus = await parseBoolean(status);
+            if (!token || !checkStatus.valid) {
+
+                console.log("driverOnlineRestored-- invalid status or token value----", {token , status})
+                return ack({
+                            code: CONSTANT.error_code,
+                            message: i18n.__({ phrase: "common.error.somethingWentWrong", locale: lang })
+                        });
+               
+            }
+            
             let driver_info = await DRIVER_MODEL.findOne({"jwtTokenMobile": token});
             
             if (driver_info) {
-                
+                console.log("driverOnlineRestored  ❌❌❌❌❌❌    token----", token , {"jwtTokenMobile": token})
                 const checkStatus = await parseBoolean(status);
                 
                 if (!checkStatus.valid) {
@@ -577,6 +588,7 @@ function registerDriverHandlers(io, socket) {
     socket.on("disconnect", async () => {
 
         console.log("socket disconnected now~-------checomg vijay" , new Date())
+        return
         try {
         setTimeout(async () => {
             
