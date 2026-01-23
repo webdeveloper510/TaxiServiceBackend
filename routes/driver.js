@@ -41,5 +41,6 @@ router.get('/company_access_list/',[verifyToken],driverController.company_access
 router.get('/favorite_driver/:id',[verifyToken],driverController.favoriteDriver)
 router.get('/get_driver_list/',[verifyToken],driverController.getDriverList)
 router.post('/trip/:unique_trip_code/company',driverController.getRideWithCompany)
+router.patch('/location/',driverController.updateDriverLocation)
 
 module.exports = router;

@@ -2456,3 +2456,28 @@ exports.getRideWithCompany = async (req, res) => {
     });
   }
 }
+
+exports.updateDriverLocation = async (req, res) => {
+
+  try{
+    const data = req.body;
+
+    console.log("data location getting from background------", data , new Date().toLocaleString())
+    return res.send({
+                      code: constant.success_code,
+                      message: "location getting",
+                      data
+                    });
+
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get updateDriverLocation:', err.message);
+    console.log("🚀 ~ exports.updateDriverLocation= ~ err:", err);
+
+    return res.send({
+                      code: constant.error_code,
+                      message: err.message,
+                    });
+  }
+  
+}
