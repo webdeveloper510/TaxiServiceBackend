@@ -13,6 +13,7 @@ const mongoose = require("mongoose");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
 const { getUserActivePaidPlans , getDriverTripsRanked } = require("../../Service/helperFuntion");
+const { validateCoords }  = require("../../Service/location.service.js");
 const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry , humanize} = require("../../utils/fileUtils");
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
@@ -2460,8 +2461,24 @@ exports.getRideWithCompany = async (req, res) => {
 exports.updateDriverLocation = async (req, res) => {
 
   try{
-    const data = req.body;
+    const { latitude , longitude , driverId} = req.body;
 
+    const coord = await validateCoords(latitude, longitude);
+    if (!coord.ok) {
+      return res.send({
+                      code: constant.error_code,
+                      ok: false, 
+                      skipped: true, 
+                      message: `Invalid coordinates: ${coord.reason}`
+                    });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(driverId)) {
+      return res.send({
+                      code: constant.error_code, 
+                      message: `Invalid driver id`
+                    });
+    }
     console.log("data location getting from background------", data , new Date().toLocaleString())
     return res.send({
                       code: constant.success_code,

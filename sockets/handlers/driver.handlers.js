@@ -14,7 +14,8 @@ const { updateDriverLocationInRedis ,
         getDriverMapCache ,
         haversineDistanceMeters , 
         thresholdBySpeedKmh,
-        broadcastForTripDriverLocation
+        broadcastForTripDriverLocation ,
+        validateCoords
     }  = require("../../Service/location.service.js");
 const { lastEmitByDriver, lastDbUpdate ,disconnectTimers } = require('./../../utils/driverCache.js');
 const i18n = require("i18n");
@@ -144,10 +145,13 @@ function registerDriverHandlers(io, socket) {
             
             if (!driverId) return console.warn("⚠️ Missing driverId in location update------❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌");
 
+            if (!mongoose.Types.ObjectId.isValid(driverId)) return console.warn("⚠️ Invalid driverId format in location update------❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌ ");
+
+            const coord = await validateCoords(latitude, longitude); 
             // ✅ Validate coordinates
-            if ( isNaN(latitude) || isNaN(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180 ) {
-                return console.warn(`⚠️ Invalid coordinates for driver ${driverId}`);
-            }
+            
+            if (!coord.ok)  return console.warn(`⚠️ Invalid coordinates for driver ${driverId}----`, { ok: false, skipped: true, reason: `Invalid coordinates: ${coord.reason}`});
+              
             
             driverId = String(driverId);
             const now = Date.now();

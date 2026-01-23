@@ -861,6 +861,18 @@ function sanitizeLonLat(rawLon, rawLat) {
   return { lon, lat };
 }
 
+function validateCoords (latitude, longitude) {
+
+  const lat = Number(latitude);
+  const lng = Number(longitude);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { ok: false, reason: "lat/lng not finite" };
+  if (lat < -90 || lat > 90) return { ok: false, reason: "lat out of range" };
+  if (lng < -180 || lng > 180) return { ok: false, reason: "lng out of range" };
+
+  return { ok: true, latitude: lat, longitude :lng };
+}
+
 
 module.exports = {
   canShowOnMap,
@@ -872,5 +884,6 @@ module.exports = {
   getDriverMapCache,
   haversineDistanceMeters,
   thresholdBySpeedKmh , 
-  broadcastForTripDriverLocation
+  broadcastForTripDriverLocation,
+  validateCoords
 };
