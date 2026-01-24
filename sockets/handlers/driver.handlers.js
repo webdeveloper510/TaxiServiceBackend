@@ -19,6 +19,7 @@ const { updateDriverLocationInRedis ,
     }  = require("../../Service/location.service.js");
 const { lastEmitByDriver, lastDbUpdate ,disconnectTimers } = require('./../../utils/driverCache.js');
 const i18n = require("i18n");
+const mongoose = require("mongoose");
 
 // ---- Tunables ----
 const MIN_TIME_MS = CONSTANT.MIN_TIME_MS;         // ✅ minimum time between broadcasts
@@ -139,103 +140,10 @@ function registerDriverHandlers(io, socket) {
     // Driver live location update
     socket.on("updateDriverLocation", async ({ longitude, latitude , driverId }) => {
 
-
-        if (driverId == "680650aaf26472a24298aa83") console.log('in--------📍📍' , { longitude, latitude , driverId , time: new Date()} )
         try {
-            
-            if (!driverId) return console.warn("⚠️ Missing driverId in location update------❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌");
-
-            if (!mongoose.Types.ObjectId.isValid(driverId)) return console.warn("⚠️ Invalid driverId format in location update------❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌ ");
-
-            const coord = await validateCoords(latitude, longitude); 
-            // ✅ Validate coordinates
-            
-            if (!coord.ok)  return console.warn(`⚠️ Invalid coordinates for driver ${driverId}----`, { ok: false, skipped: true, reason: `Invalid coordinates: ${coord.reason}`});
-              
-            
-            driverId = String(driverId);
-            const now = Date.now();
-
-            // 1) last emitted sample
-            const prev = lastEmitByDriver.get(driverId); // { lat, lng, ts }
-            const hasPrev = !!prev;
-
-            let distanceMoved = Infinity;
-            let elapsedSinceEmit = Infinity;
-            let speedKmh = 0;
-
-            if (hasPrev) {
-                const result = await haversineDistanceMeters(prev.lat, prev.lng, latitude, longitude);
-
-                if (!result.ok) {
-                    
-                    return
-                }
-                distanceMoved = result?.meters
-                elapsedSinceEmit = now - prev.ts;
-
-                const sec = Math.max(elapsedSinceEmit / 1000, 0.001);
-                speedKmh = (distanceMoved / sec) * 3.6;
-            }
-
-            // console.log('elapsedSinceEmit-------------------' , elapsedSinceEmit , MIN_TIME_MS)
-            // 2) ignore tiny jitter if under min time window
-            if (hasPrev && distanceMoved < JITTER_METERS && elapsedSinceEmit < MIN_TIME_MS) {
-                
-                return false; // skipped
-            }
-
-            // 3) dynamic distance threshold by speed
-            const distanceThreshold = await thresholdBySpeedKmh(speedKmh);
-
-            // 4) decide whether to emit
-            const shouldEmit = !hasPrev || (distanceMoved >= distanceThreshold && elapsedSinceEmit >= MIN_EMIT_INTERVAL_MS) || elapsedSinceEmit >= MIN_TIME_MS;
-
-            if (!shouldEmit) {
-                
-                return false;
-            }
-
-            const getDriverDetails = await getDriverMapCache(driverId);
-            
-            // 5) update driver live location update
-            updateDriverLocationInRedis(io , redis , driverId , longitude , latitude , getDriverDetails);
-
-            // send location pudate to the trip viewer
-            broadcastForTripDriverLocation(io , driverId , longitude , latitude , getDriverDetails)
-            // 6) update in-process last emit
-            lastEmitByDriver.set(driverId, { lat: latitude, lng: longitude, ts: now });
-
-            // 7) Throttled Database Save (every 15 seconds)
-            
-            const lastSave = lastDbUpdate.get(driverId);
-
-            if (!lastSave || now - lastSave > DB_SAVE_MS) { // 15 seconds gap
-                
-                // console.log('code updated after 15 seconds for the driver location----------------')
-                // console.log(`[ThrottleCheck] ${driverId} → ${(now - lastSave) / 1000}s since last DB save-----------📍📍📍📍📍--------------------------📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍📍`);
-                lastDbUpdate.set(driverId, now); 
-                DRIVER_MODEL.findOneAndUpdate(
-                                                    { _id: driverId },
-                                                    {
-                                                        $set: {
-                                                            location: { type: "Point", coordinates: [longitude, latitude] },
-                                                            locationUpdatedAt: new Date(),
-                                                            lastUsedTokenMobile: new Date(), // we will logout the user if lastUsedToken time as been exceeded 3 hours
-                                                        },
-                                                    },
-                                                    { new: true }
-                                                );
-            }
-
-            // socket.emit("UpdateLocationDriver",     {
-            //                                             code: 200,
-            //                                             message: "location Updated successfully",
-            //                                         }
-            //         );
-            
-        } catch (error) {
-            console.log(`❌❌❌❌❌❌❌❌❌Error updateDriverLocation:`,  error.message);
+            await updateDriverLocationShared(io, redis , { driverId, longitude, latitude  , requestTyep : 'SOCKET'});
+        } catch (e) {
+            console.log("❌ socket updateDriverLocation error:", e.message);
         }
     });
 
@@ -637,4 +545,89 @@ function registerDriverHandlers(io, socket) {
 
 }
 
-module.exports = registerDriverHandlers;
+async function updateDriverLocationShared(io, redis , { driverId, longitude, latitude , requestTyep}) {
+
+    console.log("getting location-----" , { driverId, longitude, latitude , requestTyep , time: new Date().toLocaleString()})
+    if (!driverId) return { ok: false, skipped: true, reason: "Missing driverId" };
+
+    if (!mongoose.Types.ObjectId.isValid(driverId)) {
+        return { ok: false, skipped: true, reason: "Invalid driverId format" };
+    }
+
+    latitude = Number(latitude);
+    longitude = Number(longitude);
+
+    const coord = await validateCoords(latitude, longitude);
+    if (!coord.ok) {
+        return { ok: false, skipped: true, reason: `Invalid coordinates: ${coord.reason}` };
+    }
+
+    driverId = String(driverId);
+    const now = Date.now();
+
+    const prev = lastEmitByDriver.get(driverId);
+    const hasPrev = !!prev;
+
+    let distanceMoved = Infinity;
+    let elapsedSinceEmit = Infinity;
+    let speedKmh = 0;
+
+    if (hasPrev) {
+        const result = await haversineDistanceMeters(prev.lat, prev.lng, latitude, longitude);
+        if (!result?.ok) return { ok: false, skipped: true, reason: "Distance calc failed" };
+
+        distanceMoved = result.meters;
+        elapsedSinceEmit = now - prev.ts;
+
+        const sec = Math.max(elapsedSinceEmit / 1000, 0.001);
+        speedKmh = (distanceMoved / sec) * 3.6;
+    }
+
+    if (hasPrev && distanceMoved < JITTER_METERS && elapsedSinceEmit < MIN_TIME_MS) {
+        return { ok: true, skipped: true, reason: "Jitter skip" };
+    }
+
+    const distanceThreshold = await thresholdBySpeedKmh(speedKmh);
+
+    const shouldEmit =
+        !hasPrev ||
+        (distanceMoved >= distanceThreshold && elapsedSinceEmit >= MIN_EMIT_INTERVAL_MS) ||
+        elapsedSinceEmit >= MIN_TIME_MS;
+
+    if (!shouldEmit) {
+        return { ok: true, skipped: true, reason: "Throttle skip" };
+    }
+
+    const getDriverDetails = await getDriverMapCache(driverId);
+
+    updateDriverLocationInRedis(io, redis, driverId, longitude, latitude, getDriverDetails);
+    broadcastForTripDriverLocation(io, driverId, longitude, latitude, getDriverDetails);
+
+    lastEmitByDriver.set(driverId, { lat: latitude, lng: longitude, ts: now });
+
+    const lastSave = lastDbUpdate.get(driverId);
+    if (!lastSave || now - lastSave > DB_SAVE_MS) {
+        lastDbUpdate.set(driverId, now);
+
+        console.log("data updated in database----", new Date().toLocaleString())
+        DRIVER_MODEL.updateOne(
+        { _id: driverId },
+        {
+            $set: {
+            location: { type: "Point", coordinates: [longitude, latitude] },
+            locationUpdatedAt: new Date(),
+            lastUsedTokenMobile: new Date(),
+            },
+        },
+        { new: false }
+        ).catch(() => {});
+    }
+
+    return { ok: true, skipped: false, driverId, longitude, latitude };
+}
+
+
+module.exports = {
+  registerDriverHandlers,
+  updateDriverLocationShared,
+};

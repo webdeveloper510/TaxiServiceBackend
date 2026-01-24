@@ -1,20 +1,24 @@
-const constant = require("../../config/constant");
-const DRIVER = require("../../models/user/driver_model"); // Import the Driver model
-const AGENCY = require("../../models/user/agency_model");
-const USER = require("../../models/user/user_model"); // Import the Driver model
-const RATING_MODEL = require("../../models/user/trip_rating_model"); // Import the Rating model
-const TRIP = require("../../models/user/trip_model"); // Import the Driver model
-const bcrypt = require("bcrypt");
-const multer = require("multer");
-const randToken = require("rand-token").generator();
-const path = require("path");
-const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
-const { getUserActivePaidPlans , getDriverTripsRanked } = require("../../Service/helperFuntion");
-const { validateCoords }  = require("../../Service/location.service.js");
-const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry , humanize} = require("../../utils/fileUtils");
+  const constant = require("../../config/constant");
+  const DRIVER = require("../../models/user/driver_model"); // Import the Driver model
+  const AGENCY = require("../../models/user/agency_model");
+  const USER = require("../../models/user/user_model"); // Import the Driver model
+  const RATING_MODEL = require("../../models/user/trip_rating_model"); // Import the Rating model
+  const TRIP = require("../../models/user/trip_model"); // Import the Driver model
+  const bcrypt = require("bcrypt");
+  const multer = require("multer");
+  const randToken = require("rand-token").generator();
+  const path = require("path");
+  const jwt = require("jsonwebtoken");
+  const mongoose = require("mongoose");
+  const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+  const { getDriverNextSequenceValue } = require("../../models/user/driver_counter_model");
+  const { getUserActivePaidPlans , getDriverTripsRanked } = require("../../Service/helperFuntion");
+  const { validateCoords }  = require("../../Service/location.service.js");
+  const  { isEmpty, toStr ,  groupFilesByField ,  fileUrl , ensureDocEntry , humanize} = require("../../utils/fileUtils");
+  const { updateDriverLocationShared } = require("../../sockets/handlers/driver.handlers"); // adjust path
+  const { redis } = require("../../utils/redis");
+
+
 // var driverStorage = multer.diskStorage({
 //     destination: function (req, file, cb) {
 //         cb(null, path.join(__dirname, '../../uploads/driver'))
@@ -2463,27 +2467,13 @@ exports.updateDriverLocation = async (req, res) => {
   try{
     const { latitude , longitude , driverId} = req.body;
 
-    const coord = await validateCoords(latitude, longitude);
-    if (!coord.ok) {
-      return res.send({
-                      code: constant.error_code,
-                      ok: false, 
-                      skipped: true, 
-                      message: `Invalid coordinates: ${coord.reason}`
-                    });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(driverId)) {
-      return res.send({
-                      code: constant.error_code, 
-                      message: `Invalid driver id`
-                    });
-    }
-    console.log("data location getting from background------", data , new Date().toLocaleString())
+    // update driver background location
+    updateDriverLocationShared({ io: req.io, redis, requestTyep : 'API' ,  driverId, longitude, latitude});
+   
     return res.send({
                       code: constant.success_code,
                       message: "location getting",
-                      data
+                      data: req.body
                     });
 
   } catch (err) {
