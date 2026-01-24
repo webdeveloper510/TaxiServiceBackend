@@ -2468,7 +2468,9 @@ exports.updateDriverLocation = async (req, res) => {
     const { latitude , longitude , driverId} = req.body;
 
     // update driver background location
-    updateDriverLocationShared({ io: req.io, redis, requestTyep : 'API' ,  driverId, longitude, latitude});
+    updateDriverLocationShared(req.io , redis ,{ requestType : 'API' ,  driverId, longitude, latitude}).catch((e) => {
+      console.log("❌ updateDriverLocationShared (API) failed:", e.message);
+    });
    
     return res.send({
                       code: constant.success_code,

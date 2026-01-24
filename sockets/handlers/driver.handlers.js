@@ -141,7 +141,7 @@ function registerDriverHandlers(io, socket) {
     socket.on("updateDriverLocation", async ({ longitude, latitude , driverId }) => {
 
         try {
-            await updateDriverLocationShared(io, redis , { driverId, longitude, latitude  , requestTyep : 'SOCKET'});
+            await updateDriverLocationShared(io, redis , { driverId, longitude, latitude  , requestType : 'SOCKET'});
         } catch (e) {
             console.log("❌ socket updateDriverLocation error:", e.message);
         }
@@ -545,9 +545,9 @@ function registerDriverHandlers(io, socket) {
 
 }
 
-async function updateDriverLocationShared(io, redis , { driverId, longitude, latitude , requestTyep}) {
+async function updateDriverLocationShared(io, redis , { driverId, longitude, latitude , requestType}) {
 
-    console.log("getting location-----" , { driverId, longitude, latitude , requestTyep , time: new Date().toLocaleString()})
+    console.log("getting location-----" , { driverId, longitude, latitude , requestType , time: new Date().toLocaleString()})
     if (!driverId) return { ok: false, skipped: true, reason: "Missing driverId" };
 
     if (!mongoose.Types.ObjectId.isValid(driverId)) {
@@ -618,8 +618,7 @@ async function updateDriverLocationShared(io, redis , { driverId, longitude, lat
             locationUpdatedAt: new Date(),
             lastUsedTokenMobile: new Date(),
             },
-        },
-        { new: false }
+        }
         ).catch(() => {});
     }
 
