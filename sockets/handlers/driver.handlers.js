@@ -547,7 +547,7 @@ function registerDriverHandlers(io, socket) {
 
 async function updateDriverLocationShared(io, redis , { driverId, longitude, latitude , requestType}) {
 
-    console.log("getting location-----" , { driverId, longitude, latitude , requestType , time: new Date().toLocaleString()})
+    console.log("getting location-----📍📍📍📍📍" , { driverId, longitude, latitude , requestType , time: new Date().toLocaleString()})
     if (!driverId) return { ok: false, skipped: true, reason: "Missing driverId" };
 
     if (!mongoose.Types.ObjectId.isValid(driverId)) {
@@ -609,7 +609,7 @@ async function updateDriverLocationShared(io, redis , { driverId, longitude, lat
     if (!lastSave || now - lastSave > DB_SAVE_MS) {
         lastDbUpdate.set(driverId, now);
 
-        console.log("data updated in database----", new Date().toLocaleString())
+        console.log("data updated in database----❤️❤️❤️❤️❤️❤️", new Date().toLocaleString())
         DRIVER_MODEL.updateOne(
         { _id: driverId },
         {
