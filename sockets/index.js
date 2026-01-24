@@ -37,7 +37,7 @@
 
 
 const { Server } = require("socket.io");
-const registerDriverHandlers = require("./handlers/driver.handlers");
+const { registerDriverHandlers } = require("./handlers/driver.handlers");
 const registerUserHandlers = require("./handlers/user.handlers");
 const registerTripHandlers = require("./handlers/trip.handlers");
 
