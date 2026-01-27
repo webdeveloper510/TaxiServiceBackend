@@ -216,6 +216,9 @@ const trip = new Schema({
             language: {
                 type:String,
             },
+            roomNumber: {
+                type:String,
+            },
         }
     },
     created_by:{
