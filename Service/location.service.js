@@ -502,17 +502,15 @@ async function broadcastForTripDriverLocation (io , driverId  , lng , lat  , det
   try {
     // console.log('locatioin updating in trip////////////////////////////======')
 
+    const longitudeNum = Number(lng);
+    const latitudeNum = Number(lat);
+    if (!Number.isFinite(longitudeNum) || !Number.isFinite(latitudeNum)) return;
+
     driverId = String(driverId).trim();
     const driverKey = `driver:${driverId}`;
 
     if (!details?.currentTripId) return;
     if (!(await redis.exists(driverKey))) return; // exit if key doesn't exist
-    
-     
-    
-    const longitudeNum = Number(lng);
-    const latitudeNum = Number(lat);
-    if (!Number.isFinite(longitudeNum) || !Number.isFinite(latitudeNum)) return;
     
     const tripId = details.currentTripId;
     io.to( `driver:trip:update:${tripId}`).emit("driver:trip:update",    {
@@ -524,7 +522,7 @@ async function broadcastForTripDriverLocation (io , driverId  , lng , lat  , det
                                                                           }
                                                 );
 
-    // console.log('driver send updates for trips--------' , details.email)
+    console.log('✅  driver send updates for trips--------' , details.email)
   } catch (err) {
       console.error("❌ Error in broadcastForTripDriverLocation:", err?.message || err);
   }

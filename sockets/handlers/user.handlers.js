@@ -194,7 +194,8 @@ function registerUserHandlers(io, socket) {
             return ack({
                         code: CONSTANT.success_code,
                         message: 'company subscribed successfully for trip updates',
-                        driverList: driverList ? driverList : []
+                        driverList: driverList ? driverList : [],
+                        driverData: driverData
                     })
            
            
