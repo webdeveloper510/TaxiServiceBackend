@@ -343,7 +343,7 @@ function registerDriverHandlers(io, socket) {
                                     message: i18n.__({ phrase: "updateDriver.error.requireSubscriptionForMapVisibility", locale: lang }),
                                 })
                 }
-                console.log('getDriverDetails-----' , getDriverDetails)
+                // console.log('getDriverDetails-----' , getDriverDetails)
                 // update driver live location update
                 updateDriverLocationInRedis(io , redis , driver_info._id , longitude , latitude , getDriverDetails);
             }
