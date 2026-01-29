@@ -59,17 +59,17 @@ const tripIsBooked = async (tripId, driver_info, io) => {
     if (tripById) {
       const updateDriver = await driver_model.findByIdAndUpdate( tripById.driver_name, { is_available: true } );
 
-      tripById = await trip_model.updateOne( {_id: tripById._id}, 
-                                              {
-                                                $set: {
-                                                  driver_name: null,
-                                                  vehicle: null,
-                                                  trip_status: constant.TRIP_STATUS.PENDING,
-                                                  send_request_date_time: null
-                                                }
-                                              },
-                                              { new: true }
-                                            );
+      tripById = await trip_model.findByIdAndUpdate( {_id: tripById._id}, 
+                                                      {
+                                                        $set: {
+                                                          driver_name: null,
+                                                          vehicle: null,
+                                                          trip_status: constant.TRIP_STATUS.PENDING,
+                                                          send_request_date_time: null
+                                                        }
+                                                      },
+                                                      { new: true }
+                                                    );
       
 
       // for driver app side to close the pop-up------ this will apply for the app only
