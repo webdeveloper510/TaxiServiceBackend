@@ -193,7 +193,7 @@ function registerUserHandlers(io, socket) {
                                 ];
             }
 
-             console.log("driver map suybscribve📍📍📍-----", driverKey ,driverList)
+            //  console.log("driver map suybscribve📍📍📍-----", driverKey ,driverList)
 
             return ack({
                         code: CONSTANT.success_code,
