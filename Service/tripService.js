@@ -274,3 +274,54 @@ exports.computePreNotificationTimeWindow = async (preNotificationTime = 20) => {
   
   return { startDateTime, endDateTime , currentDateTime , preNotificationTime};
 };
+
+exports.revertAcceptedTripsToPending = async () => {
+    try{
+
+        const EXPIRY_SECONDS = Number(process.env.TRIP_POP_UP_SHOW_TIME || 20);
+        const expiredBefore = new Date(Date.now() - EXPIRY_SECONDS * 1000);
+
+        console.log("revertAcceptedTripsToPending------" , new Date().toLocaleString());
+
+        const acceptedTrips = await TRIP_MODEL.find({
+                                                        trip_status: CONSTANT.TRIP_STATUS.APPROVED,
+                                                        driver_name: { $exists: true, $ne: null },
+                                                        vehicle: { $exists: true, $ne: null },
+                                                        is_deleted: false,
+                                                        send_request_date_time: { $ne: null, $lte: expiredBefore },
+                                                    })
+                                                    .select({ _id: 1, driver_name: 1 , trip_id:1 , send_request_date_time: 1})
+                                                    .limit(500)
+                                                    .lean();
+
+        console.log("revert accepted trips found ✅ : ", acceptedTrips.length , acceptedTrips);
+
+        if (!acceptedTrips.length) return 
+
+        const tripIds = acceptedTrips.map(t => t._id);
+
+        // revert trips (race-safe)
+        await TRIP_MODEL.updateMany(
+                                        {
+                                            _id: { $in: tripIds },
+                                            trip_status: CONSTANT.TRIP_STATUS.APPROVED,
+                                            send_request_date_time: { $ne: null, $lte: expiredBefore },
+                                        },
+                                        {
+                                            $set:   {
+                                                        trip_status: CONSTANT.TRIP_STATUS.PENDING,
+                                                        driver_name: null,
+                                                        vehicle: null,
+                                                    },
+                                            $unset: { send_request_date_time: "" },
+                                        }
+                                    );
+
+        console.log("revert accepted trip updated----✅ ")
+    } catch (error) {
+    
+        console.log("❌❌❌❌❌❌❌❌❌Error revertAcceptedTripsToPending:",  error.message);
+    
+    // throw error;
+  }
+}

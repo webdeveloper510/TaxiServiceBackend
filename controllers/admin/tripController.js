@@ -58,6 +58,7 @@ const tripIsBooked = async (tripId, driver_info, io) => {
     if (tripById) {
       const updateDriver = await driver_model.findByIdAndUpdate( tripById.driver_name, { is_available: true } );
       tripById.driver_name = null;
+      tripById.vehicle = null;
       tripById.trip_status = constant.TRIP_STATUS.PENDING;
       await tripById.save();
 

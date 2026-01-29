@@ -5,6 +5,7 @@ const { driverAutoLogoutCron } = require("./driverAutoLogout.cron")
 const { companyAutoLogoutCron } = require("./companyAutoLogout.cron")
 const {processDriverDocumentExpiryAlerts } = require("./processDriverDocumentExpiryAlerts.cron")
 const { driverDocumentExpiry } = require("./driverDocumentExpiry.cron")
+const { revertAcceptedTripsToPendingCron } = require("./revertAcceptedTripsToPending.cron")
 function startAllCrons(io) {
   tripNotificationCron();
   weeklyPayoutCron();
@@ -13,6 +14,7 @@ function startAllCrons(io) {
   companyAutoLogoutCron(io);
   processDriverDocumentExpiryAlerts(io);
   driverDocumentExpiry(io);
+  revertAcceptedTripsToPendingCron();
 }
 
 module.exports = { startAllCrons };
