@@ -45,22 +45,32 @@ const twilio = require("twilio");
 const { Sms } = require("twilio/lib/twiml/VoiceResponse");
 const similarity = require('string-similarity');
 const {convertLocalToUTC} = require("../../utils/timeDiff")
+
 const tripIsBooked = async (tripId, driver_info, io) => {
   
   const driver_full_info = await driver_model.findOne({ _id: driver_info._id, });
 
   try {
-    const tripById = await trip_model.findOne({
+    let tripById = await trip_model.findOne({
                                                 _id: tripId,
                                                 trip_status: constant.TRIP_STATUS.APPROVED,
                                               });
 
     if (tripById) {
       const updateDriver = await driver_model.findByIdAndUpdate( tripById.driver_name, { is_available: true } );
-      tripById.driver_name = null;
-      tripById.vehicle = null;
-      tripById.trip_status = constant.TRIP_STATUS.PENDING;
-      await tripById.save();
+
+      tripById = await trip_model.updateOne( {_id: tripById._id}, 
+                                              {
+                                                $set: {
+                                                  driver_name: null,
+                                                  vehicle: null,
+                                                  trip_status: constant.TRIP_STATUS.PENDING,
+                                                  send_request_date_time: null
+                                                }
+                                              },
+                                              { new: true }
+                                            );
+      
 
       // for driver app side to close the pop-up------ this will apply for the app only
       if (driver_full_info?.socketId) {
@@ -71,7 +81,6 @@ const tripIsBooked = async (tripId, driver_info, io) => {
       }
 
       emitTripNotAcceptedByDriver(io , tripById , updateDriver);
-      
     }
   } catch (err) {
     console.log('❌❌❌❌❌❌❌❌❌Error tripIsbooked:', err.message);

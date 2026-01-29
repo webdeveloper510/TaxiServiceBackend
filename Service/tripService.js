@@ -313,7 +313,7 @@ exports.revertAcceptedTripsToPending = async () => {
                                                         driver_name: null,
                                                         vehicle: null,
                                                     },
-                                            $unset: { send_request_date_time: "" },
+                                            $unset: { send_request_date_time: null },
                                         }
                                     );
 
