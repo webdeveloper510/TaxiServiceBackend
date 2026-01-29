@@ -161,13 +161,15 @@ function registerUserHandlers(io, socket) {
         
         try {
 
+            
             const key = `driver:trip:update:${tripId}`;
             // await redis.set(key, JSON.stringify(bounds), "EX", 300); // 60 * 5 minutes = 300 seconds
             socket.join(key);
-
+            driverId = String(driverId).trim();
             const driverKey = `driver:${driverId}`; // same pattern you used to store
             
             const driverData = await redis.hgetall(driverKey);
+           
             let driverList = [];
 
             if (driverData && Object.keys(driverData).length !== 0) {
@@ -190,6 +192,8 @@ function registerUserHandlers(io, socket) {
                                     }
                                 ];
             }
+
+             console.log("driver map suybscribve📍📍📍-----", driverKey ,driverList)
 
             return ack({
                         code: CONSTANT.success_code,

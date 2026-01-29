@@ -483,6 +483,7 @@ async function updateDriverLocationInRedis(io, redis, driverId, lng, lat, detail
                     );
 
     await pipeline.exec();
+    if (driverId == "680650aaf26472a24298aa83")console.log("update in redis`````````````-----", key)
   
     // Broadcast to listeners
     // await broadcastDriverLocation(io, redis, driverId, lng, lat, driverDetails);
