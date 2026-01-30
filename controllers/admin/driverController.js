@@ -880,6 +880,9 @@ exports.get_drivers_list = async (req, res) => {
   let api_start_time = new Date();
 
   try {
+
+    console.time("get_trip_api")
+    
     const agencyUserId = req.userId; // Assuming you have user authentication and user ID in the request
     let getDetail = await USER.findOne({ _id: req.userId });
 
@@ -897,25 +900,32 @@ exports.get_drivers_list = async (req, res) => {
         { nickName: { $regex: search, $options: "i" } },
       ];
     }
-    const driver = await DRIVER.find(query, {
-      _id: 1,
-      profile_image: 1,
-      first_name: 1,
-      last_name: 1,
-      nickName:1,
-      phone: 1,
-      status: 1,
-      is_login: 1,
-      isVerified: 1,
-      kyc:1
-    });
+
+    const driver = await DRIVER.find(query).select(`
+                                              _id
+                                              profile_image
+                                              first_name
+                                              last_name
+                                              nickName
+                                              countryCode
+                                              phone
+                                              status
+                                              is_login
+                                              isVerified
+                                              kyc.verification.isVerified
+                                            `)
+                                            .lean();
 
     if (driver) {
       const favorite_driver = getDetail.favoriteDrivers.map((id) =>
         id.toString()
       );
-      const result = driver.map((d) => {
-        const driverObj = d.toObject();
+
+      console.log('favorite_driver---', favorite_driver)
+
+    
+      const result = driver.map((driverObj) => {
+       
         let isFavorite = false;
 
         if (favorite_driver.includes(driverObj._id.toString())) {
@@ -931,12 +941,16 @@ exports.get_drivers_list = async (req, res) => {
       const differenceInSeconds = differenceInMs / 1000; // Convert to seconds
 
       
-      res.send({
+      console.timeEnd("get_trip_api");
+      
+      return res.send({
         code: constant.success_code,
         message: res.__('getDrivers.success.driverListRetrieved'),
+        count: result.length,
         response_time: differenceInSeconds,
         result: result,
       });
+
     } else {
       res.send({
         code: constant.error_code,
@@ -1138,6 +1152,7 @@ exports.get_drivers_super = async (req, res) => {
           status:1,
           auto_accept:1,
           driver_status:1,
+          created_at:1,
           created_by:1,
           isVerified:1,
           isDocUploaded:1,
