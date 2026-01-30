@@ -697,6 +697,44 @@ exports.get_trip = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "trip_ratings",
+          let: { tripId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$trip_id", "$$tripId"] },
+                is_deleted: false,
+              },
+            },
+            { $sort: { createdAt: -1 } },
+            { $limit: 1 },
+            {
+              $project: {
+                _id: 1,
+                rating: 1,
+                comment: 1,
+                rated_by_role: 1,
+                createdAt: 1,
+              },
+            },
+          ],
+          as: "ratingDoc",
+        },
+      },
+      {
+        $addFields: {
+          rating: {
+            $ifNull: [{ $arrayElemAt: ["$ratingDoc", 0] }, {}], // ✅ always object
+          },
+        },
+      },
+      {
+        $project: {
+          ratingDoc: 0, // remove temp field
+        },
+      },
+      {
         $project: {
           _id: 1,
           trip_from: 1,
@@ -720,6 +758,7 @@ exports.get_trip = async (req, res) => {
           car_type_id:1,
           drop_time:1,
           trip_distance:1,
+          rating:1,
           company_trip_payout_status:1,
           hotel_name: { $arrayElemAt: ["$hotelData.company_name", 0] },
           company_name: { $arrayElemAt: ["$userData.company_name", 0] },
