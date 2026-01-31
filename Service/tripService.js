@@ -281,7 +281,7 @@ exports.revertAcceptedTripsToPending = async () => {
         const EXPIRY_SECONDS = Number(process.env.TRIP_POP_UP_SHOW_TIME || 20);
         const expiredBefore = new Date(Date.now() - EXPIRY_SECONDS * 1000);
 
-        console.log("revertAcceptedTripsToPending------" , new Date().toLocaleString());
+        // console.log("revertAcceptedTripsToPending------" , new Date().toLocaleString());
 
         const acceptedTrips = await TRIP_MODEL.find({
                                                         trip_status: CONSTANT.TRIP_STATUS.APPROVED,
@@ -294,7 +294,7 @@ exports.revertAcceptedTripsToPending = async () => {
                                                     .limit(500)
                                                     .lean();
 
-        console.log("revert accepted trips found ✅ : ", acceptedTrips.length , acceptedTrips);
+        // console.log("revert accepted trips found ✅ : ", acceptedTrips.length , acceptedTrips);
 
         if (!acceptedTrips.length) return 
 

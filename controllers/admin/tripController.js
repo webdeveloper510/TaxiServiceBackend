@@ -2343,6 +2343,14 @@ exports.check_trip_request = async (req, res) => {
   // const uniqueNumber = await getNextSequenceValue();
 
   if (req.params.id !== null || req.params.id != "") {
+
+    const driverId = req.params.id;
+    if (!driverId || !mongoose.Types.ObjectId.isValid(driverId)) {
+      return res.send({
+        code: constant.error_code,
+        message: res.__("common.error.somethingWentWrong"),
+      });
+    }
     let beforeTwentySeconds = new Date(new Date().getTime() - ( process.env.TRIP_POP_UP_SHOW_TIME * 1000));
     // beforeTwentySeconds = "2024-09-16T07:46:28.408Z";
     let find_trip = await TRIP.aggregate([

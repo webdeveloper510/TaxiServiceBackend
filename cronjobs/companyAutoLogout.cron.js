@@ -28,7 +28,7 @@ const autoLogoutCompanyUsers = async (io) => {
                                                 { _id: 1 }
                                             );
         
-        console.log('find companyautoLogout users----' , companyList.length)
+        // console.log('find companyautoLogout users----' , companyList.length)
 
         if (!companyList.length) return;
         

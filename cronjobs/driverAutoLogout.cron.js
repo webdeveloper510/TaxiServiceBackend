@@ -100,7 +100,7 @@ const autoLogoutdriverUsers = async (io) => {
                                                     { _id: 1, email: 1 }  
                                                 );
         
-        console.log('find driver autoLogout users----' , driverList.length)
+        // console.log('find driver autoLogout users----' , driverList.length)
 
         if (!driverList.length) return;
        

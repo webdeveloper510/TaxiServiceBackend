@@ -1822,13 +1822,8 @@ exports.get_token_detail = async (req, res) => {
     startOfCurrentWeek.setDate(
       startOfCurrentWeek.getDate() - startOfCurrentWeek.getDay()
     ); // Set to Monday of current week
-    let data = req.body;
 
-   
-    let result1;
-    const userByID = await USER.findOne({ _id: req.userId }).populate("driverId");
-    const userPurchasedPlans = await getUserActivePaidPlans(req.user);
-    
+
     let lookupData  = {
                         from: "agencies",
                         localField: "_id",
@@ -1879,8 +1874,14 @@ exports.get_token_detail = async (req, res) => {
       { $unwind: { path: "$company_detail", preserveNullAndEmptyArrays: true } }
     );
 
-    let getData = await USER.aggregate(pipeline);
+    let [userByID, userPurchasedPlans , getData] = await Promise.all([
+      USER.findOne({ _id: req.userId }).populate("driverId"),
+      getUserActivePaidPlans(req.user),
+      USER.aggregate(pipeline)
+    ]);
 
+    
+    // for driver
     if (!userByID) {
       let get_data = await DRIVER.findOne({ _id: req.userId });
 
@@ -1892,15 +1893,14 @@ exports.get_token_detail = async (req, res) => {
                         });
         
       }
-      const totalUnpaidTrips = await trip_model.find({
+      const totalUnpaidTrips = await trip_model.countDocuments({
                                                       driver_name: get_data._id,
                                                       trip_status: "Completed",
                                                       is_paid: false,
                                                       drop_time: {
                                                         $lte: startOfCurrentWeek,
                                                       },
-                                                    })
-                                                    .countDocuments();
+                                                    });
 
       let get_data2 = get_data.toObject();
       get_data2.totalUnpaidTrips = totalUnpaidTrips;
