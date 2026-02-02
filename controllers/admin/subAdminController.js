@@ -761,6 +761,7 @@ exports.edit_sub_admin = async (req, res) => {
                         });
       }
 
+      console.log("req?.file?.location-----", req?.file?.location)
       data.logo = req?.file?.location ? req.file.location : checkSubAdmin.logo;
       // let update_data = await USER.findOneAndUpdate(criteria, data, option)
       // let criteria2 = { user_id: update_data._id }
