@@ -84,123 +84,295 @@ exports.get_trip = async (req, res) => {
   try {
     let data = req.body;
 
-    let mid = new mongoose.Types.ObjectId(req.userId);
+    let userId = new mongoose.Types.ObjectId(req.userId);
     let query;
-    let search_value = data.comment ? data.comment : "";
+    let searchValue = (data.comment || "").trim();
     let dateQuery = await dateFilter(data );
+    let payOptions = [];
+    try {
+      payOptions = data.pay_option ? JSON.parse(data.pay_option) : [];
+      if (!Array.isArray(payOptions)) payOptions = [];
+    } catch (e) {
+      payOptions = [];
+    }
 
-    if (req.params.status == constant.TRIP_STATUS.PENDING) {
-      query = [
-        { created_by: mid, status: true },
-        {
-          $or: [
-            { trip_status: req.params.status },
-            { trip_status: constant.TRIP_STATUS.APPROVED },
-          ],
-        },
-        {
-          under_cancellation_review: false
-        },
-        { is_deleted: false },
-        {
-          $or: [
-            { comment: { $regex: search_value, $options: "i" } },
-            { trip_id: { $regex: search_value, $options: "i" } },
-            { "trip_from.address": { $regex: search_value, $options: "i" } },
-            { "trip_to.address": { $regex: search_value, $options: "i" } },
-          ],
-        },
-        dateQuery, // Add date filter query here
-      ];
+    payOptions = payOptions.map((x) => String(x || "").trim()).filter(Boolean);
+
+    // ✅ Pagination params
+    const page = Math.max(parseInt(data.page || data.page_no || 1, 10), 1);
+    const limit = Math.min(Math.max(parseInt(data.limit || data.per_page || 10, 10), 1), 100);
+    const skip = (page - 1) * limit;
+    
+    const status = req.params.status;
+
+    const match = {
+      created_by: userId,
+      under_cancellation_review: false,
+      is_deleted: false,
+    };
+
+
+    // For pending screen: allow PENDING + APPROVED (as compnay send the trip for alocation to the driver)
+    if (status === constant.TRIP_STATUS.PENDING) {
+      match.status = true;
+      match.trip_status = { $in: [constant.TRIP_STATUS.PENDING, constant.TRIP_STATUS.APPROVED] };
     } else {
-      query = [
-        { created_by: mid },
-        { trip_status: req.params.status },
-        {
-          under_cancellation_review: false
-        },
-        {
-          $or: [
-            { comment: { $regex: search_value, $options: "i" } },
-            { trip_id: { $regex: search_value, $options: "i" } },
-            { "trip_from.address": { $regex: search_value, $options: "i" } },
-            { "trip_to.address": { $regex: search_value, $options: "i" } },
-          ],
-        },
-        dateQuery, // Add date filter query here
+      match.trip_status = status;
+    }
+
+    // ✅ pay_option filter (FAST)
+    if (payOptions.length > 0) {
+      
+      match.pay_option = { $in: payOptions };
+    }
+
+    // ✅ Search filter (only add when needed)
+    if (searchValue.length > 0) {
+      const rx = new RegExp(searchValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      match.$or = [
+        { comment: rx },
+        { trip_id: rx },
+        { "trip_from.address": rx },
+        { "trip_to.address": rx },
       ];
     }
 
-    let get_trip = await TRIP.aggregate([
+     // ✅ Merge dateQuery safely
+    if (dateQuery && typeof dateQuery === "object" && Object.keys(dateQuery).length) {
+      Object.assign(match, dateQuery);
+    }
+
+    // ✅ Aggregate with pagination + total count
+    const result = await TRIP.aggregate([
+      { $match: match },
+
+      // ✅ Sort first (uses index if exists)
+      { $sort: { createdAt: -1 } },
+
       {
-        $match: {
-          $and: query,
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+
+            // ✅ Driver lookup (light)
+            {
+              $lookup: {
+                from: "drivers",
+                let: { driverId: "$driver_name" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
+                  { $project: { _id: 1, first_name: 1, last_name: 1 } },
+                ],
+                as: "driver",
+              },
+            },
+
+            // ✅ Vehicle lookup (light)
+            {
+              $lookup: {
+                from: "vehicles",
+                let: { vehicleId: "$vehicle" },
+                pipeline: [
+                  { $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } },
+                  { $project: { _id: 1, vehicle_number: 1, vehicle_model: 1 } },
+                ],
+                as: "vehicleDoc",
+              },
+            },
+
+            // ✅ Final projection
+            {
+              $project: {
+                _id: 1,
+                trip_from: 1,
+                trip_to: 1,
+                pickup_date_time: 1,
+                trip_status: 1,
+                vehicle_type: 1,
+                status: 1,
+                commission: 1,
+                comment: 1,
+                pay_option: 1,
+                is_deleted: 1,
+                passenger_detail: 1,
+                createdAt: 1,
+                car_type: 1,
+                trip_id: 1,
+                trip_distance: 1,
+
+                driver_id: { $arrayElemAt: ["$driver._id", 0] },
+
+                driver_name: {
+                  $trim: {
+                    input: {
+                      $concat: [
+                        { $ifNull: [{ $arrayElemAt: ["$driver.first_name", 0] }, ""] },
+                        " ",
+                        { $ifNull: [{ $arrayElemAt: ["$driver.last_name", 0] }, ""] },
+                      ],
+                    },
+                  },
+                },
+
+                vehicle: {
+                  $trim: {
+                    input: {
+                      $concat: [
+                        { $ifNull: [{ $arrayElemAt: ["$vehicleDoc.vehicle_number", 0] }, ""] },
+                        " ",
+                        { $ifNull: [{ $arrayElemAt: ["$vehicleDoc.vehicle_model", 0] }, ""] },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          ],
+
+          total: [{ $count: "count" }],
         },
       },
+
       {
-        $lookup: {
-          from: "drivers",
-          localField: "driver_name",
-          foreignField: "_id",
-          as: "driver",
+        $addFields: {
+          total: { $ifNull: [{ $arrayElemAt: ["$total.count", 0] }, 0] },
         },
       },
-      {
-        $lookup: {
-          from: "vehicles",
-          localField: "vehicle",
-          foreignField: "_id",
-          as: "vehicle",
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          trip_from: 1,
-          trip_to: 1,
-          pickup_date_time: 1,
-          trip_status: 1,
-          vehicle_type: 1,
-          status: 1,
-          commission: 1,
-          comment: 1,
-          pay_option: 1,
-          is_deleted: 1,
-          passenger_detail: 1,
-          createdAt: 1,
-          car_type:1,
-          driver_name: {
-            $concat: [
-              { $arrayElemAt: ["$driver.first_name", 0] },
-              " ",
-              { $arrayElemAt: ["$driver.last_name", 0] },
-            ],
-          },
-          driver_id: { $arrayElemAt: ["$driver._id", 0] },
-          vehicle: {
-            $concat: [
-              { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
-              " ",
-              { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
-            ],
-          },
-          trip_id: 1,
-          trip_distance:1,
-        },
-      },
-    ]).sort({ createdAt: -1 });
-    if (!get_trip) {
-      res.send({
-        code: constant.error_code,
-        message: res.__('getTrip.error.unableToRetrieveTrip'), 
-      });
-    } else {
-      res.send({
+    ]);
+    // if (req.params.status == constant.TRIP_STATUS.PENDING) {
+    //   query = [
+    //     { created_by: mid, status: true },
+    //     {
+    //       $or: [
+    //         { trip_status: req.params.status },
+    //         { trip_status: constant.TRIP_STATUS.APPROVED },
+    //       ],
+    //     },
+    //     {
+    //       under_cancellation_review: false
+    //     },
+    //     { is_deleted: false },
+    //     {
+    //       $or: [
+    //         { comment: { $regex: search_value, $options: "i" } },
+    //         { trip_id: { $regex: search_value, $options: "i" } },
+    //         { "trip_from.address": { $regex: search_value, $options: "i" } },
+    //         { "trip_to.address": { $regex: search_value, $options: "i" } },
+    //       ],
+    //     },
+    //     ...(pay_option.length > 0
+    //       ? [{
+    //           $or: pay_option.map((option) => ({
+    //             pay_option: { $regex: `^${option}$`, $options: "i" },
+    //           })),
+    //         }]
+    //       : []),
+    //     dateQuery, // Add date filter query here
+    //   ];
+    // } else {
+    //   query = [
+    //     { created_by: mid },
+    //     { trip_status: req.params.status },
+    //     {
+    //       under_cancellation_review: false
+    //     },
+    //     { is_deleted: false },
+    //     ...(pay_option.length > 0
+    //       ? [{
+    //           $or: pay_option.map((option) => ({
+    //             pay_option: { $regex: `^${option}$`, $options: "i" },
+    //           })),
+    //         }]
+    //       : []),
+    //     {
+    //       $or: [
+    //         { comment: { $regex: search_value, $options: "i" } },
+    //         { trip_id: { $regex: search_value, $options: "i" } },
+    //         { "trip_from.address": { $regex: search_value, $options: "i" } },
+    //         { "trip_to.address": { $regex: search_value, $options: "i" } },
+    //       ],
+    //     },
+    //     dateQuery, // Add date filter query here
+    //   ];
+    // }
+
+    // let get_trip = await TRIP.aggregate([
+    //   {
+    //     $match: {
+    //       $and: query,
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "drivers",
+    //       localField: "driver_name",
+    //       foreignField: "_id",
+    //       as: "driver",
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "vehicles",
+    //       localField: "vehicle",
+    //       foreignField: "_id",
+    //       as: "vehicle",
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       _id: 1,
+    //       trip_from: 1,
+    //       trip_to: 1,
+    //       pickup_date_time: 1,
+    //       trip_status: 1,
+    //       vehicle_type: 1,
+    //       status: 1,
+    //       commission: 1,
+    //       comment: 1,
+    //       pay_option: 1,
+    //       is_deleted: 1,
+    //       passenger_detail: 1,
+    //       createdAt: 1,
+    //       car_type:1,
+    //       driver_name: {
+    //         $concat: [
+    //           { $arrayElemAt: ["$driver.first_name", 0] },
+    //           " ",
+    //           { $arrayElemAt: ["$driver.last_name", 0] },
+    //         ],
+    //       },
+    //       driver_id: { $arrayElemAt: ["$driver._id", 0] },
+    //       vehicle: {
+    //         $concat: [
+    //           { $arrayElemAt: ["$vehicle.vehicle_number", 0] },
+    //           " ",
+    //           { $arrayElemAt: ["$vehicle.vehicle_model", 0] },
+    //         ],
+    //       },
+    //       trip_id: 1,
+    //       trip_distance:1,
+    //     },
+    //   },
+    // ]).sort({ createdAt: -1 });
+    const payload = result?.[0] || { data: [], total: 0 };
+
+    // if (!get_trip) {
+    //   res.send({
+    //     code: constant.error_code,
+    //     message: res.__('getTrip.error.unableToRetrieveTrip'), 
+    //   });
+    // } 
+      return res.send({
         code: constant.success_code,
         message: res.__('getTrip.success.tripDataRetrieved'),
-        result: get_trip,
+        page,
+        limit,
+        total: payload.total,
+        totalPages: Math.ceil(payload.total / limit),
+        result: payload.data,
       });
-    }
+    
   } catch (err) {
 
     console.log('❌❌❌❌❌❌❌❌❌Error get trip :', err.message);

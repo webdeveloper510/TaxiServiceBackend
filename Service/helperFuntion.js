@@ -2988,14 +2988,19 @@ exports.dateFilter = async ( postData ) => {
   try {
     
     let dateFilter = postData.dateFilter; // Corrected variable name
-    if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange'].includes(dateFilter)) {
+    if (!['all', 'this_week', 'this_month', 'this_year', 'dateRange' , 'today'].includes(dateFilter)) {
       dateFilter = "all";
     }
     let dateQuery = {};
     if (dateFilter !== "all") {
       let startDate, endDate;
       const today = new Date();
+
       switch (dateFilter) {
+        case "today":
+          startDate = new Date(today);
+          endDate = new Date(today);
+          break;
         case "this_week":
           const todayDay = today.getDay();
           startDate = new Date(
