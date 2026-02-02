@@ -1977,6 +1977,7 @@ exports.get_recent_trip = async (req, res) => {
     let data = req.body;
     let mid = new mongoose.Types.ObjectId(req.userId);
     let getIds = await USER.find({ role: "HOTEL", created_by: req.userId });
+
     let ids = [];
     for (let i of getIds) {
       ids.push(i._id);

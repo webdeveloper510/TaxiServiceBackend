@@ -199,8 +199,8 @@ exports.get_trip = async (req, res) => {
                 car_type: 1,
                 trip_id: 1,
                 trip_distance: 1,
-                roomNumber:1,
-                
+                roomNumber: "$customerDetails.roomNumber",
+
                 driver_id: { $arrayElemAt: ["$driver._id", 0] },
 
                 driver_name: {
