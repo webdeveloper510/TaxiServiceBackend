@@ -15,7 +15,6 @@ function registerUserHandlers(io, socket) {
     // Web user (company or driver-as-partner) connections
     socket.on("addWebUser", async ({ token }) => {
 
-        console.log("addWebUser calling-----" , token)
         if (!token) {
             socket.emit("userConnection", { code: 200, message: "token is required" });
             return;

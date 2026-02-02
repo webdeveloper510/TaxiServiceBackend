@@ -1975,6 +1975,12 @@ exports.get_trip_for_hotel = async (req, res) => {
 exports.get_recent_trip = async (req, res) => {
   try {
     let data = req.body;
+
+    // ✅ default limit = 5
+    const limit = Math.min(Math.max(parseInt(data.limit || 5, 10), 1), 50);
+    const page = Math.max(parseInt(data.page || 1, 10), 1);
+    const skip = (page - 1) * limit;
+
     let mid = new mongoose.Types.ObjectId(req.userId);
     let getIds = await USER.find({ role: "HOTEL", created_by: req.userId });
 
@@ -1982,7 +1988,7 @@ exports.get_recent_trip = async (req, res) => {
     for (let i of getIds) {
       ids.push(i._id);
     }
-    let search_value = data.comment ? data.comment : "";
+    let searchValue  = (data.comment || "").trim();
     const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
     let get_trip = await TRIP.aggregate([
       {
@@ -1991,12 +1997,17 @@ exports.get_recent_trip = async (req, res) => {
             {
               $or: [{ created_by: { $in: objectIds } }, { created_by: mid }],
             },
-            { comment: { $regex: search_value, $options: "i" } },
+            { comment: { $regex: searchValue , $options: "i" } },
             // { trip_status: req.params.status },
             { is_deleted: false },
           ],
         },
       },
+      // ✅ Sort early
+      { $sort: { createdAt: -1 } },
+
+      // ✅ Limit to 5
+      { $limit: 5 },
       {
         $lookup: {
           from: "drivers",
@@ -2071,7 +2082,7 @@ exports.get_recent_trip = async (req, res) => {
           trip_id: 1,
         },
       },
-    ]).sort({ createdAt: -1 });
+    ]);
     if (!get_trip) {
       res.send({
         code: constant.error_code,
