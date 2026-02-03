@@ -810,7 +810,7 @@ exports.hotelWebLogin = async (req, res) => {
                                               // status: true,
                                               is_blocked: false,
                                             }).
-                                            select('_id password')
+                                            select('_id password jwtToken tokenUsageCount')
                                             .lean();
 
     if (!checkHotel) {
@@ -823,18 +823,30 @@ exports.hotelWebLogin = async (req, res) => {
       return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
     }
 
-    let jwtToken = jwt.sign(
-                              { 
-                                userId: hotelId,
-                                companyPartnerAccess: false
-                              },
-                              process.env.JWTSECRET,
-                              { expiresIn: CONSTANT.JWT_TOKEN_EXPIRE }
-                            );
+    // return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') ,checkHotel });
+
+    let jwtToken = checkHotel.jwtToken;
+    let tokenUsageCount = checkHotel.tokenUsageCount || 0;
+
+    if (!jwtToken) {
+
+      jwtToken = jwt.sign(
+                            { 
+                              userId: hotelId,
+                              companyPartnerAccess: false
+                            },
+                            process.env.JWTSECRET,
+                            { expiresIn: CONSTANT.JWT_TOKEN_EXPIRE }
+                          );
+    } else {
+      tokenUsageCount = tokenUsageCount + 1;
+    }
+    
 
     const updateData = {
                           web_locale: locale,
                           jwtToken: jwtToken,
+                          tokenUsageCount: tokenUsageCount,
                           ...(webDeviceToken ? { webDeviceToken } : {}),
                           lastUsedToken: new Date()
                         };

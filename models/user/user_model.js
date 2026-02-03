@@ -293,6 +293,14 @@ const user = new Schema(
       type: String,
       default: null,
     },
+    jwtToken: {
+      type: String,
+      default: null,
+    },
+    tokenUsageCount: {
+      type: Number,
+      default: 0
+    },
     lastUsedToken: {
       type: Date,
       default: Date.now(),

@@ -125,6 +125,7 @@ router.post("/switchCompany", [verifyToken], driverController.switchToCompany);
 router.get("/switchDriverToPartnerCompany/:companyId", [verifyToken], driverController.switchDriverToPartnerCompany);
 
 router.put("/logout", [verifyToken], driverController.logout);
+router.put("/hotel-logout", [verifyToken], driverController.hotelLogout);
 router.get("/get_active_drivers",[verifyToken],driverController.get_active_drivers);
 
 // fare api's

@@ -2450,6 +2450,56 @@ exports.logout = async (req, res) => {
   }
 };
 
+exports.hotelLogout = async (req, res) => {
+  try {
+   
+    let hotelInfo = await USER.findOne({ _id: req.userId })
+                              .select('_id password jwtToken tokenUsageCount')
+                              .lean();;
+    if (!hotelInfo) {
+      return res.send({ code: CONSTANT.error_code, message: res.__('userLogin.error.incorrectCredentials') });
+    }
+    
+    // 1) Decrease usage count (never below 0) - atomic
+
+    const updated = await USER.findOneAndUpdate(
+                                                  { _id: req.userId, tokenUsageCount: { $gt: 0 } },
+                                                  { $inc: { tokenUsageCount: -1 } },
+                                                  { new: true, projection: { _id: 1, tokenUsageCount: 1 } }
+                                                ).lean();
+
+    // If user not found OR tokenUsageCount was already 0
+    // (still logout success is fine; but handle gracefully)
+    if (!updated) {
+      return res.send({
+        code: constant.success_code,
+        message: res.__("logout.success.logout"),
+      });
+    }
+
+    // 2) If no one is using the token anymore -> clear jwtToken
+    if (updated.tokenUsageCount <= 0) {
+      await USER.updateOne(
+        { _id: req.userId },
+        { $set: { jwtToken: null }, $setOnInsert: {} }
+      );
+    }
+      
+
+    return res.send({
+      code: constant.success_code,
+      message: res.__('logout.success.logout'),
+    });
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌ logout error --------------' , err.message)
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+};
+
 exports.canLogout = async (driverId) => {
   
   let activeOrReachedTrip = await TRIP.findOne({
