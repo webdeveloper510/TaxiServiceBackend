@@ -27,6 +27,32 @@ function toDate(value) {
  * // → 45.5 minutes
  */
 
+function normalizeTimezone(tz) {
+  if (!tz) return "UTC";
+
+  // Dynamic only: trim and clean, no static mappings
+  return String(tz).trim().replace(/\s+/g, "");
+}
+
+function formatUtcToLocalTime(utcValue, targetTimezone, format = "yyyy-LL-dd HH:mm") {
+  if (!utcValue) return "";
+
+  const timezone = normalizeTimezone(targetTimezone);
+  const safeTz = IANAZone.isValidZone(timezone) ? timezone : "UTC";
+
+  const dt =
+    utcValue instanceof Date
+      ? DateTime.fromJSDate(utcValue, { zone: "utc" })
+      : DateTime.fromISO(
+          String(utcValue).trim().replace(/([+-]00:00)$/, "Z"),
+          { setZone: true }
+        );
+
+  if (!dt.isValid) return "";
+
+  return dt.setZone(safeTz).toFormat(format);
+}
+
 /**
  * Convert local datetime + timezone into UTC JS Date
  *
@@ -66,5 +92,6 @@ function exactMinutes(from, to) {
 
 module.exports = {
   exactMinutes,
-  convertLocalToUTC
+  convertLocalToUTC,
+  formatUtcToLocalTime
 };

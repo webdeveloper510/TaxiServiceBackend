@@ -28,6 +28,10 @@ const SETTING_MODEL = require("../../models/user/setting_model");
 const i18n = require('../../i18n');
 const { updateDriverMapCache , broadcastDriverLocation} = require("../../Service/location.service")
 const { exactMinutes , convertLocalToUTC } = require("../../utils/timeDiff.js")
+const ExcelJS = require("exceljs");
+const PDFDocument = require("pdfkit");
+const { exportXlsx, exportPdf } = require("../../utils/exporterTrip.js");
+const { getHotelTripsExportSchema  } = require("../../utils/exports/schemas/hotelTripsExport.schema.js");
 
 
 exports.add_trip = async (req, res) => {
@@ -263,6 +267,300 @@ exports.get_trip = async (req, res) => {
     });
   }
 };
+
+exports.tripExport = async (req , res) => {
+
+  let cursor;
+
+  try {
+
+    const format = String(req.query.format || "xlsx").toLowerCase(); // xlsx | pdf
+    if (!["xlsx", "pdf"].includes(format)) {
+      return res.send({ code: constant.error_code, message: res.__('common.error.somethingWentWrong'), });
+    }
+
+    console.log("format-------", format)
+    
+    let data = req.body;
+
+    let userId = new mongoose.Types.ObjectId(req.userId);
+    let searchValue = (data.comment || "").trim();
+    let dateQuery = await dateFilter(data );
+    let payOptions = [];
+    try {
+      payOptions = data.pay_option ? JSON.parse(data.pay_option) : [];
+      if (!Array.isArray(payOptions)) payOptions = [];
+    } catch (e) {
+      payOptions = [];
+    }
+
+    payOptions = payOptions.map((x) => String(x || "").trim()).filter(Boolean);
+
+    const status = req.params.status;
+
+    const match = {
+      created_by: userId,
+      under_cancellation_review: false,
+      is_deleted: false,
+    };
+
+    // For pending screen: allow PENDING + APPROVED (as compnay send the trip for alocation to the driver)
+    if (status === constant.TRIP_STATUS.PENDING) {
+      match.status = true;
+      match.trip_status = { $in: [constant.TRIP_STATUS.PENDING, constant.TRIP_STATUS.APPROVED] };
+    } else {
+      match.trip_status = status;
+    }
+
+    // ✅ pay_option filter (FAST)
+    if (payOptions.length > 0) {
+      
+      match.pay_option = { $in: payOptions };
+    }
+
+    // ✅ Search filter (only add when needed)
+    if (searchValue.length > 0) {
+      const rx = new RegExp(searchValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      match.$or = [
+        { comment: rx },
+        { trip_id: rx },
+        { "trip_from.address": rx },
+        { "trip_to.address": rx },
+      ];
+    }
+
+     // ✅ Merge dateQuery safely
+    if (dateQuery && typeof dateQuery === "object" && Object.keys(dateQuery).length) {
+      Object.assign(match, dateQuery);
+    }
+
+    const pipeline =  [
+                        { $match: match },
+                        { $sort: { createdAt: -1 } },
+
+                        // Driver lookup (light) - same
+                        {
+                          $lookup: {
+                            from: "drivers",
+                            let: { driverId: "$driver_name" },
+                            pipeline: [
+                              { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
+                              { $project: { _id: 1, first_name: 1, last_name: 1 } },
+                            ],
+                            as: "driver",
+                          },
+                        },
+
+                        // Vehicle lookup (light) - same
+                        {
+                          $lookup: {
+                            from: "vehicles",
+                            let: { vehicleId: "$vehicle" },
+                            pipeline: [
+                              { $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } },
+                              { $project: { _id: 1, vehicle_number: 1, vehicle_model: 1 } },
+                            ],
+                            as: "vehicleDoc",
+                          },
+                        },
+
+                         // Final projection - same (kept same keys)
+                        {
+                          $project: {
+                            _id: 1,
+                            trip_from: 1,
+                            trip_to: 1,
+                            pickup_date_time: 1,
+                            trip_status: 1,
+                            vehicle_type: 1,
+                            status: 1,
+                            commission: 1,
+                            comment: 1,
+                            pay_option: 1,
+                            is_deleted: 1,
+                            passenger_detail: 1,
+                            createdAt: 1,
+                            car_type: 1,
+                            trip_id: 1,
+                            trip_distance: 1,
+                            pickup_timezone: 1,
+                            roomNumber: "$customerDetails.roomNumber",
+
+                            driver_id: { $arrayElemAt: ["$driver._id", 0] },
+
+                            driver_name: {
+                              $trim: {
+                                input: {
+                                  $concat: [
+                                    { $ifNull: [{ $arrayElemAt: ["$driver.first_name", 0] }, ""] },
+                                    " ",
+                                    { $ifNull: [{ $arrayElemAt: ["$driver.last_name", 0] }, ""] },
+                                  ],
+                                },
+                              },
+                            },
+
+                            vehicle: {
+                              $trim: {
+                                input: {
+                                  $concat: [
+                                    { $ifNull: [{ $arrayElemAt: ["$vehicleDoc.vehicle_number", 0] }, ""] },
+                                    " ",
+                                    { $ifNull: [{ $arrayElemAt: ["$vehicleDoc.vehicle_model", 0] }, ""] },
+                                  ],
+                                },
+                              },
+                            },
+                          },
+                        },
+
+                      ];
+             
+    cursor = TRIP.aggregate(pipeline)
+      .allowDiskUse(true)
+      .cursor({ batchSize: format === "pdf" ? 300 : 1000 }); 
+      
+      // 2) Get schema dynamically
+    const { columns, rowMapper } = await getHotelTripsExportSchema();
+    // const  trips = await TRIP.aggregate(pipeline)
+
+    const baseName = `trips_${status}_${Date.now()}`;
+
+    if (format === "pdf") {
+      await exportPdf({
+        res,
+        fileName: `${baseName}.pdf`,
+        title: `Trips Report (${status})`,
+        cursor,
+        columns,
+        rowMapper,
+      });
+    } else {
+      await exportXlsx({
+        res,
+        fileName: `${baseName}.xlsx`,
+        sheetName: "Trips",
+        columns,
+        cursor,
+        rowMapper,
+      });
+    }
+
+    return; // ✅ no JSON after streaming
+    
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    res.setHeader("Cache-Control", "no-store");
+
+    const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
+      stream: res,
+      useStyles: true,
+      useSharedStrings: true,
+    });
+
+    const sheet = workbook.addWorksheet("Trips", {
+      views: [{ state: "frozen", ySplit: 1 }],
+    });
+
+    // ✅ Columns (choose the ones you want in Excel)
+    sheet.columns = [
+      { header: "Trip ID", key: "trip_id", width: 22 },
+      { header: "Status", key: "trip_status", width: 14 },
+      { header: "Pickup Address", key: "pickup_address", width: 40 },
+      { header: "Drop Address", key: "drop_address", width: 40 },
+      { header: "Pickup DateTime", key: "pickup_date_time", width: 22 },
+      { header: "Timezone", key: "pickup_timezone", width: 16 },
+      { header: "Driver", key: "driver_name", width: 22 },
+      { header: "Vehicle", key: "vehicle", width: 22 },
+      { header: "Pay Option", key: "pay_option", width: 16 },
+      // { header: "Commission Type", key: "commission_type", width: 20 },
+      // { header: "Commission Value", key: "commission_value", width: 20 },
+      { header: "Distance", key: "trip_distance", width: 14 },
+      { header: "Room No", key: "roomNumber", width: 12 },
+      { header: "Created At", key: "createdAt", width: 22 },
+      { header: "Comment", key: "comment", width: 30 },
+    ];
+
+    sheet.getColumn("pickup_date_time").numFmt = "dd-mm-yyyy hh:mm";
+
+    // Header style
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true };
+    headerRow.commit();
+
+    // ✅ Cursor for aggregation (no pagination)
+    cursor = TRIP.aggregate(pipeline)
+      .allowDiskUse(true)
+      .cursor({ batchSize: 1000 });
+      // .exec();
+
+    // Stop if client disconnects
+    let aborted = false;
+
+    res.on("close", () => {
+      aborted = true;
+    });
+
+    // ✅ Write rows
+    for await (const doc of cursor) {
+      if (aborted) break;
+
+      // Map nested fields to flat excel columns
+      const pickup_address = doc?.trip_from?.address || "";
+      const drop_address = doc?.trip_to?.address || "";
+      const commission_type = doc.commission.commission_type == constant.TRIP_COMMISSION_TYPE.FIXED ? constant.TRIP_COMMISSION_TYPE.FIXED : constant.TRIP_COMMISSION_TYPE.PERCENTAGE;
+      const commission_value = doc.commission.commission_type == constant.TRIP_COMMISSION_TYPE.FIXED ? doc.commission.commission_value: `${doc.commission.commission_value}%`;
+      sheet
+        .addRow({
+          trip_id: doc.trip_id || "",
+          trip_status: doc.trip_status || "",
+          pickup_address,
+          drop_address,
+          pickup_date_time: doc.pickup_date_time || "",
+          pickup_timezone: doc.pickup_timezone || "",
+          driver_name: doc.driver_name || "",
+          vehicle: doc.vehicle || "",
+          pay_option: doc.pay_option || "",
+          // commission_type: commission_type ?? "",
+          // commission_value: commission_value ?? "",
+          trip_distance: doc.trip_distance ?? "",
+          roomNumber: doc.roomNumber ?? "",
+          createdAt: doc.createdAt ? new Date(doc.createdAt) : "",
+          comment: doc.comment || "",
+        })
+        .commit();
+    }
+
+    sheet.commit();
+    await workbook.commit();
+
+    // ✅ IMPORTANT: do not res.send anything after this.
+    // Just return to finish the request cleanly.
+    return;
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error trip export', err.message);
+    try {
+      if (cursor?.close) await cursor.close();
+    } catch (_) {}
+
+     if (!res.headersSent) {
+      return res.status(500).send({
+        code: constant.error_code,
+        message: err.message,
+      });
+    }
+    try { res.end(); } catch (_) {}
+
+    
+    
+  }
+}
 
 exports.get_recent_trip = async (req, res) => {
   try {
