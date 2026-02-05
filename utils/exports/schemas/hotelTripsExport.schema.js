@@ -1,5 +1,5 @@
 
-const {formatUtcToLocalTime} = require("../../timeDiff")
+const {formatUtcToLocalTime , milesToKm} = require("../../timeDiff")
 
 exports.getHotelTripsExportSchema = () => {
   const columns = [
@@ -20,9 +20,7 @@ exports.getHotelTripsExportSchema = () => {
     { header: "Comment", key: "comment", width: 30 },
   ];
 
-  const milesToKm = (miles) => {
-    return miles ? (Number(miles) * 1.609344).toFixed(2) : "";
-  };
+  
   const rowMapper = (doc) => {
 
     // const c = commissionToText(doc.commission);

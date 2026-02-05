@@ -90,8 +90,13 @@ function exactMinutes(from, to) {
   return diffMs / 60000;  // 60,000 ms per minute → exact minutes
 }
 
+const milesToKm = (miles) => {
+    return miles ? (Number(miles) * 1.609344).toFixed(2) : "";
+  };
+
 module.exports = {
   exactMinutes,
   convertLocalToUTC,
-  formatUtcToLocalTime
+  formatUtcToLocalTime,
+  milesToKm
 };
