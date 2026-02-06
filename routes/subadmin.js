@@ -44,5 +44,6 @@ router.post('/get_all_uploaded_price_for_hotel/:id', priceUploadController.getAl
 router.get('/get_access_all_uploaded_price/:id',[verifyToken],priceUploadController.getAccessAllUploadedPrice)
 router.post('/update_uploaded_price/:id',[verifyToken , companyAuth],priceUploadController.upateUploadedPrice)
 router.put('/update_allprice_visibility',[verifyToken , companyAuth],priceUploadController.updateAllPriceVisibility)
+router.post("/hotel-active-trip-drivers", [verifyToken], tripController.hotelActiveTripDriverList);
 
 module.exports = router;

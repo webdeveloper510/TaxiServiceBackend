@@ -650,6 +650,105 @@ exports.get_recent_trip = async (req, res) => {
   }
 };
 
+exports.hotelActiveTripDriverList =  async (req, res) => {
+
+  try {
+
+    if (req.user.role !== constant.ROLES.HOTEL) {
+      
+      return res.send({
+        code: constant.error_code,
+        message: res.__('common.error.somethingWentWrong'),
+      });
+    }
+
+    const createdBy = new mongoose.Types.ObjectId(req.userId)
+
+    const tripDetail = await TRIP.aggregate([
+  {
+    $match: {
+      created_by: createdBy,
+      is_deleted: false,
+      under_cancellation_review: false,
+      trip_status: constant.TRIP_STATUS.REACHED
+    }
+  },
+
+  // Driver lookup (light object)
+  {
+    $lookup: {
+      from: "drivers",
+      let: { driverId: "$driver_name" },
+      pipeline: [
+        { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
+        {
+          $project: {
+            _id: 1,
+            first_name: 1,
+            last_name: 1,
+            phone: 1,
+            email: 1,
+            location:1,
+            nickName:1,
+            countryCode:1
+          }
+        }
+      ],
+      as: "driver"
+    }
+  },
+
+  // Vehicle lookup (light object)
+  {
+    $lookup: {
+      from: "vehicles",
+      let: { vehicleId: "$vehicle" },
+      pipeline: [
+        { $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } },
+        {
+          $project: {
+            _id: 1,
+            vehicle_number: 1,
+            vehicle_model: 1,
+            vehicle_type: 1,
+            seating_capacity:1,
+            vehicle_type:1,
+            AC:1,
+          }
+        }
+      ],
+      as: "vehicle"
+    }
+  },
+
+  // Convert arrays → objects
+  {
+    $project: {
+      _id: 1,
+      trip_id: 1,
+      pickup_date_time: 1,
+
+      driver: { $arrayElemAt: ["$driver", 0] },
+      vehicle: { $arrayElemAt: ["$vehicle", 0] }
+    }
+  }
+]);
+
+
+      return res.send({
+                        code: constant.success_code,
+                        list: tripDetail,
+                      });
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error hotelActiveTripDriverList:', err.message);
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
+
 exports.get_counts_dashboard = async (req, res) => {
   try {
     let data = req.body;
