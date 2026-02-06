@@ -302,7 +302,7 @@ exports.createDownloadToken = async (req , res) => {
 
     return res.send({
                       code: constant.success_code,
-                      downloadUrl: `${process.env.BASEURL}/api/subadmin/trip-export?lang=${req.query.lang}&token=${token}`
+                      downloadUrl: `${process.env.API_BASE_URL}/api/subadmin/trip-export?lang=${req.query.lang}&token=${token}`
                     });
 
 
