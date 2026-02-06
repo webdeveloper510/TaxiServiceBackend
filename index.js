@@ -136,11 +136,9 @@ let invoice = await stripe.invoices.retrieve(session.invoice);
 
 
 app.use((req, res, next) => {
-
   res.send({
     code: 404,
     message: "Request Not Found",
-    req:req.ip
   });
 });
 

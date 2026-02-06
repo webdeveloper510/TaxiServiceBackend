@@ -3,6 +3,8 @@ const USER = require("../../models/user/user_model");
 const TRIP = require("../../models/user/trip_model");
 const TRIP_CANCELLATION_REQUEST = require("../../models/user/trip_cancellation_requests_model");
 const TRIP_ASSIGNMENT_HISTORY = require("../../models/user/trip_assignment_history");
+const ExportDownloadToken = require("../../models/user/export_download_token_model");
+const crypto = require("crypto");
 const multer = require("multer");
 const path = require("path");
 const constant = require("../../config/constant");
@@ -268,8 +270,47 @@ exports.get_trip = async (req, res) => {
   }
 };
 
+exports.createDownloadToken = async (req , res) => {
+
+  try {
+
+    const format = String(req.query.format || "xlsx").toLowerCase(); // xlsx | pdf
+    if (!["xlsx", "pdf"].includes(format)) {
+      return res.send({ code: constant.error_code, message: res.__('common.error.somethingWentWrong'), });
+    }
+
+    const token = crypto.randomBytes(16).toString("hex");
+    const now = Date.now();
+
+    await ExportDownloadToken.create({
+                                        token,
+                                        token_type: "TRIP_EXPORT",
+                                        // account_id: req.accountId,
+                                        created_by: req.userId,
+                                        role: req.user.role,
+
+                                        payload: {
+                                          status: req.params.status,          // or from body
+                                          format: req.query.format || "xlsx",
+                                          filters: req.body || {},
+                                          // fields: req.body?.fields || [],
+                                        },
+
+                                        expires_at: new Date(now + 10 * 1000),   // ✅ 10 seconds validity
+                                        cleanup_at: new Date(now + 60 * 1000),   // ✅ delete from DB after 1 minute
+                                      });
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error createDownloadToken', err.message);
+    res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+}
 exports.tripExport = async (req , res) => {
 
+  
   let cursor;
 
   try {
@@ -279,11 +320,21 @@ exports.tripExport = async (req , res) => {
       return res.send({ code: constant.error_code, message: res.__('common.error.somethingWentWrong'), });
     }
 
-    console.log("format-------", format)
+    
     
     let data = req.body;
 
-    let userId = new mongoose.Types.ObjectId(req.userId);
+    data.pay_option = req.query.pay_option;
+    data.comment = req.query.comment;
+    data.dateFilter = req.query.dateFilter;
+    data.startDate = req.query.startDate;
+    data.endDate = req.query.endDate;
+
+    // return res.send({ code: constant.error_code, message: data, });
+    let userId = new mongoose.Types.ObjectId("6899c8819f852c4d83dd985d");
+    // let userId = new mongoose.Types.ObjectId(req.userId);
+    console.log("userId-------", userId)
+    
     let searchValue = (data.comment || "").trim();
     let dateQuery = await dateFilter(data );
     let payOptions = [];
@@ -665,74 +716,75 @@ exports.hotelActiveTripDriverList =  async (req, res) => {
     const createdBy = new mongoose.Types.ObjectId(req.userId)
 
     const tripDetail = await TRIP.aggregate([
-  {
-    $match: {
-      created_by: createdBy,
-      is_deleted: false,
-      under_cancellation_review: false,
-      trip_status: constant.TRIP_STATUS.REACHED
-    }
-  },
+                                              {
+                                                $match: {
+                                                  created_by: createdBy,
+                                                  is_deleted: false,
+                                                  under_cancellation_review: false,
+                                                  trip_status: constant.TRIP_STATUS.REACHED
+                                                }
+                                              },
 
-  // Driver lookup (light object)
-  {
-    $lookup: {
-      from: "drivers",
-      let: { driverId: "$driver_name" },
-      pipeline: [
-        { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
-        {
-          $project: {
-            _id: 1,
-            first_name: 1,
-            last_name: 1,
-            phone: 1,
-            email: 1,
-            location:1,
-            nickName:1,
-            countryCode:1
-          }
-        }
-      ],
-      as: "driver"
-    }
-  },
+                                              // Driver lookup (light object)
+                                              {
+                                                $lookup: {
+                                                  from: "drivers",
+                                                  let: { driverId: "$driver_name" },
+                                                  pipeline: [
+                                                    { $match: { $expr: { $eq: ["$_id", "$$driverId"] } } },
+                                                    {
+                                                      $project: {
+                                                        _id: 1,
+                                                        first_name: 1,
+                                                        last_name: 1,
+                                                        phone: 1,
+                                                        email: 1,
+                                                        location:1,
+                                                        nickName:1,
+                                                        countryCode:1,
+                                                        profile_image:1,
+                                                      }
+                                                    }
+                                                  ],
+                                                  as: "driver"
+                                                }
+                                              },
 
-  // Vehicle lookup (light object)
-  {
-    $lookup: {
-      from: "vehicles",
-      let: { vehicleId: "$vehicle" },
-      pipeline: [
-        { $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } },
-        {
-          $project: {
-            _id: 1,
-            vehicle_number: 1,
-            vehicle_model: 1,
-            vehicle_type: 1,
-            seating_capacity:1,
-            vehicle_type:1,
-            AC:1,
-          }
-        }
-      ],
-      as: "vehicle"
-    }
-  },
+                                              // Vehicle lookup (light object)
+                                              {
+                                                $lookup: {
+                                                  from: "vehicles",
+                                                  let: { vehicleId: "$vehicle" },
+                                                  pipeline: [
+                                                    { $match: { $expr: { $eq: ["$_id", "$$vehicleId"] } } },
+                                                    {
+                                                      $project: {
+                                                        _id: 1,
+                                                        vehicle_number: 1,
+                                                        vehicle_model: 1,
+                                                        vehicle_type: 1,
+                                                        seating_capacity:1,
+                                                        vehicle_type:1,
+                                                        AC:1,
+                                                      }
+                                                    }
+                                                  ],
+                                                  as: "vehicle"
+                                                }
+                                              },
 
-  // Convert arrays → objects
-  {
-    $project: {
-      _id: 1,
-      trip_id: 1,
-      pickup_date_time: 1,
+                                              // Convert arrays → objects
+                                              {
+                                                $project: {
+                                                  _id: 1,
+                                                  trip_id: 1,
+                                                  pickup_date_time: 1,
 
-      driver: { $arrayElemAt: ["$driver", 0] },
-      vehicle: { $arrayElemAt: ["$vehicle", 0] }
-    }
-  }
-]);
+                                                  driver: { $arrayElemAt: ["$driver", 0] },
+                                                  vehicle: { $arrayElemAt: ["$vehicle", 0] }
+                                                }
+                                              }
+                                            ]);
 
 
       return res.send({
