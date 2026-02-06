@@ -299,6 +299,13 @@ exports.createDownloadToken = async (req , res) => {
                                         expires_at: new Date(now + 10 * 1000),   // ✅ 10 seconds validity
                                         cleanup_at: new Date(now + 60 * 1000),   // ✅ delete from DB after 1 minute
                                       });
+
+    return res.send({
+                      code: constant.success_code,
+                      downloadUrl: `${process.env.BASEURL}/api/subadmin/trip-export?lang=${req.query.lang}&token=${token}`
+                    });
+
+
   } catch (err) {
 
     console.log('❌❌❌❌❌❌❌❌❌Error createDownloadToken', err.message);
@@ -310,7 +317,35 @@ exports.createDownloadToken = async (req , res) => {
 }
 exports.tripExport = async (req , res) => {
 
+  console.log("insert here------")
+  const token = String(req.query.token || "").trim();
+  if (!token) return res.status(400).send(res.__('common.error.somethingWentWrong'));
+  const record = await ExportDownloadToken.findOne({ token });
+  if (!record) return res.status(400).send(res.__('common.error.somethingWentWrong'));
+
+  // ✅ one-time use
+  if (record.used_at) return res.status(410).send(res.__('common.error.somethingWentWrong'));
+
+  // ✅ EXACT 10s expiry enforcement (even if DB not deleted yet)
+  if (Date.now() > record.expires_at.getTime()) {
+    return res.status(410).send(res.__('common.error.somethingWentWrong'));
+  }
+
+  // Mark as used ASAP (prevents double click)
+  record.used_at = new Date();
+  await record.save();
+
+
+  req.userId = record.created_by; // or record.account_id depending on your matching logic
+  req.userRole = record.role;
+
+  req.params = {};
+  req.params.status = record.payload.status;
   
+  req.query =  {};
+  req.query.format = record.payload.format;
+  req.body = record.payload.filters || {}
+
   let cursor;
 
   try {

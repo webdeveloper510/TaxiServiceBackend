@@ -17,8 +17,8 @@ router.get('/', function(req, res, next) {
 
 
 router.post('/get_trip/:status',[verifyToken],tripController.get_trip)
-router.post('/create-download-token/:status',[verifyToken],tripController.createDownloadToken)
-router.post('/trip-export/:status',[verifyToken],tripController.tripExport)
+router.post('/create-download-link/:status',[verifyToken],tripController.createDownloadToken)
+router.get('/trip-export',tripController.tripExport)
 router.get('/get_counts_dashboard',[verifyToken],tripController.get_counts_dashboard)
 router.post('/get_recent_trip',[verifyToken],tripController.get_recent_trip)
 router.put('/edit_trip/:id',[verifyToken],tripController.edit_trip);
