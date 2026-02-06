@@ -1554,93 +1554,96 @@ exports.hotelContextCompany = async (req , res) => {
     }
 
     const hotelId = new mongoose.Types.ObjectId(data.id);
-    
-    // const checkHotel = await USER.findOne({
-    //                                         _id: hotelId,
-    //                                         is_deleted: false,
-    //                                         role: CONSTANT.ROLES.HOTEL,
-    //                                         // status: true,
-    //                                         is_blocked: false,
-    //                                         })
-    //                                         .select("_id created_by") 
-    //                                         .lean();
-    
-    //  if (!checkHotel) {
-    //   return res.send({ code: CONSTANT.error_code, message: res.__('common.error.somethingWentWrong') });
-    // }
-
- 
-    // const [company , companyDetails ,HotelCompanyDetails] = await Promise.all([
-    //   USER.findById(checkHotel?.created_by).select('first_name last_name logo phone countryCode role').lean(),
-    //   AGENCY.findOne({user_id: checkHotel?.created_by}).select('company_name').lean(),
-    //   AGENCY.findOne({user_id: checkHotel?._id}).select('company_name').lean(),
-    // ]);
-    
-
-    // if (company) {
-    //   company.company_name = companyDetails?.company_name || "";
-    //   company.hotel_name = HotelCompanyDetails?.company_name || "";
-    // }
 
     const rows = await USER.aggregate([
-      {
-        $match: {
-          _id: hotelId,
-          is_deleted: false,
-          role: CONSTANT.ROLES.HOTEL,
-          is_blocked: false,
-        },
-      },
+                                        {
+                                          $match: {
+                                            _id: hotelId,
+                                            is_deleted: false,
+                                            role: CONSTANT.ROLES.HOTEL,
+                                            is_blocked: false,
+                                          },
+                                        },
+                                        { $limit: 1 },
 
-      // company user
-      {
-        $lookup: {
-          from: "users",
-          localField: "created_by",
-          foreignField: "_id",
-          as: "companyUser",
-        },
-      },
-      { $unwind: { path: "$companyUser", preserveNullAndEmptyArrays: true } },
+                                        // company user (only required fields)
+                                        {
+                                          $lookup: {
+                                            from: "users",
+                                            let: { companyUserId: "$created_by" },
+                                            pipeline: [
+                                              { $match: { $expr: { $eq: ["$_id", "$$companyUserId"] } } },
+                                              {
+                                                $project: {
+                                                  _id: 1,
+                                                  first_name: 1,
+                                                  last_name: 1,
+                                                  phone: 1,
+                                                  countryCode: 1,
+                                                  email: 1,
+                                                  role: 1,
+                                                },
+                                              },
+                                            ],
+                                            as: "companyUser",
+                                          },
+                                        },
 
-      // company agency (company name)
-      {
-        $lookup: {
-          from: "agencies",
-          localField: "created_by",
-          foreignField: "user_id",
-          as: "companyAgency",
-        },
-      },
-      { $unwind: { path: "$companyAgency", preserveNullAndEmptyArrays: true } },
+                                        // company agency (only company_name)
+                                        {
+                                          $lookup: {
+                                            from: "agencies",
+                                            let: { companyUserId: "$created_by" },
+                                            pipeline: [
+                                              { $match: { $expr: { $eq: ["$user_id", "$$companyUserId"] } } },
+                                              { $project: { _id: 0, company_name: 1 } },
+                                            ],
+                                            as: "companyAgency",
+                                          },
+                                        },
 
-      // hotel agency (hotel name)
-      {
-        $lookup: {
-          from: "agencies",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "hotelAgency",
-        },
-      },
-      { $unwind: { path: "$hotelAgency", preserveNullAndEmptyArrays: true } },
+                                        // hotel agency (only company_name)
+                                        {
+                                          $lookup: {
+                                            from: "agencies",
+                                            let: { hotelUserId: "$_id" },
+                                            pipeline: [
+                                              { $match: { $expr: { $eq: ["$user_id", "$$hotelUserId"] } } },
+                                              { $project: { _id: 0, company_name: 1 , land:1 , post_code: 1 } },
+                                            ],
+                                            as: "hotelAgency",
+                                          },
+                                        },
 
-      {
-        $project: {
-          _id: "$companyUser._id",
-          first_name: "$companyUser.first_name",
-          last_name: "$companyUser.last_name",
-          phone: "$companyUser.phone",
-          countryCode: "$companyUser.countryCode",
-          email: "$companyUser.email",
-          role: "$companyUser.role",
-          // logo: "$companyUser.logo",
-          logo: 1,
-          company_name: { $ifNull: ["$companyAgency.company_name", ""] },
-          hotel_name: { $ifNull: ["$hotelAgency.company_name", ""] },
-        },
-      },
-    ]);
+                                        // final shape
+                                        {
+                                          $project: {
+                                            // take first element (instead of unwind)
+                                            companyUser: { $arrayElemAt: ["$companyUser", 0] },
+                                            companyAgency: { $arrayElemAt: ["$companyAgency", 0] },
+                                            hotelAgency: { $arrayElemAt: ["$hotelAgency", 0] },
+
+                                            hotel_logo: "$logo",
+                                          },
+                                        },
+                                        {
+                                          $project: {
+                                            _id: "$companyUser._id",
+                                            first_name: "$companyUser.first_name",
+                                            last_name: "$companyUser.last_name",
+                                            phone: "$companyUser.phone",
+                                            countryCode: "$companyUser.countryCode",
+                                            email: "$companyUser.email",
+                                            role: "$companyUser.role",
+                                            hotel_address: { $ifNull: ["$hotelAgency.land", ""] },
+                                            hotel_postal_code: { $ifNull: ["$hotelAgency.post_code", ""] },
+                                            hotel_logo: 1,
+                                            company_name: { $ifNull: ["$companyAgency.company_name", ""] },
+                                            hotel_name: { $ifNull: ["$hotelAgency.company_name", ""] },
+                                          },
+                                        },
+                                      ]);
+
 
     const result = rows[0] || null;
 

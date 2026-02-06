@@ -836,6 +836,110 @@ exports.hotelActiveTripDriverList =  async (req, res) => {
   }
 }
 
+exports.hotelTripDriverInfo = async (req, res) => {
+
+  try {
+
+    if (req.user.role !== constant.ROLES.HOTEL || !mongoose.Types.ObjectId.isValid(req.params.id)) {
+      
+      return res.send({
+        code: constant.error_code,
+        message: res.__('common.error.somethingWentWrong'),
+      });
+    }
+
+    
+
+    const id = new mongoose.Types.ObjectId(req.params.id);
+    const createdBy = new mongoose.Types.ObjectId(req.userId);
+
+    const tripDetail = await TRIP.aggregate([
+                                              {
+                                                $match: {
+                                                  _id: id,
+                                                  created_by: createdBy,
+                                                  is_deleted: false,
+                                                  under_cancellation_review: false,
+                                                  trip_status: constant.TRIP_STATUS.REACHED,
+                                                  driver_name: { $type: "objectId" },
+                                                  vehicle: { $type: "objectId" },
+                                                }
+                                              },
+                                              { $limit: 1 },
+                                              // Driver lookup (light object)
+                                              {
+                                                $lookup: {
+                                                  from: "drivers",
+                                                  localField: "driver_name",
+                                                  foreignField: "_id",
+                                                  pipeline: [
+                                                              {
+                                                                $project: {
+                                                                  _id: 1,
+                                                                  first_name: 1,
+                                                                  last_name: 1,
+                                                                  phone: 1,
+                                                                  email: 1,
+                                                                  nickName: 1,
+                                                                  countryCode: 1,
+                                                                  profile_image: 1,
+                                                                  // location: 1, // include only if needed
+                                                                },
+                                                              },
+                                                            ],
+                                                  as: "driver",
+                                                }
+                                              },
+
+                                              // Vehicle lookup (light object)
+                                              {
+                                                $lookup: {
+                                                  from: "vehicles",
+                                                  localField: "vehicle",
+                                                  foreignField: "_id",
+                                                  pipeline: [
+                                                              {
+                                                                $project: {
+                                                                  _id: 1,
+                                                                  vehicle_number: 1,
+                                                                  vehicle_model: 1,
+                                                                  vehicle_type: 1,
+                                                                  seating_capacity: 1,
+                                                                  AC: 1,
+                                                                },
+                                                              },
+                                                            ],
+                                                            as: "vehicle",
+                                                }
+                                              },
+
+                                              // Convert arrays → objects
+                                              {
+                                                $project: {
+                                                  _id: 1,
+                                                  trip_id: 1,
+                                                  pickup_date_time: 1,
+                                                  trip_from:1,
+                                                  trip_to:1,
+                                                  driver: { $arrayElemAt: ["$driver", 0] },
+                                                  vehicle: { $arrayElemAt: ["$vehicle", 0] }
+                                                }
+                                              }
+                                            ]);
+      return res.send({
+                        code: constant.success_code,
+                        detail: tripDetail[0] || null,
+                      });
+  } catch (err) {
+
+    console.log('❌❌❌❌❌❌❌❌❌Error get recent trip:', err.message);
+    return res.send({
+      code: constant.error_code,
+      message: err.message,
+    });
+  }
+} 
+
 exports.get_counts_dashboard = async (req, res) => {
   try {
     let data = req.body;
