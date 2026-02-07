@@ -883,7 +883,7 @@ exports.hotelTripDriverInfo = async (req, res) => {
                                                                   nickName: 1,
                                                                   countryCode: 1,
                                                                   profile_image: 1,
-                                                                  // location: 1, // include only if needed
+                                                                  location: 1,
                                                                 },
                                                               },
                                                             ],
